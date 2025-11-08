@@ -1,0 +1,9 @@
+D:\react-projects\raw-data-worksheet-app\backend\WindowsReportFormApp\WindowsReportFormApp\bin\Debug\WindowsReportFormApp.exe.config
+D:\react-projects\raw-data-worksheet-app\backend\WindowsReportFormApp\WindowsReportFormApp\bin\Debug\WindowsReportFormApp.exe
+D:\react-projects\raw-data-worksheet-app\backend\WindowsReportFormApp\WindowsReportFormApp\bin\Debug\WindowsReportFormApp.pdb
+D:\react-projects\raw-data-worksheet-app\backend\WindowsReportFormApp\WindowsReportFormApp\obj\Debug\WindowsReportFormApp.csproj.AssemblyReference.cache
+D:\react-projects\raw-data-worksheet-app\backend\WindowsReportFormApp\WindowsReportFormApp\obj\Debug\WindowsReportFormApp.Properties.Resources.resources
+D:\react-projects\raw-data-worksheet-app\backend\WindowsReportFormApp\WindowsReportFormApp\obj\Debug\WindowsReportFormApp.csproj.GenerateResource.cache
+D:\react-projects\raw-data-worksheet-app\backend\WindowsReportFormApp\WindowsReportFormApp\obj\Debug\WindowsReportFormApp.csproj.CoreCompileInputs.cache
+D:\react-projects\raw-data-worksheet-app\backend\WindowsReportFormApp\WindowsReportFormApp\obj\Debug\WindowsReportFormApp.exe
+D:\react-projects\raw-data-worksheet-app\backend\WindowsReportFormApp\WindowsReportFormApp\obj\Debug\WindowsReportFormApp.pdb

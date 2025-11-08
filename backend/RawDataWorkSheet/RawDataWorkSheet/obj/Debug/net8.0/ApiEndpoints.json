@@ -1,0 +1,58 @@
+[
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
+    "Method": "GetChemicals",
+    "RelativePath": "api/chemicals",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
+    "Method": "GetColumns",
+    "RelativePath": "api/columns",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
+    "Method": "GetInstruments",
+    "RelativePath": "api/instruments",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
+    "Method": "GetSampleDetailsById",
+    "RelativePath": "api/sample-details",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "regNo",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
+    "Method": "GetStandards",
+    "RelativePath": "api/standards",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]

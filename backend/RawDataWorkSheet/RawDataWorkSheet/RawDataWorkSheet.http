@@ -1,0 +1,6 @@
+@RawDataWorkSheet_HostAddress = http://localhost:5162
+
+GET {{RawDataWorkSheet_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

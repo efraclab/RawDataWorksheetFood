@@ -74,8 +74,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Services\\IRawDataService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAqwAkAAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-08T12:00:36.408Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-08T12:00:36.408Z"
             },
             {
               "$type": "Document",
@@ -87,8 +86,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Chemicals.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-08T09:23:55.538Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-08T09:23:55.538Z"
             },
             {
               "$type": "Document",
@@ -100,8 +98,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Repositories\\RawDataRepository.cs",
               "ViewState": "AgIAAMQAAAAAAAAAAAAcwMAAAAA9AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-04T07:14:49.264Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-04T07:14:49.264Z"
             },
             {
               "$type": "Document",
@@ -111,7 +108,7 @@
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Controllers\\RawDataController.cs",
               "ToolTip": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Controllers\\RawDataController.cs",
               "RelativeToolTip": "RawDataWorkSheet\\Controllers\\RawDataController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAAJAAAAAAAAAA==",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABoAAAAzAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-04T07:23:57.234Z",
               "EditorCaption": ""
@@ -126,8 +123,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Repositories\\IRawDataRepository.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAqwAwAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-08T09:30:19.801Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-08T09:30:19.801Z"
             },
             {
               "$type": "Document",
@@ -139,8 +135,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Services\\RawDataService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAxAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-04T07:19:11.104Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-04T07:19:11.104Z"
             },
             {
               "$type": "Document",
@@ -152,8 +147,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Standard.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-08T09:36:33.82Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-08T09:36:33.82Z"
             },
             {
               "$type": "Document",
@@ -165,8 +159,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Instruments.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-08T09:03:47.578Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-08T09:03:47.578Z"
             },
             {
               "$type": "Document",
@@ -178,8 +171,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Program.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-04T07:25:48.04Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-04T07:25:48.04Z"
             },
             {
               "$type": "Document",
@@ -191,21 +183,19 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\SampleDetails.cs",
               "ViewState": "AgIAAAkAAAAAAAAAAAAcwBMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-04T07:17:41.337Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-04T07:17:41.337Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 10,
-              "Title": "RawDataWorkSheet",
+              "Title": "RawDataWorkSheet.csproj",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\RawDataWorkSheet.csproj",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\RawDataWorkSheet.csproj",
               "ToolTip": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\RawDataWorkSheet.csproj",
               "RelativeToolTip": "RawDataWorkSheet\\RawDataWorkSheet.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAKAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2025-11-08T04:55:39.981Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-08T04:55:39.981Z"
             },
             {
               "$type": "Document",
@@ -229,8 +219,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAACLAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-11-04T07:15:04.895Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-04T07:15:04.895Z"
             }
           ]
         }

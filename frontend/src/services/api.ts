@@ -5,7 +5,7 @@ import type { Chemical } from '../models/Chemical';
 import type { Standard } from '../models/Standard';
 import type { Column } from '../models/Column';
 
-const API_BASE_URL = 'https://192.168.3.116:7078/api';
+const API_BASE_URL = 'http://192.168.3.116:5076/api';
 
 
 export const fetchSamples = async (regNo: string): Promise<SampleData[]> => {

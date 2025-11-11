@@ -64,6 +64,7 @@ D:\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkShe
 D:\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net8.0\RawDataWorkSheet.csproj.CoreCompileInputs.cache
 D:\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net8.0\RawDataWorkSheet.MvcApplicationPartsAssemblyInfo.cs
 D:\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net8.0\RawDataWorkSheet.MvcApplicationPartsAssemblyInfo.cache
+D:\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net8.0\RawDataWorkSheet.sourcelink.json
 D:\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net8.0\rjimswa.dswa.cache.json
 D:\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
 D:\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json

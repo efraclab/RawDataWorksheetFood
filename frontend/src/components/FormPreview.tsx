@@ -110,6 +110,19 @@ const ReferenceError: React.FC<{ error: string }> = ({ error }) => (
   </div>
 );
 
+const Beaker: React.FC<{ className: string }> = ({ className }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <path d="M9 3h6v7l4 8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2l4-8V3z" />
+    <path d="M9 3h6" />
+  </svg>
+);
+
 interface FormPreviewProps {
   reportData: SampleData[] | null;
   loading: boolean;
@@ -175,6 +188,7 @@ interface MobilePhaseDetailProps {
     field: "value" | "logBookID" | "mobilePhaseID" | "unit" | "solventChemical",
     newValue: string
   ) => void;
+  onRemove: () => void
 }
 
 const createNewDissoMedia = (index: number): DissoMedia => {
@@ -205,6 +219,7 @@ interface DissoMediaDetailProps {
     field: "value" | "logBookID" | "unit" | "solventChemical",
     newValue: string
   ) => void;
+  onRemove: () => void
 }
 
 const weightUnitOptions = ["g", "mg", "kg"];
@@ -213,445 +228,604 @@ const filtrationUnitOptions = ["micron", "µm", "mm"];
 const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
   mobilePhase,
   onStepChange,
+  onRemove,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
   return (
-    <div className="border-2 border-blue-400  bg-gradient-to-br from-blue-50 via-white to-blue-50 shadow-lg mb-4 hover:shadow-xl transition-shadow">
-      <h4 className="text-sm font-bold bg-blue-100 text-blue-900 p-4 mb-4 border-b-2 border-blue-300">
-        {mobilePhase.label} Preparation Details
-      </h4>
-      <div className="space-y-3 p-5">
-        {mobilePhase.steps.map((step) => {
-          const isWeighing = step.name === "Weighing";
-          const isPH = step.name === "PH";
-          const isSonication = step.name === "Sonication";
-          const isFiltration = step.name === "Filtration";
-
-          return (
-            <div
-              key={step.name}
-              className="grid grid-cols-[180px_1fr] gap-4 items-start bg-white border border-blue-200 rounded-lg p-3 hover:shadow-md hover:border-blue-400 transition-all"
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="bg-white rounded-lg border border-blue-300 shadow-sm mb-3 overflow-hidden hover:shadow-md transition-shadow"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600">
+        <div
+          className="flex items-center gap-3 flex-1 cursor-pointer select-none"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <div className="flex items-center justify-center">
+            <motion.div
+              animate={{ rotate: isExpanded ? 0 : 360 }}
+              transition={{ duration: 0.5 }}
+              className="p-2 bg-white/20 rounded-lg backdrop-blur-sm"
             >
-              <div className="font-bold text-blue-900 pt-2">{step.name}:</div>
-              <div className="flex flex-col gap-2">
-                {isWeighing && (
-                  <>
-                    <div className="flex flex-wrap items-center gap-2 text-sm">
-                      <span className="text-gray-700">Weigh accurately</span>
-                      <input
-                        type="text"
-                        value={step.value}
-                        onChange={(e) =>
-                          onStepChange(
-                            mobilePhase.id,
-                            step.name,
-                            "value",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Amount"
-                        className="w-24 px-3 py-1.5 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      <div className="relative">
-                        <select
-                          value={step.unit}
-                          onChange={(e) =>
-                            onStepChange(
-                              mobilePhase.id,
-                              step.name,
-                              "unit",
-                              e.target.value
-                            )
-                          }
-                          className="appearance-none w-20 px-3 py-1.5 pr-8 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                        >
-                          {weightUnitOptions.map((unit) => (
-                            <option key={unit} value={unit}>
-                              {unit}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                      </div>
-                      <span className="text-gray-700">of</span>
-                      <input
-                        type="text"
-                        value={step.solventChemical || ""}
-                        onChange={(e) =>
-                          onStepChange(
-                            mobilePhase.id,
-                            step.name,
-                            "solventChemical",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Solvent/Chemical"
-                        className="flex-grow min-w-[150px] px-3 py-1.5 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-gray-700">Log Book ID:</span>
-                      <input
-                        type="text"
-                        value={step.logBookID}
-                        onChange={(e) =>
-                          onStepChange(
-                            mobilePhase.id,
-                            step.name,
-                            "logBookID",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter Log ID"
-                        className="flex-grow px-3 py-1.5 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </>
-                )}
+              <Beaker className="w-5 h-5 text-white" />
+            </motion.div>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-white">
+              {mobilePhase.label}
+            </h4>
+            <p className="text-xs text-blue-100">Preparation Details</p>
+          </div>
+        </div>
 
-                {isPH && (
-                  <>
-                    <div className="flex flex-wrap items-center gap-2 text-sm">
-                      <span className="text-gray-700">Adjust the pH to</span>
-                      <input
-                        type="text"
-                        value={step.value}
-                        onChange={(e) =>
-                          onStepChange(
-                            mobilePhase.id,
-                            step.name,
-                            "value",
-                            e.target.value
-                          )
-                        }
-                        placeholder="pH value"
-                        className="w-24 px-3 py-1.5 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-gray-700">Log Book ID:</span>
-                      <input
-                        type="text"
-                        value={step.logBookID}
-                        onChange={(e) =>
-                          onStepChange(
-                            mobilePhase.id,
-                            step.name,
-                            "logBookID",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter Log ID"
-                        className="flex-grow px-3 py-1.5 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </>
-                )}
-
-                {isFiltration && (
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="text-gray-700">
-                      Filter the mobile phase from
-                    </span>
-                    <input
-                      type="text"
-                      value={step.value}
-                      onChange={(e) =>
-                        onStepChange(
-                          mobilePhase.id,
-                          step.name,
-                          "value",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Size"
-                      className="w-24 px-3 py-1.5 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <div className="relative">
-                      <select
-                        value={step.unit}
-                        onChange={(e) =>
-                          onStepChange(
-                            mobilePhase.id,
-                            step.name,
-                            "unit",
-                            e.target.value
-                          )
-                        }
-                        className="appearance-none w-24 px-3 py-1.5 pr-8 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                      >
-                        {filtrationUnitOptions.map((unit) => (
-                          <option key={unit} value={unit}>
-                            {unit}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                    </div>
-                    <span className="text-gray-700">filter</span>
-                  </div>
-                )}
-
-                {isSonication && (
-                  <>
-                    <div className="flex flex-wrap items-center gap-2 text-sm">
-                      <span className="text-gray-700">
-                        Sonicate the mobile phase for
-                      </span>
-                      <input
-                        type="text"
-                        value={step.value}
-                        onChange={(e) =>
-                          onStepChange(
-                            mobilePhase.id,
-                            step.name,
-                            "value",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Time"
-                        className="w-20 px-3 py-1.5 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      <span className="text-gray-700">{step.unit}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-gray-700">Mobile Phase ID:</span>
-                      <input
-                        type="text"
-                        value={step.mobilePhaseID}
-                        onChange={(e) =>
-                          onStepChange(
-                            mobilePhase.id,
-                            step.name,
-                            "mobilePhaseID",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter ID"
-                        className="flex-grow px-3 py-1.5 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        })}
+        <div className="flex items-center gap-2">
+          <motion.div
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="cursor-pointer"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <ChevronDown className="w-5 h-5 text-white" />
+          </motion.div>
+          <button
+            onClick={onRemove}
+            className="p-1.5 bg-white/20 hover:bg-red-500 rounded-md transition-colors"
+            title={`Remove ${mobilePhase.label}`}
+          >
+            <svg
+              className="w-4 h-4 text-white"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* Content */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0 }}
+            animate={{ height: "auto" }}
+            exit={{ height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="p-4 space-y-3 bg-blue-50/30">
+              {mobilePhase.steps.map((step, index) => {
+                const isWeighing = step.name === "Weighing";
+                const isPH = step.name === "PH";
+                const isSonication = step.name === "Sonication";
+                const isFiltration = step.name === "Filtration";
+
+                return (
+                  <div
+                    key={step.name}
+                    className="bg-white rounded border border-blue-200 p-3 hover:border-blue-400 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-blue-900 text-sm mb-2">
+                          {step.name}
+                        </div>
+
+                        {isWeighing && (
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              <span className="text-gray-600">
+                                Weigh accurately
+                              </span>
+                              <input
+                                type="text"
+                                value={step.value}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    mobilePhase.id,
+                                    step.name,
+                                    "value",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Amount"
+                                className="w-20 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                              <select
+                                value={step.unit}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    mobilePhase.id,
+                                    step.name,
+                                    "unit",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-16 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              >
+                                {weightUnitOptions.map((unit) => (
+                                  <option key={unit} value={unit}>
+                                    {unit}
+                                  </option>
+                                ))}
+                              </select>
+                              <span className="text-gray-600">of</span>
+                              <input
+                                type="text"
+                                value={step.solventChemical || ""}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    mobilePhase.id,
+                                    step.name,
+                                    "solventChemical",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Solvent/Chemical"
+                                className="flex-1 min-w-[120px] px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="text-gray-600 w-20">
+                                Log Book ID:
+                              </span>
+                              <input
+                                type="text"
+                                value={step.logBookID}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    mobilePhase.id,
+                                    step.name,
+                                    "logBookID",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Log ID"
+                                className="flex-1 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {isPH && (
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              <span className="text-gray-600">
+                                Adjust the pH to
+                              </span>
+                              <input
+                                type="text"
+                                value={step.value}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    mobilePhase.id,
+                                    step.name,
+                                    "value",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="pH value"
+                                className="w-20 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="text-gray-600 w-20">
+                                Log Book ID:
+                              </span>
+                              <input
+                                type="text"
+                                value={step.logBookID}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    mobilePhase.id,
+                                    step.name,
+                                    "logBookID",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Log ID"
+                                className="flex-1 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {isFiltration && (
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <span className="text-gray-600">
+                              Filter the mobile phase from
+                            </span>
+                            <input
+                              type="text"
+                              value={step.value}
+                              onChange={(e) =>
+                                onStepChange(
+                                  mobilePhase.id,
+                                  step.name,
+                                  "value",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Size"
+                              className="w-20 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                            <select
+                              value={step.unit}
+                              onChange={(e) =>
+                                onStepChange(
+                                  mobilePhase.id,
+                                  step.name,
+                                  "unit",
+                                  e.target.value
+                                )
+                              }
+                              className="w-20 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            >
+                              {filtrationUnitOptions.map((unit) => (
+                                <option key={unit} value={unit}>
+                                  {unit}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="text-gray-600">filter</span>
+                          </div>
+                        )}
+
+                        {isSonication && (
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              <span className="text-gray-600">
+                                Sonicate the mobile phase for
+                              </span>
+                              <input
+                                type="text"
+                                value={step.value}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    mobilePhase.id,
+                                    step.name,
+                                    "value",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Time"
+                                className="w-16 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                              <span className="text-gray-600">{step.unit}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="text-gray-600 w-24">
+                                Mobile Phase ID:
+                              </span>
+                              <input
+                                type="text"
+                                value={step.mobilePhaseID}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    mobilePhase.id,
+                                    step.name,
+                                    "mobilePhaseID",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter ID"
+                                className="flex-1 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
+// Enhanced Disso Media Detail Component
 const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
   dissoMedia,
   onStepChange,
+  onRemove
 }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
   return (
-    <div className="border-2 border-yellow-400  bg-gradient-to-br from-yellow-50 via-white to-yellow-50 shadow-lg mb-4 hover:shadow-xl transition-shadow">
-      <h4 className="text-sm font-bold bg-yellow-100 text-yellow-900 p-4 mb-4 border-b-2 border-yellow-300">
-        {dissoMedia.label} Preparation Details
-      </h4>
-      <div className="space-y-3 p-5">
-        {dissoMedia.steps.map((step) => {
-          const isWeighing = step.name === "Weighing";
-          const isPH = step.name === "PH";
-          const isSonication = step.name === "Sonication";
-          const isFiltration = step.name === "Filtration";
-
-          return (
-            <div
-              key={step.name}
-              className="grid grid-cols-[180px_1fr] gap-4 items-start bg-white border border-yellow-200 rounded-lg p-3 hover:shadow-md hover:border-yellow-400 transition-all"
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="bg-white rounded-lg border border-amber-300 shadow-sm mb-3 overflow-hidden hover:shadow-md transition-shadow"
+    >
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-amber-500 to-yellow-600 cursor-pointer select-none"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center">
+            <motion.div
+              animate={{ rotate: isExpanded ? 0 : 360 }}
+              transition={{ duration: 0.5 }}
+              className="p-2 bg-white/20 rounded-lg backdrop-blur-sm"
             >
-              <div className="font-bold text-yellow-900 pt-2">{step.name}:</div>
-              <div className="flex flex-col gap-2">
-                {isWeighing && (
-                  <>
-                    <div className="flex flex-wrap items-center gap-2 text-sm">
-                      <span className="text-gray-700">Weigh accurately</span>
-                      <input
-                        type="text"
-                        value={step.value}
-                        onChange={(e) =>
-                          onStepChange(
-                            dissoMedia.id,
-                            step.name,
-                            "value",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Amount"
-                        className="w-24 px-3 py-1.5 border border-yellow-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                      />
-                      <div className="relative">
-                        <select
-                          value={step.unit}
-                          onChange={(e) =>
-                            onStepChange(
-                              dissoMedia.id,
-                              step.name,
-                              "unit",
-                              e.target.value
-                            )
-                          }
-                          className="appearance-none w-20 px-3 py-1.5 pr-8 border border-yellow-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white"
-                        >
-                          {weightUnitOptions.map((unit) => (
-                            <option key={unit} value={unit}>
-                              {unit}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                      </div>
-                      <span className="text-gray-700">of</span>
-                      <input
-                        type="text"
-                        value={step.solventChemical || ""}
-                        onChange={(e) =>
-                          onStepChange(
-                            dissoMedia.id,
-                            step.name,
-                            "solventChemical",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Solvent/Chemical"
-                        className="flex-grow min-w-[150px] px-3 py-1.5 border border-yellow-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-gray-700">Log Book ID:</span>
-                      <input
-                        type="text"
-                        value={step.logBookID}
-                        onChange={(e) =>
-                          onStepChange(
-                            dissoMedia.id,
-                            step.name,
-                            "logBookID",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter Log ID"
-                        className="flex-grow px-3 py-1.5 border border-yellow-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                      />
-                    </div>
-                  </>
-                )}
+              <Beaker className="w-5 h-5 text-white" />
+            </motion.div>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-white">
+              {dissoMedia.label}
+            </h4>
+            <p className="text-xs text-yellow-100">Preparation Details</p>
+          </div>
+        </div>
 
-                {isPH && (
-                  <>
-                    <div className="flex flex-wrap items-center gap-2 text-sm">
-                      <span className="text-gray-700">Adjust the pH to</span>
-                      <input
-                        type="text"
-                        value={step.value}
-                        onChange={(e) =>
-                          onStepChange(
-                            dissoMedia.id,
-                            step.name,
-                            "value",
-                            e.target.value
-                          )
-                        }
-                        placeholder="pH value"
-                        className="w-24 px-3 py-1.5 border border-yellow-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-gray-700">Log Book ID:</span>
-                      <input
-                        type="text"
-                        value={step.logBookID}
-                        onChange={(e) =>
-                          onStepChange(
-                            dissoMedia.id,
-                            step.name,
-                            "logBookID",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter Log ID"
-                        className="flex-grow px-3 py-1.5 border border-yellow-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                      />
-                    </div>
-                  </>
-                )}
-
-                {isFiltration && (
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="text-gray-700">
-                      Filter the disso media from
-                    </span>
-                    <input
-                      type="text"
-                      value={step.value}
-                      onChange={(e) =>
-                        onStepChange(
-                          dissoMedia.id,
-                          step.name,
-                          "value",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Size"
-                      className="w-24 px-3 py-1.5 border border-yellow-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                    />
-                    <div className="relative">
-                      <select
-                        value={step.unit}
-                        onChange={(e) =>
-                          onStepChange(
-                            dissoMedia.id,
-                            step.name,
-                            "unit",
-                            e.target.value
-                          )
-                        }
-                        className="appearance-none w-24 px-3 py-1.5 pr-8 border border-yellow-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white"
-                      >
-                        {filtrationUnitOptions.map((unit) => (
-                          <option key={unit} value={unit}>
-                            {unit}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                    </div>
-                    <span className="text-gray-700">filter</span>
-                  </div>
-                )}
-
-                {isSonication && (
-                  <>
-                    <div className="flex flex-wrap items-center gap-2 text-sm">
-                      <span className="text-gray-700">
-                        Sonicate the disso media for
-                      </span>
-                      <input
-                        type="text"
-                        value={step.value}
-                        onChange={(e) =>
-                          onStepChange(
-                            dissoMedia.id,
-                            step.name,
-                            "value",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Time"
-                        className="w-20 px-3 py-1.5 border border-yellow-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                      />
-                      <span className="text-gray-700">{step.unit}</span>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        })}
+        <div className="flex items-center gap-2">
+          <motion.div
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="cursor-pointer"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <ChevronDown className="w-5 h-5 text-white" />
+          </motion.div>
+          <button
+            onClick={onRemove}
+            className="p-1.5 bg-white/20 hover:bg-red-500 rounded-md transition-colors"
+            title={`Remove ${dissoMedia.label}`}
+          >
+            <svg
+              className="w-4 h-4 text-white"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* Content */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0 }}
+            animate={{ height: "auto" }}
+            exit={{ height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="p-4 space-y-3 bg-amber-50/30">
+              {dissoMedia.steps.map((step, index) => {
+                const isWeighing = step.name === "Weighing";
+                const isPH = step.name === "PH";
+                const isSonication = step.name === "Sonication";
+                const isFiltration = step.name === "Filtration";
+
+                return (
+                  <div
+                    key={step.name}
+                    className="bg-white rounded border border-amber-200 p-3 hover:border-amber-400 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-amber-900 text-sm mb-2">
+                          {step.name}
+                        </div>
+
+                        {isWeighing && (
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              <span className="text-gray-600">
+                                Weigh accurately
+                              </span>
+                              <input
+                                type="text"
+                                value={step.value}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    dissoMedia.id,
+                                    step.name,
+                                    "value",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Amount"
+                                className="w-20 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              />
+                              <select
+                                value={step.unit}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    dissoMedia.id,
+                                    step.name,
+                                    "unit",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-16 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              >
+                                {weightUnitOptions.map((unit) => (
+                                  <option key={unit} value={unit}>
+                                    {unit}
+                                  </option>
+                                ))}
+                              </select>
+                              <span className="text-gray-600">of</span>
+                              <input
+                                type="text"
+                                value={step.solventChemical || ""}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    dissoMedia.id,
+                                    step.name,
+                                    "solventChemical",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Solvent/Chemical"
+                                className="flex-1 min-w-[120px] px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              />
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="text-gray-600 w-20">
+                                Log Book ID:
+                              </span>
+                              <input
+                                type="text"
+                                value={step.logBookID}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    dissoMedia.id,
+                                    step.name,
+                                    "logBookID",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Log ID"
+                                className="flex-1 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {isPH && (
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              <span className="text-gray-600">
+                                Adjust the pH to
+                              </span>
+                              <input
+                                type="text"
+                                value={step.value}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    dissoMedia.id,
+                                    step.name,
+                                    "value",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="pH value"
+                                className="w-20 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              />
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="text-gray-600 w-20">
+                                Log Book ID:
+                              </span>
+                              <input
+                                type="text"
+                                value={step.logBookID}
+                                onChange={(e) =>
+                                  onStepChange(
+                                    dissoMedia.id,
+                                    step.name,
+                                    "logBookID",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Log ID"
+                                className="flex-1 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {isFiltration && (
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <span className="text-gray-600">
+                              Filter the disso media from
+                            </span>
+                            <input
+                              type="text"
+                              value={step.value}
+                              onChange={(e) =>
+                                onStepChange(
+                                  dissoMedia.id,
+                                  step.name,
+                                  "value",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Size"
+                              className="w-20 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            />
+                            <select
+                              value={step.unit}
+                              onChange={(e) =>
+                                onStepChange(
+                                  dissoMedia.id,
+                                  step.name,
+                                  "unit",
+                                  e.target.value
+                                )
+                              }
+                              className="w-20 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            >
+                              {filtrationUnitOptions.map((unit) => (
+                                <option key={unit} value={unit}>
+                                  {unit}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="text-gray-600">filter</span>
+                          </div>
+                        )}
+
+                        {isSonication && (
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <span className="text-gray-600">
+                              Sonicate the disso media for
+                            </span>
+                            <input
+                              type="text"
+                              value={step.value}
+                              onChange={(e) =>
+                                onStepChange(
+                                  dissoMedia.id,
+                                  step.name,
+                                  "value",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Time"
+                              className="w-16 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            />
+                            <span className="text-gray-600">{step.unit}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
@@ -791,7 +965,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
         ...prev,
         [newId]: testInfo.columnId || "",
       }));
-      
+
       setTestSolutionPerParam((prev) => ({
         ...prev,
         [newId]: preparationTestSolution || "",
@@ -2186,16 +2360,16 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 </div> */}
 
                 {/* --- START: Dynamic Mobile Phase Section --- */}
-                <div className="mb-6 p-5 bg-gradient-to-br from-blue-50 to-white border-2 border-blue-400 rounded-xl shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-blue-900">
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <h3 className="text-base font-bold text-blue-900 flex items-center gap-2">
                       Mobile Phase Preparations
                     </h3>
                     <button
                       onClick={() => handleAddMobilePhase(selectedParam.id)}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg text-xs"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm text-xs"
                     >
-                      <Plus className="w-3 h-3" />
+                      <Plus className="w-3.5 h-3.5" />
                       Add Mobile Phase
                     </button>
                   </div>
@@ -2203,46 +2377,39 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                   <AnimatePresence>
                     {(mobilePhasesPerParam[selectedParam.id] || []).map(
                       (mobilePhase) => (
-                        <div key={mobilePhase.id} className="relative">
-                          <MobilePhaseDetail
-                            mobilePhase={mobilePhase}
-                            onStepChange={(
+                        <MobilePhaseDetail
+                          key={mobilePhase.id}
+                          mobilePhase={mobilePhase}
+                          onStepChange={(
+                            mobilePhaseId,
+                            stepName,
+                            field,
+                            newValue
+                          ) =>
+                            handleMobilePhaseStepChange(
+                              selectedParam.id,
                               mobilePhaseId,
                               stepName,
                               field,
                               newValue
-                            ) =>
-                              handleMobilePhaseStepChange(
-                                selectedParam.id,
-                                mobilePhaseId,
-                                stepName,
-                                field,
-                                newValue
-                              )
-                            }
-                          />
-                          <button
-                            className="absolute top-4 right-5 p-1.5 text-red-500 bg-white rounded-full hover:bg-red-100 transition-colors shadow-lg border border-red-300"
-                            onClick={() =>
-                              handleRemoveMobilePhase(
-                                selectedParam.id,
-                                mobilePhase.id
-                              )
-                            }
-                            title={`Remove ${mobilePhase.label}`}
-                          >
-                            <Trash className="w-4 h-4" />
-                          </button>
-                        </div>
+                            )
+                          }
+                          onRemove={() =>
+                            handleRemoveMobilePhase(
+                              selectedParam.id,
+                              mobilePhase.id
+                            )
+                          }
+                        />
                       )
                     )}
                   </AnimatePresence>
 
                   {(mobilePhasesPerParam[selectedParam.id] || []).length ===
                     0 && (
-                    <div className="text-center py-6 text-gray-500 text-sm bg-white border border-blue-200 rounded-lg">
+                    <div className="text-center py-8 text-gray-500 text-sm bg-blue-50/50 border border-blue-200 rounded-lg">
                       <Target className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                      <p>No mobile phases added yet.</p>
+                      <p className="font-medium">No mobile phases added yet.</p>
                       <p className="text-xs mt-1">
                         Click "Add Mobile Phase" to begin preparation.
                       </p>
@@ -2252,16 +2419,16 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 {/* --- END: Dynamic Mobile Phase Section --- */}
 
                 {/* --- START: Dynamic Disso Media Section --- */}
-                <div className="mb-6 p-5 bg-gradient-to-br from-yellow-50 to-white border-2 border-yellow-400 rounded-xl shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-yellow-900">
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <h3 className="text-base font-bold text-amber-900 flex items-center gap-2">
                       Disso Media Preparations
                     </h3>
                     <button
                       onClick={() => handleAddDissoMedia(selectedParam.id)}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white font-semibold rounded-lg hover:from-yellow-700 hover:to-yellow-800 transition-all shadow-md hover:shadow-lg text-xs"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white font-medium rounded-md hover:bg-amber-700 transition-colors shadow-sm text-xs"
                     >
-                      <Plus className="w-3 h-3" />
+                      <Plus className="w-3.5 h-3.5" />
                       Add Disso Media
                     </button>
                   </div>
@@ -2269,53 +2436,46 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                   <AnimatePresence>
                     {(dissoMediaPerParam[selectedParam.id] || []).map(
                       (dissoMedia) => (
-                        <div key={dissoMedia.id} className="relative">
-                          <DissoMediaDetail
-                            dissoMedia={dissoMedia}
-                            onStepChange={(
+                        <DissoMediaDetail
+                          key={dissoMedia.id}
+                          dissoMedia={dissoMedia}
+                          onStepChange={(
+                            dissoMediaId,
+                            stepName,
+                            field,
+                            newValue
+                          ) =>
+                            handleDissoMediaStepChange(
+                              selectedParam.id,
                               dissoMediaId,
                               stepName,
                               field,
                               newValue
-                            ) =>
-                              handleDissoMediaStepChange(
-                                selectedParam.id,
-                                dissoMediaId,
-                                stepName,
-                                field,
-                                newValue
-                              )
-                            }
-                          />
-                          <button
-                            className="absolute top-4 right-5 p-1.5 text-red-500 bg-white rounded-full hover:bg-red-100 transition-colors shadow-lg border border-red-300"
-                            onClick={() =>
-                              handleRemoveDissoMedia(
-                                selectedParam.id,
-                                dissoMedia.id
-                              )
-                            }
-                            title={`Remove ${dissoMedia.label}`}
-                          >
-                            <Trash className="w-4 h-4" />
-                          </button>
-                        </div>
+                            )
+                          }
+                          onRemove={() =>
+                            handleRemoveDissoMedia(
+                              selectedParam.id,
+                              dissoMedia.id
+                            )
+                          }
+                        />
                       )
                     )}
                   </AnimatePresence>
 
                   {(dissoMediaPerParam[selectedParam.id] || []).length ===
                     0 && (
-                    <div className="text-center py-6 text-gray-500 text-sm bg-white border border-yellow-200 rounded-lg">
+                    <div className="text-center py-8 text-gray-500 text-sm bg-amber-50/50 border border-amber-200 rounded-lg">
                       <Target className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                      <p>No disso media added yet.</p>
+                      <p className="font-medium">No disso media added yet.</p>
                       <p className="text-xs mt-1">
                         Click "Add Disso Media" to begin preparation.
                       </p>
                     </div>
                   )}
                 </div>
-                {/* --- END: Dynamic Mobile Phase Section --- */}
+                {/* --- END: Dynamic Disso Media Section --- */}
 
                 {/* Preparation of Test Solution */}
                 <div className="mb-4">

@@ -1,27 +1,27 @@
-import { useState, useCallback, useEffect } from 'react';
-import './index.css';
+import { useState, useCallback, useEffect, useRef } from "react";
+import "./index.css";
 
-import RegistrationSearchTool from './components/RegistrationSearchTool';
-import FormPreview from './components/FormPreview';
-import { 
-  fetchSamples, 
+import RegistrationSearchTool from "./components/RegistrationSearchTool";
+import FormPreview from "./components/FormPreview";
+import {
+  fetchSamples,
   fetchInstruments,
   fetchChemicals,
   fetchStandards,
-  fetchColumns
-} from './services/api'; 
-import { type SampleData } from './models/SampleData';
-import { type Instrument } from './models/Instrument'; 
-import { type Chemical } from './models/Chemical';
-import { type Standard } from './models/Standard';
-import type { Column } from './models/Column';
+  fetchColumns,
+} from "./services/api";
+import { type SampleData } from "./models/SampleData";
+import { type Instrument } from "./models/Instrument";
+import { type Chemical } from "./models/Chemical";
+import { type Standard } from "./models/Standard";
+import type { Column } from "./models/Column";
 
 function App() {
-  const [registrationNo, setRegistrationNo] = useState('');
-  
+  const [registrationNo, setRegistrationNo] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [reportData, setReportData] = useState<SampleData[] | null>(null);
   const [isReportLoading, setIsReportLoading] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
@@ -31,20 +31,24 @@ function App() {
   const [standards, setStandards] = useState<Standard[]>([]);
   const [columns, setColumns] = useState<Column[]>([]);
   const [isReferenceDataLoading, setIsReferenceDataLoading] = useState(true);
-  const [referenceDataError, setReferenceDataError] = useState<string | null>(null);
+  const [referenceDataError, setReferenceDataError] = useState<string | null>(
+    null
+  );
 
+  // Ref for the FormPreview section
+  const formPreviewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadReferenceData = async () => {
       setIsReferenceDataLoading(true);
       setReferenceDataError(null);
-      
+
       try {
         const [inst, chem, std, col] = await Promise.all([
           fetchInstruments(),
           fetchChemicals(),
           fetchStandards(),
-          fetchColumns()
+          fetchColumns(),
         ]);
 
         setInstruments(inst);
@@ -62,6 +66,18 @@ function App() {
     loadReferenceData();
   }, []);
 
+  // Scroll to FormPreview when reportData is loaded
+  useEffect(() => {
+    if (reportData && formPreviewRef.current) {
+      // Small delay to ensure the component is rendered
+      setTimeout(() => {
+        formPreviewRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+    }
+  }, [reportData]);
 
   const fetchReport = useCallback(async (regNoToFetch: string) => {
     if (!regNoToFetch) {
@@ -73,23 +89,23 @@ function App() {
     setIsReportLoading(true);
     setReportError(null);
     setReportData(null);
-    
+
     try {
-      const data = await fetchSamples(regNoToFetch); 
-      
+      const data = await fetchSamples(regNoToFetch);
+
       if (data && Array.isArray(data) && data.length > 0) {
         setReportData(data);
-        setError(null); 
+        setError(null);
       } else {
-        setReportData(null); 
-        setReportError(null); 
+        setReportData(null);
+        setReportError(null);
       }
     } catch (e: any) {
       console.error("Report Fetch Error:", e);
-      setReportError(`Failed to fetch report data: ${e.message}`); 
+      setReportError(`Failed to fetch report data: ${e.message}`);
     } finally {
       setIsReportLoading(false);
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   }, []);
 
@@ -98,16 +114,15 @@ function App() {
       setError("Please enter a registration number to search.");
       return;
     }
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     fetchReport(registrationNo);
-    
   }, [registrationNo, fetchReport]);
 
   const handleClear = useCallback(() => {
-    setRegistrationNo('');
+    setRegistrationNo("");
     setError(null);
     setReportData(null);
     setReportError(null);
@@ -116,7 +131,7 @@ function App() {
 
   return (
     <>
-      <RegistrationSearchTool 
+      <RegistrationSearchTool
         registrationNo={registrationNo}
         setRegistrationNo={setRegistrationNo}
         fetchRegistrationDetails={fetchRegistrationDetails}
@@ -125,18 +140,22 @@ function App() {
         onClear={handleClear}
       />
 
-      <FormPreview
-        reportData={reportData}
-        loading={isReportLoading}
-        error={reportError}
-        registrationNo={registrationNo} 
-        instruments={instruments}
-        chemicals={chemicals}
-        standards={standards}
-        columns={columns}
-        isReferenceDataLoading={isReferenceDataLoading}
-        referenceDataError={referenceDataError}
-      />
+      {registrationNo && (
+        <div ref={formPreviewRef}>
+          <FormPreview
+            reportData={reportData}
+            loading={isReportLoading}
+            error={reportError}
+            registrationNo={registrationNo}
+            instruments={instruments}
+            chemicals={chemicals}
+            standards={standards}
+            columns={columns}
+            isReferenceDataLoading={isReferenceDataLoading}
+            referenceDataError={referenceDataError}
+          />
+        </div>
+      )}
     </>
   );
 }

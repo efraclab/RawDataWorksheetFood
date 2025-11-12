@@ -13,6 +13,10 @@ import type { StandardPreparation } from "../models/StandardPreparation";
 import type { SamplePreparation } from "../models/SamplePreparation";
 import type { StandardPreparationStep } from "../models/StandardPreparationStep";
 import type { SamplePreparationStep } from "../models/SamplePreparationStep";
+import { CgTrash } from "react-icons/cg";
+import type { SamplePreparationTitration } from "../models/SamplePreparationTitration";
+import type { SamplePreparationTitrationStep } from "../models/SamplePreparationTitrationStep";
+import { Droplets } from "lucide-react";
 
 const Target: React.FC<{ className: string }> = ({ className }) => (
   <svg
@@ -98,7 +102,7 @@ const Search: React.FC<{ className: string }> = ({ className }) => (
 );
 
 const ReferenceLoading: React.FC = () => (
-  <div className="flex items-center justify-center p-4 bg-green-50 border border-green-300 rounded-lg text-sm text-green-800 font-medium shadow-sm">
+  <div className="flex items-center justify-center p-4 bg-emerald-50 border border-emerald-300 rounded-lg text-sm text-emerald-800 font-medium shadow-sm">
     <LoaderCircle className="w-5 h-5 mr-3" />
     Loading reference data (Instruments, Chemicals, Standards, Columns)...
   </div>
@@ -253,14 +257,14 @@ interface StandardPreparationDetailProps {
     standardPreprationId: number,
     stepName: StandardPreparationStep["name"],
     field:
-      | "weight"
+      | "value"
       | "unit"
       | "vol1"
       | "vol2"
       | "unit1"
       | "unit2"
       | "logBookID"
-      | "chemicalSource",
+      | "solventChemical",
     newValue: string
   ) => void;
   onRemove: () => void;
@@ -293,17 +297,46 @@ interface SamplePreparationDetailProps {
     samplePreprationId: number,
     stepName: SamplePreparationStep["name"],
     field:
-      | "weight"
+      "value"
       | "unit"
       | "vol1"
       | "vol2"
       | "unit1"
       | "unit2"
       | "logBookID"
-      | "chemicalSource",
+      | "solventChemical",
     newValue: string
   ) => void;
 
+  onRemove: () => void;
+}
+
+const createNewSamplePreparationTitration = (index: number): SamplePreparationTitration => {
+  return {
+    id: Date.now() + index,
+    label: `Sample Preparation for Titration ${index + 1}`,
+    steps: [
+      {
+        name: "Weighing",
+        value: "",
+        unit: "g",
+        solventChemical: "",
+        logBookID: "",
+      },
+      { name: "1st Dilution", value: "", unit: "ml"},
+      { name: "End Point Determination", value: ""},
+    ],
+  };
+};
+
+interface SamplePreparationTitrationDetailProps {
+  samplePreparationTitration: SamplePreparationTitration;
+  onStepChange: (
+    samplePreparationTitrationId: number,
+    stepName: SamplePreparationTitrationStep["name"],
+    field: "value" | "logBookID" | "unit" | "solventChemical",
+    newValue: string
+  ) => void;
   onRemove: () => void;
 }
 
@@ -320,311 +353,322 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="bg-white rounded-lg border border-blue-300 shadow-sm mb-3 overflow-hidden hover:shadow-md transition-shadow"
+      exit={{ opacity: 0, y: -20 }}
+      className="relative group"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600">
-        <div
-          className="flex items-center gap-3 flex-1 cursor-pointer select-none"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          <div className="flex items-center justify-center">
-            <motion.div
-              animate={{ rotate: isExpanded ? 0 : 360 }}
-              transition={{ duration: 0.5 }}
-              className="p-2 bg-white/20 rounded-lg backdrop-blur-sm"
+      {/* Glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 rounded-lg blur-xl group-hover:blur-xl transition-all duration-300" />
+      
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-blue-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+        {/* Elegant Header */}
+        <div className="relative bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 overflow-hidden">
+          <div className="absolute inset-0 bg-black/5" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
+          
+          <div className="relative flex items-center justify-between px-4 py-3">
+            <div
+              className="flex items-center gap-4 flex-1 cursor-pointer select-none"
+              onClick={() => setIsExpanded(!isExpanded)}
             >
-              <Beaker className="w-5 h-5 text-white" />
-            </motion.div>
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-white">
-              {mobilePhase.label}
-            </h4>
-            <p className="text-xs text-blue-100">Preparation Details</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <motion.div
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-            className="cursor-pointer"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            <ChevronDown className="w-5 h-5 text-white" />
-          </motion.div>
-          <button
-            onClick={onRemove}
-            className="p-1.5 bg-white/20 hover:bg-red-500 rounded-md transition-colors"
-            title={`Remove ${mobilePhase.label}`}
-          >
-            <svg
-              className="w-4 h-4 text-white"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "auto" }}
-            exit={{ height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="p-4 space-y-3 bg-blue-50/30">
-              {mobilePhase.steps.map((step, index) => {
-                const isWeighing = step.name === "Weighing";
-                const isPH = step.name === "PH";
-                const isSonication = step.name === "Sonication";
-                const isFiltration = step.name === "Filtration";
-
-                return (
-                  <div
-                    key={step.name}
-                    className="bg-white rounded border border-blue-200 p-3 hover:border-blue-400 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-blue-900 text-sm mb-2">
-                          {step.name}
-                        </div>
-
-                        {isWeighing && (
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="text-gray-600">
-                                Weigh accurately
-                              </span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                inputMode="decimal"
-                                value={step.value}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    mobilePhase.id,
-                                    step.name,
-                                    "value",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Amount"
-                                className="w-20 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                              />
-                              <select
-                                value={step.unit}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    mobilePhase.id,
-                                    step.name,
-                                    "unit",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-16 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                              >
-                                {weightUnitOptions.map((unit) => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                              <span className="text-gray-600">of</span>
-                              <input
-                                type="text"
-                                value={step.solventChemical || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    mobilePhase.id,
-                                    step.name,
-                                    "solventChemical",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Solvent/Chemical"
-                                className="flex-1 min-w-[110px] px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                              />
-                              <span className="text-gray-600 w-20">
-                                (Log Book ID:
-                              </span>
-                              <input
-                                type="text"
-                                value={step.logBookID}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    mobilePhase.id,
-                                    step.name,
-                                    "logBookID",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Enter Log ID"
-                                className="w-30 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                              />
-                              <span className="text-gray-600 w-20">)</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {isPH && (
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="text-gray-600">
-                                Adjust the pH to
-                              </span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                inputMode="decimal"
-                                value={step.value}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    mobilePhase.id,
-                                    step.name,
-                                    "value",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="pH value"
-                                className="w-20 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                              />
-                              <span className="text-gray-600 w-20">
-                                (Log Book ID:
-                              </span>
-                              <input
-                                type="text"
-                                value={step.logBookID}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    mobilePhase.id,
-                                    step.name,
-                                    "logBookID",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Enter Log ID"
-                                className="flex-1 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                              />
-                              <span className="text-gray-600 w-20">)</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {isFiltration && (
-                          <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <span className="text-gray-600">
-                              Filter the mobile phase from
-                            </span>
-                            <input
-                              type="number"
-                              step="0.01"
-                              inputMode="decimal"
-                              value={step.value}
-                              onChange={(e) =>
-                                onStepChange(
-                                  mobilePhase.id,
-                                  step.name,
-                                  "value",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Size"
-                              className="w-20 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            />
-                            <select
-                              value={step.unit}
-                              onChange={(e) =>
-                                onStepChange(
-                                  mobilePhase.id,
-                                  step.name,
-                                  "unit",
-                                  e.target.value
-                                )
-                              }
-                              className="w-20 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            >
-                              {filtrationUnitOptions.map((unit) => (
-                                <option key={unit} value={unit}>
-                                  {unit}
-                                </option>
-                              ))}
-                            </select>
-                            <span className="text-gray-600">filter</span>
-                          </div>
-                        )}
-
-                        {isSonication && (
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="text-gray-600">
-                                Sonicate the mobile phase for
-                              </span>
-                              <input
-                                type="number"
-                                step="1"
-                                inputMode="numeric"
-                                value={step.value}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    mobilePhase.id,
-                                    step.name,
-                                    "value",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Time"
-                                className="w-16 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                              />
-                              <span className="text-gray-600">{step.unit}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs">
-                              <span className="text-gray-600 w-24">
-                                Mobile Phase ID:
-                              </span>
-                              <input
-                                type="text"
-                                value={step.mobilePhaseID}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    mobilePhase.id,
-                                    step.name,
-                                    "mobilePhaseID",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Enter ID"
-                                className="flex-1 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              <motion.div
+                animate={{ rotate: isExpanded ? 0 : 360 }}
+                transition={{ duration: 0.5 }}
+                className="relative"
+              >
+                <div className="absolute inset-0 bg-white/30 rounded-lg blur-md" />
+                <div className="relative p-2 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
+                  <Droplets className="w-5 h-5 text-white" />
+                </div>
+              </motion.div>
+              
+              <div>
+                <h4 className="text-sm font-semibold text-white tracking-wide">
+                  {mobilePhase.label}
+                </h4>
+                <p className="text-xs text-blue-100">Mobile Phase Preparation Details</p>
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+            <div className="flex items-center gap-3">
+              <motion.button
+                onClick={() => setIsExpanded(!isExpanded)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <motion.div
+                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <ChevronDown className="w-5 h-5 text-white" />
+                </motion.div>
+              </motion.button>
+              
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${mobilePhase.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="p-5 space-y-3 bg-gradient-to-br from-blue-50/50 to-cyan-50/30">
+                {mobilePhase.steps.map((step, index) => {
+                  const isWeighing = step.name === "Weighing";
+                  const isPH = step.name === "PH";
+                  const isSonication = step.name === "Sonication";
+                  const isFiltration = step.name === "Filtration";
+
+                  return (
+                    <motion.div
+                      key={step.name}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group/item relative"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-blue-400/5 to-blue-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                      
+                      <div className="relative bg-white rounded-xl border border-blue-200/60 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-md">
+                            <span className="text-white text-xs font-bold">{index + 1}</span>
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="font-bold text-blue-900 text-sm">
+                                {step.name}
+                              </div>
+                              <div className="h-px flex-1 bg-gradient-to-r from-blue-200 to-transparent" />
+                            </div>
+
+                            {isWeighing && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Weigh accurately</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        mobilePhase.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Amount"
+                                    className="w-20 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        mobilePhase.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-gray-600 font-medium">of</span>
+                                  <input
+                                    type="text"
+                                    value={step.solventChemical || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        mobilePhase.id,
+                                        step.name,
+                                        "solventChemical",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Solvent/Chemical"
+                                    className="flex-1 min-w-[110px] px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <input
+                                    type="text"
+                                    value={step.logBookID}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        mobilePhase.id,
+                                        step.name,
+                                        "logBookID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="w-28 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">)</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {isPH && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Adjust pH to</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        mobilePhase.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="pH value"
+                                    className="w-40 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <input
+                                    type="text"
+                                    value={step.logBookID}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        mobilePhase.id,
+                                        step.name,
+                                        "logBookID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="flex-1 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">)</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {isFiltration && (
+                              <div className="flex flex-wrap items-center gap-2 text-xs">
+                                <span className="text-gray-600 font-medium">Filter from</span>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  inputMode="decimal"
+                                  value={step.value}
+                                  onChange={(e) =>
+                                    onStepChange(
+                                      mobilePhase.id,
+                                      step.name,
+                                      "value",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Size"
+                                  className="w-20 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                />
+                                <select
+                                  value={step.unit}
+                                  onChange={(e) =>
+                                    onStepChange(
+                                      mobilePhase.id,
+                                      step.name,
+                                      "unit",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-20 px-2 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                >
+                                  {filtrationUnitOptions.map((unit) => (
+                                    <option key={unit} value={unit}>
+                                      {unit}
+                                    </option>
+                                  ))}
+                                </select>
+                                <span className="text-gray-600 font-medium">filter</span>
+                              </div>
+                            )}
+
+                            {isSonication && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Sonicate for</span>
+                                  <input
+                                    type="number"
+                                    step="1"
+                                    inputMode="numeric"
+                                    value={step.value}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        mobilePhase.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Time"
+                                    className="w-16 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                  />
+                                  <span className="text-gray-600 font-medium">{step.unit}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Phase ID:</span>
+                                  <input
+                                    type="text"
+                                    value={step.mobilePhaseID}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        mobilePhase.id,
+                                        step.name,
+                                        "mobilePhaseID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="flex-1 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 };
@@ -638,290 +682,322 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="bg-white rounded-lg border border-amber-300 shadow-sm mb-3 overflow-hidden hover:shadow-md transition-shadow"
+      exit={{ opacity: 0, y: -20 }}
+      className="relative group"
     >
-      {/* Header */}
-      <div
-        className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-amber-500 to-yellow-600 cursor-pointer select-none"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center">
-            <motion.div
-              animate={{ rotate: isExpanded ? 0 : 360 }}
-              transition={{ duration: 0.5 }}
-              className="p-2 bg-white/20 rounded-lg backdrop-blur-sm"
+      {/* Glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-yellow-400/20 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-300" />
+      
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-amber-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+        {/* Elegant Header */}
+        <div className="relative bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 overflow-hidden">
+          <div className="absolute inset-0 bg-black/5" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
+          
+          <div className="relative flex items-center justify-between px-4 py-3">
+            <div
+              className="flex items-center gap-4 flex-1 cursor-pointer select-none"
+              onClick={() => setIsExpanded(!isExpanded)}
             >
-              <Beaker className="w-5 h-5 text-white" />
-            </motion.div>
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-white">
-              {dissoMedia.label}
-            </h4>
-            <p className="text-xs text-yellow-100">Preparation Details</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <motion.div
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-            className="cursor-pointer"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            <ChevronDown className="w-5 h-5 text-white" />
-          </motion.div>
-          <button
-            onClick={onRemove}
-            className="p-1.5 bg-white/20 hover:bg-red-500 rounded-md transition-colors"
-            title={`Remove ${dissoMedia.label}`}
-          >
-            <svg
-              className="w-4 h-4 text-white"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "auto" }}
-            exit={{ height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="p-4 space-y-3 bg-amber-50/30">
-              {dissoMedia.steps.map((step, index) => {
-                const isWeighing = step.name === "Weighing";
-                const isPH = step.name === "PH";
-                const isSonication = step.name === "Sonication";
-                const isFiltration = step.name === "Filtration";
-
-                return (
-                  <div
-                    key={step.name}
-                    className="bg-white rounded border border-amber-200 p-3 hover:border-amber-400 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-amber-900 text-sm mb-2">
-                          {step.name}
-                        </div>
-
-                        {isWeighing && (
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="text-gray-600">
-                                Weigh accurately
-                              </span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                inputMode="decimal"
-                                value={step.value || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    dissoMedia.id,
-                                    step.name,
-                                    "value",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Amount"
-                                className="w-20 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
-                              />
-                              <select
-                                value={step.unit}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    dissoMedia.id,
-                                    step.name,
-                                    "unit",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-16 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
-                              >
-                                {weightUnitOptions.map((unit) => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                              <span className="text-gray-600">of</span>
-                              <input
-                                type="text"
-                                value={step.solventChemical || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    dissoMedia.id,
-                                    step.name,
-                                    "solventChemical",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Solvent/Chemical"
-                                className="flex-1 min-w-[110px] px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
-                              />
-                              <span className="text-gray-600">
-                                (Log Book ID:
-                              </span>
-                              <input
-                                type="text"
-                                value={step.logBookID || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    dissoMedia.id,
-                                    step.name,
-                                    "logBookID",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Log ID"
-                                className="w-30 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
-                              />
-                              <span className="text-gray-600">)</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {isPH && (
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="text-gray-600">
-                                Adjust the pH to
-                              </span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                inputMode="decimal"
-                                value={step.value}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    dissoMedia.id,
-                                    step.name,
-                                    "value",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="pH value"
-                                className="w-20 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
-                              />
-                              <span className="text-gray-600 w-20">
-                                (Log Book ID:
-                              </span>
-                              <input
-                                type="text"
-                                value={step.logBookID}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    dissoMedia.id,
-                                    step.name,
-                                    "logBookID",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Log ID"
-                                className="flex-1 p-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
-                              />
-                              <span className="text-gray-600 w-20">)</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {isFiltration && (
-                          <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <span className="text-gray-600">
-                              Filter the disso media from
-                            </span>
-                            <input
-                              type="number"
-                              step="0.01"
-                              inputMode="decimal"
-                              value={step.value}
-                              onChange={(e) =>
-                                onStepChange(
-                                  dissoMedia.id,
-                                  step.name,
-                                  "value",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Size"
-                              className="w-20 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
-                            />
-                            <select
-                              value={step.unit}
-                              onChange={(e) =>
-                                onStepChange(
-                                  dissoMedia.id,
-                                  step.name,
-                                  "unit",
-                                  e.target.value
-                                )
-                              }
-                              className="w-20 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
-                            >
-                              {filtrationUnitOptions.map((unit) => (
-                                <option key={unit} value={unit}>
-                                  {unit}
-                                </option>
-                              ))}
-                            </select>
-                            <span className="text-gray-600">filter</span>
-                          </div>
-                        )}
-
-                        {isSonication && (
-                          <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <span className="text-gray-600">
-                              Sonicate the disso media for
-                            </span>
-                            <input
-                              type="number"
-                              step="1"
-                              inputMode="numeric"
-                              value={step.value}
-                              onChange={(e) =>
-                                onStepChange(
-                                  dissoMedia.id,
-                                  step.name,
-                                  "value",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Time"
-                              className="w-16 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
-                            />
-                            <span className="text-gray-600">{step.unit}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              <motion.div
+                animate={{ rotate: isExpanded ? 0 : 360 }}
+                transition={{ duration: 0.5 }}
+                className="relative"
+              >
+                <div className="absolute inset-0 bg-white/30 rounded-lg blur-md" />
+                <div className="relative p-2 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
+                  <Droplets className="w-5 h-5 text-white" />
+                </div>
+              </motion.div>
+              
+              <div>
+                <h4 className="text-sm font-semibold text-white tracking-wide">
+                  {dissoMedia.label}
+                </h4>
+                <p className="text-xs text-yellow-100">Dissolution Media Preparation Details</p>
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+            <div className="flex items-center gap-3">
+              <motion.button
+                onClick={() => setIsExpanded(!isExpanded)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <motion.div
+                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <ChevronDown className="w-5 h-5 text-white" />
+                </motion.div>
+              </motion.button>
+              
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${dissoMedia.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="p-5 space-y-3 bg-gradient-to-br from-amber-50/50 to-yellow-50/30">
+                {dissoMedia.steps.map((step, index) => {
+                  const isWeighing = step.name === "Weighing";
+                  const isPH = step.name === "PH";
+                  const isSonication = step.name === "Sonication";
+                  const isFiltration = step.name === "Filtration";
+
+                  return (
+                    <motion.div
+                      key={step.name}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group/item relative"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-amber-400/0 via-amber-400/5 to-amber-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                      
+                      <div className="relative bg-white rounded-xl border border-amber-200/60 shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-200 p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-full flex items-center justify-center shadow-md">
+                            <span className="text-white text-xs font-bold">{index + 1}</span>
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="font-bold text-amber-900 text-sm">
+                                {step.name}
+                              </div>
+                              <div className="h-px flex-1 bg-gradient-to-r from-amber-200 to-transparent" />
+                            </div>
+
+                            {isWeighing && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Weigh accurately</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        dissoMedia.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Amount"
+                                    className="w-20 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        dissoMedia.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-gray-600 font-medium">of</span>
+                                  <input
+                                    type="text"
+                                    value={step.solventChemical || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        dissoMedia.id,
+                                        step.name,
+                                        "solventChemical",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Solvent/Chemical"
+                                    className="flex-1 min-w-[110px] px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <input
+                                    type="text"
+                                    value={step.logBookID}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        dissoMedia.id,
+                                        step.name,
+                                        "logBookID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="w-28 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">)</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {isPH && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Adjust pH to</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        dissoMedia.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="pH value"
+                                    className="w-40 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <input
+                                    type="text"
+                                    value={step.logBookID}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        dissoMedia.id,
+                                        step.name,
+                                        "logBookID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="flex-1 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">)</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {isFiltration && (
+                              <div className="flex flex-wrap items-center gap-2 text-xs">
+                                <span className="text-gray-600 font-medium">Filter from</span>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  inputMode="decimal"
+                                  value={step.value}
+                                  onChange={(e) =>
+                                    onStepChange(
+                                      dissoMedia.id,
+                                      step.name,
+                                      "value",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Size"
+                                  className="w-20 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                />
+                                <select
+                                  value={step.unit}
+                                  onChange={(e) =>
+                                    onStepChange(
+                                      dissoMedia.id,
+                                      step.name,
+                                      "unit",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-20 px-2 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                >
+                                  {filtrationUnitOptions.map((unit) => (
+                                    <option key={unit} value={unit}>
+                                      {unit}
+                                    </option>
+                                  ))}
+                                </select>
+                                <span className="text-gray-600 font-medium">filter</span>
+                              </div>
+                            )}
+
+                            {isSonication && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Sonicate for</span>
+                                  <input
+                                    type="number"
+                                    step="1"
+                                    inputMode="numeric"
+                                    value={step.value}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        dissoMedia.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Time"
+                                    className="w-16 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                  />
+                                  <span className="text-gray-600 font-medium">{step.unit}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Media ID:</span>
+                                  <input
+                                    type="text"
+                                    value={step.dissoMediaID}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        dissoMedia.id,
+                                        step.name,
+                                        "dissoMediaID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="flex-1 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 };
@@ -935,363 +1011,375 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="bg-white rounded-lg border border-purple-300 shadow-sm mb-3 overflow-hidden hover:shadow-md transition-shadow"
+      exit={{ opacity: 0, y: -20 }}
+      className="relative group"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600">
-        <div
-          className="flex items-center gap-3 flex-1 cursor-pointer select-none"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          <div className="flex items-center justify-center">
-            <motion.div
-              animate={{ rotate: isExpanded ? 0 : 360 }}
-              transition={{ duration: 0.5 }}
-              className="p-2 bg-white/20 rounded-lg backdrop-blur-sm"
+      {/* Glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-lg blur-xl group-hover:blur-xl transition-all duration-300" />
+      
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-purple-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+        {/* Elegant Header */}
+        <div className="relative bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 overflow-hidden">
+          <div className="absolute inset-0 bg-black/5" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
+          
+          <div className="relative flex items-center justify-between px-4 py-3">
+            <div
+              className="flex items-center gap-4 flex-1 cursor-pointer select-none"
+              onClick={() => setIsExpanded(!isExpanded)}
             >
-              <Beaker className="w-5 h-5 text-white" />
-            </motion.div>
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-white">
-              {standardPreparation.label}
-            </h4>
-            <p className="text-xs text-purple-100">
-              Standard Preparation Details
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <motion.div
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-            className="cursor-pointer"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            <ChevronDown className="w-5 h-5 text-white" />
-          </motion.div>
-          <button
-            onClick={onRemove}
-            className="p-1.5 bg-white/20 hover:bg-red-500 rounded-md transition-colors"
-            title={`Remove ${standardPreparation.label}`}
-          >
-            <svg
-              className="w-4 h-4 text-white"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "auto" }}
-            exit={{ height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="p-4 space-y-3 bg-purple-50/30">
-              {standardPreparation.steps.map((step, index) => {
-                const isWeighing = step.name === "Weighing";
-                const is1stDilution = step.name === "1st Dilution";
-                const is2ndDilution = step.name === "2nd Dilution";
-                const is3rdDilution = step.name === "3rd Dilution";
-                const is4thDilution = step.name === "4th Dilution";
-                const isFiltration = step.name === "Filtration";
-
-                return (
-                  <div
-                    key={step.name}
-                    className="bg-white rounded border border-purple-200 p-3 hover:border-purple-400 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-purple-900 text-sm mb-2">
-                          {step.name}
-                        </div>
-
-                        {isWeighing && (
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="text-gray-600">
-                                Weigh accurately
-                              </span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                inputMode="decimal"
-                                value={step.value || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    standardPreparation.id,
-                                    step.name,
-                                    "value",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Amount"
-                                className="w-20 px-2 py-1 border border-purple-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
-                              />
-                              <select
-                                value={step.unit}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    standardPreparation.id,
-                                    step.name,
-                                    "unit",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-16 px-2 py-1 border border-purple-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
-                              >
-                                {weightUnitOptions.map((unit) => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                              <span className="text-gray-600">of</span>
-                              <input
-                                type="text"
-                                value={step.solventChemical || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    standardPreparation.id,
-                                    step.name,
-                                    "solventChemical",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Chemical"
-                                className="flex-1 min-w-[100px] px-2 py-1 border border-purple-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
-                              />
-                              <span className="text-gray-600">
-                                (Log Book ID:
-                              </span>
-                              <input
-                                type="text"
-                                value={step.logBookID || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    standardPreparation.id,
-                                    step.name,
-                                    "logBookID",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="ID"
-                                className="w-30 px-2 py-1 border border-purple-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
-                              />
-                              <span className="text-gray-600">)</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {is1stDilution && (
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="text-gray-600">Diluted to</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                inputMode="decimal"
-                                value={step.vol1 || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    standardPreparation.id,
-                                    step.name,
-                                    "vol1",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Volume"
-                                className="w-20 px-2 py-1 border border-purple-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
-                              />
-                              <select
-                                value={step.unit1 || "ml"}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    standardPreparation.id,
-                                    step.name,
-                                    "unit1",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-16 px-2 py-1 border border-purple-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
-                              >
-                                {volumeUnitOptions.map((unit) => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                              <span className="text-gray-600">
-                                with Diluent.
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
-                        {(is2ndDilution || is3rdDilution || is4thDilution) && (
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="text-gray-600">Take</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                inputMode="decimal"
-                                value={step.vol1 || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    standardPreparation.id,
-                                    step.name,
-                                    "vol1",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Volume"
-                                className="w-20 px-2 py-1 border border-purple-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
-                              />
-                              <select
-                                value={step.unit1 || "ml"}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    standardPreparation.id,
-                                    step.name,
-                                    "unit1",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-16 px-2 py-1 border border-purple-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
-                              >
-                                {volumeUnitOptions.map((unit) => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                              <span className="text-gray-600">
-                                of{" "}
-                                {is2ndDilution
-                                  ? "1st"
-                                  : is3rdDilution
-                                  ? "2nd"
-                                  : "3rd"}{" "}
-                                Dilution Solution & dilute to
-                              </span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                inputMode="decimal"
-                                value={step.vol2 || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    standardPreparation.id,
-                                    step.name,
-                                    "vol2",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Volume"
-                                className="w-20 px-2 py-1 border border-purple-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
-                              />
-                              <select
-                                value={step.unit2 || "ml"}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    standardPreparation.id,
-                                    step.name,
-                                    "unit2",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-16 px-2 py-1 border border-purple-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
-                              >
-                                {volumeUnitOptions.map((unit) => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                              <span className="text-gray-600">
-                                with diluent
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
-                        {isFiltration && (
-                          <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <span className="text-gray-600">
-                              Filter the disso media from
-                            </span>
-                            <input
-                              type="number"
-                              step="0.01"
-                              inputMode="decimal"
-                              value={step.value}
-                              onChange={(e) =>
-                                onStepChange(
-                                  standardPreparation.id,
-                                  step.name,
-                                  "value",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Size"
-                              className="w-20 px-2 py-1 border border-purple-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
-                            />
-                            <select
-                              value={step.unit}
-                              onChange={(e) =>
-                                onStepChange(
-                                  standardPreparation.id,
-                                  step.name,
-                                  "unit",
-                                  e.target.value
-                                )
-                              }
-                              className="w-20 px-2 py-1 border border-purple-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
-                            >
-                              {filtrationUnitOptions.map((unit) => (
-                                <option key={unit} value={unit}>
-                                  {unit}
-                                </option>
-                              ))}
-                            </select>
-                            <span className="text-gray-600">filter</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              <motion.div
+                animate={{ rotate: isExpanded ? 0 : 360 }}
+                transition={{ duration: 0.5 }}
+                className="relative"
+              >
+                <div className="absolute inset-0 bg-white/30 rounded-lg blur-md" />
+                <div className="relative p-2 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
+                  <Droplets className="w-5 h-5 text-white" />
+                </div>
+              </motion.div>
+              
+              <div>
+                <h4 className="text-sm font-semibold text-white tracking-wide">
+                  {standardPreparation.label}
+                </h4>
+                <p className="text-xs text-purple-100">Standard Preparation Details</p>
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+            <div className="flex items-center gap-3">
+              <motion.button
+                onClick={() => setIsExpanded(!isExpanded)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <motion.div
+                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <ChevronDown className="w-5 h-5 text-white" />
+                </motion.div>
+              </motion.button>
+              
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${standardPreparation.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="p-5 space-y-3 bg-gradient-to-br from-purple-50/50 to-pink-50/30">
+                {standardPreparation.steps.map((step, index) => {
+                  const isWeighing = step.name === "Weighing";
+                  const is1stDilution = step.name === "1st Dilution";
+                  const is2ndDilution = step.name === "2nd Dilution";
+                  const is3rdDilution = step.name === "3rd Dilution";
+                  const is4thDilution = step.name === "4th Dilution";
+                  const isFiltration = step.name === "Filtration";
+
+                  return (
+                    <motion.div
+                      key={step.name}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group/item relative"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-purple-400/5 to-purple-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                      
+                      <div className="relative bg-white rounded-xl border border-purple-200/60 shadow-sm hover:shadow-md hover:border-purple-300 transition-all duration-200 p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-md">
+                            <span className="text-white text-xs font-bold">{index + 1}</span>
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="font-bold text-purple-900 text-sm">
+                                {step.name}
+                              </div>
+                              <div className="h-px flex-1 bg-gradient-to-r from-purple-200 to-transparent" />
+                            </div>
+
+                            {isWeighing && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Weigh accurately</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        standardPreparation.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Amount"
+                                    className="w-20 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        standardPreparation.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-gray-600 font-medium">of</span>
+                                  <input
+                                    type="text"
+                                    value={step.solventChemical || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        standardPreparation.id,
+                                        step.name,
+                                        "solventChemical",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Chemical"
+                                    className="flex-1 min-w-[100px] px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <input
+                                    type="text"
+                                    value={step.logBookID || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        standardPreparation.id,
+                                        step.name,
+                                        "logBookID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="w-28 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">)</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {is1stDilution && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Diluted to</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.vol1 || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        standardPreparation.id,
+                                        step.name,
+                                        "vol1",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Volume"
+                                    className="w-20 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                  />
+                                  <select
+                                    value={step.unit1 || "ml"}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        standardPreparation.id,
+                                        step.name,
+                                        "unit1",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                  >
+                                    {volumeUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-gray-600 font-medium">with diluent</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {(is2ndDilution || is3rdDilution || is4thDilution) && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Take</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.vol1 || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        standardPreparation.id,
+                                        step.name,
+                                        "vol1",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Volume"
+                                    className="w-20 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                  />
+                                  <select
+                                    value={step.unit1 || "ml"}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        standardPreparation.id,
+                                        step.name,
+                                        "unit1",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                  >
+                                    {volumeUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-gray-600 font-medium">
+                                    of{" "}
+                                    {is2ndDilution
+                                      ? "1st"
+                                      : is3rdDilution
+                                      ? "2nd"
+                                      : "3rd"}{" "}
+                                    Dilution Solution & dilute to
+                                  </span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.vol2 || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        standardPreparation.id,
+                                        step.name,
+                                        "vol2",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Volume"
+                                    className="w-20 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                  />
+                                  <select
+                                    value={step.unit2 || "ml"}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        standardPreparation.id,
+                                        step.name,
+                                        "unit2",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                  >
+                                    {volumeUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-gray-600 font-medium">with diluent</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {isFiltration && (
+                              <div className="flex flex-wrap items-center gap-2 text-xs">
+                                <span className="text-gray-600 font-medium">Filter from</span>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  inputMode="decimal"
+                                  value={step.value}
+                                  onChange={(e) =>
+                                    onStepChange(
+                                      standardPreparation.id,
+                                      step.name,
+                                      "value",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Size"
+                                  className="w-20 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                />
+                                <select
+                                  value={step.unit}
+                                  onChange={(e) =>
+                                    onStepChange(
+                                      standardPreparation.id,
+                                      step.name,
+                                      "unit",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-20 px-2 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                >
+                                  {filtrationUnitOptions.map((unit) => (
+                                    <option key={unit} value={unit}>
+                                      {unit}
+                                    </option>
+                                  ))}
+                                </select>
+                                <span className="text-gray-600 font-medium">filter</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 };
 
-// Sample Preparation Detail Component
 const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
   samplePreparation,
   onStepChange,
@@ -1301,338 +1389,625 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="bg-white rounded-lg border border-green-300 shadow-sm mb-3 overflow-hidden hover:shadow-md transition-shadow"
+      exit={{ opacity: 0, y: -20 }}
+      className="relative group"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-green-500 to-green-600">
-        <div
-          className="flex items-center gap-3 flex-1 cursor-pointer select-none"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          <div className="flex items-center justify-center">
-            <motion.div
-              animate={{ rotate: isExpanded ? 0 : 360 }}
-              transition={{ duration: 0.5 }}
-              className="p-2 bg-white/20 rounded-lg backdrop-blur-sm"
+      {/* Glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-lg blur-xl group-hover:blur-xl transition-all duration-300" />
+      
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-green-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+        {/* Elegant Header */}
+        <div className="relative bg-gradient-to-r from-green-600 via-green-500 to-emerald-500 overflow-hidden">
+          <div className="absolute inset-0 bg-black/5" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
+          
+          <div className="relative flex items-center justify-between px-4 py-3">
+            <div
+              className="flex items-center gap-4 flex-1 cursor-pointer select-none"
+              onClick={() => setIsExpanded(!isExpanded)}
             >
-              <Beaker className="w-5 h-5 text-white" />
-            </motion.div>
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-white">
-              {samplePreparation.label}
-            </h4>
-            <p className="text-xs text-green-100">Sample Preparation Details</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <motion.div
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-            className="cursor-pointer"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            <ChevronDown className="w-5 h-5 text-white" />
-          </motion.div>
-          <button
-            onClick={onRemove}
-            className="p-1.5 bg-white/20 hover:bg-red-500 rounded-md transition-colors"
-            title={`Remove ${samplePreparation.label}`}
-          >
-            <svg
-              className="w-4 h-4 text-white"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "auto" }}
-            exit={{ height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="p-4 space-y-3 bg-green-50/30">
-              {samplePreparation.steps.map((step, index) => {
-                const isWeighing = step.name === "Weighing";
-                const is1stDilution = step.name === "1st Dilution";
-                const is2ndDilution = step.name === "2nd Dilution";
-                const is3rdDilution = step.name === "3rd Dilution";
-                const is4thDilution = step.name === "4th Dilution";
-                const isFiltration = step.name === "Filtration";
-
-                return (
-                  <div
-                    key={step.name}
-                    className="bg-white rounded border border-green-200 p-3 hover:border-green-400 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-green-900 text-sm mb-2">
-                          {step.name}
-                        </div>
-
-                        {isWeighing && (
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="text-gray-600">
-                                Weigh accurately
-                              </span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                inputMode="decimal"
-                                value={step.value || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    samplePreparation.id,
-                                    step.name,
-                                    "value",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Amount"
-                                className="w-20 px-2 py-1 border border-green-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
-                              />
-                              <select
-                                value={step.unit}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    samplePreparation.id,
-                                    step.name,
-                                    "unit",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-16 px-2 py-1 border border-green-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
-                              >
-                                {weightUnitOptions.map((unit) => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                              <span className="text-gray-600">of</span>
-                              <input
-                                type="text"
-                                value={step.solventChemical || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    samplePreparation.id,
-                                    step.name,
-                                    "solventChemical",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Sample"
-                                className="flex-1 min-w-[120px] px-2 py-1 border border-green-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
-                              />
-                              <span className="text-gray-600">
-                                (Log Book ID:
-                              </span>
-                              <input
-                                type="text"
-                                value={step.logBookID || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    samplePreparation.id,
-                                    step.name,
-                                    "logBookID",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="ID"
-                                className="w-24 px-2 py-1 border border-green-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
-                              />
-                              <span className="text-gray-600">)</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {is1stDilution && (
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="text-gray-600">Diluted to</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                inputMode="decimal"
-                                value={step.vol1 || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    samplePreparation.id,
-                                    step.name,
-                                    "vol1",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Volume"
-                                className="w-20 px-2 py-1 border border-green-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
-                              />
-                              <select
-                                value={step.unit1 || "ml"}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    samplePreparation.id,
-                                    step.name,
-                                    "unit1",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-16 px-2 py-1 border border-green-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
-                              >
-                                {volumeUnitOptions.map((unit) => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                              <span className="text-gray-600">
-                                with Diluent.
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
-                        {(is2ndDilution || is3rdDilution || is4thDilution) && (
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="text-gray-600">Take</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                inputMode="decimal"
-                                value={step.vol1 || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    samplePreparation.id,
-                                    step.name,
-                                    "vol1",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Volume"
-                                className="w-20 px-2 py-1 border border-green-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
-                              />
-                              <select
-                                value={step.unit1 || "ml"}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    samplePreparation.id,
-                                    step.name,
-                                    "unit1",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-16 px-2 py-1 border border-green-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
-                              >
-                                {volumeUnitOptions.map((unit) => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                              <span className="text-gray-600">
-                                of{" "}
-                                {is2ndDilution
-                                  ? "1st"
-                                  : is3rdDilution
-                                  ? "2nd"
-                                  : "3rd"}{" "}
-                                Dilution Solution & dilute to
-                              </span>
-                              <input
-                                type="text"
-                                value={step.vol2 || ""}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    samplePreparation.id,
-                                    step.name,
-                                    "vol2",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Volume"
-                                className="w-20 px-2 py-1 border border-green-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
-                              />
-                              <select
-                                value={step.unit2 || "ml"}
-                                onChange={(e) =>
-                                  onStepChange(
-                                    samplePreparation.id,
-                                    step.name,
-                                    "unit2",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-16 px-2 py-1 border border-green-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
-                              >
-                                {volumeUnitOptions.map((unit) => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                              <span className="text-gray-600">
-                                with diluent
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
-                        {isFiltration && (
-                          <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <span className="text-gray-600">
-                              Filter the solution through
-                            </span>
-                            <input
-                              type="number"
-                              step="0.01"
-                              inputMode="decimal"
-                              value={step.value || ""}
-                              onChange={(e) =>
-                                onStepChange(
-                                  samplePreparation.id,
-                                  step.name,
-                                  "weight",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Size"
-                              className="w-20 px-2 py-1 border border-green-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
-                            />
-                            <span className="text-gray-600">
-                              micron syringe filter.
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              <motion.div
+                animate={{ rotate: isExpanded ? 0 : 360 }}
+                transition={{ duration: 0.5 }}
+                className="relative"
+              >
+                <div className="absolute inset-0 bg-white/30 rounded-lg blur-md" />
+                <div className="relative p-2 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
+                  <Droplets className="w-5 h-5 text-white" />
+                </div>
+              </motion.div>
+              
+              <div>
+                <h4 className="text-sm font-semibold text-white tracking-wide">
+                  {samplePreparation.label}
+                </h4>
+                <p className="text-xs text-green-100">Sample Preparation Details</p>
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+            <div className="flex items-center gap-3">
+              <motion.button
+                onClick={() => setIsExpanded(!isExpanded)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <motion.div
+                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <ChevronDown className="w-5 h-5 text-white" />
+                </motion.div>
+              </motion.button>
+              
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${samplePreparation.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="p-5 space-y-3 bg-gradient-to-br from-green-50/50 to-emerald-50/30">
+                {samplePreparation.steps.map((step, index) => {
+                  const isWeighing = step.name === "Weighing";
+                  const is1stDilution = step.name === "1st Dilution";
+                  const is2ndDilution = step.name === "2nd Dilution";
+                  const is3rdDilution = step.name === "3rd Dilution";
+                  const is4thDilution = step.name === "4th Dilution";
+                  const isFiltration = step.name === "Filtration";
+
+                  return (
+                    <motion.div
+                      key={step.name}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group/item relative"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-green-400/0 via-green-400/5 to-green-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                      
+                      <div className="relative bg-white rounded-xl border border-green-200/60 shadow-sm hover:shadow-md hover:border-green-300 transition-all duration-200 p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
+                            <span className="text-white text-xs font-bold">{index + 1}</span>
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="font-bold text-green-900 text-sm">
+                                {step.name}
+                              </div>
+                              <div className="h-px flex-1 bg-gradient-to-r from-green-200 to-transparent" />
+                            </div>
+
+                            {isWeighing && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Weigh accurately</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparation.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Amount"
+                                    className="w-20 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparation.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-gray-600 font-medium">of</span>
+                                  <input
+                                    type="text"
+                                    value={step.solventChemical || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparation.id,
+                                        step.name,
+                                        "solventChemical",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Sample"
+                                    className="flex-1 min-w-[120px] px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <input
+                                    type="text"
+                                    value={step.logBookID || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparation.id,
+                                        step.name,
+                                        "logBookID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="w-24 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">)</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {is1stDilution && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Diluted to</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.vol1 || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparation.id,
+                                        step.name,
+                                        "vol1",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Volume"
+                                    className="w-20 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                  />
+                                  <select
+                                    value={step.unit1 || "ml"}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparation.id,
+                                        step.name,
+                                        "unit1",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                  >
+                                    {volumeUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-gray-600 font-medium">with diluent</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {(is2ndDilution || is3rdDilution || is4thDilution) && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Take</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.vol1 || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparation.id,
+                                        step.name,
+                                        "vol1",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Volume"
+                                    className="w-20 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                  />
+                                  <select
+                                    value={step.unit1 || "ml"}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparation.id,
+                                        step.name,
+                                        "unit1",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                  >
+                                    {volumeUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-gray-600 font-medium">
+                                    of{" "}
+                                    {is2ndDilution
+                                      ? "1st"
+                                      : is3rdDilution
+                                      ? "2nd"
+                                      : "3rd"}{" "}
+                                    Dilution Solution & dilute to
+                                  </span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.vol2 || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparation.id,
+                                        step.name,
+                                        "vol2",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Volume"
+                                    className="w-20 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                  />
+                                  <select
+                                    value={step.unit2 || "ml"}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparation.id,
+                                        step.name,
+                                        "unit2",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                  >
+                                    {volumeUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-gray-600 font-medium">with diluent</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {isFiltration && (
+                              <div className="flex flex-wrap items-center gap-2 text-xs">
+                                <span className="text-gray-600 font-medium">Filter the solution through</span>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  inputMode="decimal"
+                                  value={step.value || ""}
+                                  onChange={(e) =>
+                                    onStepChange(
+                                      samplePreparation.id,
+                                      step.name,
+                                      "value",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Size"
+                                  className="w-20 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                />
+                                <span className="text-gray-600 font-medium">micron syringe filter</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+};
+
+const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetailProps>  = ({
+  samplePreparationTitration,
+  onStepChange,
+  onRemove,
+}) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="relative group"
+    >
+      {/* Glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-lime-400/20 to-green-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
+      
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-lime-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+        {/* Elegant Header */}
+        <div className="relative bg-gradient-to-r from-lime-600 via-lime-500 to-green-500 overflow-hidden">
+          <div className="absolute inset-0 bg-black/5" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
+          
+          <div className="relative flex items-center justify-between px-4 py-3">
+            <div
+              className="flex items-center gap-4 flex-1 cursor-pointer select-none"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              <motion.div
+                animate={{ rotate: isExpanded ? 0 : 360 }}
+                transition={{ duration: 0.5 }}
+                className="relative"
+              >
+                <div className="absolute inset-0 bg-white/30 rounded-lg blur-md" />
+                <div className="relative p-2 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
+                  <Droplets className="w-5 h-5 text-white" />
+                </div>
+              </motion.div>
+              
+              <div>
+                <h4 className="text-sm font-semibold text-white tracking-wide">
+                  {samplePreparationTitration.label}
+                </h4>
+                <p className="text-xs text-lime-100">Sample Preparation for Titration Details</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <motion.button
+                onClick={() => setIsExpanded(!isExpanded)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <motion.div
+                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <ChevronDown className="w-5 h-5 text-white" />
+                </motion.div>
+              </motion.button>
+              
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${samplePreparationTitration.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="p-5 space-y-3 bg-gradient-to-br from-lime-50/50 to-green-50/30">
+                {samplePreparationTitration.steps.map((step, index) => {
+                  const isWeighing = step.name === "Weighing";
+                  const is1stDilution = step.name === "1st Dilution";
+                  const isEPD = step.name === "End Point Determination";
+
+                  return (
+                    <motion.div
+                      key={step.name}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group/item relative"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-lime-400/0 via-lime-400/5 to-lime-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                      
+                      <div className="relative bg-white rounded-xl border border-lime-200/60 shadow-sm hover:shadow-md hover:border-lime-300 transition-all duration-200 p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-lime-500 to-green-500 rounded-full flex items-center justify-center shadow-md">
+                            <span className="text-white text-xs font-bold">{index + 1}</span>
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="font-bold text-lime-900 text-sm">
+                                {step.name}
+                              </div>
+                              <div className="h-px flex-1 bg-gradient-to-r from-lime-200 to-transparent" />
+                            </div>
+
+                            {isWeighing && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Weigh accurately</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationTitration.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Amount"
+                                    className="w-20 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationTitration.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-gray-600 font-medium">of</span>
+                                  <input
+                                    type="text"
+                                    value={step.solventChemical || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationTitration.id,
+                                        step.name,
+                                        "solventChemical",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Sample"
+                                    className="flex-1 min-w-[120px] px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <input
+                                    type="text"
+                                    value={step.logBookID || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationTitration.id,
+                                        step.name,
+                                        "logBookID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="w-24 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">)</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {is1stDilution && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Diluted to</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationTitration.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Volume"
+                                    className="w-20 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
+                                  />
+                                  <select
+                                    value={step.unit || "ml"}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationTitration.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
+                                  >
+                                    {volumeUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-gray-600 font-medium">with diluent</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {isEPD && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">Titration Value</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationTitration.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Volume"
+                                    className="w-20 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 };
@@ -1678,6 +2053,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
   const [samplePreprationPerParam, setSamplePreprationPerParam] = useState<
     Record<number, SamplePreparation[]>
+  >({});
+
+    const [samplePreprationTitrationPerParam, setSamplePreprationTitrationPerParam] = useState<
+    Record<number, SamplePreparationTitration[]>
   >({});
 
   // New state for dynamic tables
@@ -1994,7 +2373,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
         .filter((dm) => dm.id !== standardPreparationId)
         .map((dm, index) => ({
           ...dm,
-          label: `Standard Preparation ${String.fromCharCode(65 + index)}`,
+          label: `Standard Preparation ${1 + index}`,
         }));
       return {
         ...prev,
@@ -2008,7 +2387,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     standardPreparationId: number,
     stepName: StandardPreparationStep["name"],
     field:
-      "value"
+      | "value"
       | "unit"
       | "vol1"
       | "vol2"
@@ -2067,7 +2446,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
         .filter((sp) => sp.id !== samplePreparationId)
         .map((sp, index) => ({
           ...sp,
-          label: `Sample Preparation ${String.fromCharCode(65 + index)}`,
+          label: `Sample Preparation ${1 + index}`,
         }));
       return {
         ...prev,
@@ -2109,6 +2488,75 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           };
         }
         return sp;
+      }),
+    }));
+  };
+
+  // --- END: Sample Preparation Handlers ---
+
+    // --- START: Sample Preparation for Titration Handlers ---
+
+  const handleAddSamplePreparationTitration = (parameterId: number) => {
+    setSamplePreprationTitrationPerParam((prev) => {
+      const currentSamples = prev[parameterId] || [];
+      const newIndex = currentSamples.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentSamples,
+          createNewSamplePreparationTitration(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveSamplePreparationTitration = (
+    parameterId: number,
+    samplePreparationTitrationId: number
+  ) => {
+    setSamplePreprationTitrationPerParam((prev) => {
+      const updatedSamples = (prev[parameterId] || [])
+        .filter((spt) => spt.id !== samplePreparationTitrationId)
+        .map((spt, index) => ({
+          ...spt,
+          label: `Sample Preparation for Titration ${1 + index}`,
+        }));
+      return {
+        ...prev,
+        [parameterId]: updatedSamples,
+      };
+    });
+  };
+
+  const handleSamplePreparationTitrationStepChange = (
+    parameterId: number,
+    samplePreparationTitrationId: number,
+    stepName: SamplePreparationTitrationStep["name"],
+    field:
+      "value"
+      | "unit"
+      | "logBookID"
+      | "solventChemical",
+    newValue: string
+  ) => {
+    setSamplePreprationTitrationPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((spt) => {
+        if (spt.id === samplePreparationTitrationId) {
+          return {
+            ...spt,
+            steps: spt.steps.map((step) => {
+              if (step.name === stepName) {
+                return {
+                  ...step,
+                  [field]: newValue,
+                };
+              }
+              return step;
+            }),
+          };
+        }
+        return spt;
       }),
     }));
   };
@@ -2298,6 +2746,40 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             solventChemical: step.solventChemical,
           })),
         })),
+        standardPreparation: (standardPreprationPerParam[param.id] || []).map(
+          (sp) => ({
+            id: sp.id,
+            label: sp.label,
+            steps: sp.steps.map((step) => ({
+              name: step.name,
+              value: step.value,
+              unit: step.unit,
+              vol1: step.vol1,
+              vol2: step.vol2,
+              unit1: step.unit1,
+              unit2: step.unit2,
+              logBookID: step.logBookID,
+              solventChemical: step.solventChemical,
+            })),
+          })
+        ),
+        samplePreparataion: (samplePreprationPerParam[param.id] || []).map(
+          (sp) => ({
+            id: sp.id,
+            label: sp.label,
+            steps: sp.steps.map((step) => ({
+              name: step.name,
+              value: step.value,
+              unit: step.unit,
+              vol1: step.vol1,
+              vol2: step.vol2,
+              unit1: step.unit1,
+              unit2: step.unit2,
+              logBookID: step.logBookID,
+              solventChemical: step.solventChemical,
+            })),
+          })
+        ),
         testSolutionPreparation: testSolutionPerParam[param.id] || "",
       })),
     };
@@ -2420,146 +2902,158 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   }
 
   return (
-    <div className="mx-auto my-8 p-8 bg-white shadow-2xl max-w-4xl border-2 border-green-500 rounded-xl">
-      <div className="flex justify-between items-center text-sm mb-6 pb-4 border-b-2 border-green-200">
+    <div className="mx-auto my-8 p-8 bg-white shadow-2xl max-w-4xl border-2 border-emerald-300 rounded-2xl">
+      {/* Header Section */}
+      <div className="flex justify-between items-center text-sm mb-6 pb-4 border-b-2 border-emerald-200">
         <div></div>
         <div className="flex flex-col items-end">
-          <img src="./ic_efrac.png" alt="EFRAC Logo" className="h-8" />
+          <img src="./ic_efrac.png" alt="EFRAC Logo" className="h-10" />
         </div>
       </div>
 
-      <div className="my-1 border-2 border-green-600 rounded-lg overflow-hidden shadow-md">
-        <div className="flex justify-between items-center px-4 py-3 bg-gradient-to-r from-green-700 to-green-800">
-          <h1 className="text-base font-semibold text-white tracking-wide">
+      {/* Company Title */}
+      <div className="my-4 border-2 border-emerald-400 rounded-xl overflow-hidden shadow-lg">
+        <div className="flex justify-between items-center px-6 py-4 bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-700">
+          <h1 className="text-lg font-bold text-white tracking-wide">
             EDWARD FOOD RESEARCH & ANALYSIS CENTRE LTD
           </h1>
         </div>
       </div>
 
-      <div className="my-1 border-2 border-green-500 rounded-lg overflow-hidden shadow-md">
-        <div className="grid grid-cols-2 border-b border-green-400 text-sm bg-green-50">
-          <div className="flex items-center px-3 py-2 border-r-2 border-green-400">
-            <span className="font-bold mr-2 text-green-900">
+      {/* Registration Info Table */}
+      <div className="my-4 border-2 border-emerald-300 rounded-xl overflow-hidden shadow-md">
+        <div className="grid grid-cols-2 border-b border-emerald-300 text-sm bg-gradient-to-r from-emerald-50 to-teal-50">
+          <div className="flex items-center px-4 py-3 border-r-2 border-emerald-300">
+            <span className="font-bold mr-2 text-emerald-900">
               Registration No:
             </span>
-            <span className="font-semibold text-gray-700">
+            <span className="font-semibold text-slate-700">
               {sample?.registrationNo || registrationNo || "---"}
             </span>
           </div>
-          <div className="flex items-center px-3 py-2">
-            <span className="font-bold mr-2 text-green-900">
+          <div className="flex items-center px-4 py-3">
+            <span className="font-bold mr-2 text-emerald-900">
               Date of Receipt:
             </span>
-            <span className="font-semibold text-gray-700">{dateOfReceipt}</span>
+            <span className="font-semibold text-slate-700">
+              {dateOfReceipt}
+            </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 border-b border-green-400 text-sm bg-white">
-          <div className="flex items-center px-3 py-2 border-r-2 border-green-400">
-            <span className="font-bold mr-2 text-green-900">Sample Name:</span>
-            <span className="font-semibold text-gray-700">
+        <div className="grid grid-cols-2 border-b border-emerald-300 text-sm bg-white">
+          <div className="flex items-center px-4 py-3 border-r-2 border-emerald-300">
+            <span className="font-bold mr-2 text-emerald-900">
+              Sample Name:
+            </span>
+            <span className="font-semibold text-slate-700">
               {sample?.sampleName || "---"}
             </span>
           </div>
-          <div className="flex items-center px-3 py-2">
-            <span className="font-bold mr-2 text-green-900">
+          <div className="flex items-center px-4 py-3">
+            <span className="font-bold mr-2 text-emerald-900">
               Number of Parameters:
             </span>
-            <span className="font-semibold text-gray-700">
+            <span className="font-semibold text-slate-700">
               {allParameters.length}
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 border-green-400 text-sm bg-green-50">
-          <div className="flex items-center px-3 py-2 border-r-2 border-green-400">
-            <span className="font-bold mr-2 text-green-900">Due Date:</span>
-            <span className="font-semibold text-gray-700">
+        <div className="grid grid-cols-3 text-sm bg-gradient-to-r from-emerald-50 to-teal-50">
+          <div className="flex items-center px-4 py-3 border-r-2 border-emerald-300">
+            <span className="font-bold mr-2 text-emerald-900">Due Date:</span>
+            <span className="font-semibold text-slate-700">
               {sample?.tatDate || "---"}
             </span>
           </div>
-          <div className="flex items-center px-3 py-2 border-r-2 border-green-400">
-            <span className="font-bold mr-2 text-green-900">
+          <div className="flex items-center px-4 py-3 border-r-2 border-emerald-300">
+            <span className="font-bold mr-2 text-emerald-900">
               Analysis Started On:
             </span>
-            <span className="font-semibold text-gray-700">
+            <span className="font-semibold text-slate-700">
               {sample?.analysisStartDate || "---"}
             </span>
           </div>
-          <div className="flex items-center px-3 py-2">
-            <span className="font-bold mr-2 text-green-900">
+          <div className="flex items-center px-4 py-3">
+            <span className="font-bold mr-2 text-emerald-900">
               Analysis Completed On:
             </span>
-            <span className="font-semibold text-gray-700">
+            <span className="font-semibold text-slate-700">
               {sample?.analysisCompletionDate || "---"}
             </span>
           </div>
         </div>
       </div>
 
+      {/* Main Table */}
       <div className="p-0 my-8">
-        <table className="w-full border-collapse text-sm mb-4 shadow-md">
-          <tbody>
-            <tr className="border-2 border-green-500 hover:bg-green-50 transition-colors">
-              <td className="w-8 px-3 py-3 border-r-2 border-green-500 font-bold text-center bg-green-100 text-green-900">
-                1
-              </td>
-              <td className="w-1/3 px-3 py-3 border-r-2 border-green-500 font-semibold bg-green-50">
-                Sample Particulars (All relevant information received with
-                sample to be entered):
-              </td>
-              <td className="px-3 py-3 font-medium">
-                {sample?.sampleName || "---"}
-              </td>
-            </tr>
-            <tr className="border-2 border-green-500 hover:bg-green-50 transition-colors">
-              <td className="w-8 px-3 py-3 border-r-2 border-green-500 font-bold text-center bg-green-100 text-green-900">
-                2
-              </td>
-              <td className="w-1/3 px-3 py-3 border-r-2 border-green-500 font-semibold bg-green-50">
-                Test(s) required (all tests and condition to be entered):
-              </td>
-              <td className="px-3 py-3 font-medium">
-                {testsRequiredDisplay || "No parameters added"}
-              </td>
-            </tr>
-            <tr className="border-2 border-green-500 hover:bg-green-50 transition-colors">
-              <td className="w-8 px-3 py-3 border-r-2 border-green-500 font-bold text-center bg-green-100 text-green-900">
-                3
-              </td>
-              <td className="w-1/3 px-3 py-3 border-r-2 border-green-500 font-semibold bg-green-50">
-                Method(s) of Analysis / testing
-              </td>
-              <td className="px-3 py-3 h-16 font-medium">
-                {methodsRequiredDisplay || "No methods"}
-              </td>
-            </tr>
-            <tr className="border-2 border-green-500 hover:bg-green-50 transition-colors">
-              <td className="w-8 px-3 py-3 border-r-2 border-green-500 font-bold text-center bg-green-100 text-green-900">
-                4
-              </td>
-              <td className="w-1/3 px-3 py-3 border-r-2 border-green-500 font-semibold bg-green-50">
-                Raw Data (Observations, Readings, Calculations etc):
-              </td>
-              <td className="px-3 py-3 h-32 align-top"></td>
-            </tr>
-          </tbody>
-        </table>
+        <div className="my-4 border-2 border-emerald-400 mb-6 rounded-xl overflow-hidden shadow-md">
+          <table className="w-full border-collapse text-sm  shadow-md rounded-xl overflow-hidden">
+            <tbody>
+              <tr className="border-b-2 border-emerald-400 hover:bg-emerald-50 transition-colors">
+                <td className="w-10 px-4 py-4 border-r-2 border-emerald-400 font-bold text-center bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-900">
+                  1
+                </td>
+                <td className="w-1/3 px-4 py-4 border-r-2 border-emerald-400 font-bold bg-gradient-to-r from-emerald-50 to-white text-emerald-900">
+                  Sample Particulars (All relevant information received with
+                  sample to be entered):
+                </td>
+                <td className="px-3 py-3 font-medium">
+                  {sample?.sampleName || "---"}
+                </td>
+              </tr>
+              <tr className="border-b-2 border-emerald-400 hover:bg-emerald-50 transition-colors">
+                <td className="w-10 px-4 py-4 border-r-2 border-emerald-400 font-bold text-center bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-900">
+                  2
+                </td>
+                <td className="w-1/3 px-4 py-4 border-r-2 border-emerald-400 font-bold bg-gradient-to-r from-emerald-50 to-white text-emerald-900">
+                  Test(s) required (all tests and condition to be entered):
+                </td>
+                <td className="px-3 py-3 font-medium">
+                  {testsRequiredDisplay || "No parameters added"}
+                </td>
+              </tr>
+              <tr className="border-b-2 border-emerald-400 hover:bg-emerald-50 transition-colors">
+                <td className="w-10 px-4 py-4 border-r-2 border-emerald-400 font-bold text-center bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-900">
+                  3
+                </td>
+                <td className="w-1/3 px-4 py-4 border-r-2 border-emerald-400 font-bold bg-gradient-to-r from-emerald-50 to-white text-emerald-900">
+                  Method(s) of Analysis / testing
+                </td>
+                <td className="px-3 py-3 h-16 font-medium">
+                  {methodsRequiredDisplay || "No methods"}
+                </td>
+              </tr>
+              <tr className="hover:bg-emerald-50 transition-colors">
+                <td className="w-10 px-4 py-4 border-r-2 border-emerald-400 font-bold text-center bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-900">
+                  4
+                </td>
+                <td className="w-1/3 px-4 py-4 border-r-2 border-emerald-400 font-bold bg-gradient-to-r from-emerald-50 to-white text-emerald-900">
+                  Raw Data (Observations, Readings, Calculations etc):
+                </td>
+                <td className="px-3 py-3 h-32 align-top"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-        <div className="my-6 p-5 bg-gradient-to-br from-green-50 via-white to-green-50 border-2 border-green-400 rounded-xl shadow-lg">
+        <div className="my-6 p-5 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-emerald-400 rounded-xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-green-900">
+            <h3 className="text-xl font-bold text-emerald-900 flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-md">
+                <span className="text-white text-sm font-bold">P</span>
+              </div>
               Parameters Management
             </h3>
             <div className="relative">
               <button
                 onClick={() => setShowParameterDropdown(!showParameterDropdown)}
                 disabled={availableToAdd.length === 0}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 <Plus className="w-4 h-4" />
                 Add Parameter
-                <ChevronDown className="w-3 h-3" />
               </button>
 
               <AnimatePresence>
@@ -2568,13 +3062,13 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-72 bg-white border border-green-300 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto"
+                    className="absolute right-0 mt-2 w-72 bg-white border border-emerald-300 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto"
                   >
                     {availableToAdd.map((param) => (
                       <button
                         key={param.paraCode}
                         onClick={() => handleAddParameter(param)}
-                        className="w-full text-left px-3 py-2 hover:bg-green-50 border-b border-green-200 last:border-b-0 transition-colors text-sm"
+                        className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
                       >
                         <div className="font-semibold text-gray-900">
                           {param.parameter}
@@ -2609,7 +3103,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="flex items-center justify-between p-3 bg-white border border-green-300 rounded-lg hover:border-green-500 hover:shadow-md transition-all"
+                    className="flex items-center justify-between p-3 bg-white border border-emerald-300 rounded-lg hover:border-emerald-500 hover:shadow-md transition-all"
                   >
                     <div className="flex-1">
                       <div className="font-semibold text-gray-900 text-sm">
@@ -2625,19 +3119,21 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                         className={`px-3 py-1 font-medium rounded text-xs transition-colors ${
                           selectedParamsForDetail.includes(param.id)
                             ? "bg-orange-100 text-orange-700 hover:bg-orange-200"
-                            : "bg-green-100 text-green-700 hover:bg-green-200"
+                            : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                         }`}
                       >
                         {selectedParamsForDetail.includes(param.id)
                           ? "Hide Details"
                           : "View Details"}
                       </button>
-                      <button
+                      <motion.button
                         onClick={() => handleRemoveParameter(param.id)}
-                        className="p-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+                        whileHover={{ scale: 1.1, rotate: 10 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="mx-2"
                       >
-                        <Trash className="w-4 h-4" />
-                      </button>
+                        <CgTrash className="w-5 h-5 text-red-500" />
+                      </motion.button>
                     </div>
                   </motion.div>
                 ))}
@@ -2646,7 +3142,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           </AnimatePresence>
 
           {addedParameters.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-4 text-gray-500">
               <Target className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p className="text-sm font-medium">No parameters added yet</p>
               <p className="text-xs mt-1">
@@ -2666,14 +3162,14 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 exit={{ opacity: 0, height: 0 }}
                 className="my-6"
               >
-                <div className="bg-white rounded-lg border border-green-600 overflow-hidden mb-4 shadow-lg">
-                  <div className="flex items-center justify-between px-4 py-2 bg-gradient-to-r from-green-100 to-green-200 border-b border-green-500">
-                    <h3 className="text-base font-bold text-green-900">
+                <div className="bg-white rounded-lg border border-emerald-600 overflow-hidden mb-4 shadow-lg">
+                  <div className="flex items-center justify-between px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-200 ">
+                    <h3 className="text-base font-bold text-emerald-900">
                       Parameter Details: {selectedParam.parameter}
                     </h3>
                     <button
                       onClick={() => toggleParameterDetail(selectedParam.id)}
-                      className="text-green-700 hover:text-green-900 font-bold text-lg"
+                      className="text-green-700 hover:text-emerald-900 font-bold text-lg"
                     >
                       ✕
                     </button>
@@ -2682,18 +3178,18 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                   <table className="w-full border-collapse text-sm">
                     <tbody>
                       <tr>
-                        <td className="w-1/2 px-3 py-3 border-r-2 border-green-500 font-semibold text-center bg-green-800 text-white">
+                        <td className="w-1/2 px-3 py-3 border-r-1 border-emerald-500 font-semibold text-center bg-emerald-800 text-white">
                           Parameter Code
                         </td>
-                        <td className="w-1/2 px-3 py-3 font-semibold text-center bg-green-800 text-white">
+                        <td className="w-1/2 px-3 py-3 font-semibold text-center bg-emerald-800 text-white">
                           Parameter Name
                         </td>
                       </tr>
-                      <tr className="border-2 border-green-500 hover:bg-green-50 transition-colors">
-                        <td className="w-1/2 px-3 py-3 border-r-2 border-green-500 font-semibold text-center bg-green-50 text-gray-900">
+                      <tr className="hover:bg-emerald-50 transition-colors">
+                        <td className="w-1/2 px-3 py-3 border-r-1 border-emerald-500 font-semibold text-center bg-emerald-50 text-gray-900">
                           {selectedParam.paraCode}
                         </td>
-                        <td className="w-1/2 px-3 py-3 font-semibold text-center bg-green-50">
+                        <td className="w-1/2 px-3 py-3 font-semibold text-center bg-emerald-50">
                           {selectedParam.parameter}
                         </td>
                       </tr>
@@ -2703,7 +3199,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-base font-bold text-green-900">
+                    <h3 className="text-base font-bold text-emerald-900">
                       Instruments Details:
                     </h3>
                     <div className="relative" ref={instrumentRef}>
@@ -2716,10 +3212,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           !!referenceDataError ||
                           instruments.length === 0
                         }
-                        className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                        className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                       >
-                        <Plus className="w-3 h-3" />
-                        Add Instrument
+                        <Plus className="w-4 h-4" />
                       </button>
 
                       <AnimatePresence>
@@ -2729,9 +3224,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             onMouseDown={(e) => e.stopPropagation()}
-                            className="absolute right-0 mt-2 w-80 bg-white border border-green-300 rounded-lg shadow-xl z-50"
+                            className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
                           >
-                            <div className="p-2 border-b border-green-200">
+                            <div className="p-2 border-b border-emerald-200">
                               <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                                 <input
@@ -2741,7 +3236,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                   onChange={(e) =>
                                     setInstrumentSearch(e.target.value)
                                   }
-                                  className="w-full pl-10 pr-3 py-2 border border-green-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                  className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                 />
                               </div>
                             </div>
@@ -2762,7 +3257,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                         inst
                                       )
                                     }
-                                    className="w-full text-left px-3 py-2 hover:bg-green-50 border-b border-green-200 last:border-b-0 transition-colors text-sm"
+                                    className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
                                   >
                                     <div className="font-semibold text-gray-900">
                                       {inst.name}
@@ -2799,17 +3294,17 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                   {!isReferenceDataLoading && !referenceDataError && (
                     <table className="w-full border-collapse text-sm shadow-md">
                       <thead>
-                        <tr className="bg-green-100 border-2 border-green-500">
-                          <th className="px-3 py-2 border-r-2 border-green-500 text-left font-bold">
+                        <tr className="bg-emerald-100 border-2 border-emerald-500">
+                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                             Instrument Id.
                           </th>
-                          <th className="px-3 py-2 border-r-2 border-green-500 text-left font-bold">
+                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                             Instrument Name
                           </th>
-                          <th className="px-3 py-2 border-r-2 border-green-500 text-left font-bold">
+                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                             Calibration Done On
                           </th>
-                          <th className="px-3 py-2 border-r-2 border-green-500 text-left font-bold">
+                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                             Calibration Due On
                           </th>
                           <th className="px-3 py-2 text-center font-bold w-20">
@@ -2827,39 +3322,40 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                   initial={{ opacity: 0, x: -20 }}
                                   animate={{ opacity: 1, x: 0 }}
                                   exit={{ opacity: 0, x: 20 }}
-                                  className="border-2 border-green-500 hover:bg-green-50 transition-colors"
+                                  className="border-2 border-emerald-500 hover:bg-emerald-50 transition-colors"
                                 >
-                                  <td className="px-3 py-2 border-r-2 border-green-500">
+                                  <td className="px-3 py-2 border-r-2 border-emerald-500">
                                     {instrument.id || "---"}
                                   </td>
-                                  <td className="px-3 py-2 border-r-2 border-green-500">
+                                  <td className="px-3 py-2 border-r-2 border-emerald-500">
                                     {instrument.name || "---"}
                                   </td>
-                                  <td className="px-3 py-2 border-r-2 border-green-500">
+                                  <td className="px-3 py-2 border-r-2 border-emerald-500">
                                     {instrument.calibrationDoneDate || "---"}
                                   </td>
-                                  <td className="px-3 py-2 border-r-2 border-green-500">
+                                  <td className="px-3 py-2 border-r-2 border-emerald-500">
                                     {instrument.calibrationDueDate || "---"}
                                   </td>
                                   <td className="px-3 py-2 text-center">
-                                    <button
+                                    <motion.button
                                       onClick={() =>
                                         handleRemoveInstrument(
                                           selectedParam.id,
                                           instrument.id
                                         )
                                       }
-                                      className="p-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-                                      title="Remove instrument"
+                                      whileHover={{ scale: 1.1, rotate: 10 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      className="mx-2"
                                     >
-                                      <Trash className="w-4 h-4" />
-                                    </button>
+                                      <CgTrash className="w-5 h-5 text-red-500" />
+                                    </motion.button>
                                   </td>
                                 </motion.tr>
                               )
                             )
                           ) : (
-                            <tr className="border-2 border-green-500">
+                            <tr className="border-2 border-emerald-500">
                               <td
                                 colSpan={5}
                                 className="px-3 py-4 text-center text-gray-500"
@@ -2883,7 +3379,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 {/* Chemicals Used - Dynamic with Add/Remove */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-base font-bold text-green-900">
+                    <h3 className="text-base font-bold text-emerald-900">
                       Reagents and Chemicals Details:
                     </h3>
                     <div className="relative" ref={chemicalRef}>
@@ -2896,10 +3392,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           !!referenceDataError ||
                           chemicals.length === 0
                         }
-                        className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                        className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                       >
-                        <Plus className="w-3 h-3" />
-                        Add Chemical
+                        <Plus className="w-4 h-4" />
                       </button>
 
                       <AnimatePresence>
@@ -2909,9 +3404,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             onMouseDown={(e) => e.stopPropagation()}
-                            className="absolute right-0 mt-2 w-80 bg-white border border-green-300 rounded-lg shadow-xl z-50"
+                            className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
                           >
-                            <div className="p-2 border-b border-green-200">
+                            <div className="p-2 border-b border-emerald-200">
                               <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                                 <input
@@ -2921,7 +3416,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                   onChange={(e) =>
                                     setChemicalSearch(e.target.value)
                                   }
-                                  className="w-full pl-10 pr-3 py-2 border border-green-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                  className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                 />
                               </div>
                             </div>
@@ -2939,7 +3434,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                     onClick={() =>
                                       handleAddChemical(selectedParam.id, chem)
                                     }
-                                    className="w-full text-left px-3 py-2 hover:bg-green-50 border-b border-green-200 last:border-b-0 transition-colors text-sm"
+                                    className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
                                   >
                                     <div className="font-semibold text-gray-900">
                                       {chem.name}
@@ -2976,17 +3471,17 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                   {!isReferenceDataLoading && !referenceDataError && (
                     <table className="w-full border-collapse text-sm shadow-md">
                       <thead>
-                        <tr className="bg-green-100 border-2 border-green-500">
-                          <th className="px-3 py-2 border-r-2 border-green-500 text-left font-bold">
+                        <tr className="bg-emerald-100 border-2 border-emerald-500">
+                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                             Name of Solvents
                           </th>
-                          <th className="px-3 py-2 border-r-2 border-green-500 text-left font-bold">
+                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                             Make
                           </th>
-                          <th className="px-3 py-2 border-r-2 border-green-500 text-left font-bold">
+                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                             Lot No./Batch No.
                           </th>
-                          <th className="px-3 py-2 border-r-2 border-green-500 text-left font-bold">
+                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                             Validity
                           </th>
                           <th className="px-3 py-2 text-center font-bold w-20">
@@ -3003,38 +3498,39 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: 20 }}
-                                className="border-2 border-green-500 hover:bg-green-50 transition-colors"
+                                className="border-2 border-emerald-500 hover:bg-emerald-50 transition-colors"
                               >
-                                <td className="px-3 py-2 border-r-2 border-green-500">
+                                <td className="px-3 py-2 border-r-2 border-emerald-500">
                                   {chemical.name || "---"}
                                 </td>
-                                <td className="px-3 py-2 border-r-2 border-green-500">
+                                <td className="px-3 py-2 border-r-2 border-emerald-500">
                                   {chemical.make || "---"}
                                 </td>
-                                <td className="px-3 py-2 border-r-2 border-green-500">
+                                <td className="px-3 py-2 border-r-2 border-emerald-500">
                                   {chemical.batchNo || "---"}
                                 </td>
-                                <td className="px-3 py-2 border-r-2 border-green-500">
+                                <td className="px-3 py-2 border-r-2 border-emerald-500">
                                   {chemical.validity || "---"}
                                 </td>
                                 <td className="px-3 py-2 text-center">
-                                  <button
-                                    onClick={() =>
+                                  <motion.button
+                                      onClick={() =>
                                       handleRemoveChemical(
                                         selectedParam.id,
                                         chemical.id
                                       )
                                     }
-                                    className="p-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-                                    title="Remove chemical"
-                                  >
-                                    <Trash className="w-4 h-4" />
-                                  </button>
+                                      whileHover={{ scale: 1.1, rotate: 10 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      className="mx-2"
+                                    >
+                                      <CgTrash className="w-5 h-5 text-red-500" />
+                                    </motion.button>
                                 </td>
                               </motion.tr>
                             ))
                           ) : (
-                            <tr className="border-2 border-green-500">
+                            <tr className="border-2 border-emerald-500">
                               <td
                                 colSpan={5}
                                 className="px-3 py-4 text-center text-gray-500"
@@ -3058,7 +3554,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 {/* Standards Used - Dynamic with Add/Remove */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-base font-bold text-green-900">
+                    <h3 className="text-base font-bold text-emerald-900">
                       Standards Details:
                     </h3>
                     <div className="relative" ref={standardRef}>
@@ -3071,10 +3567,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           !!referenceDataError ||
                           standards.length === 0
                         }
-                        className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                        className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                       >
-                        <Plus className="w-3 h-3" />
-                        Add Standard
+                        <Plus className="w-4 h-4" />
                       </button>
 
                       <AnimatePresence>
@@ -3084,9 +3579,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             onMouseDown={(e) => e.stopPropagation()}
-                            className="absolute right-0 mt-2 w-80 bg-white border border-green-300 rounded-lg shadow-xl z-50"
+                            className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
                           >
-                            <div className="p-2 border-b border-green-200">
+                            <div className="p-2 border-b border-emerald-200">
                               <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                                 <input
@@ -3096,7 +3591,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                   onChange={(e) =>
                                     setStandardSearch(e.target.value)
                                   }
-                                  className="w-full pl-10 pr-3 py-2 border border-green-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                  className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                 />
                               </div>
                             </div>
@@ -3114,7 +3609,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                     onClick={() =>
                                       handleAddStandard(selectedParam.id, std)
                                     }
-                                    className="w-full text-left px-3 py-2 hover:bg-green-50 border-b border-green-200 last:border-b-0 transition-colors text-sm"
+                                    className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
                                   >
                                     <div className="font-semibold text-gray-900">
                                       {std.name}
@@ -3151,17 +3646,17 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                   {!isReferenceDataLoading && !referenceDataError && (
                     <table className="w-full border-collapse text-sm shadow-md">
                       <thead>
-                        <tr className="bg-green-100 border-2 border-green-500">
-                          <th className="px-3 py-2 border-r-2 border-green-500 text-left font-bold">
+                        <tr className="bg-emerald-100 border-2 border-emerald-500">
+                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                             Name of Standard
                           </th>
-                          <th className="px-3 py-2 border-r-2 border-green-500 text-left font-bold">
+                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                             Purity
                           </th>
-                          <th className="px-3 py-2 border-r-2 border-green-500 text-left font-bold">
+                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                             Make
                           </th>
-                          <th className="px-3 py-2 border-r-2 border-green-500 text-left font-bold">
+                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                             Lot No./Batch No.
                           </th>
                           <th className="px-3 py-2 text-center font-bold w-20">
@@ -3178,38 +3673,39 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: 20 }}
-                                className="border-2 border-green-500 hover:bg-green-50 transition-colors"
+                                className="border-2 border-emerald-500 hover:bg-emerald-50 transition-colors"
                               >
-                                <td className="px-3 py-2 border-r-2 border-green-500">
+                                <td className="px-3 py-2 border-r-2 border-emerald-500">
                                   {standard.name || "---"}
                                 </td>
-                                <td className="px-3 py-2 border-r-2 border-green-500">
+                                <td className="px-3 py-2 border-r-2 border-emerald-500">
                                   {standard.purity || "---"}
                                 </td>
-                                <td className="px-3 py-2 border-r-2 border-green-500">
+                                <td className="px-3 py-2 border-r-2 border-emerald-500">
                                   {standard.make || "---"}
                                 </td>
-                                <td className="px-3 py-2 border-r-2 border-green-500">
+                                <td className="px-3 py-2 border-r-2 border-emerald-500">
                                   {standard.batchNo || "---"}
                                 </td>
                                 <td className="px-3 py-2 text-center">
-                                  <button
-                                    onClick={() =>
+                                  <motion.button
+                                      onClick={() =>
                                       handleRemoveStandard(
                                         selectedParam.id,
                                         standard.id
                                       )
                                     }
-                                    className="p-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-                                    title="Remove standard"
-                                  >
-                                    <Trash className="w-4 h-4" />
-                                  </button>
+                                      whileHover={{ scale: 1.1, rotate: 10 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      className="mx-2"
+                                    >
+                                      <CgTrash className="w-5 h-5 text-red-500" />
+                                    </motion.button>
                                 </td>
                               </motion.tr>
                             ))
                           ) : (
-                            <tr className="border-2 border-green-500">
+                            <tr className="border-2 border-emerald-500">
                               <td
                                 colSpan={5}
                                 className="px-3 py-4 text-center text-gray-500"
@@ -3232,7 +3728,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
                 {/* Preparation of Diluent */}
                 <div className="mb-4">
-                  <h3 className="text-base font-bold mb-2 text-green-900">
+                  <h3 className="text-base font-bold mb-2 text-emerald-900">
                     Preparation of Diluent:
                   </h3>
                   <textarea
@@ -3241,28 +3737,28 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                       handleDiluentChange(selectedParam.id, e.target.value)
                     }
                     placeholder="Enter diluent preparation details..."
-                    className="w-full min-h-[100px] border border-green-300 rounded-lg p-3 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full min-h-[100px] border border-emerald-300 rounded-lg p-3 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   />
                 </div>
 
                 {/* <div className="mb-6 text-sm flex flex-col md:flex-row gap-6">
                   <div
-                    className="relative flex items-center p-3 bg-gradient-to-br from-green-50 to-white border border-green-300 rounded-xl shadow-md flex-grow"
+                    className="relative flex items-center p-3 bg-gradient-to-br from-emerald-50 to-white border border-emerald-300 rounded-xl shadow-md flex-grow"
                     ref={columnRef}
                   >
-                    <span className="font-bold mr-4 text-green-900 w-36 shrink-0">
+                    <span className="font-bold mr-4 text-emerald-900 w-36 shrink-0">
                       Column ID:
                     </span>
                     <button
                       onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                      className="flex items-center gap-2 px-4 py-2 bg-white text-green-700 font-semibold border border-green-400 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 hover:bg-green-50 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-white text-emerald-700 font-semibold border border-emerald-400 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 hover:bg-emerald-50 transition-colors"
                     >
                       <span className="truncate">
                         {columns.find(
                           (c) => c.id === columnsPerParam[selectedParam.id]
                         )?.id || "Select Column"}
                       </span>
-                      <ChevronDown className="w-4 h-4 text-green-600" />
+                      <ChevronDown className="w-4 h-4 text-emerald-600" />
                     </button>
 
                     <AnimatePresence>
@@ -3271,9 +3767,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
-                          className="absolute left-0 mt-2 w-full top-full bg-white border border-green-400 rounded-xl shadow-2xl z-50 overflow-hidden"
+                          className="absolute left-0 mt-2 w-full top-full bg-white border border-emerald-400 rounded-xl shadow-2xl z-50 overflow-hidden"
                         >
-                          <div className="p-2 border-b border-green-200 sticky top-0 bg-white">
+                          <div className="p-2 border-b border-emerald-200 sticky top-0 bg-white">
                             <div className="relative">
                               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                               <input
@@ -3283,7 +3779,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                 onChange={(e) =>
                                   setColumnSearch(e.target.value)
                                 }
-                                className="w-full pl-10 pr-3 py-2 border border-green-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                               />
                             </div>
                           </div>
@@ -3297,7 +3793,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                     col.id
                                   )
                                 }
-                                className="w-full text-left px-4 py-2 hover:bg-green-100 border-b border-green-200 last:border-b-0 transition-colors text-sm"
+                                className="w-full text-left px-4 py-2 hover:bg-emerald-100 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
                               >
                                 <div className="font-semibold text-gray-900">
                                   {col.name}
@@ -3324,15 +3820,14 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 {/* --- START: Dynamic Mobile Phase Section --- */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3 px-1">
-                    <h3 className="text-base font-bold text-blue-900 flex items-center gap-2">
+                    <h3 className="text-base font-bold text-blue-600 flex items-center gap-2">
                       Mobile Phase Preparations
                     </h3>
                     <button
                       onClick={() => handleAddMobilePhase(selectedParam.id)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm text-xs"
+                      className="flex items-center p-1.5 bg-blue-600 text-white font-medium rounded-2xl hover:bg-blue-700 transition-colors shadow-sm text-xs"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      Add Mobile Phase
+                      <Plus className="w-4 h-4" />
                     </button>
                   </div>
 
@@ -3383,15 +3878,14 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 {/* --- START: Dynamic Disso Media Section --- */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3 px-1">
-                    <h3 className="text-base font-bold text-amber-900 flex items-center gap-2">
+                    <h3 className="text-base font-bold text-amber-600 flex items-center gap-2">
                       Disso Media Preparations
                     </h3>
                     <button
                       onClick={() => handleAddDissoMedia(selectedParam.id)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white font-medium rounded-md hover:bg-amber-700 transition-colors shadow-sm text-xs"
+                      className="flex items-center p-1.5 bg-amber-600 text-white font-medium rounded-2xl hover:bg-amber-700 transition-colors shadow-sm text-xs"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      Add Disso Media
+                      <Plus className="w-4 h-4" />
                     </button>
                   </div>
 
@@ -3442,17 +3936,16 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 {/* --- START: Dynamic Standard Preparation Section --- */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3 px-1">
-                    <h3 className="text-base font-bold text-purple-900 flex items-center gap-2">
+                    <h3 className="text-base font-bold text-purple-600 flex items-center gap-2">
                       Standard Preparations
                     </h3>
                     <button
                       onClick={() =>
                         handleAddStandardPreparation(selectedParam.id)
                       }
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 transition-colors shadow-sm text-xs"
+                      className="flex items-center p-1.5 bg-purple-600 text-white font-medium rounded-2xl hover:bg-purple-700 transition-colors shadow-sm text-xs"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      Add Standard Preparation
+                      <Plus className="w-4 h-4" />
                     </button>
                   </div>
 
@@ -3505,17 +3998,16 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 {/* --- START: Dynamic Sample Preparation Section --- */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3 px-1">
-                    <h3 className="text-base font-bold text-green-900 flex items-center gap-2">
+                    <h3 className="text-base font-bold text-green-600 flex items-center gap-2">
                       Sample Preparations
                     </h3>
                     <button
                       onClick={() =>
                         handleAddSamplePreparation(selectedParam.id)
                       }
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors shadow-sm text-xs"
+                      className="flex items-center p-1.5 bg-green-600 text-white font-medium rounded-2xl hover:bg-green-700 transition-colors shadow-sm text-xs"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      Add Sample Preparation
+                      <Plus className="w-4 h-4" />
                     </button>
                   </div>
 
@@ -3565,6 +4057,68 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 </div>
                 {/* --- END: Dynamic Standard Preparation Section --- */}
 
+                {/* --- START: Dynamic Sample Preparation for Titration Section --- */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <h3 className="text-base font-bold text-lime-600 flex items-center gap-2">
+                      Sample Preparations for Titration
+                    </h3>
+                    <button
+                      onClick={() =>
+                        handleAddSamplePreparationTitration(selectedParam.id)
+                      }
+                      className="flex items-center p-1.5 bg-lime-600 text-white font-medium rounded-2xl hover:bg-lime-700 transition-colors shadow-sm text-xs"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <AnimatePresence>
+                    {(samplePreprationTitrationPerParam[selectedParam.id] || []).map(
+                      (samplePreparationTitration) => (
+                        <SamplePreparationTitrationDetail
+                          key={samplePreparationTitration.id}
+                          samplePreparationTitration={samplePreparationTitration}
+                          onStepChange={(
+                            samplePreparationTitrationId,
+                            stepName,
+                            field,
+                            newValue
+                          ) =>
+                            handleSamplePreparationTitrationStepChange(
+                              selectedParam.id,
+                              samplePreparationTitrationId,
+                              stepName,
+                              field,
+                              newValue
+                            )
+                          }
+                          onRemove={() =>
+                            handleRemoveSamplePreparationTitration(
+                              selectedParam.id,
+                              samplePreparationTitration.id
+                            )
+                          }
+                        />
+                      )
+                    )}
+                  </AnimatePresence>
+
+                  {(samplePreprationTitrationPerParam[selectedParam.id] || []).length ===
+                    0 && (
+                    <div className="text-center py-8 text-gray-500 text-sm bg-lime-50/50 border border-lime-200 rounded-lg">
+                      <Target className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                      <p className="font-medium">
+                        No sample preparation for titration added yet.
+                      </p>
+                      <p className="text-xs mt-1">
+                        Click "Add Sample Preparation for Titration" to begin preparation.
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {/* --- END: Dynamic Sample Preparation for Titration Section --- */}
+
                 {/* Preparation of Test Solution */}
                 <div className="mb-4">
                   <h3 className="text-base font-bold mb-2 text-green-900">
@@ -3584,43 +4138,43 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           ))}
 
         {/* Footer Section */}
-        <div className="border-2 border-green-600 mt-8 rounded-lg overflow-hidden shadow-lg">
-          <div className="grid grid-cols-3 border-b-2 border-green-600 text-sm font-bold text-center bg-gradient-to-r from-green-100 to-green-200">
-            <div className="flex flex-col justify-center border-r-2 border-green-600 p-4 hover:bg-green-300 transition-colors">
-              <span className="text-green-900">REVIEWED BY (QC)</span>
+        <div className="border-2 border-emerald-600 mt-8 rounded-lg overflow-hidden shadow-lg">
+          <div className="grid grid-cols-3 border-b-2 border-emerald-600 text-sm font-bold text-center bg-gradient-to-r from-emerald-100 to-emerald-200">
+            <div className="flex flex-col justify-center border-r-2 border-emerald-600 p-4 hover:bg-emerald-300 transition-colors">
+              <span className="text-emerald-900">REVIEWED BY (QC)</span>
               <span className="font-normal text-xs text-gray-600 mt-1">
                 (Sign & Date)
               </span>
             </div>
-            <div className="flex flex-col justify-center border-r-2 border-green-600 p-4 hover:bg-green-300 transition-colors">
-              <span className="text-green-900">REVIEWED BY (QA)</span>
+            <div className="flex flex-col justify-center border-r-2 border-emerald-600 p-4 hover:bg-emerald-300 transition-colors">
+              <span className="text-emerald-900">REVIEWED BY (QA)</span>
               <span className="font-normal text-xs text-gray-600 mt-1">
                 (Sign & Date)
               </span>
             </div>
-            <div className="flex flex-col justify-center p-4 hover:bg-green-300 transition-colors">
-              <span className="text-green-900">APPROVED BY (QA)</span>
+            <div className="flex flex-col justify-center p-4 hover:bg-emerald-300 transition-colors">
+              <span className="text-emerald-900">APPROVED BY (QA)</span>
               <span className="font-normal text-xs text-gray-600 mt-1">
                 (Sign & Date)
               </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 border-b border-green-500 text-xs bg-green-50">
-            <div className="flex items-center px-3 py-2 border-r-2 border-green-500">
-              <span className="font-bold mr-2 text-green-900">
+          <div className="grid grid-cols-3 border-b border-emerald-500 text-xs bg-emerald-50">
+            <div className="flex items-center px-3 py-2 border-r-2 border-emerald-500">
+              <span className="font-bold mr-2 text-emerald-900">
                 Prepared By:
               </span>
               <span className="text-gray-700">{preparedBy}</span>
             </div>
-            <div className="flex items-center px-3 py-2 border-r-2 border-green-500">
-              <span className="font-bold mr-2 text-green-900">
+            <div className="flex items-center px-3 py-2 border-r-2 border-emerald-500">
+              <span className="font-bold mr-2 text-emerald-900">
                 Issued & Approved By:
               </span>
               <span className="text-gray-700">{issuedApprovedBy}</span>
             </div>
             <div className="flex items-center px-3 py-2">
-              <span className="font-bold mr-2 text-green-900">
+              <span className="font-bold mr-2 text-emerald-900">
                 Effective Issue Date:
               </span>
               <span className="text-gray-700">{effectiveIssueDate}</span>
@@ -3628,18 +4182,18 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           </div>
 
           <div className="grid grid-cols-3 text-xs bg-white">
-            <div className="flex items-center px-3 py-2 border-r-2 border-green-500">
-              <span className="font-bold mr-2 text-green-900">
+            <div className="flex items-center px-3 py-2 border-r-2 border-emerald-500">
+              <span className="font-bold mr-2 text-emerald-900">
                 Approved By:
               </span>
               <span className="text-gray-700">{approvedBy}</span>
             </div>
-            <div className="flex items-center px-3 py-2 border-r-2 border-green-500">
-              <span className="font-bold mr-2 text-green-900">Classified:</span>
+            <div className="flex items-center px-3 py-2 border-r-2 border-emerald-500">
+              <span className="font-bold mr-2 text-emerald-900">Classified:</span>
               <span className="text-red-600 font-semibold">{classified}</span>
             </div>
             <div className="flex items-center px-3 py-2">
-              <span className="font-bold mr-2 text-green-900">
+              <span className="font-bold mr-2 text-emerald-900">
                 Revision Date:
               </span>
               <span className="text-gray-700">{revisionDate}</span>
@@ -3649,7 +4203,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
         {/* Action Buttons */}
         <div className="mt-6 flex gap-3 justify-center no-print">
-          <button className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg text-sm">
+          <button className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg text-sm">
             Save Draft
           </button>
           <button

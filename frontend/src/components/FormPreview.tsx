@@ -17,6 +17,12 @@ import { CgTrash } from "react-icons/cg";
 import type { SamplePreparationTitration } from "../models/SamplePreparationTitration";
 import type { SamplePreparationTitrationStep } from "../models/SamplePreparationTitrationStep";
 import { Droplets } from "lucide-react";
+import type { SamplePreparationLod } from "../models/SamplePreparationLod";
+import type { SamplePreparationLodStep } from "../models/SamplePreparationLodStep";
+import type { SamplePreparationSulphatedAsh } from "../models/SamplePreparationSulphatedAsh";
+import type { SamplePreparationSulphatedAshStep } from "../models/SamplePreparationSulphatedAshStep";
+import type { SamplePreparationLossOnIgnation } from "../models/SamplePreparationLossOnIgnation";
+import type { SamplePreparationLossOnIgnationStep } from "../models/SamplePreparationLossOnIgnationStep";
 
 const Target: React.FC<{ className: string }> = ({ className }) => (
   <svg
@@ -116,19 +122,6 @@ const ReferenceError: React.FC<{ error: string }> = ({ error }) => (
     </div>
     <p className="text-xs ml-7 break-words">{error}</p>
   </div>
-);
-
-const Beaker: React.FC<{ className: string }> = ({ className }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-  >
-    <path d="M9 3h6v7l4 8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2l4-8V3z" />
-    <path d="M9 3h6" />
-  </svg>
 );
 
 interface FormPreviewProps {
@@ -254,7 +247,7 @@ const createNewStandardPreparation = (index: number): StandardPreparation => {
 interface StandardPreparationDetailProps {
   standardPreparation: StandardPreparation;
   onStepChange: (
-    standardPreprationId: number,
+    standardPreparationId: number,
     stepName: StandardPreparationStep["name"],
     field:
       | "value"
@@ -294,10 +287,10 @@ const createNewSamplePreparation = (index: number): SamplePreparation => {
 interface SamplePreparationDetailProps {
   samplePreparation: SamplePreparation;
   onStepChange: (
-    samplePreprationId: number,
+    samplePreparationId: number,
     stepName: SamplePreparationStep["name"],
     field:
-      "value"
+      | "value"
       | "unit"
       | "vol1"
       | "vol2"
@@ -311,10 +304,12 @@ interface SamplePreparationDetailProps {
   onRemove: () => void;
 }
 
-const createNewSamplePreparationTitration = (index: number): SamplePreparationTitration => {
+const createNewSamplePreparationTitration = (
+  index: number
+): SamplePreparationTitration => {
   return {
     id: Date.now() + index,
-    label: `Sample Preparation for Titration ${index + 1}`,
+    label: `Sample Preparation ${index + 1} for Titration`,
     steps: [
       {
         name: "Weighing",
@@ -323,8 +318,8 @@ const createNewSamplePreparationTitration = (index: number): SamplePreparationTi
         solventChemical: "",
         logBookID: "",
       },
-      { name: "1st Dilution", value: "", unit: "ml"},
-      { name: "End Point Determination", value: ""},
+      { name: "1st Dilution", value: "", unit: "ml" },
+      { name: "End Point Determination", value: "" },
     ],
   };
 };
@@ -340,9 +335,174 @@ interface SamplePreparationTitrationDetailProps {
   onRemove: () => void;
 }
 
+const createNewSamplePreparationLod = (index: number): SamplePreparationLod => {
+  return {
+    id: Date.now() + index,
+    label: `Sample Preparation ${index + 1} for LOD`,
+    steps: [
+      {
+        name: "Weighing (Empty Bottle)",
+        value: "",
+        unit: "g",
+        logBookID: "",
+      },
+      {
+        name: "Weighing (Before Drying)",
+        value: "",
+        unit: "g",
+        logBookID: "",
+      },
+      {
+        name: "Drying",
+        temp: "",
+        tempUnit: "°C",
+        time: "",
+        timeUnit: "min",
+        logBookID: "",
+      },
+      {
+        name: "Weighing (After Drying)",
+        value: "",
+        unit: "g",
+        logBookID: "",
+      },
+    ],
+  };
+};
+
+interface SamplePreparationLodDetailProps {
+  samplePreparationLod: SamplePreparationLod;
+  onStepChange: (
+    samplePreparationLodId: number,
+    stepName: SamplePreparationLodStep["name"],
+    field:
+      | "value"
+      | "logBookID"
+      | "unit"
+      | "temp"
+      | "tempUnit"
+      | "time"
+      | "timeUnit",
+    newValue: string
+  ) => void;
+  onRemove: () => void;
+}
+
+const createNewSamplePreparationSulphatedAsh = (
+  index: number
+): SamplePreparationSulphatedAsh => {
+  return {
+    id: Date.now() + index,
+    label: `Sample Preparation ${index + 1} for Sulphated Ash`,
+    steps: [
+      {
+        name: "Weighing (Empty Crucible)",
+        value: "",
+        unit: "g",
+        logBookID: "",
+      },
+      {
+        name: "Weighing (Before Drying)",
+        value: "",
+        unit: "g",
+        logBookID: "",
+      },
+      {
+        name: "Drying",
+        temp: "",
+        tempUnit: "°C",
+        time: "",
+        timeUnit: "min",
+        logBookID: "",
+      },
+      {
+        name: "Weighing (After Drying)",
+        value: "",
+        unit: "g",
+        logBookID: "",
+      },
+    ],
+  };
+};
+
+interface SamplePreparationSulphatedAshDetailProps {
+  samplePreparationSulphatedAsh: SamplePreparationSulphatedAsh;
+  onStepChange: (
+    samplePreparationSulphatedAshId: number,
+    stepName: SamplePreparationSulphatedAshStep["name"],
+    field:
+      | "value"
+      | "logBookID"
+      | "unit"
+      | "temp"
+      | "tempUnit"
+      | "time"
+      | "timeUnit",
+    newValue: string
+  ) => void;
+  onRemove: () => void;
+}
+
+const createNewSamplePreparationLossOnIgnation = (
+  index: number
+): SamplePreparationLossOnIgnation => {
+  return {
+    id: Date.now() + index,
+    label: `Sample Preparation ${index + 1} for Loss on Ignation`,
+    steps: [
+      {
+        name: "Weighing (Empty Crucible)",
+        value: "",
+        unit: "g",
+        logBookID: "",
+      },
+      {
+        name: "Weighing (Before Drying)",
+        value: "",
+        unit: "g",
+        logBookID: "",
+      },
+      {
+        name: "Drying",
+        temp: "",
+        tempUnit: "°C",
+        time: "",
+        timeUnit: "min",
+        logBookID: "",
+      },
+      {
+        name: "Weighing (After Drying)",
+        value: "",
+        unit: "g",
+        logBookID: "",
+      },
+    ],
+  };
+};
+
+interface SamplePreparationLossOnIgnationDetailProps {
+  samplePreparationLossOnIgnation: SamplePreparationLossOnIgnation;
+  onStepChange: (
+    samplePreparationLossOnIgnationId: number,
+    stepName: SamplePreparationLossOnIgnationStep["name"],
+    field:
+      | "value"
+      | "logBookID"
+      | "unit"
+      | "temp"
+      | "tempUnit"
+      | "time"
+      | "timeUnit",
+    newValue: string
+  ) => void;
+  onRemove: () => void;
+}
+
 const weightUnitOptions = ["g", "mg", "kg"];
 const filtrationUnitOptions = ["micron", "µm", "mm"];
 const volumeUnitOptions = ["ml", "L", "µL"];
+const timeUnitOptions = ["min", "hr", "sec"];
+const tempUnitOptions = ["°C", "°F", "K"];
 
 const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
   mobilePhase,
@@ -360,13 +520,13 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
     >
       {/* Glow effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 rounded-lg blur-xl group-hover:blur-xl transition-all duration-300" />
-      
+
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-blue-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
         {/* Elegant Header */}
         <div className="relative bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 overflow-hidden">
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-          
+
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"
@@ -382,12 +542,14 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                   <Droplets className="w-5 h-5 text-white" />
                 </div>
               </motion.div>
-              
+
               <div>
                 <h4 className="text-sm font-semibold text-white tracking-wide">
                   {mobilePhase.label}
                 </h4>
-                <p className="text-xs text-blue-100">Mobile Phase Preparation Details</p>
+                <p className="text-xs text-blue-100">
+                  Mobile Phase Preparation Details
+                </p>
               </div>
             </div>
 
@@ -405,7 +567,7 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                   <ChevronDown className="w-5 h-5 text-white" />
                 </motion.div>
               </motion.button>
-              
+
               <motion.button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -448,13 +610,15 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                       className="group/item relative"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-blue-400/5 to-blue-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
-                      
+
                       <div className="relative bg-white rounded-xl border border-blue-200/60 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 p-4">
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-md">
-                            <span className="text-white text-xs font-bold">{index + 1}</span>
+                            <span className="text-white text-xs font-bold">
+                              {index + 1}
+                            </span>
                           </div>
-                          
+
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-3">
                               <div className="font-bold text-blue-900 text-sm">
@@ -466,9 +630,12 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                             {isWeighing && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Weigh accurately</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh accurately
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.value}
@@ -480,8 +647,8 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Amount"
-                                    className="w-20 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                                   />
                                   <select
                                     value={step.unit}
@@ -501,7 +668,9 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                                       </option>
                                     ))}
                                   </select>
-                                  <span className="text-gray-600 font-medium">of</span>
+                                  <span className="text-gray-600 font-medium">
+                                    of
+                                  </span>
                                   <input
                                     type="text"
                                     value={step.solventChemical || ""}
@@ -516,7 +685,9 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                                     placeholder="Solvent/Chemical"
                                     className="flex-1 min-w-[110px] px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <span className="text-gray-500 text-xs">
+                                    (Log ID:
+                                  </span>
                                   <input
                                     type="text"
                                     value={step.logBookID}
@@ -531,7 +702,9 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                                     placeholder="Enter ID"
                                     className="w-28 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">)</span>
+                                  <span className="text-gray-500 text-xs">
+                                    )
+                                  </span>
                                 </div>
                               </div>
                             )}
@@ -539,9 +712,12 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                             {isPH && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Adjust pH to</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Adjust pH to
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.value}
@@ -553,10 +729,12 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="pH value"
+                                    placeholder="Enter pH value"
                                     className="w-40 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <span className="text-gray-500 text-xs">
+                                    (Log ID:
+                                  </span>
                                   <input
                                     type="text"
                                     value={step.logBookID}
@@ -571,16 +749,21 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                                     placeholder="Enter ID"
                                     className="flex-1 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">)</span>
+                                  <span className="text-gray-500 text-xs">
+                                    )
+                                  </span>
                                 </div>
                               </div>
                             )}
 
                             {isFiltration && (
                               <div className="flex flex-wrap items-center gap-2 text-xs">
-                                <span className="text-gray-600 font-medium">Filter from</span>
+                                <span className="text-gray-600 font-medium">
+                                  Filter from
+                                </span>
                                 <input
                                   type="number"
+                                  min="0"
                                   step="0.01"
                                   inputMode="decimal"
                                   value={step.value}
@@ -592,8 +775,8 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                                       e.target.value
                                     )
                                   }
-                                  placeholder="Size"
-                                  className="w-20 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                  placeholder="Enter Size"
+                                  className="w-30 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                                 />
                                 <select
                                   value={step.unit}
@@ -613,16 +796,21 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                                     </option>
                                   ))}
                                 </select>
-                                <span className="text-gray-600 font-medium">filter</span>
+                                <span className="text-gray-600 font-medium">
+                                  filter
+                                </span>
                               </div>
                             )}
 
                             {isSonication && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Sonicate for</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Sonicate for
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="1"
                                     inputMode="numeric"
                                     value={step.value}
@@ -634,13 +822,30 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Time"
-                                    className="w-16 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                    placeholder="Enter Time"
+                                    className="w-30 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                                   />
-                                  <span className="text-gray-600 font-medium">{step.unit}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Phase ID:</span>
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        mobilePhase.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                  >
+                                    {timeUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-gray-600">
+                                    (Mobile Phase ID:
+                                  </span>
                                   <input
                                     type="text"
                                     value={step.mobilePhaseID}
@@ -655,6 +860,7 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                                     placeholder="Enter ID"
                                     className="flex-1 px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                                   />
+                                  <span className="text-gray-600">)</span>
                                 </div>
                               </div>
                             )}
@@ -689,13 +895,13 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
     >
       {/* Glow effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-yellow-400/20 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-300" />
-      
+
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-amber-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
         {/* Elegant Header */}
         <div className="relative bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 overflow-hidden">
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-          
+
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"
@@ -711,12 +917,14 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                   <Droplets className="w-5 h-5 text-white" />
                 </div>
               </motion.div>
-              
+
               <div>
                 <h4 className="text-sm font-semibold text-white tracking-wide">
                   {dissoMedia.label}
                 </h4>
-                <p className="text-xs text-yellow-100">Dissolution Media Preparation Details</p>
+                <p className="text-xs text-yellow-100">
+                  Dissolution Media Preparation Details
+                </p>
               </div>
             </div>
 
@@ -734,7 +942,7 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                   <ChevronDown className="w-5 h-5 text-white" />
                 </motion.div>
               </motion.button>
-              
+
               <motion.button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -777,13 +985,15 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                       className="group/item relative"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-amber-400/0 via-amber-400/5 to-amber-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
-                      
+
                       <div className="relative bg-white rounded-xl border border-amber-200/60 shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-200 p-4">
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-full flex items-center justify-center shadow-md">
-                            <span className="text-white text-xs font-bold">{index + 1}</span>
+                            <span className="text-white text-xs font-bold">
+                              {index + 1}
+                            </span>
                           </div>
-                          
+
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-3">
                               <div className="font-bold text-amber-900 text-sm">
@@ -795,9 +1005,12 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                             {isWeighing && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Weigh accurately</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh accurately
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.value}
@@ -809,8 +1022,8 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Amount"
-                                    className="w-20 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
                                   />
                                   <select
                                     value={step.unit}
@@ -830,7 +1043,9 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                       </option>
                                     ))}
                                   </select>
-                                  <span className="text-gray-600 font-medium">of</span>
+                                  <span className="text-gray-600 font-medium">
+                                    of
+                                  </span>
                                   <input
                                     type="text"
                                     value={step.solventChemical || ""}
@@ -845,7 +1060,9 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                     placeholder="Solvent/Chemical"
                                     className="flex-1 min-w-[110px] px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <span className="text-gray-500 text-xs">
+                                    (Log ID:
+                                  </span>
                                   <input
                                     type="text"
                                     value={step.logBookID}
@@ -860,7 +1077,9 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                     placeholder="Enter ID"
                                     className="w-28 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">)</span>
+                                  <span className="text-gray-500 text-xs">
+                                    )
+                                  </span>
                                 </div>
                               </div>
                             )}
@@ -868,9 +1087,12 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                             {isPH && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Adjust pH to</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Adjust pH to
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.value}
@@ -882,10 +1104,12 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="pH value"
+                                    placeholder="Enter pH value"
                                     className="w-40 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <span className="text-gray-500 text-xs">
+                                    (Log ID:
+                                  </span>
                                   <input
                                     type="text"
                                     value={step.logBookID}
@@ -900,16 +1124,21 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                     placeholder="Enter ID"
                                     className="flex-1 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">)</span>
+                                  <span className="text-gray-500 text-xs">
+                                    )
+                                  </span>
                                 </div>
                               </div>
                             )}
 
                             {isFiltration && (
                               <div className="flex flex-wrap items-center gap-2 text-xs">
-                                <span className="text-gray-600 font-medium">Filter from</span>
+                                <span className="text-gray-600 font-medium">
+                                  Filter from
+                                </span>
                                 <input
                                   type="number"
+                                  min="0"
                                   step="0.01"
                                   inputMode="decimal"
                                   value={step.value}
@@ -921,8 +1150,8 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                       e.target.value
                                     )
                                   }
-                                  placeholder="Size"
-                                  className="w-20 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                  placeholder="Enter Size"
+                                  className="w-30 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
                                 />
                                 <select
                                   value={step.unit}
@@ -942,16 +1171,21 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                     </option>
                                   ))}
                                 </select>
-                                <span className="text-gray-600 font-medium">filter</span>
+                                <span className="text-gray-600 font-medium">
+                                  filter
+                                </span>
                               </div>
                             )}
 
                             {isSonication && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Sonicate for</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Sonicate for
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="1"
                                     inputMode="numeric"
                                     value={step.value}
@@ -963,27 +1197,27 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Time"
-                                    className="w-16 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                    placeholder="Enter Time"
+                                    className="w-30 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
                                   />
-                                  <span className="text-gray-600 font-medium">{step.unit}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Media ID:</span>
-                                  <input
-                                    type="text"
-                                    value={step.dissoMediaID}
+                                  <select
+                                    value={step.unit}
                                     onChange={(e) =>
                                       onStepChange(
                                         dissoMedia.id,
                                         step.name,
-                                        "dissoMediaID",
+                                        "unit",
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Enter ID"
-                                    className="flex-1 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
-                                  />
+                                    className="w-20 px-2 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                  >
+                                    {timeUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
                                 </div>
                               </div>
                             )}
@@ -1018,13 +1252,13 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
     >
       {/* Glow effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-lg blur-xl group-hover:blur-xl transition-all duration-300" />
-      
+
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-purple-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
         {/* Elegant Header */}
         <div className="relative bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 overflow-hidden">
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-          
+
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"
@@ -1040,12 +1274,14 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                   <Droplets className="w-5 h-5 text-white" />
                 </div>
               </motion.div>
-              
+
               <div>
                 <h4 className="text-sm font-semibold text-white tracking-wide">
                   {standardPreparation.label}
                 </h4>
-                <p className="text-xs text-purple-100">Standard Preparation Details</p>
+                <p className="text-xs text-purple-100">
+                  Standard Preparation Details
+                </p>
               </div>
             </div>
 
@@ -1063,7 +1299,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                   <ChevronDown className="w-5 h-5 text-white" />
                 </motion.div>
               </motion.button>
-              
+
               <motion.button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1108,13 +1344,15 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                       className="group/item relative"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-purple-400/5 to-purple-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
-                      
+
                       <div className="relative bg-white rounded-xl border border-purple-200/60 shadow-sm hover:shadow-md hover:border-purple-300 transition-all duration-200 p-4">
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-md">
-                            <span className="text-white text-xs font-bold">{index + 1}</span>
+                            <span className="text-white text-xs font-bold">
+                              {index + 1}
+                            </span>
                           </div>
-                          
+
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-3">
                               <div className="font-bold text-purple-900 text-sm">
@@ -1126,9 +1364,12 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                             {isWeighing && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Weigh accurately</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh accurately
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.value || ""}
@@ -1140,8 +1381,8 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Amount"
-                                    className="w-20 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all"
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all"
                                   />
                                   <select
                                     value={step.unit}
@@ -1161,7 +1402,9 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                       </option>
                                     ))}
                                   </select>
-                                  <span className="text-gray-600 font-medium">of</span>
+                                  <span className="text-gray-600 font-medium">
+                                    of
+                                  </span>
                                   <input
                                     type="text"
                                     value={step.solventChemical || ""}
@@ -1176,7 +1419,9 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                     placeholder="Chemical"
                                     className="flex-1 min-w-[100px] px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <span className="text-gray-500 text-xs">
+                                    (Log ID:
+                                  </span>
                                   <input
                                     type="text"
                                     value={step.logBookID || ""}
@@ -1191,7 +1436,9 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                     placeholder="Enter ID"
                                     className="w-28 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">)</span>
+                                  <span className="text-gray-500 text-xs">
+                                    )
+                                  </span>
                                 </div>
                               </div>
                             )}
@@ -1199,9 +1446,12 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                             {is1stDilution && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Diluted to</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Diluted to
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.vol1 || ""}
@@ -1213,8 +1463,8 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Volume"
-                                    className="w-20 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                    placeholder="Enter Volume"
+                                    className="w-30 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
                                   />
                                   <select
                                     value={step.unit1 || "ml"}
@@ -1234,17 +1484,24 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                       </option>
                                     ))}
                                   </select>
-                                  <span className="text-gray-600 font-medium">with diluent</span>
+                                  <span className="text-gray-600 font-medium">
+                                    with diluent
+                                  </span>
                                 </div>
                               </div>
                             )}
 
-                            {(is2ndDilution || is3rdDilution || is4thDilution) && (
+                            {(is2ndDilution ||
+                              is3rdDilution ||
+                              is4thDilution) && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Take</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Take
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.vol1 || ""}
@@ -1256,8 +1513,8 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Volume"
-                                    className="w-20 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                    placeholder="Enter Volume"
+                                    className="w-30 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
                                   />
                                   <select
                                     value={step.unit1 || "ml"}
@@ -1288,6 +1545,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                   </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.vol2 || ""}
@@ -1299,8 +1557,8 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Volume"
-                                    className="w-20 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                    placeholder="Enter Volume"
+                                    className="w-30 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
                                   />
                                   <select
                                     value={step.unit2 || "ml"}
@@ -1320,16 +1578,21 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                       </option>
                                     ))}
                                   </select>
-                                  <span className="text-gray-600 font-medium">with diluent</span>
+                                  <span className="text-gray-600 font-medium">
+                                    with diluent
+                                  </span>
                                 </div>
                               </div>
                             )}
 
                             {isFiltration && (
                               <div className="flex flex-wrap items-center gap-2 text-xs">
-                                <span className="text-gray-600 font-medium">Filter from</span>
+                                <span className="text-gray-600 font-medium">
+                                  Filter from
+                                </span>
                                 <input
                                   type="number"
+                                  min="0"
                                   step="0.01"
                                   inputMode="decimal"
                                   value={step.value}
@@ -1341,8 +1604,8 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                       e.target.value
                                     )
                                   }
-                                  placeholder="Size"
-                                  className="w-20 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                  placeholder="Enter Size"
+                                  className="w-30 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
                                 />
                                 <select
                                   value={step.unit}
@@ -1362,7 +1625,9 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                     </option>
                                   ))}
                                 </select>
-                                <span className="text-gray-600 font-medium">filter</span>
+                                <span className="text-gray-600 font-medium">
+                                  filter
+                                </span>
                               </div>
                             )}
                           </div>
@@ -1396,13 +1661,13 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
     >
       {/* Glow effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-lg blur-xl group-hover:blur-xl transition-all duration-300" />
-      
+
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-green-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
         {/* Elegant Header */}
         <div className="relative bg-gradient-to-r from-green-600 via-green-500 to-emerald-500 overflow-hidden">
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-          
+
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"
@@ -1418,12 +1683,14 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                   <Droplets className="w-5 h-5 text-white" />
                 </div>
               </motion.div>
-              
+
               <div>
                 <h4 className="text-sm font-semibold text-white tracking-wide">
                   {samplePreparation.label}
                 </h4>
-                <p className="text-xs text-green-100">Sample Preparation Details</p>
+                <p className="text-xs text-green-100">
+                  Sample Preparation Details
+                </p>
               </div>
             </div>
 
@@ -1441,7 +1708,7 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                   <ChevronDown className="w-5 h-5 text-white" />
                 </motion.div>
               </motion.button>
-              
+
               <motion.button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1486,13 +1753,15 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                       className="group/item relative"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-green-400/0 via-green-400/5 to-green-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
-                      
+
                       <div className="relative bg-white rounded-xl border border-green-200/60 shadow-sm hover:shadow-md hover:border-green-300 transition-all duration-200 p-4">
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
-                            <span className="text-white text-xs font-bold">{index + 1}</span>
+                            <span className="text-white text-xs font-bold">
+                              {index + 1}
+                            </span>
                           </div>
-                          
+
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-3">
                               <div className="font-bold text-green-900 text-sm">
@@ -1504,9 +1773,12 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                             {isWeighing && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Weigh accurately</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh accurately
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.value || ""}
@@ -1518,8 +1790,8 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Amount"
-                                    className="w-20 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all"
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all"
                                   />
                                   <select
                                     value={step.unit}
@@ -1539,7 +1811,9 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                       </option>
                                     ))}
                                   </select>
-                                  <span className="text-gray-600 font-medium">of</span>
+                                  <span className="text-gray-600 font-medium">
+                                    of
+                                  </span>
                                   <input
                                     type="text"
                                     value={step.solventChemical || ""}
@@ -1554,7 +1828,9 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                     placeholder="Sample"
                                     className="flex-1 min-w-[120px] px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <span className="text-gray-500 text-xs">
+                                    (Log ID:
+                                  </span>
                                   <input
                                     type="text"
                                     value={step.logBookID || ""}
@@ -1569,7 +1845,9 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                     placeholder="Enter ID"
                                     className="w-24 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">)</span>
+                                  <span className="text-gray-500 text-xs">
+                                    )
+                                  </span>
                                 </div>
                               </div>
                             )}
@@ -1577,9 +1855,12 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                             {is1stDilution && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Diluted to</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Diluted to
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.vol1 || ""}
@@ -1591,8 +1872,8 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Volume"
-                                    className="w-20 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
                                   />
                                   <select
                                     value={step.unit1 || "ml"}
@@ -1612,17 +1893,24 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                       </option>
                                     ))}
                                   </select>
-                                  <span className="text-gray-600 font-medium">with diluent</span>
+                                  <span className="text-gray-600 font-medium">
+                                    with diluent
+                                  </span>
                                 </div>
                               </div>
                             )}
 
-                            {(is2ndDilution || is3rdDilution || is4thDilution) && (
+                            {(is2ndDilution ||
+                              is3rdDilution ||
+                              is4thDilution) && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Take</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Take
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.vol1 || ""}
@@ -1634,8 +1922,8 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Volume"
-                                    className="w-20 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                    placeholder="Enter Volume"
+                                    className="w-30 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
                                   />
                                   <select
                                     value={step.unit1 || "ml"}
@@ -1666,6 +1954,7 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                   </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.vol2 || ""}
@@ -1677,8 +1966,8 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Volume"
-                                    className="w-20 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                    placeholder="Enter Volume"
+                                    className="w-30 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
                                   />
                                   <select
                                     value={step.unit2 || "ml"}
@@ -1698,16 +1987,21 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                       </option>
                                     ))}
                                   </select>
-                                  <span className="text-gray-600 font-medium">with diluent</span>
+                                  <span className="text-gray-600 font-medium">
+                                    with diluent
+                                  </span>
                                 </div>
                               </div>
                             )}
 
                             {isFiltration && (
                               <div className="flex flex-wrap items-center gap-2 text-xs">
-                                <span className="text-gray-600 font-medium">Filter the solution through</span>
+                                <span className="text-gray-600 font-medium">
+                                  Filter the solution through
+                                </span>
                                 <input
                                   type="number"
+                                  min="0"
                                   step="0.01"
                                   inputMode="decimal"
                                   value={step.value || ""}
@@ -1719,10 +2013,30 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                       e.target.value
                                     )
                                   }
-                                  placeholder="Size"
-                                  className="w-20 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                  placeholder="Enter Size"
+                                  className="w-30 px-2.5 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
                                 />
-                                <span className="text-gray-600 font-medium">micron syringe filter</span>
+                                <select
+                                  value={step.unit}
+                                  onChange={(e) =>
+                                    onStepChange(
+                                      samplePreparation.id,
+                                      step.name,
+                                      "unit",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-20 px-2 py-1.5 border border-green-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                                >
+                                  {filtrationUnitOptions.map((unit) => (
+                                    <option key={unit} value={unit}>
+                                      {unit}
+                                    </option>
+                                  ))}
+                                </select>
+                                <span className="text-gray-600 font-medium">
+                                  syringe filter
+                                </span>
                               </div>
                             )}
                           </div>
@@ -1740,11 +2054,9 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
   );
 };
 
-const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetailProps>  = ({
-  samplePreparationTitration,
-  onStepChange,
-  onRemove,
-}) => {
+const SamplePreparationTitrationDetail: React.FC<
+  SamplePreparationTitrationDetailProps
+> = ({ samplePreparationTitration, onStepChange, onRemove }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
@@ -1756,13 +2068,13 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
     >
       {/* Glow effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-lime-400/20 to-green-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
-      
+
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-lime-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
         {/* Elegant Header */}
         <div className="relative bg-gradient-to-r from-lime-600 via-lime-500 to-green-500 overflow-hidden">
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-          
+
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"
@@ -1778,12 +2090,14 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
                   <Droplets className="w-5 h-5 text-white" />
                 </div>
               </motion.div>
-              
+
               <div>
                 <h4 className="text-sm font-semibold text-white tracking-wide">
                   {samplePreparationTitration.label}
                 </h4>
-                <p className="text-xs text-lime-100">Sample Preparation for Titration Details</p>
+                <p className="text-xs text-lime-100">
+                  Sample Preparation for Titration Details
+                </p>
               </div>
             </div>
 
@@ -1801,7 +2115,7 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
                   <ChevronDown className="w-5 h-5 text-white" />
                 </motion.div>
               </motion.button>
-              
+
               <motion.button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1843,13 +2157,15 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
                       className="group/item relative"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-lime-400/0 via-lime-400/5 to-lime-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
-                      
+
                       <div className="relative bg-white rounded-xl border border-lime-200/60 shadow-sm hover:shadow-md hover:border-lime-300 transition-all duration-200 p-4">
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-lime-500 to-green-500 rounded-full flex items-center justify-center shadow-md">
-                            <span className="text-white text-xs font-bold">{index + 1}</span>
+                            <span className="text-white text-xs font-bold">
+                              {index + 1}
+                            </span>
                           </div>
-                          
+
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-3">
                               <div className="font-bold text-lime-900 text-sm">
@@ -1861,9 +2177,12 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
                             {isWeighing && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Weigh accurately</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh accurately
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.value || ""}
@@ -1875,8 +2194,8 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Amount"
-                                    className="w-20 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all"
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all"
                                   />
                                   <select
                                     value={step.unit}
@@ -1896,7 +2215,9 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
                                       </option>
                                     ))}
                                   </select>
-                                  <span className="text-gray-600 font-medium">of</span>
+                                  <span className="text-gray-600 font-medium">
+                                    of
+                                  </span>
                                   <input
                                     type="text"
                                     value={step.solventChemical || ""}
@@ -1911,7 +2232,9 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
                                     placeholder="Sample"
                                     className="flex-1 min-w-[120px] px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">(Log ID:</span>
+                                  <span className="text-gray-500 text-xs">
+                                    (Log ID:
+                                  </span>
                                   <input
                                     type="text"
                                     value={step.logBookID || ""}
@@ -1926,7 +2249,9 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
                                     placeholder="Enter ID"
                                     className="w-24 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
                                   />
-                                  <span className="text-gray-500 text-xs">)</span>
+                                  <span className="text-gray-500 text-xs">
+                                    )
+                                  </span>
                                 </div>
                               </div>
                             )}
@@ -1934,9 +2259,12 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
                             {is1stDilution && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Diluted to</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Diluted to
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.value || ""}
@@ -1948,8 +2276,8 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Volume"
-                                    className="w-20 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
+                                    placeholder="Enter Volume"
+                                    className="w-30 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
                                   />
                                   <select
                                     value={step.unit || "ml"}
@@ -1969,7 +2297,9 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
                                       </option>
                                     ))}
                                   </select>
-                                  <span className="text-gray-600 font-medium">with diluent</span>
+                                  <span className="text-gray-600 font-medium">
+                                    with diluent
+                                  </span>
                                 </div>
                               </div>
                             )}
@@ -1977,9 +2307,12 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
                             {isEPD && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">Titration Value</span>
+                                  <span className="text-gray-600 font-medium">
+                                    Titration Value
+                                  </span>
                                   <input
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     inputMode="decimal"
                                     value={step.value || ""}
@@ -1991,9 +2324,1208 @@ const SamplePreparationTitrationDetail: React.FC<SamplePreparationTitrationDetai
                                         e.target.value
                                       )
                                     }
-                                    placeholder="Volume"
-                                    className="w-20 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
+                                    placeholder="Enter Value"
+                                    className="w-30 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
                                   />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+};
+
+const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
+  samplePreparationLod,
+  onStepChange,
+  onRemove,
+}) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="relative group"
+    >
+      {/* Glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-sky-400/20 to-blue-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
+
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-sky-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+        {/* Elegant Header */}
+        <div className="relative bg-gradient-to-r from-sky-600 via-sky-500 to-blue-500 overflow-hidden">
+          <div className="absolute inset-0 bg-black/5" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
+
+          <div className="relative flex items-center justify-between px-4 py-3">
+            <div
+              className="flex items-center gap-4 flex-1 cursor-pointer select-none"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              <motion.div
+                animate={{ rotate: isExpanded ? 0 : 360 }}
+                transition={{ duration: 0.5 }}
+                className="relative"
+              >
+                <div className="absolute inset-0 bg-white/30 rounded-lg blur-md" />
+                <div className="relative p-2 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
+                  <Droplets className="w-5 h-5 text-white" />
+                </div>
+              </motion.div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-white tracking-wide">
+                  {samplePreparationLod.label}
+                </h4>
+                <p className="text-xs text-sky-100">
+                  Sample Preparation for LOD Details
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <motion.button
+                onClick={() => setIsExpanded(!isExpanded)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <motion.div
+                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <ChevronDown className="w-5 h-5 text-white" />
+                </motion.div>
+              </motion.button>
+
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${samplePreparationLod.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="p-5 space-y-3 bg-gradient-to-br from-sky-50/50 to-sky-50/30">
+                {samplePreparationLod.steps.map((step, index) => {
+                  const isWeighingEmptyBottle =
+                    step.name === "Weighing (Empty Bottle)";
+                  const isWeighingBeforeDrying =
+                    step.name === "Weighing (Before Drying)";
+                  const isWeighingAfterDrying =
+                    step.name === "Weighing (After Drying)";
+                  const isDrying = step.name === "Drying";
+
+                  return (
+                    <motion.div
+                      key={step.name}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group/item relative"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-sky-400/0 via-sky-400/5 to-sky-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
+
+                      <div className="relative bg-white rounded-xl border border-sky-200/60 shadow-sm hover:shadow-md hover:border-sky-300 transition-all duration-200 p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-sky-500 to-blue-500 rounded-full flex items-center justify-center shadow-md">
+                            <span className="text-white text-xs font-bold">
+                              {index + 1}
+                            </span>
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="font-bold text-sky-900 text-sm">
+                                {step.name}
+                              </div>
+                              <div className="h-px flex-1 bg-gradient-to-r from-sky-200 to-transparent" />
+                            </div>
+
+                            {isWeighingEmptyBottle && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh of Empty Bottle
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLod.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLod.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+
+                                  <span className="text-gray-500 text-xs">
+                                    (Log ID:
+                                  </span>
+                                  <input
+                                    type="text"
+                                    value={step.logBookID || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLod.id,
+                                        step.name,
+                                        "logBookID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="w-24 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">
+                                    )
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            {isWeighingBeforeDrying && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh of Bottle + Sample
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLod.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLod.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            )}
+
+                            {isDrying && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">
+                                    Dry the sample at
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.temp || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLod.id,
+                                        step.name,
+                                        "temp",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.tempUnit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLod.id,
+                                        step.name,
+                                        "tempUnit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 transition-all"
+                                  >
+                                    {tempUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+
+                                  <span className="text-gray-600 font-medium">
+                                    for
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    inputMode="numeric"
+                                    value={step.time || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLod.id,
+                                        step.name,
+                                        "time",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Time"
+                                    className="w-30 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.timeUnit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLod.id,
+                                        step.name,
+                                        "timeUnit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 transition-all"
+                                  >
+                                    {timeUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+
+                                  <span className="text-gray-500 text-xs">
+                                    (Log ID:
+                                  </span>
+                                  <input
+                                    type="text"
+                                    value={step.logBookID || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLod.id,
+                                        step.name,
+                                        "logBookID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="w-24 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">
+                                    )
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            {isWeighingAfterDrying && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh of Bottle + Sample
+                                  </span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLod.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLod.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+};
+
+const SamplePreparationSulphatedAshDetail: React.FC<
+  SamplePreparationSulphatedAshDetailProps
+> = ({ samplePreparationSulphatedAsh, onStepChange, onRemove }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="relative group"
+    >
+      {/* Glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-rose-400/20 to-rose-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
+
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-rose-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+        {/* Elegant Header */}
+        <div className="relative bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 overflow-hidden">
+          <div className="absolute inset-0 bg-black/5" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
+
+          <div className="relative flex items-center justify-between px-4 py-3">
+            <div
+              className="flex items-center gap-4 flex-1 cursor-pointer select-none"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              <motion.div
+                animate={{ rotate: isExpanded ? 0 : 360 }}
+                transition={{ duration: 0.5 }}
+                className="relative"
+              >
+                <div className="absolute inset-0 bg-white/30 rounded-lg blur-md" />
+                <div className="relative p-2 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
+                  <Droplets className="w-5 h-5 text-white" />
+                </div>
+              </motion.div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-white tracking-wide">
+                  {samplePreparationSulphatedAsh.label}
+                </h4>
+                <p className="text-xs text-rose-100">
+                  Sample Preparation for Sulphated Ash Details
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <motion.button
+                onClick={() => setIsExpanded(!isExpanded)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <motion.div
+                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <ChevronDown className="w-5 h-5 text-white" />
+                </motion.div>
+              </motion.button>
+
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${samplePreparationSulphatedAsh.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="p-5 space-y-3 bg-gradient-to-br from-rose-50/50 to-rose-50/30">
+                {samplePreparationSulphatedAsh.steps.map((step, index) => {
+                  const isWeighingEmptyCrucible =
+                    step.name === "Weighing (Empty Crucible)";
+                  const isWeighingBeforeDrying =
+                    step.name === "Weighing (Before Drying)";
+                  const isWeighingAfterDrying =
+                    step.name === "Weighing (After Drying)";
+                  const isDrying = step.name === "Drying";
+
+                  return (
+                    <motion.div
+                      key={step.name}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group/item relative"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-rose-400/0 via-rose-400/5 to-pink-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
+
+                      <div className="relative bg-white rounded-xl border border-rose-200/60 shadow-sm hover:shadow-md hover:border-rose-300 transition-all duration-200 p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-rose-500 to-pink-500 rounded-full flex items-center justify-center shadow-md">
+                            <span className="text-white text-xs font-bold">
+                              {index + 1}
+                            </span>
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="font-bold text-rose-900 text-sm">
+                                {step.name}
+                              </div>
+                              <div className="h-px flex-1 bg-gradient-to-r from-rose-200 to-transparent" />
+                            </div>
+
+                            {isWeighingEmptyCrucible && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh of Empty Crucible
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationSulphatedAsh.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationSulphatedAsh.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+
+                                  <span className="text-gray-500 text-xs">
+                                    (Log ID:
+                                  </span>
+                                  <input
+                                    type="text"
+                                    value={step.logBookID || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationSulphatedAsh.id,
+                                        step.name,
+                                        "logBookID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="w-24 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">
+                                    )
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            {isWeighingBeforeDrying && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh of Crucible + Sample
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationSulphatedAsh.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationSulphatedAsh.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            )}
+
+                            {isDrying && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">
+                                    Dry the sample at
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.temp || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationSulphatedAsh.id,
+                                        step.name,
+                                        "temp",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.tempUnit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationSulphatedAsh.id,
+                                        step.name,
+                                        "tempUnit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
+                                  >
+                                    {tempUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+
+                                  <span className="text-gray-600 font-medium">
+                                    for
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    inputMode="numeric"
+                                    value={step.time || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationSulphatedAsh.id,
+                                        step.name,
+                                        "time",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Time"
+                                    className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.timeUnit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationSulphatedAsh.id,
+                                        step.name,
+                                        "timeUnit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
+                                  >
+                                    {timeUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+
+                                  <span className="text-gray-500 text-xs">
+                                    (Log ID:
+                                  </span>
+                                  <input
+                                    type="text"
+                                    value={step.logBookID || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationSulphatedAsh.id,
+                                        step.name,
+                                        "logBookID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="w-24 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">
+                                    )
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            {isWeighingAfterDrying && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh of Crucible + Sample
+                                  </span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationSulphatedAsh.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationSulphatedAsh.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+};
+
+const SamplePreparationLossOnIgnationDetail: React.FC<
+  SamplePreparationLossOnIgnationDetailProps
+> = ({ samplePreparationLossOnIgnation, onStepChange, onRemove }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="relative group"
+    >
+      {/* Glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-indigo-400/20 to-indigo-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
+
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-indigo-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+        {/* Elegant Header */}
+        <div className="relative bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-500 overflow-hidden">
+          <div className="absolute inset-0 bg-black/5" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
+
+          <div className="relative flex items-center justify-between px-4 py-3">
+            <div
+              className="flex items-center gap-4 flex-1 cursor-pointer select-none"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              <motion.div
+                animate={{ rotate: isExpanded ? 0 : 360 }}
+                transition={{ duration: 0.5 }}
+                className="relative"
+              >
+                <div className="absolute inset-0 bg-white/30 rounded-lg blur-md" />
+                <div className="relative p-2 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
+                  <Droplets className="w-5 h-5 text-white" />
+                </div>
+              </motion.div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-white tracking-wide">
+                  {samplePreparationLossOnIgnation.label}
+                </h4>
+                <p className="text-xs text-indigo-100">
+                  Sample Preparation for Loss on Ignation Details
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <motion.button
+                onClick={() => setIsExpanded(!isExpanded)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <motion.div
+                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <ChevronDown className="w-5 h-5 text-white" />
+                </motion.div>
+              </motion.button>
+
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${samplePreparationLossOnIgnation.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="p-5 space-y-3 bg-gradient-to-br from-indigo-50/50 to-indigo-50/30">
+                {samplePreparationLossOnIgnation.steps.map((step, index) => {
+                  const isWeighingEmptyCrucible =
+                    step.name === "Weighing (Empty Crucible)";
+                  const isWeighingBeforeDrying =
+                    step.name === "Weighing (Before Drying)";
+                  const isWeighingAfterDrying =
+                    step.name === "Weighing (After Drying)";
+                  const isDrying = step.name === "Drying";
+
+                  return (
+                    <motion.div
+                      key={step.name}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group/item relative"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-indigo-400/0 via-indigo-400/5 to-violet-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
+
+                      <div className="relative bg-white rounded-xl border border-indigo-200/60 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-200 p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-full flex items-center justify-center shadow-md">
+                            <span className="text-white text-xs font-bold">
+                              {index + 1}
+                            </span>
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="font-bold text-indigo-900 text-sm">
+                                {step.name}
+                              </div>
+                              <div className="h-px flex-1 bg-gradient-to-r from-indigo-200 to-transparent" />
+                            </div>
+
+                            {isWeighingEmptyCrucible && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh of Empty Crucible
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLossOnIgnation.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLossOnIgnation.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+
+                                  <span className="text-gray-500 text-xs">
+                                    (Log ID:
+                                  </span>
+                                  <input
+                                    type="text"
+                                    value={step.logBookID || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLossOnIgnation.id,
+                                        step.name,
+                                        "logBookID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="w-24 px-2.5 py-1.5 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">
+                                    )
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            {isWeighingBeforeDrying && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh of Crucible + Sample
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLossOnIgnation.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLossOnIgnation.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            )}
+
+                            {isDrying && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">
+                                    Dry the sample at
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.temp || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLossOnIgnation.id,
+                                        step.name,
+                                        "temp",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.tempUnit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLossOnIgnation.id,
+                                        step.name,
+                                        "tempUnit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
+                                  >
+                                    {tempUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+
+                                  <span className="text-gray-600 font-medium">
+                                    for
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    inputMode="numeric"
+                                    value={step.time || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLossOnIgnation.id,
+                                        step.name,
+                                        "time",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Time"
+                                    className="w-30 px-2.5 py-1.5 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.timeUnit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLossOnIgnation.id,
+                                        step.name,
+                                        "timeUnit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
+                                  >
+                                    {timeUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+
+                                  <span className="text-gray-500 text-xs">
+                                    (Log ID:
+                                  </span>
+                                  <input
+                                    type="text"
+                                    value={step.logBookID || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLossOnIgnation.id,
+                                        step.name,
+                                        "logBookID",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="w-24 px-2.5 py-1.5 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
+                                  />
+                                  <span className="text-gray-500 text-xs">
+                                    )
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            {isWeighingAfterDrying && (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="text-gray-600 font-medium">
+                                    Weigh of Crucible + Sample
+                                  </span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    inputMode="decimal"
+                                    value={step.value || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLossOnIgnation.id,
+                                        step.name,
+                                        "value",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Enter Weight"
+                                    className="w-30 px-2.5 py-1.5 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                                  />
+                                  <select
+                                    value={step.unit}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationLossOnIgnation.id,
+                                        step.name,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-16 px-2 py-1.5 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
+                                  >
+                                    {weightUnitOptions.map((unit) => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
                                 </div>
                               </div>
                             )}
@@ -2047,17 +3579,30 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   >({});
 
   // New state for dynamic Disso Media - Map of Parameter ID to a list of DissoMedia objects
-  const [standardPreprationPerParam, setStandardPreprationPerParam] = useState<
-    Record<number, StandardPreparation[]>
-  >({});
+  const [standardPreparationPerParam, setStandardPreparationPerParam] =
+    useState<Record<number, StandardPreparation[]>>({});
 
-  const [samplePreprationPerParam, setSamplePreprationPerParam] = useState<
+  const [samplePreparationPerParam, setSamplePreparationPerParam] = useState<
     Record<number, SamplePreparation[]>
   >({});
 
-    const [samplePreprationTitrationPerParam, setSamplePreprationTitrationPerParam] = useState<
-    Record<number, SamplePreparationTitration[]>
-  >({});
+  const [
+    samplePreparationTitrationPerParam,
+    setSamplePreparationTitrationPerParam,
+  ] = useState<Record<number, SamplePreparationTitration[]>>({});
+
+  const [samplePreparationLodPerParam, setSamplePreparationLodPerParam] =
+    useState<Record<number, SamplePreparationLod[]>>({});
+
+  const [
+    samplePreparationSulphatedAshPerParam,
+    setSamplePreparationSulphatedAshPerParam,
+  ] = useState<Record<number, SamplePreparationSulphatedAsh[]>>({});
+
+  const [
+    samplePreparationLossOnIgnationPerParam,
+    setSamplePreparationLossOnIgnationPerParam,
+  ] = useState<Record<number, SamplePreparationLossOnIgnation[]>>({});
 
   // New state for dynamic tables
   const [addedInstruments, setAddedInstruments] = useState<
@@ -2174,7 +3719,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     setSelectedParamsForDetail(
       selectedParamsForDetail.filter((paramId) => paramId !== id)
     );
-    // CLEANUP: Remove associated reference data and inputs for the removed parameter
     setAddedInstruments((prev) => {
       const { [id]: _, ...rest } = prev;
       return rest;
@@ -2351,7 +3895,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   // --- START: Standard Preparation Handlers ---
 
   const handleAddStandardPreparation = (parameterId: number) => {
-    setStandardPreprationPerParam((prev) => {
+    setStandardPreparationPerParam((prev) => {
       const currentStandards = prev[parameterId] || [];
       const newIndex = currentStandards.length;
       return {
@@ -2368,7 +3912,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     parameterId: number,
     standardPreparationId: number
   ) => {
-    setStandardPreprationPerParam((prev) => {
+    setStandardPreparationPerParam((prev) => {
       const updatedStandards = (prev[parameterId] || [])
         .filter((dm) => dm.id !== standardPreparationId)
         .map((dm, index) => ({
@@ -2397,7 +3941,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       | "solventChemical",
     newValue: string
   ) => {
-    setStandardPreprationPerParam((prev) => ({
+    setStandardPreparationPerParam((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((sp) => {
         if (sp.id === standardPreparationId) {
@@ -2424,7 +3968,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   // --- START: Sample Preparation Handlers ---
 
   const handleAddSamplePreparation = (parameterId: number) => {
-    setSamplePreprationPerParam((prev) => {
+    setSamplePreparationPerParam((prev) => {
       const currentSamples = prev[parameterId] || [];
       const newIndex = currentSamples.length;
       return {
@@ -2441,7 +3985,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     parameterId: number,
     samplePreparationId: number
   ) => {
-    setSamplePreprationPerParam((prev) => {
+    setSamplePreparationPerParam((prev) => {
       const updatedSamples = (prev[parameterId] || [])
         .filter((sp) => sp.id !== samplePreparationId)
         .map((sp, index) => ({
@@ -2460,7 +4004,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     samplePreparationId: number,
     stepName: SamplePreparationStep["name"],
     field:
-      "value"
+      | "value"
       | "unit"
       | "vol1"
       | "vol2"
@@ -2470,7 +4014,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       | "solventChemical",
     newValue: string
   ) => {
-    setSamplePreprationPerParam((prev) => ({
+    setSamplePreparationPerParam((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((sp) => {
         if (sp.id === samplePreparationId) {
@@ -2494,10 +4038,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
   // --- END: Sample Preparation Handlers ---
 
-    // --- START: Sample Preparation for Titration Handlers ---
+  // --- START: Sample Preparation for Titration Handlers ---
 
   const handleAddSamplePreparationTitration = (parameterId: number) => {
-    setSamplePreprationTitrationPerParam((prev) => {
+    setSamplePreparationTitrationPerParam((prev) => {
       const currentSamples = prev[parameterId] || [];
       const newIndex = currentSamples.length;
       return {
@@ -2514,12 +4058,12 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     parameterId: number,
     samplePreparationTitrationId: number
   ) => {
-    setSamplePreprationTitrationPerParam((prev) => {
+    setSamplePreparationTitrationPerParam((prev) => {
       const updatedSamples = (prev[parameterId] || [])
         .filter((spt) => spt.id !== samplePreparationTitrationId)
         .map((spt, index) => ({
           ...spt,
-          label: `Sample Preparation for Titration ${1 + index}`,
+          label: `Sample Preparation ${1 + index} for Titration`,
         }));
       return {
         ...prev,
@@ -2532,14 +4076,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     parameterId: number,
     samplePreparationTitrationId: number,
     stepName: SamplePreparationTitrationStep["name"],
-    field:
-      "value"
-      | "unit"
-      | "logBookID"
-      | "solventChemical",
+    field: "value" | "unit" | "logBookID" | "solventChemical",
     newValue: string
   ) => {
-    setSamplePreprationTitrationPerParam((prev) => ({
+    setSamplePreparationTitrationPerParam((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((spt) => {
         if (spt.id === samplePreparationTitrationId) {
@@ -2561,7 +4101,223 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  // --- END: Sample Preparation Handlers ---
+  // --- END: Sample Preparation for Titration Handlers ---
+
+  // --- START: Sample Preparation for LOD Handlers ---
+
+  const handleAddSamplePreparationLod = (parameterId: number) => {
+    setSamplePreparationLodPerParam((prev) => {
+      const currentSamples = prev[parameterId] || [];
+      const newIndex = currentSamples.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentSamples,
+          createNewSamplePreparationLod(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveSamplePreparationLod = (
+    parameterId: number,
+    samplePreparationLodId: number
+  ) => {
+    setSamplePreparationLodPerParam((prev) => {
+      const updatedSamples = (prev[parameterId] || [])
+        .filter((spl) => spl.id !== samplePreparationLodId)
+        .map((spl, index) => ({
+          ...spl,
+          label: `Sample Preparation ${1 + index} for LOD`,
+        }));
+      return {
+        ...prev,
+        [parameterId]: updatedSamples,
+      };
+    });
+  };
+
+  const handleSamplePreparationLodStepChange = (
+    parameterId: number,
+    samplePreparationLodId: number,
+    stepName: SamplePreparationLodStep["name"],
+    field:
+      | "value"
+      | "unit"
+      | "temp"
+      | "tempUnit"
+      | "time"
+      | "timeUnit"
+      | "logBookID",
+    newValue: string
+  ) => {
+    setSamplePreparationLodPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((spl) => {
+        if (spl.id === samplePreparationLodId) {
+          return {
+            ...spl,
+            steps: spl.steps.map((step) => {
+              if (step.name === stepName) {
+                return {
+                  ...step,
+                  [field]: newValue,
+                };
+              }
+              return step;
+            }),
+          };
+        }
+        return spl;
+      }),
+    }));
+  };
+
+  // --- END: Sample Preparation for LOD Handlers ---
+
+  // --- START: Sample Preparation for Sulphated Ash Handlers ---
+
+  const handleAddSamplePreparationSulphatedAsh = (parameterId: number) => {
+    setSamplePreparationSulphatedAshPerParam((prev) => {
+      const currentSamples = prev[parameterId] || [];
+      const newIndex = currentSamples.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentSamples,
+          createNewSamplePreparationSulphatedAsh(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveSamplePreparationSulphatedAsh = (
+    parameterId: number,
+    samplePreparationSulphatedAshId: number
+  ) => {
+    setSamplePreparationSulphatedAshPerParam((prev) => {
+      const updatedSamples = (prev[parameterId] || [])
+        .filter((spsa) => spsa.id !== samplePreparationSulphatedAshId)
+        .map((spsa, index) => ({
+          ...spsa,
+          label: `Sample Preparation ${1 + index} for Sulphated Ash`,
+        }));
+      return {
+        ...prev,
+        [parameterId]: updatedSamples,
+      };
+    });
+  };
+
+  const handleSamplePreparationSulphatedAshStepChange = (
+    parameterId: number,
+    samplePreparationSulphatedAshId: number,
+    stepName: SamplePreparationSulphatedAshStep["name"],
+    field:
+      | "value"
+      | "unit"
+      | "temp"
+      | "tempUnit"
+      | "time"
+      | "timeUnit"
+      | "logBookID",
+    newValue: string
+  ) => {
+    setSamplePreparationSulphatedAshPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((spsa) => {
+        if (spsa.id === samplePreparationSulphatedAshId) {
+          return {
+            ...spsa,
+            steps: spsa.steps.map((step) => {
+              if (step.name === stepName) {
+                return {
+                  ...step,
+                  [field]: newValue,
+                };
+              }
+              return step;
+            }),
+          };
+        }
+        return spsa;
+      }),
+    }));
+  };
+
+  // --- END: Sample Preparation for Sulphated Ash Handlers ---
+
+  // --- START: Sample Preparation for Loss on Ignation Handlers ---
+
+  const handleAddSamplePreparationLossOnIgnation = (parameterId: number) => {
+    setSamplePreparationLossOnIgnationPerParam((prev) => {
+      const currentSamples = prev[parameterId] || [];
+      const newIndex = currentSamples.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentSamples,
+          createNewSamplePreparationLossOnIgnation(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveSamplePreparationLossOnIgnation = (
+    parameterId: number,
+    samplePreparationLossOnIgnationId: number
+  ) => {
+    setSamplePreparationLossOnIgnationPerParam((prev) => {
+      const updatedSamples = (prev[parameterId] || [])
+        .filter((spl) => spl.id !== samplePreparationLossOnIgnationId)
+        .map((spl, index) => ({
+          ...spl,
+          label: `Sample Preparation ${1 + index} for Loss on Ignation`,
+        }));
+      return {
+        ...prev,
+        [parameterId]: updatedSamples,
+      };
+    });
+  };
+
+  const handleSamplePreparationLossOnIgnationStepChange = (
+    parameterId: number,
+    samplePreparationLossOnIgnationId: number,
+    stepName: SamplePreparationLossOnIgnationStep["name"],
+    field:
+      | "value"
+      | "unit"
+      | "temp"
+      | "tempUnit"
+      | "time"
+      | "timeUnit"
+      | "logBookID",
+    newValue: string
+  ) => {
+    setSamplePreparationLossOnIgnationPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((spl) => {
+        if (spl.id === samplePreparationLossOnIgnationId) {
+          return {
+            ...spl,
+            steps: spl.steps.map((step) => {
+              if (step.name === stepName) {
+                return {
+                  ...step,
+                  [field]: newValue,
+                };
+              }
+              return step;
+            }),
+          };
+        }
+        return spl;
+      }),
+    }));
+  };
+
+  // --- END: Sample Preparation for Sulphated Ash Handlers ---
 
   // Reference Data Search Filters
   const searchFilteredInstruments = instruments.filter(
@@ -2746,7 +4502,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             solventChemical: step.solventChemical,
           })),
         })),
-        standardPreparation: (standardPreprationPerParam[param.id] || []).map(
+        standardPreparation: (standardPreparationPerParam[param.id] || []).map(
           (sp) => ({
             id: sp.id,
             label: sp.label,
@@ -2763,7 +4519,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             })),
           })
         ),
-        samplePreparataion: (samplePreprationPerParam[param.id] || []).map(
+        samplePreparataion: (samplePreparationPerParam[param.id] || []).map(
           (sp) => ({
             id: sp.id,
             label: sp.label,
@@ -3199,7 +4955,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-base font-bold text-emerald-900">
+                    <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight mb-3">
+                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
                       Instruments Details:
                     </h3>
                     <div className="relative" ref={instrumentRef}>
@@ -3379,7 +5136,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 {/* Chemicals Used - Dynamic with Add/Remove */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-base font-bold text-emerald-900">
+                    <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight mb-3">
+                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
                       Reagents and Chemicals Details:
                     </h3>
                     <div className="relative" ref={chemicalRef}>
@@ -3514,18 +5272,18 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                 </td>
                                 <td className="px-3 py-2 text-center">
                                   <motion.button
-                                      onClick={() =>
+                                    onClick={() =>
                                       handleRemoveChemical(
                                         selectedParam.id,
                                         chemical.id
                                       )
                                     }
-                                      whileHover={{ scale: 1.1, rotate: 10 }}
-                                      whileTap={{ scale: 0.9 }}
-                                      className="mx-2"
-                                    >
-                                      <CgTrash className="w-5 h-5 text-red-500" />
-                                    </motion.button>
+                                    whileHover={{ scale: 1.1, rotate: 10 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    className="mx-2"
+                                  >
+                                    <CgTrash className="w-5 h-5 text-red-500" />
+                                  </motion.button>
                                 </td>
                               </motion.tr>
                             ))
@@ -3554,7 +5312,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 {/* Standards Used - Dynamic with Add/Remove */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-base font-bold text-emerald-900">
+                    <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight mb-3">
+                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
                       Standards Details:
                     </h3>
                     <div className="relative" ref={standardRef}>
@@ -3689,18 +5448,18 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                 </td>
                                 <td className="px-3 py-2 text-center">
                                   <motion.button
-                                      onClick={() =>
+                                    onClick={() =>
                                       handleRemoveStandard(
                                         selectedParam.id,
                                         standard.id
                                       )
                                     }
-                                      whileHover={{ scale: 1.1, rotate: 10 }}
-                                      whileTap={{ scale: 0.9 }}
-                                      className="mx-2"
-                                    >
-                                      <CgTrash className="w-5 h-5 text-red-500" />
-                                    </motion.button>
+                                    whileHover={{ scale: 1.1, rotate: 10 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    className="mx-2"
+                                  >
+                                    <CgTrash className="w-5 h-5 text-red-500" />
+                                  </motion.button>
                                 </td>
                               </motion.tr>
                             ))
@@ -3728,7 +5487,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
                 {/* Preparation of Diluent */}
                 <div className="mb-4">
-                  <h3 className="text-base font-bold mb-2 text-emerald-900">
+                  <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight mb-3">
+                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
                     Preparation of Diluent:
                   </h3>
                   <textarea
@@ -3818,14 +5578,15 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 </div> */}
 
                 {/* --- START: Dynamic Mobile Phase Section --- */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3 px-1">
-                    <h3 className="text-base font-bold text-blue-600 flex items-center gap-2">
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4 px-2">
+                    <h3 className="text-lg font-bold text-blue-900 flex items-center gap-2.5 tracking-tight">
+                      <span className="w-1.5 h-6 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full"></span>
                       Mobile Phase Preparations
                     </h3>
                     <button
                       onClick={() => handleAddMobilePhase(selectedParam.id)}
-                      className="flex items-center p-1.5 bg-blue-600 text-white font-medium rounded-2xl hover:bg-blue-700 transition-colors shadow-sm text-xs"
+                      className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-2xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -3864,11 +5625,13 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
                   {(mobilePhasesPerParam[selectedParam.id] || []).length ===
                     0 && (
-                    <div className="text-center py-8 text-gray-500 text-sm bg-blue-50/50 border border-blue-200 rounded-lg">
-                      <Target className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                      <p className="font-medium">No mobile phases added yet.</p>
-                      <p className="text-xs mt-1">
-                        Click "Add Mobile Phase" to begin preparation.
+                    <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-blue-50 to-blue-100/50 border-2 border-dashed border-blue-300 rounded-xl shadow-inner">
+                      <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-blue-600" />
+                      <p className="font-semibold text-base text-blue-900">
+                        No mobile phases added yet.
+                      </p>
+                      <p className="text-xs mt-2 text-blue-700">
+                        Click "Add" button above to begin preparation.
                       </p>
                     </div>
                   )}
@@ -3876,14 +5639,15 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 {/* --- END: Dynamic Mobile Phase Section --- */}
 
                 {/* --- START: Dynamic Disso Media Section --- */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3 px-1">
-                    <h3 className="text-base font-bold text-amber-600 flex items-center gap-2">
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4 px-2">
+                    <h3 className="text-lg font-bold text-amber-900 flex items-center gap-2.5 tracking-tight">
+                      <span className="w-1.5 h-6 bg-gradient-to-b from-amber-500 to-amber-700 rounded-full"></span>
                       Disso Media Preparations
                     </h3>
                     <button
                       onClick={() => handleAddDissoMedia(selectedParam.id)}
-                      className="flex items-center p-1.5 bg-amber-600 text-white font-medium rounded-2xl hover:bg-amber-700 transition-colors shadow-sm text-xs"
+                      className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-semibold rounded-2xl hover:from-amber-700 hover:to-amber-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -3922,11 +5686,13 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
                   {(dissoMediaPerParam[selectedParam.id] || []).length ===
                     0 && (
-                    <div className="text-center py-8 text-gray-500 text-sm bg-amber-50/50 border border-amber-200 rounded-lg">
-                      <Target className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                      <p className="font-medium">No disso media added yet.</p>
-                      <p className="text-xs mt-1">
-                        Click "Add Disso Media" to begin preparation.
+                    <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-amber-50 to-amber-100/50 border-2 border-dashed border-amber-300 rounded-xl shadow-inner">
+                      <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-amber-600" />
+                      <p className="font-semibold text-base text-amber-900">
+                        No disso media added yet.
+                      </p>
+                      <p className="text-xs mt-2 text-amber-700">
+                        Click "Add" button above to begin preparation.
                       </p>
                     </div>
                   )}
@@ -3934,23 +5700,24 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 {/* --- END: Dynamic Disso Media Section --- */}
 
                 {/* --- START: Dynamic Standard Preparation Section --- */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3 px-1">
-                    <h3 className="text-base font-bold text-purple-600 flex items-center gap-2">
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4 px-2">
+                    <h3 className="text-lg font-bold text-purple-900 flex items-center gap-2.5 tracking-tight">
+                      <span className="w-1.5 h-6 bg-gradient-to-b from-purple-500 to-purple-700 rounded-full"></span>
                       Standard Preparations
                     </h3>
                     <button
                       onClick={() =>
                         handleAddStandardPreparation(selectedParam.id)
                       }
-                      className="flex items-center p-1.5 bg-purple-600 text-white font-medium rounded-2xl hover:bg-purple-700 transition-colors shadow-sm text-xs"
+                      className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-2xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
 
                   <AnimatePresence>
-                    {(standardPreprationPerParam[selectedParam.id] || []).map(
+                    {(standardPreparationPerParam[selectedParam.id] || []).map(
                       (standardPreparation) => (
                         <StandardPreparationDetail
                           key={standardPreparation.id}
@@ -3980,15 +5747,15 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                     )}
                   </AnimatePresence>
 
-                  {(standardPreprationPerParam[selectedParam.id] || [])
+                  {(standardPreparationPerParam[selectedParam.id] || [])
                     .length === 0 && (
-                    <div className="text-center py-8 text-gray-500 text-sm bg-purple-50/50 border border-purple-200 rounded-lg">
-                      <Target className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                      <p className="font-medium">
+                    <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-purple-50 to-purple-100/50 border-2 border-dashed border-purple-300 rounded-xl shadow-inner">
+                      <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-purple-600" />
+                      <p className="font-semibold text-base text-purple-900">
                         No standard preparation added yet.
                       </p>
-                      <p className="text-xs mt-1">
-                        Click "Add Standard Preparation" to begin preparation.
+                      <p className="text-xs mt-2 text-purple-700">
+                        Click "Add" button above to begin preparation.
                       </p>
                     </div>
                   )}
@@ -3996,23 +5763,24 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 {/* --- END: Dynamic Standard Preparation Section --- */}
 
                 {/* --- START: Dynamic Sample Preparation Section --- */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3 px-1">
-                    <h3 className="text-base font-bold text-green-600 flex items-center gap-2">
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4 px-2">
+                    <h3 className="text-lg font-bold text-green-900 flex items-center gap-2.5 tracking-tight">
+                      <span className="w-1.5 h-6 bg-gradient-to-b from-green-500 to-green-700 rounded-full"></span>
                       Sample Preparations
                     </h3>
                     <button
                       onClick={() =>
                         handleAddSamplePreparation(selectedParam.id)
                       }
-                      className="flex items-center p-1.5 bg-green-600 text-white font-medium rounded-2xl hover:bg-green-700 transition-colors shadow-sm text-xs"
+                      className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-2xl hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
 
                   <AnimatePresence>
-                    {(samplePreprationPerParam[selectedParam.id] || []).map(
+                    {(samplePreparationPerParam[selectedParam.id] || []).map(
                       (samplePreparation) => (
                         <SamplePreparationDetail
                           key={samplePreparation.id}
@@ -4042,61 +5810,125 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                     )}
                   </AnimatePresence>
 
-                  {(samplePreprationPerParam[selectedParam.id] || []).length ===
-                    0 && (
-                    <div className="text-center py-8 text-gray-500 text-sm bg-green-50/50 border border-green-200 rounded-lg">
-                      <Target className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                      <p className="font-medium">
+                  {(samplePreparationPerParam[selectedParam.id] || [])
+                    .length === 0 && (
+                    <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-green-50 to-green-100/50 border-2 border-dashed border-green-300 rounded-xl shadow-inner">
+                      <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-green-600" />
+                      <p className="font-semibold text-base text-green-900">
                         No sample preparation added yet.
                       </p>
-                      <p className="text-xs mt-1">
-                        Click "Add Sample Preparation" to begin preparation.
+                      <p className="text-xs mt-2 text-green-700">
+                        Click "Add" button above to begin preparation.
                       </p>
                     </div>
                   )}
                 </div>
-                {/* --- END: Dynamic Standard Preparation Section --- */}
+                {/* --- END: Dynamic Sample Preparation Section --- */}
 
                 {/* --- START: Dynamic Sample Preparation for Titration Section --- */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3 px-1">
-                    <h3 className="text-base font-bold text-lime-600 flex items-center gap-2">
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4 px-2">
+                    <h3 className="text-lg font-bold text-lime-900 flex items-center gap-2.5 tracking-tight">
+                      <span className="w-1.5 h-6 bg-gradient-to-b from-lime-500 to-lime-700 rounded-full"></span>
                       Sample Preparations for Titration
                     </h3>
                     <button
                       onClick={() =>
                         handleAddSamplePreparationTitration(selectedParam.id)
                       }
-                      className="flex items-center p-1.5 bg-lime-600 text-white font-medium rounded-2xl hover:bg-lime-700 transition-colors shadow-sm text-xs"
+                      className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-lime-600 to-lime-700 text-white font-semibold rounded-2xl hover:from-lime-700 hover:to-lime-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
 
                   <AnimatePresence>
-                    {(samplePreprationTitrationPerParam[selectedParam.id] || []).map(
-                      (samplePreparationTitration) => (
-                        <SamplePreparationTitrationDetail
-                          key={samplePreparationTitration.id}
-                          samplePreparationTitration={samplePreparationTitration}
-                          onStepChange={(
+                    {(
+                      samplePreparationTitrationPerParam[selectedParam.id] || []
+                    ).map((samplePreparationTitration) => (
+                      <SamplePreparationTitrationDetail
+                        key={samplePreparationTitration.id}
+                        samplePreparationTitration={samplePreparationTitration}
+                        onStepChange={(
+                          samplePreparationTitrationId,
+                          stepName,
+                          field,
+                          newValue
+                        ) =>
+                          handleSamplePreparationTitrationStepChange(
+                            selectedParam.id,
                             samplePreparationTitrationId,
                             stepName,
                             field,
                             newValue
+                          )
+                        }
+                        onRemove={() =>
+                          handleRemoveSamplePreparationTitration(
+                            selectedParam.id,
+                            samplePreparationTitration.id
+                          )
+                        }
+                      />
+                    ))}
+                  </AnimatePresence>
+
+                  {(samplePreparationTitrationPerParam[selectedParam.id] || [])
+                    .length === 0 && (
+                    <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-lime-50 to-lime-100/50 border-2 border-dashed border-lime-300 rounded-xl shadow-inner">
+                      <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-lime-600" />
+                      <p className="font-semibold text-base text-lime-900">
+                        No sample preparation for titration added yet.
+                      </p>
+                      <p className="text-xs mt-2 text-lime-700">
+                        Click "Add" button above to begin preparation.
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {/* --- END: Dynamic Sample Preparation for Titration Section --- */}
+
+                {/* --- START: Dynamic Sample Preparation for LOD Section --- */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4 px-2">
+                    <h3 className="text-lg font-bold text-sky-900 flex items-center gap-2.5 tracking-tight">
+                      <span className="w-1.5 h-6 bg-gradient-to-b from-sky-500 to-sky-700 rounded-full"></span>
+                      Sample Preparations for LOD
+                    </h3>
+                    <button
+                      onClick={() =>
+                        handleAddSamplePreparationLod(selectedParam.id)
+                      }
+                      className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-sky-600 to-sky-700 text-white font-semibold rounded-2xl hover:from-sky-700 hover:to-sky-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <AnimatePresence>
+                    {(samplePreparationLodPerParam[selectedParam.id] || []).map(
+                      (samplePreparationLod) => (
+                        <SamplePreparationLodDetail
+                          key={samplePreparationLod.id}
+                          samplePreparationLod={samplePreparationLod}
+                          onStepChange={(
+                            samplePreparationLodId,
+                            stepName,
+                            field,
+                            newValue
                           ) =>
-                            handleSamplePreparationTitrationStepChange(
+                            handleSamplePreparationLodStepChange(
                               selectedParam.id,
-                              samplePreparationTitrationId,
+                              samplePreparationLodId,
                               stepName,
                               field,
                               newValue
                             )
                           }
                           onRemove={() =>
-                            handleRemoveSamplePreparationTitration(
+                            handleRemoveSamplePreparationLod(
                               selectedParam.id,
-                              samplePreparationTitration.id
+                              samplePreparationLod.id
                             )
                           }
                         />
@@ -4104,20 +5936,159 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                     )}
                   </AnimatePresence>
 
-                  {(samplePreprationTitrationPerParam[selectedParam.id] || []).length ===
-                    0 && (
-                    <div className="text-center py-8 text-gray-500 text-sm bg-lime-50/50 border border-lime-200 rounded-lg">
-                      <Target className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                      <p className="font-medium">
-                        No sample preparation for titration added yet.
+                  {(samplePreparationLodPerParam[selectedParam.id] || [])
+                    .length === 0 && (
+                    <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-sky-50 to-sky-100/50 border-2 border-dashed border-sky-300 rounded-xl shadow-inner">
+                      <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-sky-600" />
+                      <p className="font-semibold text-base text-sky-900">
+                        No sample preparation for LOD added yet.
                       </p>
-                      <p className="text-xs mt-1">
-                        Click "Add Sample Preparation for Titration" to begin preparation.
+                      <p className="text-xs mt-2 text-sky-700">
+                        Click "Add" button above to begin preparation.
                       </p>
                     </div>
                   )}
                 </div>
-                {/* --- END: Dynamic Sample Preparation for Titration Section --- */}
+                {/* --- END: Dynamic Sample Preparation for LOD Section --- */}
+
+                {/* --- START: Dynamic Sample Preparation for Sulphated Ash Section --- */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4 px-2">
+                    <h3 className="text-lg font-bold text-rose-900 flex items-center gap-2.5 tracking-tight">
+                      <span className="w-1.5 h-6 bg-gradient-to-b from-rose-500 to-rose-700 rounded-full"></span>
+                      Sample Preparations for Sulphated Ash
+                    </h3>
+                    <button
+                      onClick={() =>
+                        handleAddSamplePreparationSulphatedAsh(selectedParam.id)
+                      }
+                      className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-rose-600 to-rose-700 text-white font-semibold rounded-2xl hover:from-rose-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <AnimatePresence>
+                    {(
+                      samplePreparationSulphatedAshPerParam[selectedParam.id] ||
+                      []
+                    ).map((samplePreparationSulphatedAsh) => (
+                      <SamplePreparationSulphatedAshDetail
+                        key={samplePreparationSulphatedAsh.id}
+                        samplePreparationSulphatedAsh={
+                          samplePreparationSulphatedAsh
+                        }
+                        onStepChange={(
+                          samplePreparationSulphatedAshId,
+                          stepName,
+                          field,
+                          newValue
+                        ) =>
+                          handleSamplePreparationSulphatedAshStepChange(
+                            selectedParam.id,
+                            samplePreparationSulphatedAshId,
+                            stepName,
+                            field,
+                            newValue
+                          )
+                        }
+                        onRemove={() =>
+                          handleRemoveSamplePreparationSulphatedAsh(
+                            selectedParam.id,
+                            samplePreparationSulphatedAsh.id
+                          )
+                        }
+                      />
+                    ))}
+                  </AnimatePresence>
+
+                  {(
+                    samplePreparationSulphatedAshPerParam[selectedParam.id] ||
+                    []
+                  ).length === 0 && (
+                    <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-rose-50 to-rose-100/50 border-2 border-dashed border-rose-300 rounded-xl shadow-inner">
+                      <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-rose-600" />
+                      <p className="font-semibold text-base text-rose-900">
+                        No sample preparation for Sulphated Ash added yet.
+                      </p>
+                      <p className="text-xs mt-2 text-rose-700">
+                        Click "Add" button above to begin preparation.
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {/* --- END: Dynamic Sample Preparation for Sulphated Ash Section --- */}
+
+                {/* --- START: Dynamic Sample Preparation for Loss on Ignation Section --- */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4 px-2">
+                    <h3 className="text-lg font-bold text-indigo-900 flex items-center gap-2.5 tracking-tight">
+                      <span className="w-1.5 h-6 bg-gradient-to-b from-indigo-500 to-indigo-700 rounded-full"></span>
+                      Sample Preparations for Loss on Ignation
+                    </h3>
+                    <button
+                      onClick={() =>
+                        handleAddSamplePreparationLossOnIgnation(
+                          selectedParam.id
+                        )
+                      }
+                      className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-2xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <AnimatePresence>
+                    {(
+                      samplePreparationLossOnIgnationPerParam[
+                        selectedParam.id
+                      ] || []
+                    ).map((samplePreparationLossOnIgnation) => (
+                      <SamplePreparationLossOnIgnationDetail
+                        key={samplePreparationLossOnIgnation.id}
+                        samplePreparationLossOnIgnation={
+                          samplePreparationLossOnIgnation
+                        }
+                        onStepChange={(
+                          samplePreparationLossOnIgnationId,
+                          stepName,
+                          field,
+                          newValue
+                        ) =>
+                          handleSamplePreparationLossOnIgnationStepChange(
+                            selectedParam.id,
+                            samplePreparationLossOnIgnationId,
+                            stepName,
+                            field,
+                            newValue
+                          )
+                        }
+                        onRemove={() =>
+                          handleRemoveSamplePreparationLossOnIgnation(
+                            selectedParam.id,
+                            samplePreparationLossOnIgnation.id
+                          )
+                        }
+                      />
+                    ))}
+                  </AnimatePresence>
+
+                  {(
+                    samplePreparationLossOnIgnationPerParam[selectedParam.id] ||
+                    []
+                  ).length === 0 && (
+                    <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-indigo-50 to-indigo-100/50 border-2 border-dashed border-indigo-300 rounded-xl shadow-inner">
+                      <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-indigo-600" />
+                      <p className="font-semibold text-base text-indigo-900">
+                        No sample preparation for Loss on Ignation added yet.
+                      </p>
+                      <p className="text-xs mt-2 text-indigo-700">
+                        Click "Add" button above to begin preparation.
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {/* --- END: Dynamic Sample Preparation for Loss on Ignation Section --- */}
 
                 {/* Preparation of Test Solution */}
                 <div className="mb-4">
@@ -4189,7 +6160,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
               <span className="text-gray-700">{approvedBy}</span>
             </div>
             <div className="flex items-center px-3 py-2 border-r-2 border-emerald-500">
-              <span className="font-bold mr-2 text-emerald-900">Classified:</span>
+              <span className="font-bold mr-2 text-emerald-900">
+                Classified:
+              </span>
               <span className="text-red-600 font-semibold">{classified}</span>
             </div>
             <div className="flex items-center px-3 py-2">

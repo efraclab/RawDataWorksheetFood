@@ -78,8 +78,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Properties\\launchSettings.json",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAABgAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-11-11T06:34:24.541Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-11T06:34:24.541Z"
             },
             {
               "$type": "Document",
@@ -91,8 +90,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Services\\IRawDataService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAqwAkAAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-08T12:00:36.408Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-08T12:00:36.408Z"
             },
             {
               "$type": "Document",
@@ -116,8 +114,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Controllers\\RawDataController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACwAAAAeAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-04T07:23:57.234Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-04T07:23:57.234Z"
             },
             {
               "$type": "Document",
@@ -139,7 +136,7 @@
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Program.cs",
               "ToolTip": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Program.cs",
               "RelativeToolTip": "RawDataWorkSheet\\Program.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAAB4AAAAVAAAAAAAAAA==",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAYAAAATAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-04T07:25:48.04Z",
               "EditorCaption": ""

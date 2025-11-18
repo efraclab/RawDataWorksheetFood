@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, Sparkles, ArrowRight, X, Shield, File } from "lucide-react";
+import { Search, Sparkles, X, Shield, File } from "lucide-react";
 
 interface RegistrationSearchToolProps {
   registrationNo: string;
@@ -189,8 +189,7 @@ const RegistrationSearchTool: React.FC<RegistrationSearchToolProps> = ({
                       ) : (
                         <>
                           <Search size={20} className="group-hover:scale-110 transition-transform duration-300" strokeWidth={2.5} />
-                          <span>Search Registry</span>
-                          <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform duration-300" strokeWidth={2.5} />
+                          <span>Search</span>
                         </>
                       )}
                     </span>

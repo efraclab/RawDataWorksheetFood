@@ -152,6 +152,7 @@ namespace RawDataWorkSheet.Repositories
                 select 
                     Id,
                     Name,
+                    InstrumentTag AS Tag,
                     CONVERT(NVARCHAR(10), CalibrationDoneDate, 103) AS CalibrationDoneDate,
                     CONVERT(NVARCHAR(10), CalibrationDueDate, 103) AS CalibrationDueDate
                 from INSTRUMENTMASTER

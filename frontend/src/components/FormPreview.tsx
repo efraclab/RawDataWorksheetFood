@@ -3104,7 +3104,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                   className="border-2 border-emerald-500 hover:bg-emerald-50 transition-colors"
                                 >
                                   <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                    {instrument.id || "---"}
+                                    {instrument.tag || "---"}
                                   </td>
                                   <td className="px-3 py-2 border-r-2 border-emerald-500">
                                     {instrument.name || "---"}
@@ -3560,7 +3560,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                         <Plus className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
-                        <span className="relative z-10">Add Preparation</span>
+                        <span className="relative z-10">Add Preparations</span>
                       </button>
                       {/* Dropdown Menu */}
                       <AnimatePresence>
@@ -3930,7 +3930,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           onClick={() =>
                             handleAddStandardPreparation(selectedParam.id)
                           }
-                          className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-700 text-white font-semibold rounded-xl hover:from-red-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform hover:scale-105"
+                          className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-700 text-white font-semibold rounded-xl hover:from-red-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                         >
                           <Plus className="w-4 h-4" />
                           Add Preparation
@@ -4078,12 +4078,12 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           onClick={() =>
                             handleAddCalculationAssay(selectedParam.id)
                           }
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-red-600 to-rose-600 text-white font-semibold rounded-full hover:from-red-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                          whileHover={{ scale: 1 }}
+                          whileTap={{ scale: 1 }}
+                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-red-600 to-rose-600 text-white font-semibold rounded-xl hover:from-red-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                         >
                           <Plus className="w-4 h-4" />
-                          Add Calculation
+                          Add Assay Calculation
                         </motion.button>
                       </div>
 
@@ -4202,9 +4202,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           onClick={() =>
                             handleAddSamplePreparationLod(selectedParam.id)
                           }
-                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-sky-600 to-blue-700 text-white font-semibold rounded-xl hover:from-sky-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
+                          className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-700 text-white font-semibold rounded-xl hover:from-sky-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg transform text-sm"
                         >
                           <Plus className="w-4 h-4" />
+                          Add Preparation
                         </button>
                       </div>
 
@@ -4212,7 +4213,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                         {(
                           samplePreparationLodPerParam[selectedParam.id] || []
                         ).map((samplePreparationLod) => (
-                          <div className="" key={samplePreparationLod.id}>
+                          <div className="overflow-hidden" key={samplePreparationLod.id}>
                             <SamplePreparationLodDetail
                               samplePreparationLod={samplePreparationLod}
                               onStepChange={(
@@ -4297,9 +4298,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           onClick={() =>
                             handleAddCalculationLod(selectedParam.id)
                           }
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white font-semibold rounded-full hover:from-sky-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                          whileHover={{ scale: 1 }}
+                          whileTap={{ scale: 1 }}
+                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white font-semibold rounded-xl hover:from-sky-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                         >
                           <Plus className="w-4 h-4" />
                           Add LOD Calculation
@@ -4419,9 +4420,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           onClick={() =>
                             handleAddSamplePreparationROI(selectedParam.id)
                           }
-                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-orange-600 to-amber-700 text-white font-semibold rounded-xl hover:from-orange-700 hover:to-amber-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
+                          className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-orange-600 to-amber-700 text-sm text-white font-semibold rounded-xl hover:from-orange-700 hover:to-amber-800 transition-all duration-200 shadow-md hover:shadow-lg transform"
                         >
                           <Plus className="w-4 h-4" />
+                          Add Preparation
                         </button>
                       </div>
 
@@ -4519,9 +4521,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           onClick={() =>
                             handleAddCalculationROI(selectedParam.id)
                           }
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold rounded-full hover:from-amber-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                          whileHover={{ scale: 1 }}
+                          whileTap={{ scale: 1 }}
+                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold rounded-xl hover:from-amber-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                         >
                           <Plus className="w-4 h-4" />
                           Add ROI Calculation
@@ -4633,9 +4635,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                         </h3>
                         <button
                           onClick={() => handleAddSamplePreparationSulphatedAsh(selectedParam.id)}
-                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-rose-600 to-rose-700 text-white font-semibold rounded-xl hover:from-rose-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
+                          className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-rose-600 to-rose-700 text-white font-semibold rounded-xl hover:from-rose-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg transform text-sm"
                         >
                           <Plus className="w-4 h-4" />
+                          Add Preparation
                         </button>
                       </div>
 
@@ -4715,9 +4718,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                         </h3>
                         <motion.button
                           onClick={() => handleAddCalculationSulphatedAsh(selectedParam.id)}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-semibold rounded-full hover:from-pink-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                          whileHover={{ scale: 1 }}
+                          whileTap={{ scale: 1 }}
+                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-semibold rounded-xl hover:from-pink-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                         >
                           <Plus className="w-4 h-4" />
                           Add Ash Calculation
@@ -4825,7 +4828,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                         </h3>
                         <button
                           onClick={() => handleAddStandardPreparationRS(selectedParam.id)}
-                          className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform hover:scale-105"
+                          className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                         >
                           <Plus className="w-4 h-4" />
                           Add Preparation
@@ -4966,9 +4969,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                         </h3>
                         <motion.button
                           onClick={() => handleAddCalculationRS(selectedParam.id)}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-full hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                          whileHover={{ scale: 1}}
+                          whileTap={{ scale: 1 }}
+                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                         >
                           <Plus className="w-4 h-4" />
                           Add RS Calculation

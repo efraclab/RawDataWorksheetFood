@@ -157,7 +157,7 @@ const CalculationDetailSulphatedAsh: React.FC<CalculationDetailSulphatedAshProps
     if (isNaN(AshContent_Percentage) || !isFinite(AshContent_Percentage)) {
       setCalculationResult("Error: Result is NaN or Infinite. Check console for details.");
     } else {
-      setCalculationResult(`Result: ${AshContent_Percentage.toFixed(4)} % w/w`);
+      setCalculationResult(`Result: ${AshContent_Percentage.toFixed(2)} % w/w`);
     }
   };
 
@@ -311,9 +311,9 @@ const CalculationDetailSulphatedAsh: React.FC<CalculationDetailSulphatedAshProps
                           </span>
                         </div>
                         
-                        {/* W3 - After Ashing - Rose Theme */}
+                        {/* W3 - After Drying - Rose Theme */}
                         <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-rose-100 to-rose-50 p-3 rounded-lg border border-rose-200 hover:shadow-md transition-all">
-                          <span className="font-bold text-rose-800 bg-rose-200/50 px-2 rounded-md">W3 (After Ashing):</span>
+                          <span className="font-bold text-rose-800 bg-rose-200/50 px-2 rounded-md">W3 (After Drying):</span>
                           <span className="text-gray-800 font-semibold flex items-center">
                             {sampleWeights.w3.value} {sampleWeights.w3.unit}
                             <WarningIndicator value={sampleWeights.w3.value} />
@@ -346,14 +346,14 @@ const CalculationDetailSulphatedAsh: React.FC<CalculationDetailSulphatedAshProps
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           // Success/Error Color - Rose/Pink Theme
-                          className={`bg-gradient-to-br ${calculationResult.startsWith("Error") ? 'from-red-50 to-red-100 border-2 border-red-300' : 'from-rose-50 to-pink-50 border-2 border-rose-300'} rounded-lg p-4`}
+                          className={`bg-gradient-to-br ${calculationResult.startsWith("Error") ? 'from-red-100 to-red-50 border-2 border-red-300' : 'from-green-50 to-emerald-50 border-2 border-green-300'} rounded-lg p-4`}
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-2 mb-2">
                               {/* Icon Color - Rose/Pink Theme */}
-                              <CheckCircle className={`w-5 h-5 ${calculationResult.startsWith("Error") ? 'text-red-600' : 'text-rose-600'}`} />
+                              <CheckCircle className={`w-5 h-5 ${calculationResult.startsWith("Error") ? 'text-red-600' : 'text-green-600'}`} />
                               {/* Text Color - Rose/Pink Theme */}
-                              <h6 className={`text-sm font-bold ${calculationResult.startsWith("Error") ? 'text-red-700' : 'text-rose-700'}`}>
+                              <h6 className={`text-sm font-bold ${calculationResult.startsWith("Error") ? 'text-red-700' : 'text-green-700'}`}>
                                 Calculation Result
                               </h6>
                             </div>

@@ -160,7 +160,7 @@ const CalculationDetailROI: React.FC<CalculationDetailROIProps> = ({
     if (isNaN(ROI_Percentage) || !isFinite(ROI_Percentage)) {
       setCalculationResult("Error: Result is NaN or Infinite. Check console for details.");
     } else {
-      setCalculationResult(`Result: ${ROI_Percentage.toFixed(4)} % w/w`);
+      setCalculationResult(`Result: ${ROI_Percentage.toFixed(2)} % w/w`);
     }
   };
 
@@ -301,9 +301,9 @@ const CalculationDetailROI: React.FC<CalculationDetailROIProps> = ({
                           </span>
                         </div>
                         
-                        {/* W3 - After Ignition */}
+                        {/* W3 - After Drying */}
                         <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-orange-100 to-orange-50 p-3 rounded-lg border border-orange-200 hover:shadow-md transition-all">
-                          <span className="font-bold text-orange-800 bg-orange-200/50 px-2 rounded-md">W3 (After Ignition):</span>
+                          <span className="font-bold text-orange-800 bg-orange-200/50 px-2 rounded-md">W3 (After Drying):</span>
                           <span className="text-gray-800 font-semibold flex items-center">
                             {sampleWeights.w3.value} {sampleWeights.w3.unit}
                             <WarningIndicator value={sampleWeights.w3.value} />
@@ -335,12 +335,12 @@ const CalculationDetailROI: React.FC<CalculationDetailROIProps> = ({
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`bg-gradient-to-br ${calculationResult.startsWith("Error") ? 'from-red-50 to-red-100 border-2 border-red-300' : 'from-orange-50 to-orange-50 border-2 border-amber-300'} rounded-lg p-4`}
+                          className={`bg-gradient-to-br ${calculationResult.startsWith("Error") ? 'from-red-100 to-red-50 border-2 border-red-300' : 'from-green-50 to-emerald-50 border-2 border-green-300'} rounded-lg p-4`}
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-2 mb-2">
-                              <CheckCircle className={`w-5 h-5 ${calculationResult.startsWith("Error") ? 'text-red-600' : 'text-amber-600'}`} />
-                              <h6 className={`text-sm font-bold ${calculationResult.startsWith("Error") ? 'text-red-700' : 'text-amber-700'}`}>
+                              <CheckCircle className={`w-5 h-5 ${calculationResult.startsWith("Error") ? 'text-red-600' : 'text-green-600'}`} />
+                              <h6 className={`text-sm font-bold ${calculationResult.startsWith("Error") ? 'text-red-700' : 'text-green-700'}`}>
                                 Calculation Result
                               </h6>
                             </div>

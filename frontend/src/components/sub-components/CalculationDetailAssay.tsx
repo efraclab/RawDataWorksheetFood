@@ -47,7 +47,7 @@ const WarningIndicator: React.FC<{ value: string | number }> = ({ value }) => {
 
 const convertMassToMg = (value: string | number, unit: string): number => {
     const val = parseFloat(String(value));
-    if (isNaN(val)) return 0;
+    if (isNaN(val)) return 1; // Default to 1 for multiplication/division operations
 
     const lowerUnit = unit.toLowerCase().trim();
 
@@ -74,7 +74,7 @@ const convertMassToMg = (value: string | number, unit: string): number => {
 
 const convertVolumeToMl = (value: string | number, unit: string): number => {
     const val = parseFloat(String(value));
-    if (isNaN(val)) return 0;
+    if (isNaN(val)) return 1; // Default to 1 for multiplication/division operations
 
     const lowerUnit = unit.toLowerCase().trim();
 
@@ -104,6 +104,12 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [calculationResult, setCalculationResult] = useState<string | null>(null);
+  const [labelClaimPercent, setLabelClaimPercent] = useState<string | null>(null);
+  const [adjustedBasisResult, setAdjustedBasisResult] = useState<string | null>(null);
+
+  // State for Raw Material Water/LOD
+  const [waterLodType, setWaterLodType] = useState<string>("water");
+  const [waterLodValue, setWaterLodValue] = useState<string>("");
 
   // Get selected preparations
   const selectedStandardPrep = standardPreparations.find(
@@ -281,6 +287,8 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
     if (!canCalculate) {
       console.warn("Cannot calculate: Missing preparations or calculation type.");
       setCalculationResult("Error: Please select both Standard and Sample preparations and a calculation type.");
+      setLabelClaimPercent(null);
+      setAdjustedBasisResult(null);
       console.groupEnd();
       return;
     }
@@ -298,20 +306,21 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
         MW_Salt: calculation.mwSalt,
         Purity: calculation.baseXPurity,
         AvgWt_density: calculation.avgWt,
-        claimVol: calculation.claimVolume
+        claimVol: calculation.claimVolume,
+        labelClaim: calculation.labelClaim
     };
     console.log("1. Raw Inputs from Form:", rawInputs);
 
     // 2. Parse Numbers & Apply Mass Conversion
-    const AreaOfSample = parseFloat(calculation.areaOfSample as string) || 0;
-    const AreaOfStandard = parseFloat(calculation.areaOfStandard as string) || 0;
+    const AreaOfSample = parseFloat(calculation.areaOfSample as string) || 1;
+    const AreaOfStandard = parseFloat(calculation.areaOfStandard as string) || 1;
     // CONVERSION APPLIED: SW1 and SW2 are converted to milligrams (mg)
     const SW1_Standard = convertMassToMg(standardWeight.value, standardWeight.unit);
     const SW2_Sample = convertMassToMg(sampleWeight.value, sampleWeight.unit);
 
-    const MWBase = parseFloat(calculation.mwBase as string) || 0;
-    const MWSalt = parseFloat(calculation.mwSalt as string) || 0;
-    const Purity = parseFloat(calculation.baseXPurity as string) || 0;
+    const MWBase = parseFloat(calculation.mwBase as string) || 1;
+    const MWSalt = parseFloat(calculation.mwSalt as string) || 1;
+    const Purity = parseFloat(calculation.baseXPurity as string) || 1;
     
     // 3. Volume Logic (The most complex part)
     const allVols = { ...stdVols, ...splVols_all };
@@ -346,7 +355,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
 
     // 4. Calculate Ratios
     const AreaRatio = AreaOfStandard !== 0 ? AreaOfSample / AreaOfStandard : 0;
-    const MWRatio = MWSalt !== 0 ? MWBase / MWSalt : 0;
+    const MWRatio = MWSalt !== 0 ? MWBase / MWSalt : 1;
     const PurityFactor = Purity / 100;
 
     console.log("4. Intermediate Ratios:", {
@@ -368,7 +377,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
       case "For Capsule":
       case "For Injection Vial": {
         // AvgWt is the Avg Wt of Tablet/Capsule in mg, or Avg Content of Vial in mg.
-        const AvgWt = parseFloat(calculation.avgWt as string) || 0; 
+        const AvgWt = parseFloat(calculation.avgWt as string) || 1; 
         
         // Formula: (Common * SW1 * AvgWt) / SW2. 
         if (SW2_Sample !== 0) {
@@ -389,9 +398,9 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
       }
       
       case "For Oral Suspension": {
-        const ClaimVolume = parseFloat(calculation.claimVolume as string) || 0; 
+        const ClaimVolume = parseFloat(calculation.claimVolume as string) || 1; 
         // WtPerML is the Avg Wt per ml of the liquid sample in mg/ml
-        const WtPerML = parseFloat(calculation.avgWt as string) || 0; 
+        const WtPerML = parseFloat(calculation.avgWt as string) || 1; 
         
         // Formula: (Common * SW1 * WtPerML * ClaimVol) / SW2
         if (SW2_Sample !== 0) {
@@ -404,10 +413,8 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
       }
       
       case "For Oral Liquid": {
-        const ClaimVolume = parseFloat(calculation.claimVolume as string) || 0; 
+        const ClaimVolume = parseFloat(calculation.claimVolume as string) || 1; 
         // SampleVolume is the volume of the sample taken (converted to mL).
-        // Since the input field 'avgWt' doesn't have a dedicated unit, we pass a default 'ml' 
-        // but rely on convertVolumeToMl to handle L/uL inputs if entered in the value field.
         const SampleVolume = convertVolumeToMl(calculation.avgWt, "ml"); 
         
         // Formula: (Common * SW1 * ClaimVol) / SampleVol
@@ -446,8 +453,33 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
     // 7. Update State
     if (isNaN(FinalResult) || !isFinite(FinalResult)) {
         setCalculationResult("Error: Result is NaN or Infinite. Check console for details.");
+        setLabelClaimPercent(null);
+        setAdjustedBasisResult(null);
     } else {
-        setCalculationResult(`Result: ${FinalResult.toFixed(4)} ${unit}`);
+        setCalculationResult(`Result: ${FinalResult.toFixed(2)} ${unit}`);
+        
+        // Calculate Label Claim Percentage for non-Raw Material types
+        if (calculation.calculationType !== "For Raw Material") {
+          const labelClaim = parseFloat(calculation.labelClaim as string);
+          if (labelClaim && labelClaim > 0) {
+            const percentOfLabelClaim = (FinalResult * 100) / labelClaim;
+            setLabelClaimPercent(`${percentOfLabelClaim.toFixed(2)} % of Label Claim`);
+          } else {
+            setLabelClaimPercent(null);
+          }
+          setAdjustedBasisResult(null);
+        } else {
+          // For Raw Material - Calculate As Anhydrous/Dried Basis
+          const waterLod = parseFloat(waterLodValue) || 0;
+          if (waterLod >= 0) {
+            const adjustedResult = (FinalResult * 100) / (100 - waterLod);
+            const basisType = waterLodType === "water" ? "As Anhydrous Basis" : "As Dried Basis";
+            setAdjustedBasisResult(`${basisType}: ${adjustedResult.toFixed(2)} %`);
+          } else {
+            setAdjustedBasisResult(null);
+          }
+          setLabelClaimPercent(null);
+        }
     }
   };
 
@@ -776,64 +808,110 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                         </div>
                       </div>
                       
-                      {/* Additional Fields (Avg Wt / Claim Vol / Sample Vol) */}
-                      <div className="grid grid-cols-3 gap-3">
-                        {(calculation.calculationType === "For Tablets" ||
-                          calculation.calculationType === "For Capsule" ||
-                          calculation.calculationType === "For Injection Vial" ||
-                          calculation.calculationType === "For Oral Suspension" ||
-                          calculation.calculationType === "For Oral Liquid") && (
-                          <div className={calculation.calculationType === "For Oral Liquid" ? 'col-span-1' : (calculation.calculationType === "For Oral Suspension" ? 'col-span-1' : 'col-span-1')}>
+                      {/* Additional Fields based on Calculation Type */}
+                      {calculation.calculationType === "For Raw Material" ? (
+                        // Raw Material: Water/LOD dropdown and value
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
                             <label className="block text-xs font-semibold text-red-900 mb-1">
-                              {calculation.calculationType === "For Oral Suspension"
-                                ? "Wt / ml (Avg Wt) (mg/ml)"
-                                : calculation.calculationType === "For Oral Liquid"
-                                ? "Sample Vol (mL/L)"
-                                : calculation.calculationType === "For Injection Vial"
-                                ? "Average Content (mg)"
-                                : "Avg Weight (mg)"}
+                              Water/LOD Type
+                            </label>
+                            <CustomDropdown
+                              options={[
+                                { value: "water", label: "Water" },
+                                { value: "lod", label: "LOD" }
+                              ]}
+                              value={waterLodType}
+                              onChange={setWaterLodType}
+                              placeholder="Select Type"
+                              colorScheme="rose"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-red-900 mb-1">
+                              {waterLodType === "water" ? "Water" : "LOD"} Value (%)
                             </label>
                             <input
-                              type="text"
-                              value={calculation.avgWt}
-                              onChange={(e) =>
-                                onFieldChange(calculation.id, "avgWt", e.target.value)
-                              }
-                              placeholder={
-                                calculation.calculationType === "For Oral Suspension" ? "Wt / ml" : 
-                                calculation.calculationType === "For Oral Liquid" ? "Sample Vol" : 
-                                calculation.calculationType === "For Injection Vial" ? "Average Content" :
-                                "Avg Wt"
-                              }
+                              type="number"
+                              step="0.01"
+                              value={waterLodValue}
+                              onChange={(e) => setWaterLodValue(e.target.value)}
+                              placeholder={`Enter ${waterLodType === "water" ? "Water" : "LOD"} %`}
                               className="w-full px-3 py-2 border border-red-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-400"
                             />
                           </div>
-                        )}
-                        {(calculation.calculationType === "For Oral Suspension" ||
-                          calculation.calculationType === "For Oral Liquid") && (
-                          <div className="col-span-1">
-                            <label className="block text-xs font-semibold text-red-900 mb-1">
-                              Claim Volume
-                            </label>
-                            <input
-                              type="text"
-                              value={calculation.claimVolume}
-                              onChange={(e) =>
-                                onFieldChange(calculation.id, "claimVolume", e.target.value)
-                              }
-                              placeholder="Claim Vol"
-                              className="w-full px-3 py-2 border border-red-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-400"
-                            />
+                        </div>
+                      ) : (
+                        // Other Calculation Types
+                        <>
+                          <div className="grid grid-cols-3 gap-3">
+                            {(calculation.calculationType === "For Tablets" ||
+                              calculation.calculationType === "For Capsule" ||
+                              calculation.calculationType === "For Injection Vial" ||
+                              calculation.calculationType === "For Oral Suspension" ||
+                              calculation.calculationType === "For Oral Liquid") && (
+                              <div>
+                                <label className="block text-xs font-semibold text-red-900 mb-1">
+                                  {calculation.calculationType === "For Oral Suspension"
+                                    ? "Wt / ml (Avg Wt) (mg/ml)"
+                                    : calculation.calculationType === "For Oral Liquid"
+                                    ? "Sample Vol (mL/L)"
+                                    : calculation.calculationType === "For Injection Vial"
+                                    ? "Average Content (mg)"
+                                    : "Avg Weight (mg)"}
+                                </label>
+                                <input
+                                  type="text"
+                                  value={calculation.avgWt}
+                                  onChange={(e) =>
+                                    onFieldChange(calculation.id, "avgWt", e.target.value)
+                                  }
+                                  placeholder={
+                                    calculation.calculationType === "For Oral Suspension" ? "Wt / ml" : 
+                                    calculation.calculationType === "For Oral Liquid" ? "Sample Vol" : 
+                                    calculation.calculationType === "For Injection Vial" ? "Average Content" :
+                                    "Avg Wt"
+                                  }
+                                  className="w-full px-3 py-2 border border-red-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-400"
+                                />
+                              </div>
+                            )}
+                            {(calculation.calculationType === "For Oral Suspension" ||
+                              calculation.calculationType === "For Oral Liquid") && (
+                              <div>
+                                <label className="block text-xs font-semibold text-red-900 mb-1">
+                                  Claim Volume
+                                </label>
+                                <input
+                                  type="text"
+                                  value={calculation.claimVolume}
+                                  onChange={(e) =>
+                                    onFieldChange(calculation.id, "claimVolume", e.target.value)
+                                  }
+                                  placeholder="Claim Vol"
+                                  className="w-full px-3 py-2 border border-red-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-400"
+                                />
+                              </div>
+                            )}
+                            {/* Label Claim - for all except Raw Material */}
+                            <div>
+                              <label className="block text-xs font-semibold text-red-900 mb-1">
+                                Label Claim (mg)
+                              </label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={calculation.labelClaim}
+                                onChange={(e) =>
+                                  onFieldChange(calculation.id, "labelClaim", e.target.value)
+                                }
+                                placeholder="Label Claim"
+                                className="w-full px-3 py-2 border border-red-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-400"
+                              />
+                            </div>
                           </div>
-                        )}
-                        {/* Empty placeholder to maintain grid layout when inputs are hidden for Raw Material */}
-                        {(calculation.calculationType === "For Tablets" ||
-                          calculation.calculationType === "For Capsule" ||
-                          calculation.calculationType === "For Injection Vial" ||
-                          calculation.calculationType === "For Raw Material") && (
-                            <div className='col-span-2'></div>
-                        )}
-                      </div>
+                        </>
+                      )}
 
                       {/* Calculate Button */}
                       <div className="flex justify-center pt-2">
@@ -853,17 +931,21 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`bg-gradient-to-br ${calculationResult.startsWith("Error") ? 'from-amber-50 to-orange-50 border-2 border-amber-300' : 'from-green-50 to-emerald-50 border-2 border-green-300'} rounded-lg p-4`}
+                          className={`bg-gradient-to-br ${calculationResult.startsWith("Error") ? 'from-red-100 to-red-50 border-2 border-red-300' : 'from-green-50 to-emerald-50 border-2 border-green-300'} rounded-lg p-4`}
                         >
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <CheckCircle className={`w-5 h-5 ${calculationResult.startsWith("Error") ? 'text-amber-600' : 'text-green-600'}`} />
-                                    <h6 className={`text-sm font-bold ${calculationResult.startsWith("Error") ? 'text-amber-900' : 'text-green-900'}`}>
+                                    <CheckCircle className={`w-5 h-5 ${calculationResult.startsWith("Error") ? 'text-red-600' : 'text-green-600'}`} />
+                                    <h6 className={`text-sm font-bold ${calculationResult.startsWith("Error") ? 'text-red-900' : 'text-green-900'}`}>
                                         Calculation Result
                                     </h6>
                                 </div>
                                 <motion.button
-                                    onClick={() => setCalculationResult(null)}
+                                    onClick={() => {
+                                      setCalculationResult(null);
+                                      setLabelClaimPercent(null);
+                                      setAdjustedBasisResult(null);
+                                    }}
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
                                     className="p-1 -mt-1 -mr-1 text-gray-400 hover:text-red-500 transition-colors"
@@ -872,7 +954,19 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                     <X className="w-4 h-4" />
                                 </motion.button>
                             </div>
-                            <p className="text-sm text-gray-700">{calculationResult}</p>
+                            <div className="space-y-2">
+                              <p className="text-sm text-gray-700 font-semibold">{calculationResult}</p>
+                              {labelClaimPercent && (
+                                <p className="text-sm text-blue-700 font-semibold border-t border-green-200 pt-2">
+                                  {labelClaimPercent}
+                                </p>
+                              )}
+                              {adjustedBasisResult && (
+                                <p className="text-sm text-purple-700 font-semibold border-t border-green-200 pt-2">
+                                  {adjustedBasisResult}
+                                </p>
+                              )}
+                            </div>
                         </motion.div>
                       )}
                     </div>

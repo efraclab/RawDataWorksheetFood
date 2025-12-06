@@ -239,7 +239,7 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
     if (isNaN(FinalResult) || !isFinite(FinalResult)) {
       setCalculationResult("Error: Result is NaN or Infinite. Check console for details.");
     } else {
-      setCalculationResult(`Result: ${FinalResult.toFixed(4)} ppm`);
+      setCalculationResult(`Result: ${FinalResult.toFixed(2)} ppm`);
     }
   };
 
@@ -509,12 +509,12 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`bg-gradient-to-br ${calculationResult.startsWith("Error") ? 'from-amber-50 to-orange-50 border-2 border-amber-300' : 'from-green-50 to-emerald-50 border-2 border-green-300'} rounded-lg p-4`}
+                          className={`bg-gradient-to-br ${calculationResult.startsWith("Error") ? 'from-red-100 to-red-50 border-2 border-red-300' : 'from-green-50 to-emerald-50 border-2 border-green-300'} rounded-lg p-4`}
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-2 mb-2">
-                              <CheckCircle className={`w-5 h-5 ${calculationResult.startsWith("Error") ? 'text-amber-600' : 'text-green-600'}`} />
-                              <h6 className={`text-sm font-bold ${calculationResult.startsWith("Error") ? 'text-amber-900' : 'text-green-900'}`}>
+                              <CheckCircle className={`w-5 h-5 ${calculationResult.startsWith("Error") ? 'text-red-600' : 'text-green-600'}`} />
+                              <h6 className={`text-sm font-bold ${calculationResult.startsWith("Error") ? 'text-red-900' : 'text-green-900'}`}>
                                 Calculation Result
                               </h6>
                             </div>

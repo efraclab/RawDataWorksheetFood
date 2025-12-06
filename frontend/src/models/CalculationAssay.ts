@@ -40,4 +40,5 @@ export interface CalculationAssay {
   mwBase: string;
   
   claimVolume: string;
+  labelClaim: string;
 }

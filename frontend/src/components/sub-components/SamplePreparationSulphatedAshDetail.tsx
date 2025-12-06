@@ -3,10 +3,25 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Droplets, Trash } from "lucide-react";
 import type { SamplePreparationSulphatedAsh } from "../../models/SamplePreparationSulphatedAsh";
 import type { SamplePreparationSulphatedAshStep } from "../../models/SamplePreparationSulphatedAshStep";
+// IMPORT CustomDropdown
+import CustomDropdown from "../shared/CustomDropdown";
 
-const weightUnitOptions = ["g", "mg", "kg"];
-const timeUnitOptions = ["min", "hr", "sec"];
-const tempUnitOptions = ["°C", "°F", "K"];
+// CONVERTED to object array format for CustomDropdown
+const weightUnitOptions = [
+  { value: "g", label: "g" },
+  { value: "mg", label: "mg" },
+  { value: "kg", label: "kg" },
+];
+const timeUnitOptions = [
+  { value: "min", label: "min" },
+  { value: "hr", label: "hr" },
+  { value: "sec", label: "sec" },
+];
+const tempUnitOptions = [
+  { value: "°C", label: "°C" },
+  { value: "°F", label: "°F" },
+  { value: "K", label: "K" },
+];
 
 interface SamplePreparationSulphatedAshDetailProps {
   samplePreparationSulphatedAsh: SamplePreparationSulphatedAsh;
@@ -32,19 +47,21 @@ const SamplePreparationSulphatedAshDetail: React.FC<
 > = ({ samplePreparationSulphatedAsh, onStepChange, onRemove }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
+  // Conditional rounding for the header (Fix 3)
+  const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="relative group"
+      className="relative group z-20" 
     >
       {/* Glow effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-rose-400/20 to-rose-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
 
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-rose-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
-        {/* Elegant Header */}
-        <div className="relative bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 overflow-hidden">
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-rose-200/50 transition-all duration-300 mb-4">
+        <div className={`relative bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 ${headerRoundingClass}`}>
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
 
@@ -113,7 +130,6 @@ const SamplePreparationSulphatedAshDetail: React.FC<
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
             >
               <div className="p-5 space-y-3 bg-gradient-to-br from-rose-50/50 to-rose-50/30">
                 {samplePreparationSulphatedAsh.steps.map((step, index) => {
@@ -131,11 +147,11 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="group/item relative"
+                      className="group relative"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-rose-400/0 via-rose-400/5 to-pink-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
 
-                      <div className="relative bg-white rounded-xl border border-rose-200/60 shadow-sm hover:shadow-md hover:border-rose-300 transition-all duration-200 p-4">
+                      <div className="relative bg-white rounded-xl border border-rose-200/60 hover:border-rose-300 transition-all duration-200 p-4">
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-rose-500 to-pink-500 rounded-full flex items-center justify-center shadow-md">
                             <span className="text-white text-xs font-bold">
@@ -174,24 +190,23 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     placeholder="Enter Weight"
                                     className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
                                   />
-                                  <select
-                                    value={step.unit}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationSulphatedAsh.id,
-                                        step.name,
-                                        "unit",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-16 px-2 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
-                                  >
-                                    {weightUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  {/* Replaced native select with CustomDropdown */}
+                                  <div className="w-20">
+                                    <CustomDropdown
+                                      options={weightUnitOptions}
+                                      value={step.unit}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationSulphatedAsh.id,
+                                          step.name,
+                                          "unit",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="rose"
+                                    />
+                                  </div>
 
                                   <span className="text-gray-500 text-xs">
                                     (Log ID:
@@ -240,24 +255,23 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     placeholder="Enter Weight"
                                     className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
                                   />
-                                  <select
-                                    value={step.unit}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationSulphatedAsh.id,
-                                        step.name,
-                                        "unit",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-16 px-2 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
-                                  >
-                                    {weightUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  {/* Replaced native select with CustomDropdown */}
+                                  <div className="w-20">
+                                    <CustomDropdown
+                                      options={weightUnitOptions}
+                                      value={step.unit}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationSulphatedAsh.id,
+                                          step.name,
+                                          "unit",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="rose"
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             )}
@@ -285,24 +299,23 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     placeholder="Enter Temp"
                                     className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
                                   />
-                                  <select
-                                    value={step.tempUnit}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationSulphatedAsh.id,
-                                        step.name,
-                                        "tempUnit",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-16 px-2 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
-                                  >
-                                    {tempUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  {/* Replaced native select with CustomDropdown */}
+                                  <div className="w-20">
+                                    <CustomDropdown
+                                      options={tempUnitOptions}
+                                      value={step.tempUnit}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationSulphatedAsh.id,
+                                          step.name,
+                                          "tempUnit",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="rose"
+                                    />
+                                  </div>
 
                                   <span className="text-gray-600 font-medium">
                                     for
@@ -324,24 +337,23 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     placeholder="Enter Time"
                                     className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
                                   />
-                                  <select
-                                    value={step.timeUnit}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationSulphatedAsh.id,
-                                        step.name,
-                                        "timeUnit",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-16 px-2 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
-                                  >
-                                    {timeUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  {/* Replaced native select with CustomDropdown */}
+                                  <div className="w-20">
+                                    <CustomDropdown
+                                      options={timeUnitOptions}
+                                      value={step.timeUnit}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationSulphatedAsh.id,
+                                          step.name,
+                                          "timeUnit",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="rose"
+                                    />
+                                  </div>
 
                                   <span className="text-gray-500 text-xs">
                                     (Log ID:
@@ -390,24 +402,23 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     placeholder="Enter Weight"
                                     className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
                                   />
-                                  <select
-                                    value={step.unit}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationSulphatedAsh.id,
-                                        step.name,
-                                        "unit",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-16 px-2 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
-                                  >
-                                    {weightUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  {/* Replaced native select with CustomDropdown */}
+                                  <div className="w-20">
+                                    <CustomDropdown
+                                      options={weightUnitOptions}
+                                      value={step.unit}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationSulphatedAsh.id,
+                                          step.name,
+                                          "unit",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="rose"
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             )}

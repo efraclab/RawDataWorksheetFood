@@ -4,4 +4,5 @@ export interface SamplePreparation {
   id: number;
   label: string;
   steps: SamplePreparationStep[];
+  assignedStandardId?: string;
 }

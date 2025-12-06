@@ -42,6 +42,8 @@ interface StandardPreparationDetailProps {
     newValue: string
   ) => void;
   onRemove: () => void;
+  // NEW PROP: Determines if this is for Residual Solvent (RS) calculation
+  isRS?: boolean;
 }
 
 const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
@@ -49,22 +51,30 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
   assignedStandard,
   onStepChange,
   onRemove,
+  isRS = false, // Default to false for backward compatibility
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+
+  const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
+
+  // Filter steps based on isRS flag
+  const filteredSteps = isRS
+    ? standardPreparation.steps.filter((step) => step.name !== "4th Dilution")
+    : standardPreparation.steps;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="relative group"
+      className="relative group z-20"
     >
       {/* Glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-lg blur-xl group-hover:blur-xl transition-all duration-300" />
+      <div className={`absolute inset-0 bg-gradient-to-r ${isRS ? 'from-indigo-400/20 to-blue-400/20' : 'from-red-400/20 to-rose-400/20'} rounded-lg blur-xl group-hover:blur-xl transition-all duration-300`} />
 
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-purple-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+      <div className={`relative bg-white/95 backdrop-blur-sm rounded-lg border ${isRS ? 'border-indigo-200/50' : 'border-red-200/50'} transition-all duration-300 mb-4`}>
         {/* Elegant Header */}
-        <div className="relative bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 overflow-hidden">
+        <div className={`relative bg-gradient-to-r ${isRS ? 'from-indigo-600 via-indigo-500 to-blue-500' : 'from-red-600 via-red-500 to-rose-500'} ${headerRoundingClass}`}>
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
 
@@ -86,10 +96,10 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
 
               <div>
                 <h4 className="text-sm font-semibold text-white tracking-wide">
-                  {`${standardPreparation.label} (${assignedStandard?.name})`}
+                  {`${standardPreparation.label} ${assignedStandard ? `(${assignedStandard.name})` : ''}`}
                 </h4>
-                <p className="text-xs text-purple-100">
-                  Standard Preparation Details
+                <p className={`text-xs ${isRS ? 'text-indigo-100' : 'text-red-100'}`}>
+                  Standard Preparation Details {isRS ? '(RS)' : ''}
                 </p>
               </div>
             </div>
@@ -133,16 +143,25 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
             >
-              <div className="p-5 space-y-3 bg-gradient-to-br from-purple-50/50 to-pink-50/30">
-                {standardPreparation.steps.map((step, index) => {
+              <div className={`p-5 space-y-3 bg-gradient-to-br ${isRS ? 'from-indigo-50/50 to-blue-50/30' : 'from-red-50/50 to-rose-50/30'}`}>
+                {filteredSteps.map((step, index) => {
                   const isWeighing = step.name === "Weighing";
                   const is1stDilution = step.name === "1st Dilution";
                   const is2ndDilution = step.name === "2nd Dilution";
                   const is3rdDilution = step.name === "3rd Dilution";
                   const is4thDilution = step.name === "4th Dilution";
                   const isFiltration = step.name === "Filtration";
+
+                  const colorScheme = isRS ? 'indigo' : 'red';
+                  const gradientFrom = isRS ? 'from-indigo-500' : 'from-red-500';
+                  const gradientTo = isRS ? 'to-blue-500' : 'to-rose-500';
+                  const borderColor = isRS ? 'border-indigo-200/60' : 'border-red-200/60';
+                  const hoverBorderColor = isRS ? 'hover:border-indigo-300' : 'hover:border-red-300';
+                  const textColor = isRS ? 'text-indigo-900' : 'text-red-900';
+                  const bgColor = isRS ? 'bg-indigo-50' : 'bg-red-50';
+                  const inputBorderColor = isRS ? 'border-indigo-300' : 'border-red-300';
+                  const focusRingColor = isRS ? 'focus:ring-indigo-400' : 'focus:ring-red-400';
 
                   return (
                     <motion.div
@@ -152,11 +171,11 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                       transition={{ delay: index * 0.1 }}
                       className="group/item relative"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-purple-400/5 to-purple-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                      <div className={`absolute inset-0 bg-gradient-to-r ${isRS ? 'from-indigo-400/0 via-indigo-400/5 to-indigo-400/0' : 'from-red-400/0 via-red-400/5 to-red-400/0'} rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity`} />
 
-                      <div className="relative bg-white rounded-xl border border-purple-200/60 shadow-sm hover:shadow-md hover:border-purple-300 transition-all duration-200 p-4">
+                      <div className={`relative bg-white rounded-xl border ${borderColor} ${hoverBorderColor} transition-all duration-200 p-4`}>
                         <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-md">
+                          <div className={`flex-shrink-0 w-7 h-7 bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-full flex items-center justify-center shadow-md`}>
                             <span className="text-white text-xs font-bold">
                               {index + 1}
                             </span>
@@ -164,10 +183,10 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
 
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-3">
-                              <div className="font-bold text-purple-900 text-sm">
+                              <div className={`font-bold ${textColor} text-sm`}>
                                 {step.name}
                               </div>
-                              <div className="h-px flex-1 bg-gradient-to-r from-purple-200 to-transparent" />
+                              <div className={`h-px flex-1 bg-gradient-to-r ${isRS ? 'from-indigo-200' : 'from-red-200'} to-transparent`} />
                             </div>
 
                             {isWeighing && (
@@ -191,7 +210,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                       )
                                     }
                                     placeholder="Enter Weight"
-                                    className="w-30 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all"
+                                    className={`w-30 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} focus:border-transparent transition-all`}
                                   />
                                   <div className="w-20">
                                     <CustomDropdown
@@ -206,7 +225,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         )
                                       }
                                       placeholder="Unit"
-                                      colorScheme="purple"
+                                      colorScheme={colorScheme}
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
@@ -215,7 +234,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                   
                                   {/* Display assigned standard name (read-only) */}
                                   {assignedStandard ? (
-                                    <div className="flex-1 min-w-[150px] px-3 py-2 bg-purple-50 border border-purple-300 rounded-lg text-xs font-semibold text-purple-900">
+                                    <div className={`flex-1 min-w-[150px] px-3 py-2 ${bgColor} border ${inputBorderColor} rounded-lg text-xs font-semibold ${textColor}`}>
                                       {assignedStandard.name}
                                     </div>
                                   ) : (
@@ -243,15 +262,15 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         )
                                       }
                                       placeholder="Enter Log Book ID"
-                                      className="flex-1 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                      className={`flex-1 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
                                     />
                                   </div>
                                 )}
 
                                 {/* Show selected standard details */}
                                 {assignedStandard && (
-                                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-2.5 text-xs">
-                                    <div className="font-semibold text-purple-900 mb-1.5">
+                                  <div className={`${bgColor} border ${isRS ? 'border-indigo-200' : 'border-red-200'} rounded-lg p-2.5 text-xs`}>
+                                    <div className={`font-semibold ${textColor} mb-1.5`}>
                                       Selected Standard Details:
                                     </div>
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-gray-700">
@@ -298,7 +317,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                       )
                                     }
                                     placeholder="Enter Volume"
-                                    className="w-30 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                    className={`w-30 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
                                   />
                                   <div className="w-20">
                                     <CustomDropdown
@@ -313,7 +332,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         )
                                       }
                                       placeholder="Unit"
-                                      colorScheme="purple"
+                                      colorScheme={colorScheme}
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
@@ -346,7 +365,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                       )
                                     }
                                     placeholder="Enter Volume"
-                                    className="w-30 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                    className={`w-30 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
                                   />
                                   <div className="w-20">
                                     <CustomDropdown
@@ -361,7 +380,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         )
                                       }
                                       placeholder="Unit"
-                                      colorScheme="purple"
+                                      colorScheme={colorScheme}
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
@@ -388,7 +407,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                       )
                                     }
                                     placeholder="Enter Volume"
-                                    className="w-30 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                    className={`w-30 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
                                   />
                                   <div className="w-20">
                                     <CustomDropdown
@@ -403,7 +422,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         )
                                       }
                                       placeholder="Unit"
-                                      colorScheme="purple"
+                                      colorScheme={colorScheme}
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
@@ -433,7 +452,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                     )
                                   }
                                   placeholder="Enter Size"
-                                  className="w-30 px-2.5 py-1.5 border border-purple-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                                  className={`w-30 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
                                 />
                                 <div className="w-24">
                                   <CustomDropdown
@@ -448,7 +467,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                       )
                                     }
                                     placeholder="Unit"
-                                    colorScheme="purple"
+                                    colorScheme={colorScheme}
                                   />
                                 </div>
                                 <span className="text-gray-600 font-medium">

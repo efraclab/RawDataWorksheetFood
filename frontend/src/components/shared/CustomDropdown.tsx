@@ -13,7 +13,7 @@ interface CustomDropdownProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
-  colorScheme?: "purple" | "blue" | "green" | "amber" | "rose" | "emerald" | "indigo" | "orange" | "lime" | "sky";
+  colorScheme?: "purple" | "blue" | "green" | "amber" | "rose" | "red" | "emerald" | "indigo" | "orange" | "lime" | "sky";
   disabled?: boolean;
 }
 
@@ -57,6 +57,16 @@ const colorSchemes = {
     hover: "hover:bg-amber-50",
     selected: "bg-amber-100 text-amber-900",
     badge: "bg-amber-500",
+  },
+  red: {
+    main: "from-red-600 via-red-500 to-rose-500",
+    light: "from-red-50 to-rose-50",
+    border: "border-red-300",
+    ring: "ring-red-400",
+    text: "text-red-900",
+    hover: "hover:bg-red-50",
+    selected: "bg-red-100 text-red-900",
+    badge: "bg-red-500",
   },
   rose: {
     main: "from-rose-600 via-rose-500 to-pink-500",

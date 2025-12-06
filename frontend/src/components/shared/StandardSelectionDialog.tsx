@@ -55,7 +55,7 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="relative bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 px-6 py-4">
+              <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-500 px-6 py-4">
                 <div className="absolute inset-0 bg-black/5" />
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
                 
@@ -64,7 +64,7 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
                     <h2 className="text-xl font-bold text-white">
                       Select Standard for Preparation
                     </h2>
-                    <p className="text-purple-100 text-sm mt-1">
+                    <p className="text-emerald-100 text-sm mt-1">
                       Choose a standard to create a new preparation
                     </p>
                   </div>
@@ -106,8 +106,8 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
                           w-full text-left p-4 rounded-xl border-2 transition-all duration-200
                           ${
                             selectedStandard?.id === standard.id
-                              ? "border-purple-500 bg-purple-50 shadow-md"
-                              : "border-gray-200 hover:border-purple-300 hover:bg-purple-50/50"
+                              ? "border-emerald-500 bg-emerald-50 shadow-md"
+                              : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50"
                           }
                         `}
                       >
@@ -118,7 +118,7 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
                               <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md"
+                                className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-500 flex items-center justify-center shadow-md"
                               >
                                 <Check className="w-4 h-4 text-white" />
                               </motion.div>
@@ -181,7 +181,7 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
                       px-6 py-2 text-sm font-medium text-white rounded-lg transition-all
                       ${
                         selectedStandard
-                          ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-md hover:shadow-lg"
+                          ? "bg-gradient-to-r from-emerald-600 to-emerald-600 hover:from-emerald-700 hover:to-emerald-700 shadow-md hover:shadow-lg"
                           : "bg-gray-300 cursor-not-allowed"
                       }
                     `}

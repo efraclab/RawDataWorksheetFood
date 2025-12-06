@@ -3,9 +3,10 @@ export type CalculationType =
   | "For Capsule" 
   | "For Injection Vial" 
   | "For Oral Suspension" 
-  | "For Oral Liquid";
+  | "For Oral Liquid"
+  | "For Raw Material";
 
-export interface Calculation {
+export interface CalculationAssay {
   id: number;
   label: string;
   selectedStandardPrepId: number | null;
@@ -38,5 +39,5 @@ export interface Calculation {
   mwSalt: string;
   mwBase: string;
   
-  doseVolume: string;
+  claimVolume: string;
 }

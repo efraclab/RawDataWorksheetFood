@@ -20,8 +20,8 @@ import type { SamplePreparationLod } from "../models/SamplePreparationLod";
 import type { SamplePreparationLodStep } from "../models/SamplePreparationLodStep";
 import type { SamplePreparationSulphatedAsh } from "../models/SamplePreparationSulphatedAsh";
 import type { SamplePreparationSulphatedAshStep } from "../models/SamplePreparationSulphatedAshStep";
-import type { SamplePreparationLossOnIgnation } from "../models/SamplePreparationLossOnIgnation";
-import type { SamplePreparationLossOnIgnationStep } from "../models/SamplePreparationLossOnIgnationStep";
+import type { SamplePreparationROI } from "../models/SamplePreparationROI";
+import type { SamplePreparationROIStep } from "../models/SamplePreparationROIStep";
 import type { SamplePreparationDisso } from "../models/SamplePreparationDisso";
 import type { SamplePreparationDissoStep } from "../models/SamplePreparationDissoStep";
 import MobilePhaseDetail from "./sub-components/MobilePhaseDetail";
@@ -32,12 +32,22 @@ import SamplePreparationDissoDetail from "./sub-components/SamplePreparationDiss
 import SamplePreparationTitrationDetail from "./sub-components/SamplePreparationTitrationDetail";
 import SamplePreparationLodDetail from "./sub-components/SamplePreparationLodDetail";
 import SamplePreparationSulphatedAshDetail from "./sub-components/SamplePreparationSulphatedAshDetail";
-import SamplePreparationLossOnIgnationDetail from "./sub-components/SamplePreparationLossOnIgnationDetail";
+import SamplePreparationROIDetail from "./sub-components/SamplePreparationROIDetail";
 import DataPreviewDialog from "./DataPreviewDialog";
 import PrintPreviewDialog from "./PrintPreviewDialog";
 import StandardSelectionDialog from "./shared/StandardSelectionDialog";
-import type { Calculation } from "../models/Calculation";
-import CalculationDetail from "./sub-components/CalculationDetail";
+import type { CalculationAssay } from "../models/CalculationAssay";
+import CalculationDetailAssay from "./sub-components/CalculationDetailAssay";
+import { BiTestTube } from "react-icons/bi";
+import { IoFlask } from "react-icons/io5";
+import type { CalculationSulphatedAsh } from "../models/CalculationSulphatedAsh";
+import type { CalculationROI } from "../models/CalculationROI";
+import CalculationDetailROI from "./sub-components/CalculationDetailROI";
+import CalculationDetailSulphatedAsh from "./sub-components/CalculationDetailSulphatedAsh";
+import type { CalculationLod } from "../models/CalculationLod";
+import CalculationDetailLod from "./sub-components/CalculationDetailLod";
+import type { CalculationRS } from "../models/CalculationRS";
+import CalculationDetailRS from "./sub-components/CalculationDetailRS";
 
 const Target: React.FC<{ className: string }> = ({ className }) => (
   <svg
@@ -163,7 +173,7 @@ interface AddedParameter extends SampleData {
   id: number;
 }
 
-const createNewCalculation = (index: number): Calculation => {
+const createNewCalculationAssay = (index: number): CalculationAssay => {
   return {
     id: Date.now() + index,
     label: `Calculation ${index + 1}`,
@@ -192,7 +202,42 @@ const createNewCalculation = (index: number): Calculation => {
     avgWt: "",
     mwSalt: "",
     mwBase: "",
-    doseVolume: "",
+    claimVolume: "",
+  };
+};
+
+const createNewCalculationLod = (index: number): CalculationLod => {
+  return {
+    id: Date.now() + index,
+    label: `LOD Calculation ${index + 1}`,
+    selectedSamplePrepId: null,
+    w1_emptyDish: "",
+    w2_dishWithSample: "",
+    w3_dishAfterIgnition: "",
+  };
+};
+
+const createNewCalculationROI = (index: number): CalculationROI => {
+  return {
+    id: Date.now() + index,
+    label: `ROI Calculation ${index + 1}`,
+    selectedSamplePrepId: null,
+    w1_emptyDish: "",
+    w2_dishWithSample: "",
+    w3_dishAfterIgnition: "",
+  };
+};
+
+const createNewCalculationSulphatedAsh = (
+  index: number
+): CalculationSulphatedAsh => {
+  return {
+    id: Date.now() + index,
+    label: `Sulphated Ash Calculation ${index + 1}`,
+    selectedSamplePrepId: null,
+    w1_emptyCrucible: "",
+    w2_crucibleWithSample: "",
+    w3_crucibleAfterAsh: "",
   };
 };
 
@@ -370,12 +415,10 @@ const createNewSamplePreparationSulphatedAsh = (
   };
 };
 
-const createNewSamplePreparationLossOnIgnation = (
-  index: number
-): SamplePreparationLossOnIgnation => {
+const createNewSamplePreparationROI = (index: number): SamplePreparationROI => {
   return {
     id: Date.now() + index,
-    label: `Sample Preparation ${index + 1} for Loss on Ignation`,
+    label: `Sample Preparation ${index + 1} for ROI`,
     steps: [
       {
         name: "Weighing (Empty Crucible)",
@@ -437,6 +480,26 @@ const createNewSamplePreparationDisso = (
   };
 };
 
+const createNewCalculationRS = (index: number): CalculationRS => {
+  return {
+    id: Date.now() + index,
+    label: `RS Calculation ${index + 1}`,
+    selectedStandardPrepId: null,
+    selectedSamplePrepId: null,
+    areaOfSample: "",
+    areaOfStandard: "",
+    sw1: "",
+    sw2: "",
+    v1: "",
+    v2: "",
+    v3: "",
+    v4: "",
+    v5: "",
+    v6: "",
+    purity: "",
+  };
+};
+
 const FormPreview: React.FC<FormPreviewProps> = ({
   reportData,
   loading,
@@ -473,8 +536,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   const [dissoMediaPerParam, setDissoMediaPerParam] = useState<
     Record<number, DissoMedia[]>
   >({});
-  const [calculationsPerParam, setCalculationsPerParam] = useState<
-    Record<number, Calculation[]>
+  const [calculationsAssayPerParam, setCalculationsAssayPerParam] = useState<
+    Record<number, CalculationAssay[]>
   >({});
   const [standardPreparationPerParam, setStandardPreparationPerParam] =
     useState<Record<number, StandardPreparation[]>>({});
@@ -491,10 +554,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     samplePreparationSulphatedAshPerParam,
     setSamplePreparationSulphatedAshPerParam,
   ] = useState<Record<number, SamplePreparationSulphatedAsh[]>>({});
-  const [
-    samplePreparationLossOnIgnationPerParam,
-    setSamplePreparationLossOnIgnationPerParam,
-  ] = useState<Record<number, SamplePreparationLossOnIgnation[]>>({});
+  const [samplePreparationROIPerParam, setSamplePreparationROIPerParam] =
+    useState<Record<number, SamplePreparationROI[]>>({});
   const [samplePreparationDissoPerParam, setSamplePreparationDissoPerParam] =
     useState<Record<number, SamplePreparationDisso[]>>({});
 
@@ -522,6 +583,40 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       Record<number, Record<number, string>> // paramId -> { standardPrepId -> standardId }
     >({});
 
+  const [visiblePreparationsPerParam, setVisiblePreparationsPerParam] =
+    useState<Record<number, string[]>>({});
+
+  const [showPreparationDropdown, setShowPreparationDropdown] = useState<
+    Record<number, boolean>
+  >({});
+
+  const [activePreparationGroups, setActivePreparationGroups] = useState<
+    Record<number, string[]>
+  >({});
+
+  const [calculationsLodPerParam, setCalculationsLodPerParam] = useState<
+    Record<number, CalculationLod[]>
+  >({});
+
+  const [calculationsROIPerParam, setCalculationsROIPerParam] = useState<
+    Record<number, CalculationROI[]>
+  >({});
+
+  const [
+    calculationsSulphatedAshPerParam,
+    setCalculationsSulphatedAshPerParam,
+  ] = useState<Record<number, CalculationSulphatedAsh[]>>({});
+
+  const [standardPreparationRSPerParam, setStandardPreparationRSPerParam] =
+    useState<Record<number, StandardPreparation[]>>({});
+  const [samplePreparationRSPerParam, setSamplePreparationRSPerParam] =
+    useState<Record<number, SamplePreparation[]>>({});
+  const [calculationsRSPerParam, setCalculationsRSPerParam] = useState<
+    Record<number, CalculationRS[]>
+  >({});
+
+  const [isAddingRSStandard, setIsAddingRSStandard] = useState(false);
+
   // Control states for dynamic dropdowns
   const [showInstrumentDropdown, setShowInstrumentDropdown] = useState(false);
   const [showChemicalDropdown, setShowChemicalDropdown] = useState(false);
@@ -546,6 +641,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   const chemicalRef = useRef<HTMLDivElement>(null);
   const standardRef = useRef<HTMLDivElement>(null);
   const columnRef = useRef<HTMLDivElement>(null);
+  const preparationDropdownRef = useRef<HTMLDivElement>(null);
 
   const handleClickOutside = useCallback((event: MouseEvent) => {
     if (
@@ -572,6 +668,12 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     ) {
       setShowColumnDropdown(false);
     }
+    if (
+      preparationDropdownRef.current &&
+      !preparationDropdownRef.current.contains(event.target as Node)
+    ) {
+      setShowPreparationDropdown({});
+    }
   }, []);
 
   useEffect(() => {
@@ -593,10 +695,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     revisionDate = "30/07/2027",
   } = documentInfo;
 
-  // --- START: LOCAL STORAGE LOGIC ---
   const getStorageKey = (regNo: string) => `form_draft_${regNo}`;
 
-  // Load data from localStorage on mount or when registrationNo changes
   useEffect(() => {
     if (registrationNo) {
       const storageKey = getStorageKey(registrationNo);
@@ -633,9 +733,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             setSamplePreparationSulphatedAshPerParam(
               parsed.samplePreparationSulphatedAshPerParam
             );
-          if (parsed.samplePreparationLossOnIgnationPerParam)
-            setSamplePreparationLossOnIgnationPerParam(
-              parsed.samplePreparationLossOnIgnationPerParam
+          if (parsed.samplePreparationROIPerParam)
+            setSamplePreparationROIPerParam(
+              parsed.samplePreparationROIPerParam
             );
           if (parsed.samplePreparationDissoPerParam)
             setSamplePreparationDissoPerParam(
@@ -653,8 +753,26 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           if (parsed.standardAssignmentsPerParam)
             setStandardAssignmentsPerParam(parsed.standardAssignmentsPerParam);
 
-          if (parsed.calculationsPerParam)
-            setCalculationsPerParam(parsed.calculationsPerParam);
+          if (parsed.calculationsAssayPerParam)
+            setCalculationsAssayPerParam(parsed.calculationsAssayPerParam);
+          if (parsed.calculationsLodPerParam)
+            setCalculationsROIPerParam(parsed.calculationsLodPerParam);
+          if (parsed.calculationsROIPerParam)
+            setCalculationsROIPerParam(parsed.calculationsROIPerParam);
+          if (parsed.calculationsSulphatedAshPerParam)
+            setCalculationsSulphatedAshPerParam(
+              parsed.calculationsSulphatedAshPerParam
+            );
+          if (parsed.activePreparationGroups)
+            setActivePreparationGroups(parsed.activePreparationGroups);
+          if (parsed.standardPreparationRSPerParam)
+            setStandardPreparationRSPerParam(
+              parsed.standardPreparationRSPerParam
+            );
+          if (parsed.samplePreparationRSPerParam)
+            setSamplePreparationRSPerParam(parsed.samplePreparationRSPerParam);
+          if (parsed.calculationsRSPerParam)
+            setCalculationsRSPerParam(parsed.calculationsRSPerParam);
 
           console.log("Draft loaded for:", registrationNo);
         } catch (err) {
@@ -721,7 +839,20 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       const { [id]: _, ...rest } = prev;
       return rest;
     });
-    setCalculationsPerParam((prev) => {
+    setCalculationsAssayPerParam((prev) => {
+      const { [id]: _, ...rest } = prev;
+      return rest;
+    });
+
+    setCalculationsROIPerParam((prev) => {
+      const { [id]: _, ...rest } = prev;
+      return rest;
+    });
+    setCalculationsLodPerParam((prev) => {
+      const { [id]: _, ...rest } = prev;
+      return rest;
+    });
+    setCalculationsSulphatedAshPerParam((prev) => {
       const { [id]: _, ...rest } = prev;
       return rest;
     });
@@ -801,7 +932,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  // Disso Media Handlers
   const handleAddDissoMedia = (parameterId: number) => {
     setDissoMediaPerParam((prev) => {
       const currentMedias = prev[parameterId] || [];
@@ -862,41 +992,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
   const handleAddStandardPreparation = (parameterId: number) => {
     setCurrentParameterForStandardPrep(parameterId);
+    setIsAddingRSStandard(false);
     setShowStandardSelectionDialog(true);
-  };
-
-  // ADD this new function to handle standard selection from dialog:
-  const handleStandardSelectedForPreparation = (standard: Standard) => {
-    if (currentParameterForStandardPrep === null) return;
-
-    const parameterId = currentParameterForStandardPrep;
-    const currentStandards = standardPreparationPerParam[parameterId] || [];
-    const newIndex = currentStandards.length;
-
-    // Create new standard preparation with the selected standard
-    const newStandardPrep = createNewStandardPreparation(newIndex);
-
-    // Set the solventChemical in the Weighing step to the standard name
-    newStandardPrep.steps = newStandardPrep.steps.map((step) => {
-      if (step.name === "Weighing") {
-        return {
-          ...step,
-          solventChemical: standard.name,
-        };
-      }
-      return step;
-    });
-
-    // Add the new preparation with the assigned standard ID
-    setStandardPreparationPerParam((prev) => ({
-      ...prev,
-      [parameterId]: [
-        ...currentStandards,
-        { ...newStandardPrep, assignedStandardId: standard.id },
-      ],
-    }));
-
-    setCurrentParameterForStandardPrep(null);
   };
 
   const handleRemoveStandardPreparation = (
@@ -904,18 +1001,40 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     standardPreparationId: number
   ) => {
     setStandardPreparationPerParam((prev) => {
-      const updatedStandards = (prev[parameterId] || [])
+      const standards = prev[parameterId] || [];
+      const indexToRemove = standards.findIndex(
+        (sp) => sp.id === standardPreparationId
+      );
+
+      const updatedStandards = standards
         .filter((dm) => dm.id !== standardPreparationId)
         .map((dm, index) => ({
           ...dm,
           label: `Standard Preparation ${1 + index}`,
         }));
+
+      // Also remove the corresponding sample preparation at the same index
+      if (indexToRemove !== -1) {
+        setSamplePreparationPerParam((prevSample) => {
+          const samples = prevSample[parameterId] || [];
+          const updatedSamples = samples
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Sample Preparation ${1 + index}`,
+            }));
+          return {
+            ...prevSample,
+            [parameterId]: updatedSamples,
+          };
+        });
+      }
+
       return {
         ...prev,
         [parameterId]: updatedStandards,
       };
     });
-    // No need to clean up standardAssignmentsPerParam anymore
   };
 
   const handleStandardPreparationStepChange = (
@@ -955,7 +1074,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  // Sample Preparation Handlers
   const handleAddSamplePreparation = (parameterId: number) => {
     setSamplePreparationPerParam((prev) => {
       const currentSamples = prev[parameterId] || [];
@@ -1025,7 +1143,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  // Sample Preparation Titration Handlers
   const handleAddSamplePreparationTitration = (parameterId: number) => {
     setSamplePreparationTitrationPerParam((prev) => {
       const currentSamples = prev[parameterId] || [];
@@ -1087,7 +1204,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  // Sample Preparation LOD Handlers
   const handleAddSamplePreparationLod = (parameterId: number) => {
     setSamplePreparationLodPerParam((prev) => {
       const currentSamples = prev[parameterId] || [];
@@ -1156,7 +1272,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  // Sample Preparation Sulphated Ash Handlers
   const handleAddSamplePreparationSulphatedAsh = (parameterId: number) => {
     setSamplePreparationSulphatedAshPerParam((prev) => {
       const currentSamples = prev[parameterId] || [];
@@ -1225,28 +1340,27 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  // Sample Preparation Loss on Ignation Handlers
-  const handleAddSamplePreparationLossOnIgnation = (parameterId: number) => {
-    setSamplePreparationLossOnIgnationPerParam((prev) => {
+  const handleAddSamplePreparationROI = (parameterId: number) => {
+    setSamplePreparationROIPerParam((prev) => {
       const currentSamples = prev[parameterId] || [];
       const newIndex = currentSamples.length;
       return {
         ...prev,
         [parameterId]: [
           ...currentSamples,
-          createNewSamplePreparationLossOnIgnation(newIndex),
+          createNewSamplePreparationROI(newIndex),
         ],
       };
     });
   };
 
-  const handleRemoveSamplePreparationLossOnIgnation = (
+  const handleRemoveSamplePreparationROI = (
     parameterId: number,
-    samplePreparationLossOnIgnationId: number
+    samplePreparationROIId: number
   ) => {
-    setSamplePreparationLossOnIgnationPerParam((prev) => {
+    setSamplePreparationROIPerParam((prev) => {
       const updatedSamples = (prev[parameterId] || [])
-        .filter((spl) => spl.id !== samplePreparationLossOnIgnationId)
+        .filter((spl) => spl.id !== samplePreparationROIId)
         .map((spl, index) => ({
           ...spl,
           label: `Sample Preparation ${1 + index} for Loss on Ignation`,
@@ -1258,10 +1372,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     });
   };
 
-  const handleSamplePreparationLossOnIgnationStepChange = (
+  const handleSamplePreparationROIStepChange = (
     parameterId: number,
-    samplePreparationLossOnIgnationId: number,
-    stepName: SamplePreparationLossOnIgnationStep["name"],
+    samplePreparationROIId: number,
+    stepName: SamplePreparationROIStep["name"],
     field:
       | "value"
       | "unit"
@@ -1272,10 +1386,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       | "logBookID",
     newValue: string
   ) => {
-    setSamplePreparationLossOnIgnationPerParam((prev) => ({
+    setSamplePreparationROIPerParam((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((spl) => {
-        if (spl.id === samplePreparationLossOnIgnationId) {
+        if (spl.id === samplePreparationROIId) {
           return {
             ...spl,
             steps: spl.steps.map((step) => {
@@ -1294,7 +1408,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  // Sample Preparation Disso Handlers
   const handleAddSamplePreparationDisso = (parameterId: number) => {
     setSamplePreparationDissoPerParam((prev) => {
       const currentSamples = prev[parameterId] || [];
@@ -1371,7 +1484,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  // Reference Data Search Filters
   const searchFilteredInstruments = instruments.filter(
     (inst) =>
       inst.name.toLowerCase().includes(instrumentSearch.toLowerCase()) ||
@@ -1455,23 +1567,25 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  // Calculation Handlers
-  const handleAddCalculation = (parameterId: number) => {
-    setCalculationsPerParam((prev) => {
+  const handleAddCalculationAssay = (parameterId: number) => {
+    setCalculationsAssayPerParam((prev) => {
       const currentCalculations = prev[parameterId] || [];
       const newIndex = currentCalculations.length;
       return {
         ...prev,
-        [parameterId]: [...currentCalculations, createNewCalculation(newIndex)],
+        [parameterId]: [
+          ...currentCalculations,
+          createNewCalculationAssay(newIndex),
+        ],
       };
     });
   };
 
-  const handleRemoveCalculation = (
+  const handleRemoveCalculationAssay = (
     parameterId: number,
     calculationId: number
   ) => {
-    setCalculationsPerParam((prev) => {
+    setCalculationsAssayPerParam((prev) => {
       const updatedCalculations = (prev[parameterId] || [])
         .filter((calc) => calc.id !== calculationId)
         .map((calc, index) => ({
@@ -1485,13 +1599,472 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     });
   };
 
-  const handleCalculationFieldChange = (
+  const handleCalculationAssayFieldChange = (
     parameterId: number,
     calculationId: number,
-    field: keyof Calculation,
+    field: keyof CalculationAssay,
     value: string | number | null
   ) => {
-    setCalculationsPerParam((prev) => ({
+    setCalculationsAssayPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((calc) => {
+        if (calc.id === calculationId) {
+          return {
+            ...calc,
+            [field]: value,
+          };
+        }
+        return calc;
+      }),
+    }));
+  };
+
+  const handleAddCalculationLod = (parameterId: number) => {
+    setCalculationsLodPerParam((prev) => {
+      const currentCalculations = prev[parameterId] || [];
+      const newIndex = currentCalculations.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentCalculations,
+          createNewCalculationLod(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveCalculationLod = (
+    parameterId: number,
+    calculationId: number
+  ) => {
+    setCalculationsLodPerParam((prev) => {
+      const updatedCalculations = (prev[parameterId] || [])
+        .filter((calc) => calc.id !== calculationId)
+        .map((calc, index) => ({
+          ...calc,
+          label: `LOD Calculation ${index + 1}`,
+        }));
+      return {
+        ...prev,
+        [parameterId]: updatedCalculations,
+      };
+    });
+  };
+
+  const handleCalculationLodFieldChange = (
+    parameterId: number,
+    calculationId: number,
+    field: keyof CalculationLod,
+    value: string | number | null
+  ) => {
+    setCalculationsLodPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((calc) => {
+        if (calc.id === calculationId) {
+          return {
+            ...calc,
+            [field]: value,
+          };
+        }
+        return calc;
+      }),
+    }));
+  };
+
+  const handleAddCalculationROI = (parameterId: number) => {
+    setCalculationsROIPerParam((prev) => {
+      const currentCalculations = prev[parameterId] || [];
+      const newIndex = currentCalculations.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentCalculations,
+          createNewCalculationROI(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveCalculationROI = (
+    parameterId: number,
+    calculationId: number
+  ) => {
+    setCalculationsROIPerParam((prev) => {
+      const updatedCalculations = (prev[parameterId] || [])
+        .filter((calc) => calc.id !== calculationId)
+        .map((calc, index) => ({
+          ...calc,
+          label: `ROI Calculation ${index + 1}`,
+        }));
+      return {
+        ...prev,
+        [parameterId]: updatedCalculations,
+      };
+    });
+  };
+
+  const handleCalculationROIFieldChange = (
+    parameterId: number,
+    calculationId: number,
+    field: keyof CalculationROI,
+    value: string | number | null
+  ) => {
+    setCalculationsROIPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((calc) => {
+        if (calc.id === calculationId) {
+          return {
+            ...calc,
+            [field]: value,
+          };
+        }
+        return calc;
+      }),
+    }));
+  };
+
+  const handleAddCalculationSulphatedAsh = (parameterId: number) => {
+    setCalculationsSulphatedAshPerParam((prev) => {
+      const currentCalculations = prev[parameterId] || [];
+      const newIndex = currentCalculations.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentCalculations,
+          createNewCalculationSulphatedAsh(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveCalculationSulphatedAsh = (
+    parameterId: number,
+    calculationId: number
+  ) => {
+    setCalculationsSulphatedAshPerParam((prev) => {
+      const updatedCalculations = (prev[parameterId] || [])
+        .filter((calc) => calc.id !== calculationId)
+        .map((calc, index) => ({
+          ...calc,
+          label: `Sulphated Ash Calculation ${index + 1}`,
+        }));
+      return {
+        ...prev,
+        [parameterId]: updatedCalculations,
+      };
+    });
+  };
+
+  const handleCalculationSulphatedAshFieldChange = (
+    parameterId: number,
+    calculationId: number,
+    field: keyof CalculationSulphatedAsh,
+    value: string | number | null
+  ) => {
+    setCalculationsSulphatedAshPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((calc) => {
+        if (calc.id === calculationId) {
+          return {
+            ...calc,
+            [field]: value,
+          };
+        }
+        return calc;
+      }),
+    }));
+  };
+
+  const handleAddStandardPreparationRS = (parameterId: number) => {
+    setCurrentParameterForStandardPrep(parameterId);
+    setIsAddingRSStandard(true); // Explicitly set to true for RS
+    setShowStandardSelectionDialog(true);
+  };
+
+  const handleStandardSelectedForPreparation = (
+    standard: Standard,
+    isRS: boolean = false
+  ) => {
+    if (currentParameterForStandardPrep === null) return;
+
+    const parameterId = currentParameterForStandardPrep;
+
+    if (isRS) {
+      // Handle RS Standard Preparation
+      const currentStandards = standardPreparationRSPerParam[parameterId] || [];
+      const newIndex = currentStandards.length;
+      const newStandardPrep = createNewStandardPreparation(newIndex);
+
+      newStandardPrep.steps = newStandardPrep.steps.map((step) => {
+        if (step.name === "Weighing") {
+          return {
+            ...step,
+            solventChemical: standard.name,
+          };
+        }
+        return step;
+      });
+
+      // Add to RS Standard Preparation list
+      setStandardPreparationRSPerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentStandards,
+          { ...newStandardPrep, assignedStandardId: standard.id },
+        ],
+      }));
+
+      // Add corresponding RS Sample Preparation
+      const currentSamples = samplePreparationRSPerParam[parameterId] || [];
+      const newSampleIndex = currentSamples.length;
+      const newSamplePrep = createNewSamplePreparation(newSampleIndex);
+
+      setSamplePreparationRSPerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentSamples,
+          { ...newSamplePrep, assignedStandardId: standard.id },
+        ],
+      }));
+    } else {
+      // Handle regular Assay Standard Preparation
+      const currentStandards = standardPreparationPerParam[parameterId] || [];
+      const newIndex = currentStandards.length;
+      const newStandardPrep = createNewStandardPreparation(newIndex);
+
+      newStandardPrep.steps = newStandardPrep.steps.map((step) => {
+        if (step.name === "Weighing") {
+          return {
+            ...step,
+            solventChemical: standard.name,
+          };
+        }
+        return step;
+      });
+
+      // Add to regular Assay Standard Preparation list
+      setStandardPreparationPerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentStandards,
+          { ...newStandardPrep, assignedStandardId: standard.id },
+        ],
+      }));
+
+      // Add corresponding regular Assay Sample Preparation
+      const currentSamples = samplePreparationPerParam[parameterId] || [];
+      const newSampleIndex = currentSamples.length;
+      const newSamplePrep = createNewSamplePreparation(newSampleIndex);
+
+      setSamplePreparationPerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentSamples,
+          { ...newSamplePrep, assignedStandardId: standard.id },
+        ],
+      }));
+    }
+
+    // Close dialog and reset state
+    setShowStandardSelectionDialog(false);
+    setCurrentParameterForStandardPrep(null);
+    setIsAddingRSStandard(false);
+  };
+
+  // Handler for removing RS Standard Preparation
+  const handleRemoveStandardPreparationRS = (
+    parameterId: number,
+    standardPreparationId: number
+  ) => {
+    setStandardPreparationRSPerParam((prev) => {
+      const standards = prev[parameterId] || [];
+      const indexToRemove = standards.findIndex(
+        (sp) => sp.id === standardPreparationId
+      );
+
+      const updatedStandards = standards
+        .filter((dm) => dm.id !== standardPreparationId)
+        .map((dm, index) => ({
+          ...dm,
+          label: `Standard Preparation ${1 + index}`,
+        }));
+
+      // Also remove the corresponding sample preparation at the same index
+      if (indexToRemove !== -1) {
+        setSamplePreparationRSPerParam((prevSample) => {
+          const samples = prevSample[parameterId] || [];
+          const updatedSamples = samples
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Sample Preparation ${1 + index}`,
+            }));
+          return {
+            ...prevSample,
+            [parameterId]: updatedSamples,
+          };
+        });
+      }
+
+      return {
+        ...prev,
+        [parameterId]: updatedStandards,
+      };
+    });
+  };
+
+  // Handler for RS Standard Preparation step changes
+  const handleStandardPreparationRSStepChange = (
+    parameterId: number,
+    standardPreparationId: number,
+    stepName: StandardPreparationStep["name"],
+    field:
+      | "value"
+      | "unit"
+      | "vol1"
+      | "vol2"
+      | "unit1"
+      | "unit2"
+      | "logBookID"
+      | "solventChemical",
+    newValue: string
+  ) => {
+    setStandardPreparationRSPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((sp) => {
+        if (sp.id === standardPreparationId) {
+          return {
+            ...sp,
+            steps: sp.steps.map((step) => {
+              if (step.name === stepName) {
+                return {
+                  ...step,
+                  [field]: newValue,
+                };
+              }
+              return step;
+            }),
+          };
+        }
+        return sp;
+      }),
+    }));
+  };
+
+  // Handler for adding RS Sample Preparation
+  const handleAddSamplePreparationRS = (parameterId: number) => {
+    setSamplePreparationRSPerParam((prev) => {
+      const currentSamples = prev[parameterId] || [];
+      const newIndex = currentSamples.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentSamples,
+          createNewSamplePreparation(newIndex),
+        ],
+      };
+    });
+  };
+
+  // Handler for removing RS Sample Preparation
+  const handleRemoveSamplePreparationRS = (
+    parameterId: number,
+    samplePreparationId: number
+  ) => {
+    setSamplePreparationRSPerParam((prev) => {
+      const updatedSamples = (prev[parameterId] || [])
+        .filter((sp) => sp.id !== samplePreparationId)
+        .map((sp, index) => ({
+          ...sp,
+          label: `Sample Preparation ${1 + index}`,
+        }));
+      return {
+        ...prev,
+        [parameterId]: updatedSamples,
+      };
+    });
+  };
+
+  // Handler for RS Sample Preparation step changes
+  const handleSamplePreparationRSStepChange = (
+    parameterId: number,
+    samplePreparationId: number,
+    stepName: SamplePreparationStep["name"],
+    field:
+      | "value"
+      | "unit"
+      | "vol1"
+      | "vol2"
+      | "unit1"
+      | "unit2"
+      | "logBookID"
+      | "solventChemical",
+    newValue: string
+  ) => {
+    setSamplePreparationRSPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((sp) => {
+        if (sp.id === samplePreparationId) {
+          return {
+            ...sp,
+            steps: sp.steps.map((step) => {
+              if (step.name === stepName) {
+                return {
+                  ...step,
+                  [field]: newValue,
+                };
+              }
+              return step;
+            }),
+          };
+        }
+        return sp;
+      }),
+    }));
+  };
+
+  // Handler for adding RS Calculation
+  const handleAddCalculationRS = (parameterId: number) => {
+    setCalculationsRSPerParam((prev) => {
+      const currentCalculations = prev[parameterId] || [];
+      const newIndex = currentCalculations.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentCalculations,
+          createNewCalculationRS(newIndex),
+        ],
+      };
+    });
+  };
+
+  // Handler for removing RS Calculation
+  const handleRemoveCalculationRS = (
+    parameterId: number,
+    calculationId: number
+  ) => {
+    setCalculationsRSPerParam((prev) => {
+      const updatedCalculations = (prev[parameterId] || [])
+        .filter((calc) => calc.id !== calculationId)
+        .map((calc, index) => ({
+          ...calc,
+          label: `RS Calculation ${index + 1}`,
+        }));
+      return {
+        ...prev,
+        [parameterId]: updatedCalculations,
+      };
+    });
+  };
+
+  // Handler for RS Calculation field changes
+  const handleCalculationRSFieldChange = (
+    parameterId: number,
+    calculationId: number,
+    field: keyof CalculationRS,
+    value: string | number | null
+  ) => {
+    setCalculationsRSPerParam((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((calc) => {
         if (calc.id === calculationId) {
@@ -1546,23 +2119,27 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   };
 
   const getAvailableStandardsForParameter = (
-    parameterId: number
+    parameterId: number,
+    isForRS: boolean = false
   ): Standard[] => {
     const paramStandards = addedStandards[parameterId] || [];
-    const preparations = standardPreparationPerParam[parameterId] || [];
 
-    // Get all assigned standard IDs
+    // Get preparations based on whether it's for RS or regular Assay
+    // Each type maintains its own list of assigned standards
+    const preparations = isForRS
+      ? standardPreparationRSPerParam[parameterId] || []
+      : standardPreparationPerParam[parameterId] || [];
+
+    // Get assigned standard IDs only from the specific preparation type
     const assignedStandardIds = preparations
       .map((prep: any) => prep.assignedStandardId)
       .filter(Boolean);
 
-    // Return standards that aren't assigned yet
+    // Filter out only standards that are already assigned to THIS preparation type
     return paramStandards.filter(
       (std) => !assignedStandardIds.includes(std.id)
     );
   };
-
-  // --- START: Data Collection and Submit Handler ---
   const collectFormDataForReport = () => {
     const formData = {
       registrationInfo: {
@@ -1628,35 +2205,67 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             steps: sp.steps,
           })
         ),
-        calculations: (calculationsPerParam[param.id] || []).map((calc) => ({
-          label: calc.label,
-          selectedStandardPrepId: calc.selectedStandardPrepId,
-          selectedSamplePrepId: calc.selectedSamplePrepId,
-          calculationType: calc.calculationType,
-          areaOfSample: calc.areaOfSample,
-          areaOfStandard: calc.areaOfStandard,
-          v1: calc.v1,
-          v2: calc.v2,
-          v3: calc.v3,
-          v4: calc.v4,
-          v5: calc.v5,
-          v6: calc.v6,
-          v7: calc.v7,
-          v8: calc.v8,
-          v9: calc.v9,
-          v10: calc.v10,
-          v11: calc.v11,
-          v12: calc.v12,
-          v13: calc.v13,
-          v14: calc.v14,
-          sw1: calc.sw1,
-          sw2: calc.sw2,
-          baseXPurity: calc.baseXPurity,
-          avgWt: calc.avgWt,
-          mwSalt: calc.mwSalt,
-          mwBase: calc.mwBase,
-          doseVolume: calc.doseVolume,
+        calculationsAssay: (calculationsAssayPerParam[param.id] || []).map(
+          (calc) => ({
+            label: calc.label,
+            selectedStandardPrepId: calc.selectedStandardPrepId,
+            selectedSamplePrepId: calc.selectedSamplePrepId,
+            calculationType: calc.calculationType,
+            areaOfSample: calc.areaOfSample,
+            areaOfStandard: calc.areaOfStandard,
+            v1: calc.v1,
+            v2: calc.v2,
+            v3: calc.v3,
+            v4: calc.v4,
+            v5: calc.v5,
+            v6: calc.v6,
+            v7: calc.v7,
+            v8: calc.v8,
+            v9: calc.v9,
+            v10: calc.v10,
+            v11: calc.v11,
+            v12: calc.v12,
+            v13: calc.v13,
+            v14: calc.v14,
+            sw1: calc.sw1,
+            sw2: calc.sw2,
+            baseXPurity: calc.baseXPurity,
+            avgWt: calc.avgWt,
+            mwSalt: calc.mwSalt,
+            mwBase: calc.mwBase,
+            doseVolume: calc.claimVolume,
+          })
+        ),
+        calculationsRS: (calculationsRSPerParam[param.id] || []).map(
+          (calc) => ({
+            label: calc.label,
+            selectedStandardPrepId: calc.selectedStandardPrepId,
+            selectedSamplePrepId: calc.selectedSamplePrepId,
+            areaOfSample: calc.areaOfSample,
+            areaOfStandard: calc.areaOfStandard,
+            sw1: calc.sw1,
+            sw2: calc.sw2,
+            v1: calc.v1,
+            v2: calc.v2,
+            v3: calc.v3,
+            v4: calc.v4,
+            v5: calc.v5,
+            v6: calc.v6,
+            purity: calc.purity,
+          })
+        ),
+        standardPreparationRS: (
+          standardPreparationRSPerParam[param.id] || []
+        ).map((sp) => ({
+          label: sp.label,
+          steps: sp.steps,
         })),
+        samplePreparationRS: (samplePreparationRSPerParam[param.id] || []).map(
+          (sp) => ({
+            label: sp.label,
+            steps: sp.steps,
+          })
+        ),
         samplePreparationDisso: (
           samplePreparationDissoPerParam[param.id] || []
         ).map((spd) => ({
@@ -1675,8 +2284,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           label: spl.label,
           steps: spl.steps,
         })),
-        samplePreparationLossOnIgnation: (
-          samplePreparationLossOnIgnationPerParam[param.id] || []
+        samplePreparationROI: (
+          samplePreparationROIPerParam[param.id] || []
         ).map((spl) => ({
           label: spl.label,
           steps: spl.steps,
@@ -1722,7 +2331,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       samplePreparationTitrationPerParam,
       samplePreparationLodPerParam,
       samplePreparationSulphatedAshPerParam,
-      samplePreparationLossOnIgnationPerParam,
+      samplePreparationROIPerParam,
       samplePreparationDissoPerParam,
       addedInstruments,
       addedChemicals,
@@ -1730,7 +2339,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       testSolutionPerParam,
       diluentPerParam,
       standardAssignmentsPerParam,
-      calculationsPerParam,
+      calculationsAssayPerParam,
+      standardPreparationRSPerParam,
+      samplePreparationRSPerParam,
+      calculationsRSPerParam,
     };
     return formData;
   };
@@ -1799,6 +2411,177 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   const loadingIconProps = {
     animate: { y: [0, -10, 0] },
     transition: { duration: 2, repeat: Infinity },
+  };
+
+  const PREPARATION_GROUPS = {
+    assay: {
+      id: "assay",
+      label: "Preparations for Assay",
+      color: "red",
+      includes: [
+        "standardPreparation",
+        "samplePreparation",
+        "calculationsAssay",
+      ],
+    },
+    lod: {
+      id: "lod",
+      label: "Preparations for LOD",
+      color: "sky",
+      includes: ["samplePreparationLod", "calculationsLod"],
+    },
+    roi: {
+      id: "roi",
+      label: "Preparations for ROI",
+      color: "orange",
+      includes: ["samplePreparationROI", "calculationsROI"],
+    },
+    sulphatedAsh: {
+      id: "sulphatedAsh",
+      label: "Preparations for Sulphated Ash",
+      color: "rose",
+      includes: ["samplePreparationSulphatedAsh", "calculationsSulphatedAsh"],
+    },
+    residualSolvent: {
+      id: "residualSolvent",
+      label: "Preparations for Residual Solvent",
+      color: "indigo",
+      includes: [
+        "standardPreparationRS",
+        "samplePreparationRS",
+        "calculationsRS",
+      ],
+    },
+  } as const;
+
+  const handleTogglePreparationGroup = (
+    parameterId: number,
+    groupId: string
+  ) => {
+    setActivePreparationGroups((prev) => {
+      const currentGroups = prev[parameterId] || [];
+
+      if (currentGroups.includes(groupId)) {
+        // Remove group and clear all associated preparations
+        const group =
+          PREPARATION_GROUPS[groupId as keyof typeof PREPARATION_GROUPS];
+
+        if (group.includes.includes("standardPreparation")) {
+          setStandardPreparationPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+        if (group.includes.includes("samplePreparation")) {
+          setSamplePreparationPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+        if (group.includes.includes("calculationsAssay")) {
+          setCalculationsAssayPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+        if (group.includes.includes("samplePreparationLod")) {
+          setSamplePreparationLodPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+        if (group.includes.includes("calculationsLod")) {
+          setCalculationsLodPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+        if (group.includes.includes("samplePreparationROI")) {
+          setSamplePreparationROIPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+        if (group.includes.includes("calculationsROI")) {
+          setCalculationsROIPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+        if (group.includes.includes("samplePreparationSulphatedAsh")) {
+          setSamplePreparationSulphatedAshPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+        if (group.includes.includes("calculationsSulphatedAsh")) {
+          setCalculationsSulphatedAshPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+        // ADD RS CLEANUP
+        if (group.includes.includes("standardPreparationRS")) {
+          setStandardPreparationRSPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+        if (group.includes.includes("samplePreparationRS")) {
+          setSamplePreparationRSPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+        if (group.includes.includes("calculationsRS")) {
+          setCalculationsRSPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+
+        return {
+          ...prev,
+          [parameterId]: currentGroups.filter((g) => g !== groupId),
+        };
+      }
+
+      return {
+        ...prev,
+        [parameterId]: [...currentGroups, groupId],
+      };
+    });
+    setShowPreparationDropdown({});
+  };
+
+  const getAvailablePreparationGroups = () => {
+    return [
+      {
+        id: "assay",
+        label: "Preparations for Assay",
+        color: "red",
+      },
+      {
+        id: "lod",
+        label: "Preparations for LOD",
+        color: "sky",
+      },
+      {
+        id: "roi",
+        label: "Preparations for ROI",
+        color: "orange",
+      },
+      {
+        id: "sulphatedAsh",
+        label: "Preparations for Sulphated Ash",
+        color: "rose",
+      },
+      {
+        id: "residualSolvent",
+        label: "Preparations for Residual Solvent",
+        color: "indigo",
+      },
+    ];
   };
 
   if (loading) {
@@ -2021,8 +2804,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
         <div className="my-6 p-5 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-emerald-400 rounded-xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold text-emerald-900 flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-md">
-                <span className="text-white text-sm font-bold">P</span>
+              <div className="relative">
+                <div className="flex item-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                         <IoFlask className="w-6 h-6 text-white" />
+                </div>
               </div>
               Parameters Management
             </h3>
@@ -2083,13 +2868,13 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="flex items-center justify-between p-3 bg-white border border-emerald-300 rounded-lg hover:border-emerald-500 hover:shadow-md transition-all"
+                    className="flex items-center justify-between mt-5 p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-200 rounded-xl shadow-inner"
                   >
                     <div className="flex-1">
-                      <div className="font-semibold text-gray-900 text-sm">
+                      <div className="font-semibold text-emerald-900 text-sm">
                         {param.parameter}
                       </div>
-                      <div className="text-xs text-gray-600">
+                      <div className="text-xs text-emerald-600">
                         {param.paraCode} • {param.methodName}
                       </div>
                     </div>
@@ -2122,13 +2907,26 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           </AnimatePresence>
 
           {addedParameters.length === 0 && (
-            <div className="text-center py-4 text-gray-500">
-              <Target className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm font-medium">No parameters added yet</p>
-              <p className="text-xs mt-1">
-                Click "Add Parameter" to get started
+            <motion.div
+              key="empty-state-content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-center py-12 text-gray-500 bg-gradient-to-br from-gray-50 via-white to-gray-50 rounded-2xl border-2 border-dashed border-gray-300 shadow-inner"
+              layout
+            >
+              <div className="inline-block">
+                            <Target className="w-14 h-14 text-gray-300" />     
+              </div>
+              <p className="text-base font-bold text-gray-800 mb-2">
+                            No parameters added yet
               </p>
-            </div>
+              <p className="text-sm text-gray-600 max-w-md mx-auto">
+                            Click the{" "}
+                <strong className="text-emerald-700">"Add Parameters"</strong>
+                button above to add parameters
+              </p>
+            </motion.div>
           )}
         </div>
 
@@ -2696,7 +3494,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           ) : (
                             <tr className="border-2 border-emerald-500">
                               <td
-                                colSpan={5}
+                                colSpan={6}
                                 className="px-3 py-4 text-center text-gray-500"
                               >
                                 <div className="flex flex-col items-center gap-2">
@@ -2731,105 +3529,418 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                   />
                 </div>
 
-                {/* <div className="mb-6 text-sm flex flex-col md:flex-row gap-6">
-                  <div
-                    className="relative flex items-center p-3 bg-gradient-to-br from-emerald-50 to-white border border-emerald-300 rounded-xl shadow-md flex-grow"
-                    ref={columnRef}
-                  >
-                    <span className="font-bold mr-4 text-emerald-900 w-36 shrink-0">
-                      Column ID:
-                    </span>
-                    <button
-                      onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                      className="flex items-center gap-2 px-4 py-2 bg-white text-emerald-700 font-semibold border border-emerald-400 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 hover:bg-emerald-50 transition-colors"
-                    >
-                      <span className="truncate">
-                        {columns.find(
-                          (c) => c.id === columnsPerParam[selectedParam.id]
-                        )?.id || "Select Column"}
-                      </span>
-                      <ChevronDown className="w-4 h-4 text-emerald-600" />
-                    </button>
-
-                    <AnimatePresence>
-                      {showColumnDropdown && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="absolute left-0 mt-2 w-full top-full bg-white border border-emerald-400 rounded-xl shadow-2xl z-50 overflow-hidden"
-                        >
-                          <div className="p-2 border-b border-emerald-200 sticky top-0 bg-white">
-                            <div className="relative">
-                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                              <input
-                                type="text"
-                                placeholder="Search column ID/Name..."
-                                value={columnSearch}
-                                onChange={(e) =>
-                                  setColumnSearch(e.target.value)
-                                }
-                                className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                              />
-                            </div>
-                          </div>
-                          <div className="max-h-64 overflow-y-auto">
-                            {searchFilteredColumns.map((col) => (
-                              <button
-                                key={col.id}
-                                onClick={() =>
-                                  handleSelectColumnForParam(
-                                    selectedParam.id,
-                                    col.id
-                                  )
-                                }
-                                className="w-full text-left px-4 py-2 hover:bg-emerald-100 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
-                              >
-                                <div className="font-semibold text-gray-900">
-                                  {col.name}
-                                </div>
-                                <div className="text-xs text-gray-600">
-                                  {col.id}
-                                </div>
-                              </button>
-                            ))}
-                            {searchFilteredColumns.length === 0 && (
-                              <div className="px-4 py-4 text-center text-gray-500 text-sm">
-                                {columnSearch
-                                  ? "No matching columns"
-                                  : "No columns available"}
-                              </div>
-                            )}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                {/* ============= PREPARATIONS MANAGEMENT SECTION ============= */}
+                <div className="mb-8 p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-400 rounded-2xl shadow-2xl">
+                  {/* Header with Add Button */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                          <BiTestTube className="w-6 h-6 text-white" />
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-emerald-900 tracking-tight">
+                          Preparations Management
+                        </h3>
+                        <p className="text-xs text-emerald-600 font-medium">
+                          Configure analysis preparations for this parameter
+                        </p>
+                      </div>
+                    </div>
+                    <div className="relative" ref={preparationDropdownRef}>
+                      <button
+                        onClick={() =>
+                          setShowPreparationDropdown((prev) => ({
+                            ...prev,
+                            [selectedParam.id]: !prev[selectedParam.id],
+                          }))
+                        }
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                        <Plus className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
+                        <span className="relative z-10">Add Preparation</span>
+                      </button>
+                      {/* Dropdown Menu */}
+                      <AnimatePresence>
+                        {showPreparationDropdown[selectedParam.id] && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="absolute right-0 mt-2 w-72 bg-white border border-emerald-300 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto"
+                          >
+                            {getAvailablePreparationGroups().map((group) => {
+                              const isActive = (
+                                activePreparationGroups[selectedParam.id] || []
+                              ).includes(group.id);
+                              return (
+                                <button
+                                  key={group.id}
+                                  onClick={() =>
+                                    handleTogglePreparationGroup(
+                                      selectedParam.id,
+                                      group.id
+                                    )
+                                  }
+                                  className="w-full text-left px-3 py-3 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-semibold text-gray-900">
+                                      {group.label}
+                                    </span>
+                                    {isActive && (
+                                      <Check className="w-4 h-4 text-emerald-600" />
+                                    )}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
-                </div> */}
+                  {/* Added Preparations Chips Display */}
+                  <AnimatePresence>
+                    {(() => {
+                      const activeGroups =
+                        activePreparationGroups[selectedParam.id] || [];
 
-                {selectedParam.parameter === "Assay" && (
-                  <>
-                    {/* --- START: Dynamic Standard Preparation Section --- */}
+                      const groupInfo = {};
+
+                      activeGroups.forEach((groupId) => {
+                        const group = PREPARATION_GROUPS[groupId];
+                        let count = 0;
+
+                        if (groupId === "assay") {
+                          count =
+                            (
+                              standardPreparationPerParam[selectedParam.id] ||
+                              []
+                            ).length +
+                            (samplePreparationPerParam[selectedParam.id] || [])
+                              .length +
+                            (calculationsAssayPerParam[selectedParam.id] || [])
+                              .length;
+                        } else if (groupId === "lod") {
+                          count =
+                            (
+                              samplePreparationLodPerParam[selectedParam.id] ||
+                              []
+                            ).length +
+                            (calculationsLodPerParam[selectedParam.id] || [])
+                              .length;
+                        } else if (groupId === "roi") {
+                          count =
+                            (
+                              samplePreparationROIPerParam[selectedParam.id] ||
+                              []
+                            ).length +
+                            (calculationsROIPerParam[selectedParam.id] || [])
+                              .length;
+                        } else if (groupId === "sulphatedAsh") {
+                          count =
+                            (
+                              samplePreparationSulphatedAshPerParam[
+                                selectedParam.id
+                              ] || []
+                            ).length +
+                            (
+                              calculationsSulphatedAshPerParam[
+                                selectedParam.id
+                              ] || []
+                            ).length;
+                        } else if (groupId === "residualSolvent") {
+                          count =
+                            (
+                              standardPreparationRSPerParam[selectedParam.id] ||
+                              []
+                            ).length +
+                            (
+                              samplePreparationRSPerParam[selectedParam.id] ||
+                              []
+                            ).length +
+                            (calculationsRSPerParam[selectedParam.id] || [])
+                              .length;
+                        }
+
+                        groupInfo[groupId] = {
+                          label: group.label,
+                          color: group.color,
+                          count,
+                        };
+                      });
+
+                      const colorClasses = {
+                        emerald: {
+                          bg: "bg-gradient-to-br from-emerald-100 to-teal-100",
+                          text: "text-emerald-900",
+                          border: "border-emerald-400",
+                          glow: "shadow-emerald-200/50",
+                          btnBg: "bg-emerald-800",
+                        },
+                        sky: {
+                          bg: "bg-gradient-to-br from-sky-100 to-blue-200",
+                          text: "text-sky-900",
+                          border: "border-sky-400",
+                          glow: "shadow-sky-200/50",
+                          btnBg: "bg-sky-800",
+                        },
+                        orange: {
+                          bg: "bg-gradient-to-br from-orange-100 to-amber-200",
+                          text: "text-orange-900",
+                          border: "border-orange-400",
+                          glow: "shadow-orange-200/50",
+                          btnBg: "bg-orange-800",
+                        },
+                        rose: {
+                          bg: "bg-gradient-to-br from-rose-100 to-pink-200",
+                          text: "text-rose-900",
+                          border: "border-rose-400",
+                          glow: "shadow-rose-200/50",
+                          btnBg: "bg-rose-800",
+                        },
+                        red: {
+                          bg: "bg-gradient-to-br from-red-100 to-rose-200",
+                          text: "text-red-900",
+                          border: "border-red-400",
+                          glow: "shadow-red-200/50",
+                          btnBg: "bg-red-800",
+                        },
+                        indigo: {
+                          bg: "bg-gradient-to-br from-indigo-100 to-purple-200",
+                          text: "text-indigo-900",
+                          border: "border-indigo-400",
+                          glow: "shadow-indigo-200/50",
+                          btnBg: "bg-indigo-800",
+                        },
+                        default: {
+                          bg: "bg-gradient-to-br from-gray-100 to-gray-200",
+                          text: "text-gray-800",
+                          border: "border-gray-400",
+                          glow: "shadow-gray-200/50",
+                          btnBg: "bg-gray-700",
+                        },
+                      };
+
+                      if (Object.keys(groupInfo).length > 0) {
+                        return (
+                          <motion.div
+                            key="active-preparations-content"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="space-y-4"
+                            layout
+                          >
+                            <div className="flex items-center gap-3 my-4">
+                              <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent"></div>
+                              <div className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full shadow-lg">
+                                <span className="text-xs font-bold text-white uppercase tracking-wider">
+                                  Active Preparation Groups
+                                </span>
+                                <span className="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full text-xs font-bold text-white">
+                                  {Object.keys(groupInfo).length}
+                                </span>
+                              </div>
+                              <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent"></div>
+                            </div>
+
+                            <motion.div layout>
+                              <div className="flex flex-wrap gap-3">
+                                {Object.entries(groupInfo).map(
+                                  ([groupId, info]) => {
+                                    const colors =
+                                      colorClasses[info.color] ||
+                                      colorClasses["default"];
+
+                                    return (
+                                      <motion.div
+                                        key={groupId}
+                                        initial={{
+                                          opacity: 0,
+                                          scale: 0.8,
+                                          y: 20,
+                                        }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.8, y: 20 }}
+                                        whileHover={{ scale: 1.05 }}
+                                        className={`group relative inline-flex items-center gap-3 py-2 px-4 ${colors.bg} ${colors.text} ${colors.border} border-2 rounded-lg font-semibold shadow-lg ${colors.glow} hover:shadow-xl transition-all duration-300 overflow-hidden`}
+                                      >
+                                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+
+                                        <div className="flex items-center gap-3 relative z-10">
+                                          <span className="font-bold text-sm">
+                                            {info.label}
+                                          </span>
+
+                                          {/* {info.count > 0 && (
+                                            <span
+                                              className={`flex items-center justify-center min-w-[1.75rem] h-7 px-2 ${colors.bg}/50 backdrop-blur-sm rounded-md text-xs font-bold`}
+                                            >
+                                              {info.count}
+                                            </span>
+                                          )} */}
+                                        </div>
+
+                                        <motion.button
+                                          onClick={() =>
+                                            handleTogglePreparationGroup(
+                                              selectedParam.id,
+                                              groupId
+                                            )
+                                          }
+                                          whileHover={{
+                                            scale: 1.2,
+                                            rotate: 90,
+                                          }}
+                                          whileTap={{ scale: 0.9 }}
+                                          className={`relative z-10 w-5 h-5 flex items-center justify-center rounded-full ${colors.btnBg} hover:bg-red-500 text-gray-600 hover:text-white transition-all font-bold border-1 border-white/50 hover:border-red-600 shadow-sm`}
+                                          title={`Remove ${info.label} group`}
+                                        >
+                                          <span className="text-[9px] text-white inline-flex items-center justify-center h-full w-full">
+                                            ✕
+                                          </span>
+                                        </motion.button>
+                                      </motion.div>
+                                    );
+                                  }
+                                )}
+                              </div>
+
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-5 p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-200 rounded-xl shadow-inner"
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className="w-8 h-8 flex-shrink-0 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-md">
+                                    <span className="text-white text-lg">
+                                      💡
+                                    </span>
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-sm text-emerald-900 font-semibold mb-1">
+                                      Quick Guide
+                                    </p>
+                                    <p className="text-xs text-emerald-700 leading-relaxed">
+                                      Click the{" "}
+                                      <span className="inline-flex items-center justify-center w-5 h-5 bg-white rounded-full text-red-500 font-bold mx-1">
+                                        ✕
+                                      </span>{" "}
+                                      button to remove a preparation group and
+                                      all its data. The number badge shows total
+                                      items in the group. Use
+                                      <strong>"Add Preparation"</strong> to
+                                      enable more groups.
+                                    </p>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            </motion.div>
+                          </motion.div>
+                        );
+                      }
+
+                      return (
+                        <motion.div
+                          key="empty-state-content"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="text-center py-12 text-gray-500 bg-gradient-to-br from-gray-50 via-white to-gray-50 rounded-2xl border-2 border-dashed border-gray-300 shadow-inner"
+                          layout
+                        >
+                          <div className="inline-block">
+                            <Target className="w-14 h-14 text-gray-300" />
+                          </div>
+                          <p className="text-base font-bold text-gray-800 mb-2">
+                            No preparation groups configured yet
+                          </p>
+                          <p className="text-sm text-gray-600 max-w-md mx-auto">
+                            Click the{" "}
+                            <strong className="text-emerald-700">
+                              "Add Preparation"
+                            </strong>{" "}
+                            button above to select preparation groups for this
+                            parameter
+                          </p>
+                        </motion.div>
+                      );
+                    })()}
+                  </AnimatePresence>
+                </div>
+                {/* ============= END OF PREPARATIONS MANAGEMENT SECTION ============= */}
+
+                {/* ============= ASSAY GROUP CARD ============= */}
+                {(activePreparationGroups[selectedParam.id] || []).includes(
+                  "assay"
+                ) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative mb-10 p-8 rounded-2xl border-2 border-red-200/50 bg-gradient-to-br from-red-50/40 via-white/60 to-rose-50/40 backdrop-blur-sm shadow-2xl hover:shadow-red-200/50 transition-all duration-500 overflow-hidden hover:scale-[1.01]"
+                  >
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-red-400/10 to-transparent rounded-bl-full -z-10" />
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-rose-400/10 to-transparent rounded-tr-full -z-10" />
+
+                    {/* Card Header */}
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-red-500/20 blur-xl rounded-full" />
+                          <div className="relative w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                            <BiTestTube className="w-6 h-6 text-white" />
+                          </div>
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-red-900 tracking-tight">
+                            Assay Analysis
+                          </h2>
+                          <p className="text-sm text-red-600/80 font-medium">
+                            Standard, Sample & Calculations
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="px-4 py-1 bg-gradient-to-r from-red-100 to-rose-100 border-2 border-red-300/50 rounded-full shadow-sm">
+                        <span className="text-xs font-bold text-red-700">
+                          {(standardPreparationPerParam[selectedParam.id] || [])
+                            .length +
+                            (samplePreparationPerParam[selectedParam.id] || [])
+                              .length +
+                            (calculationsAssayPerParam[selectedParam.id] || [])
+                              .length}{" "}
+                          Items
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Standard & Sample Preparations Section */}
                     <div className="mb-8">
                       <div className="flex items-center justify-between mb-4 px-2">
-                        <h3 className="text-lg font-bold text-purple-900 flex items-center gap-2.5 tracking-tight">
-                          <span className="w-1.5 h-6 bg-gradient-to-b from-purple-500 to-purple-700 rounded-full"></span>
-                          Standard Preparations
+                        <h3 className="text-lg font-bold text-red-900 flex items-center gap-2.5 tracking-tight">
+                          <span className="w-1.5 h-6 bg-gradient-to-b from-red-500 to-rose-700 rounded-full"></span>
+                          Standard & Sample Preparations
                         </h3>
                         <button
                           onClick={() =>
                             handleAddStandardPreparation(selectedParam.id)
                           }
-                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-2xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
+                          className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-700 text-white font-semibold rounded-xl hover:from-red-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform hover:scale-105"
                         >
                           <Plus className="w-4 h-4" />
+                          Add Preparation
                         </button>
                       </div>
 
                       <AnimatePresence>
                         {(
                           standardPreparationPerParam[selectedParam.id] || []
-                        ).map((standardPreparation: any) => {
+                        ).map((standardPreparation: any, idx: number) => {
                           const assignedStandard = (
                             addedStandards[selectedParam.id] || []
                           ).find(
@@ -2837,602 +3948,136 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                               std.id === standardPreparation.assignedStandardId
                           );
 
+                          const correspondingSample =
+                            (samplePreparationPerParam[selectedParam.id] || [])[
+                              idx
+                            ];
+
                           return (
-                            <StandardPreparationDetail
-                              key={standardPreparation.id}
-                              standardPreparation={standardPreparation}
-                              assignedStandard={assignedStandard || null}
-                              onStepChange={(
-                                standardPreparationId,
-                                stepName,
-                                field,
-                                newValue
-                              ) =>
-                                handleStandardPreparationStepChange(
-                                  selectedParam.id,
-                                  standardPreparationId,
-                                  stepName,
-                                  field,
-                                  newValue
-                                )
-                              }
-                              onRemove={() =>
-                                handleRemoveStandardPreparation(
-                                  selectedParam.id,
-                                  standardPreparation.id
-                                )
-                              }
-                            />
+                            <div key={standardPreparation.id} className="mb-6">
+                              <div className="overflow-hidden">
+                                <StandardPreparationDetail
+                                  standardPreparation={standardPreparation}
+                                  assignedStandard={assignedStandard || null}
+                                  onStepChange={(
+                                    standardPreparationId,
+                                    stepName,
+                                    field,
+                                    newValue
+                                  ) =>
+                                    handleStandardPreparationStepChange(
+                                      selectedParam.id,
+                                      standardPreparationId,
+                                      stepName,
+                                      field,
+                                      newValue
+                                    )
+                                  }
+                                  onRemove={() =>
+                                    handleRemoveStandardPreparation(
+                                      selectedParam.id,
+                                      standardPreparation.id
+                                    )
+                                  }
+                                />
+                              </div>
+
+                              {correspondingSample && (
+                                <div className="mt-4">
+                                  <div className="overflow-hidden">
+                                    <SamplePreparationDetail
+                                      samplePreparation={correspondingSample}
+                                      assignedStandard={
+                                        assignedStandard || null
+                                      }
+                                      onStepChange={(
+                                        samplePreparationId,
+                                        stepName,
+                                        field,
+                                        newValue
+                                      ) =>
+                                        handleSamplePreparationStepChange(
+                                          selectedParam.id,
+                                          samplePreparationId,
+                                          stepName,
+                                          field,
+                                          newValue
+                                        )
+                                      }
+                                      onRemove={() =>
+                                        handleRemoveSamplePreparation(
+                                          selectedParam.id,
+                                          correspondingSample.id
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           );
                         })}
                       </AnimatePresence>
 
                       {(standardPreparationPerParam[selectedParam.id] || [])
                         .length === 0 && (
-                        <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-purple-50 to-purple-100/50 border-2 border-dashed border-purple-300 rounded-xl shadow-inner">
-                          <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-purple-600" />
-                          <p className="font-semibold text-base text-purple-900">
-                            No standard preparation added yet.
-                          </p>
-                          <p className="text-xs mt-2 text-purple-700">
-                            Click "Add" button above to begin preparation.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    {/* --- END: Dynamic Standard Preparation Section --- */}
-                  </>
-                )}
-
-                {selectedParam.parameter === "Assay" && (
-                  <>
-                    {/* --- START: Dynamic Sample Preparation Section --- */}
-                    <div className="mb-8">
-                      <div className="flex items-center justify-between mb-4 px-2">
-                        <h3 className="text-lg font-bold text-green-900 flex items-center gap-2.5 tracking-tight">
-                          <span className="w-1.5 h-6 bg-gradient-to-b from-green-500 to-green-700 rounded-full"></span>
-                          Sample Preparations
-                        </h3>
-                        <button
-                          onClick={() =>
-                            handleAddSamplePreparation(selectedParam.id)
-                          }
-                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-2xl hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-red-50 via-white to-rose-50 border-2 border-dashed border-red-300 rounded-2xl shadow-inner"
                         >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 left-1/4 w-64 h-64 bg-red-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                            <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-rose-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                          </div>
 
-                      <AnimatePresence>
-                        {(
-                          samplePreparationPerParam[selectedParam.id] || []
-                        ).map((samplePreparation) => (
-                          <SamplePreparationDetail
-                            key={samplePreparation.id}
-                            samplePreparation={samplePreparation}
-                            onStepChange={(
-                              samplePreparationId,
-                              stepName,
-                              field,
-                              newValue
-                            ) =>
-                              handleSamplePreparationStepChange(
-                                selectedParam.id,
-                                samplePreparationId,
-                                stepName,
-                                field,
-                                newValue
-                              )
-                            }
-                            onRemove={() =>
-                              handleRemoveSamplePreparation(
-                                selectedParam.id,
-                                samplePreparation.id
-                              )
-                            }
-                          />
-                        ))}
-                      </AnimatePresence>
-
-                      {(samplePreparationPerParam[selectedParam.id] || [])
-                        .length === 0 && (
-                        <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-green-50 to-green-100/50 border-2 border-dashed border-green-300 rounded-xl shadow-inner">
-                          <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-green-600" />
-                          <p className="font-semibold text-base text-green-900">
-                            No sample preparation added yet.
-                          </p>
-                          <p className="text-xs mt-2 text-green-700">
-                            Click "Add" button above to begin preparation.
-                          </p>
-                        </div>
+                          <div className="relative z-10">
+                            <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                              <Target className="w-14 h-14 text-red-400" />
+                            </div>
+                            <p className="text-lg font-bold text-red-900 mb-2">
+                              No preparations added yet
+                            </p>
+                            <p className="text-sm text-red-600/80 max-w-md mx-auto mb-4">
+                              Click "Add Preparation" to create your first
+                              standard and sample preparation
+                            </p>
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-100/50 rounded-lg border border-red-200">
+                              <div className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                              <span className="text-xs font-semibold text-red-700">
+                                Ready to start
+                              </span>
+                            </div>
+                          </div>
+                        </motion.div>
                       )}
                     </div>
-                    {/* --- END: Dynamic Sample Preparation Section --- */}
-                  </>
-                )}
 
-                {selectedParam.parameter !== "Assay" && (
-                  <>
-                    {/* --- START: Dynamic Mobile Phase Section --- */}
-                    <div className="mb-8">
-                      <div className="flex items-center justify-between mb-4 px-2">
-                        <h3 className="text-lg font-bold text-blue-900 flex items-center gap-2.5 tracking-tight">
-                          <span className="w-1.5 h-6 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full"></span>
-                          Mobile Phase Preparations
-                        </h3>
-                        <button
-                          onClick={() => handleAddMobilePhase(selectedParam.id)}
-                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-2xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
+                    {/* Visual Separator */}
+                    <div className="flex items-center gap-4 my-8">
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-red-300 to-transparent" />
+                      <div className="px-4 py-2 bg-gradient-to-r from-red-100 to-rose-100 rounded-lg border border-red-300/50 shadow-sm">
+                        <span className="text-xs font-bold text-red-700 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                          Calculations
+                        </span>
                       </div>
-
-                      <AnimatePresence>
-                        {(mobilePhasesPerParam[selectedParam.id] || []).map(
-                          (mobilePhase) => (
-                            <MobilePhaseDetail
-                              key={mobilePhase.id}
-                              mobilePhase={mobilePhase}
-                              onStepChange={(
-                                mobilePhaseId,
-                                stepName,
-                                field,
-                                newValue
-                              ) =>
-                                handleMobilePhaseStepChange(
-                                  selectedParam.id,
-                                  mobilePhaseId,
-                                  stepName,
-                                  field,
-                                  newValue
-                                )
-                              }
-                              onRemove={() =>
-                                handleRemoveMobilePhase(
-                                  selectedParam.id,
-                                  mobilePhase.id
-                                )
-                              }
-                            />
-                          )
-                        )}
-                      </AnimatePresence>
-
-                      {(mobilePhasesPerParam[selectedParam.id] || []).length ===
-                        0 && (
-                        <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-blue-50 to-blue-100/50 border-2 border-dashed border-blue-300 rounded-xl shadow-inner">
-                          <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-blue-600" />
-                          <p className="font-semibold text-base text-blue-900">
-                            No mobile phases added yet.
-                          </p>
-                          <p className="text-xs mt-2 text-blue-700">
-                            Click "Add" button above to begin preparation.
-                          </p>
-                        </div>
-                      )}
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-red-300 to-transparent" />
                     </div>
-                    {/* --- END: Dynamic Mobile Phase Section --- */}
 
-                    {/* --- START: Dynamic Disso Media Section --- */}
-                    <div className="mb-8">
-                      <div className="flex items-center justify-between mb-4 px-2">
-                        <h3 className="text-lg font-bold text-amber-900 flex items-center gap-2.5 tracking-tight">
-                          <span className="w-1.5 h-6 bg-gradient-to-b from-amber-500 to-amber-700 rounded-full"></span>
-                          Disso Media Preparations
-                        </h3>
-                        <button
-                          onClick={() => handleAddDissoMedia(selectedParam.id)}
-                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-semibold rounded-2xl hover:from-amber-700 hover:to-amber-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <AnimatePresence>
-                        {(dissoMediaPerParam[selectedParam.id] || []).map(
-                          (dissoMedia) => (
-                            <DissoMediaDetail
-                              key={dissoMedia.id}
-                              dissoMedia={dissoMedia}
-                              onStepChange={(
-                                dissoMediaId,
-                                stepName,
-                                field,
-                                newValue
-                              ) =>
-                                handleDissoMediaStepChange(
-                                  selectedParam.id,
-                                  dissoMediaId,
-                                  stepName,
-                                  field,
-                                  newValue
-                                )
-                              }
-                              onRemove={() =>
-                                handleRemoveDissoMedia(
-                                  selectedParam.id,
-                                  dissoMedia.id
-                                )
-                              }
-                            />
-                          )
-                        )}
-                      </AnimatePresence>
-
-                      {(dissoMediaPerParam[selectedParam.id] || []).length ===
-                        0 && (
-                        <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-amber-50 to-amber-100/50 border-2 border-dashed border-amber-300 rounded-xl shadow-inner">
-                          <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-amber-600" />
-                          <p className="font-semibold text-base text-amber-900">
-                            No disso media added yet.
-                          </p>
-                          <p className="text-xs mt-2 text-amber-700">
-                            Click "Add" button above to begin preparation.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    {/* --- END: Dynamic Disso Media Section --- */}
-
-                    {/* --- START: Dynamic Sample Preparation for Disso Section --- */}
-                    <div className="mb-8">
-                      <div className="flex items-center justify-between mb-4 px-2">
-                        <h3 className="text-lg font-bold text-orange-900 flex items-center gap-2.5 tracking-tight">
-                          <span className="w-1.5 h-6 bg-gradient-to-b from-orange-500 to-orange-700 rounded-full"></span>
-                          Sample Preparations for Disso
-                        </h3>
-                        <button
-                          onClick={() =>
-                            handleAddSamplePreparationDisso(selectedParam.id)
-                          }
-                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-orange-600 to-orange-700 text-white font-semibold rounded-2xl hover:from-orange-700 hover:to-orange-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <AnimatePresence>
-                        {(
-                          samplePreparationDissoPerParam[selectedParam.id] || []
-                        ).map((samplePreparationDisso) => (
-                          <SamplePreparationDissoDetail
-                            key={samplePreparationDisso.id}
-                            samplePreparationDisso={samplePreparationDisso}
-                            onStepChange={(
-                              samplePreparationDissoId,
-                              stepName,
-                              field,
-                              newValue
-                            ) =>
-                              handleSamplePreparationDissoStepChange(
-                                selectedParam.id,
-                                samplePreparationDissoId,
-                                stepName,
-                                field,
-                                newValue
-                              )
-                            }
-                            onRemove={() =>
-                              handleRemoveSamplePreparationDisso(
-                                selectedParam.id,
-                                samplePreparationDisso.id
-                              )
-                            }
-                          />
-                        ))}
-                      </AnimatePresence>
-
-                      {(samplePreparationDissoPerParam[selectedParam.id] || [])
-                        .length === 0 && (
-                        <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-orange-50 to-orange-100/50 border-2 border-dashed border-orange-300 rounded-xl shadow-inner">
-                          <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-orange-600" />
-                          <p className="font-semibold text-base text-orange-900">
-                            No sample preparation for disso added yet.
-                          </p>
-                          <p className="text-xs mt-2 text-orange-700">
-                            Click "Add" button above to begin preparation for
-                            disso.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    {/* --- END: Dynamic Sample Preparation for Disso Section --- */}
-
-                    {/* --- START: Dynamic Sample Preparation for Titration Section --- */}
-                    <div className="mb-8">
-                      <div className="flex items-center justify-between mb-4 px-2">
-                        <h3 className="text-lg font-bold text-lime-900 flex items-center gap-2.5 tracking-tight">
-                          <span className="w-1.5 h-6 bg-gradient-to-b from-lime-500 to-lime-700 rounded-full"></span>
-                          Sample Preparations for Titration
-                        </h3>
-                        <button
-                          onClick={() =>
-                            handleAddSamplePreparationTitration(
-                              selectedParam.id
-                            )
-                          }
-                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-lime-600 to-lime-700 text-white font-semibold rounded-2xl hover:from-lime-700 hover:to-lime-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <AnimatePresence>
-                        {(
-                          samplePreparationTitrationPerParam[
-                            selectedParam.id
-                          ] || []
-                        ).map((samplePreparationTitration) => (
-                          <SamplePreparationTitrationDetail
-                            key={samplePreparationTitration.id}
-                            samplePreparationTitration={
-                              samplePreparationTitration
-                            }
-                            onStepChange={(
-                              samplePreparationTitrationId,
-                              stepName,
-                              field,
-                              newValue
-                            ) =>
-                              handleSamplePreparationTitrationStepChange(
-                                selectedParam.id,
-                                samplePreparationTitrationId,
-                                stepName,
-                                field,
-                                newValue
-                              )
-                            }
-                            onRemove={() =>
-                              handleRemoveSamplePreparationTitration(
-                                selectedParam.id,
-                                samplePreparationTitration.id
-                              )
-                            }
-                          />
-                        ))}
-                      </AnimatePresence>
-
-                      {(
-                        samplePreparationTitrationPerParam[selectedParam.id] ||
-                        []
-                      ).length === 0 && (
-                        <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-lime-50 to-lime-100/50 border-2 border-dashed border-lime-300 rounded-xl shadow-inner">
-                          <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-lime-600" />
-                          <p className="font-semibold text-base text-lime-900">
-                            No sample preparation for titration added yet.
-                          </p>
-                          <p className="text-xs mt-2 text-lime-700">
-                            Click "Add" button above to begin preparation.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    {/* --- END: Dynamic Sample Preparation for Titration Section --- */}
-
-                    {/* --- START: Dynamic Sample Preparation for LOD Section --- */}
-                    <div className="mb-8">
-                      <div className="flex items-center justify-between mb-4 px-2">
-                        <h3 className="text-lg font-bold text-sky-900 flex items-center gap-2.5 tracking-tight">
-                          <span className="w-1.5 h-6 bg-gradient-to-b from-sky-500 to-sky-700 rounded-full"></span>
-                          Sample Preparations for LOD
-                        </h3>
-                        <button
-                          onClick={() =>
-                            handleAddSamplePreparationLod(selectedParam.id)
-                          }
-                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-sky-600 to-sky-700 text-white font-semibold rounded-2xl hover:from-sky-700 hover:to-sky-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <AnimatePresence>
-                        {(
-                          samplePreparationLodPerParam[selectedParam.id] || []
-                        ).map((samplePreparationLod) => (
-                          <SamplePreparationLodDetail
-                            key={samplePreparationLod.id}
-                            samplePreparationLod={samplePreparationLod}
-                            onStepChange={(
-                              samplePreparationLodId,
-                              stepName,
-                              field,
-                              newValue
-                            ) =>
-                              handleSamplePreparationLodStepChange(
-                                selectedParam.id,
-                                samplePreparationLodId,
-                                stepName,
-                                field,
-                                newValue
-                              )
-                            }
-                            onRemove={() =>
-                              handleRemoveSamplePreparationLod(
-                                selectedParam.id,
-                                samplePreparationLod.id
-                              )
-                            }
-                          />
-                        ))}
-                      </AnimatePresence>
-
-                      {(samplePreparationLodPerParam[selectedParam.id] || [])
-                        .length === 0 && (
-                        <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-sky-50 to-sky-100/50 border-2 border-dashed border-sky-300 rounded-xl shadow-inner">
-                          <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-sky-600" />
-                          <p className="font-semibold text-base text-sky-900">
-                            No sample preparation for LOD added yet.
-                          </p>
-                          <p className="text-xs mt-2 text-sky-700">
-                            Click "Add" button above to begin preparation.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    {/* --- END: Dynamic Sample Preparation for LOD Section --- */}
-
-                    {/* --- START: Dynamic Sample Preparation for Sulphated Ash Section --- */}
-                    <div className="mb-8">
-                      <div className="flex items-center justify-between mb-4 px-2">
-                        <h3 className="text-lg font-bold text-rose-900 flex items-center gap-2.5 tracking-tight">
-                          <span className="w-1.5 h-6 bg-gradient-to-b from-rose-500 to-rose-700 rounded-full"></span>
-                          Sample Preparations for Sulphated Ash
-                        </h3>
-                        <button
-                          onClick={() =>
-                            handleAddSamplePreparationSulphatedAsh(
-                              selectedParam.id
-                            )
-                          }
-                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-rose-600 to-rose-700 text-white font-semibold rounded-2xl hover:from-rose-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <AnimatePresence>
-                        {(
-                          samplePreparationSulphatedAshPerParam[
-                            selectedParam.id
-                          ] || []
-                        ).map((samplePreparationSulphatedAsh) => (
-                          <SamplePreparationSulphatedAshDetail
-                            key={samplePreparationSulphatedAsh.id}
-                            samplePreparationSulphatedAsh={
-                              samplePreparationSulphatedAsh
-                            }
-                            onStepChange={(
-                              samplePreparationSulphatedAshId,
-                              stepName,
-                              field,
-                              newValue
-                            ) =>
-                              handleSamplePreparationSulphatedAshStepChange(
-                                selectedParam.id,
-                                samplePreparationSulphatedAshId,
-                                stepName,
-                                field,
-                                newValue
-                              )
-                            }
-                            onRemove={() =>
-                              handleRemoveSamplePreparationSulphatedAsh(
-                                selectedParam.id,
-                                samplePreparationSulphatedAsh.id
-                              )
-                            }
-                          />
-                        ))}
-                      </AnimatePresence>
-
-                      {(
-                        samplePreparationSulphatedAshPerParam[
-                          selectedParam.id
-                        ] || []
-                      ).length === 0 && (
-                        <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-rose-50 to-rose-100/50 border-2 border-dashed border-rose-300 rounded-xl shadow-inner">
-                          <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-rose-600" />
-                          <p className="font-semibold text-base text-rose-900">
-                            No sample preparation for Sulphated Ash added yet.
-                          </p>
-                          <p className="text-xs mt-2 text-rose-700">
-                            Click "Add" button above to begin preparation.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    {/* --- END: Dynamic Sample Preparation for Sulphated Ash Section --- */}
-
-                    {/* --- START: Dynamic Sample Preparation for Loss on Ignation Section --- */}
-                    <div className="mb-8">
-                      <div className="flex items-center justify-between mb-4 px-2">
-                        <h3 className="text-lg font-bold text-indigo-900 flex items-center gap-2.5 tracking-tight">
-                          <span className="w-1.5 h-6 bg-gradient-to-b from-indigo-500 to-indigo-700 rounded-full"></span>
-                          Sample Preparations for Loss on Ignation
-                        </h3>
-                        <button
-                          onClick={() =>
-                            handleAddSamplePreparationLossOnIgnation(
-                              selectedParam.id
-                            )
-                          }
-                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-2xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <AnimatePresence>
-                        {(
-                          samplePreparationLossOnIgnationPerParam[
-                            selectedParam.id
-                          ] || []
-                        ).map((samplePreparationLossOnIgnation) => (
-                          <SamplePreparationLossOnIgnationDetail
-                            key={samplePreparationLossOnIgnation.id}
-                            samplePreparationLossOnIgnation={
-                              samplePreparationLossOnIgnation
-                            }
-                            onStepChange={(
-                              samplePreparationLossOnIgnationId,
-                              stepName,
-                              field,
-                              newValue
-                            ) =>
-                              handleSamplePreparationLossOnIgnationStepChange(
-                                selectedParam.id,
-                                samplePreparationLossOnIgnationId,
-                                stepName,
-                                field,
-                                newValue
-                              )
-                            }
-                            onRemove={() =>
-                              handleRemoveSamplePreparationLossOnIgnation(
-                                selectedParam.id,
-                                samplePreparationLossOnIgnation.id
-                              )
-                            }
-                          />
-                        ))}
-                      </AnimatePresence>
-
-                      {(
-                        samplePreparationLossOnIgnationPerParam[
-                          selectedParam.id
-                        ] || []
-                      ).length === 0 && (
-                        <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-indigo-50 to-indigo-100/50 border-2 border-dashed border-indigo-300 rounded-xl shadow-inner">
-                          <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-indigo-600" />
-                          <p className="font-semibold text-base text-indigo-900">
-                            No sample preparation for Loss on Ignation added
-                            yet.
-                          </p>
-                          <p className="text-xs mt-2 text-indigo-700">
-                            Click "Add" button above to begin preparation.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    {/* --- END: Dynamic Sample Preparation for Loss on Ignation Section --- */}
-                  </>
-                )}
-
-                {selectedParam.parameter === "Assay" && (
-                  <>
-                    {/* --- START: Dynamic Calculations Section --- */}
-                    <div className="relative mb-8 p-6 rounded-xl border-2 border-red-300/50 bg-white/70 backdrop-blur-sm shadow-xl">
+                    {/* Calculations Section */}
+                    <div className="relative p-6 rounded-xl border-2 border-red-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
                       <div className="flex items-center justify-between mb-6 px-2">
                         <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
                           <span className="w-1.5 h-6 bg-gradient-to-b from-red-500 to-rose-700 rounded-full"></span>
                           <span className="text-red-600">
-                            Calculations for {selectedParam.parameter}
+                            Calculations for Assay
                           </span>
                         </h3>
                         <motion.button
-                          onClick={() => handleAddCalculation(selectedParam.id)}
+                          onClick={() =>
+                            handleAddCalculationAssay(selectedParam.id)
+                          }
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-red-600 to-rose-600 text-white font-semibold rounded-full hover:from-red-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
@@ -3443,21 +4088,237 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                       </div>
 
                       <AnimatePresence>
-                        {(calculationsPerParam[selectedParam.id] || []).map(
+                        {(
+                          calculationsAssayPerParam[selectedParam.id] || []
+                        ).map((calculation) => (
+                          <CalculationDetailAssay
+                            key={calculation.id}
+                            calculation={calculation}
+                            standardPreparations={
+                              standardPreparationPerParam[selectedParam.id] ||
+                              []
+                            }
+                            samplePreparations={
+                              samplePreparationPerParam[selectedParam.id] || []
+                            }
+                            onFieldChange={(calculationId, field, value) =>
+                              handleCalculationAssayFieldChange(
+                                selectedParam.id,
+                                calculationId,
+                                field,
+                                value
+                              )
+                            }
+                            onRemove={() =>
+                              handleRemoveCalculationAssay(
+                                selectedParam.id,
+                                calculation.id
+                              )
+                            }
+                          />
+                        ))}
+                      </AnimatePresence>
+
+                      {(calculationsAssayPerParam[selectedParam.id] || [])
+                        .length === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-red-50 via-white to-rose-50 border-2 border-dashed border-red-300 rounded-xl shadow-inner"
+                        >
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 left-1/4 w-48 h-48 bg-red-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
+                          </div>
+
+                          <div className="relative z-10">
+                            <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
+                              <Target className="w-10 h-10 text-red-400" />
+                            </div>
+                            <p className="font-semibold text-base text-red-900 mb-1">
+                              No calculations added yet
+                            </p>
+                            <p className="text-xs text-red-600/80 max-w-sm mx-auto">
+                              Click "Add Calculation" to begin
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* ============= LOD GROUP CARD ============= */}
+                {(activePreparationGroups[selectedParam.id] || []).includes(
+                  "lod"
+                ) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative mb-10 p-8 rounded-2xl border-2 border-sky-200/50 bg-gradient-to-br from-sky-50/40 via-white/60 to-blue-50/40 backdrop-blur-sm shadow-2xl hover:shadow-sky-200/50 transition-all duration-500 overflow-hidden hover:scale-[1.01]"
+                  >
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-sky-400/10 to-transparent rounded-bl-full -z-10" />
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-blue-400/10 to-transparent rounded-tr-full -z-10" />
+
+                    {/* Card Header */}
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-sky-500/20 blur-xl rounded-full" />
+                          <div className="relative w-12 h-12 bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                            <BiTestTube className="w-6 h-6 text-white" />
+                          </div>
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-sky-900 tracking-tight">
+                            LOD Analysis
+                          </h2>
+                          <p className="text-sm text-sky-600/80 font-medium">
+                            Loss on Drying - Sample & Calculations
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="px-4 py-1 bg-gradient-to-r from-sky-100 to-blue-100 border-2 border-sky-300/50 rounded-full shadow-sm">
+                        <span className="text-xs font-bold text-sky-700">
+                          {(
+                            samplePreparationLodPerParam[selectedParam.id] || []
+                          ).length +
+                            (calculationsLodPerParam[selectedParam.id] || [])
+                              .length}{" "}
+                          Items
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Sample Preparation for LOD */}
+                    <div className="mb-8">
+                      <div className="flex items-center justify-between mb-4 px-2">
+                        <h3 className="text-lg font-bold text-sky-700 flex items-center gap-2.5 tracking-tight">
+                          <span className="w-1.5 h-6 bg-gradient-to-b from-sky-500 to-blue-700 rounded-full"></span>
+                          Sample Preparations for LOD
+                        </h3>
+                        <button
+                          onClick={() =>
+                            handleAddSamplePreparationLod(selectedParam.id)
+                          }
+                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-sky-600 to-blue-700 text-white font-semibold rounded-xl hover:from-sky-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <AnimatePresence>
+                        {(
+                          samplePreparationLodPerParam[selectedParam.id] || []
+                        ).map((samplePreparationLod) => (
+                          <div className="" key={samplePreparationLod.id}>
+                            <SamplePreparationLodDetail
+                              samplePreparationLod={samplePreparationLod}
+                              onStepChange={(
+                                samplePreparationLodId,
+                                stepName,
+                                field,
+                                newValue
+                              ) =>
+                                handleSamplePreparationLodStepChange(
+                                  selectedParam.id,
+                                  samplePreparationLodId,
+                                  stepName,
+                                  field,
+                                  newValue
+                                )
+                              }
+                              onRemove={() =>
+                                handleRemoveSamplePreparationLod(
+                                  selectedParam.id,
+                                  samplePreparationLod.id
+                                )
+                              }
+                            />
+                          </div>
+                        ))}
+                      </AnimatePresence>
+
+                      {(samplePreparationLodPerParam[selectedParam.id] || [])
+                        .length === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-sky-50 via-white to-blue-50 border-2 border-dashed border-sky-300 rounded-2xl shadow-inner"
+                        >
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 left-1/4 w-64 h-64 bg-sky-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                            <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                          </div>
+
+                          <div className="relative z-10">
+                            <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                              <Target className="w-14 h-14 text-sky-400" />
+                            </div>
+                            <p className="text-lg font-bold text-sky-900 mb-2">
+                              No sample preparations added yet
+                            </p>
+                            <p className="text-sm text-sky-600/80 max-w-md mx-auto mb-4">
+                              Click the add button to create LOD sample
+                              preparation
+                            </p>
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-sky-100/50 rounded-lg border border-sky-200">
+                              <div className="w-2 h-2 bg-sky-500 rounded-full animate-ping" />
+                              <span className="text-xs font-semibold text-sky-700">
+                                Ready to start
+                              </span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Visual Separator */}
+                    <div className="flex items-center gap-4 my-8">
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-sky-300 to-transparent" />
+                      <div className="px-4 py-2 bg-gradient-to-r from-sky-100 to-blue-100 rounded-lg border border-sky-300/50 shadow-sm">
+                        <span className="text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-2 h-2 bg-sky-500 rounded-full animate-pulse" />
+                          Calculations
+                        </span>
+                      </div>
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-sky-300 to-transparent" />
+                    </div>
+
+                    {/* Calculations for LOD */}
+                    <div className="relative p-6 rounded-xl border-2 border-sky-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                      <div className="flex items-center justify-between mb-6 px-2">
+                        <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
+                          <span className="w-1.5 h-6 bg-gradient-to-b from-sky-500 to-blue-700 rounded-full"></span>
+                          <span className="text-sky-600">LOD Calculations</span>
+                        </h3>
+                        <motion.button
+                          onClick={() =>
+                            handleAddCalculationLod(selectedParam.id)
+                          }
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white font-semibold rounded-full hover:from-sky-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add LOD Calculation
+                        </motion.button>
+                      </div>
+
+                      <AnimatePresence>
+                        {(calculationsLodPerParam[selectedParam.id] || []).map(
                           (calculation) => (
-                            <CalculationDetail
+                            <CalculationDetailLod
                               key={calculation.id}
                               calculation={calculation}
-                              standardPreparations={
-                                standardPreparationPerParam[selectedParam.id] ||
-                                []
-                              }
                               samplePreparations={
-                                samplePreparationPerParam[selectedParam.id] ||
-                                []
+                                samplePreparationLodPerParam[
+                                  selectedParam.id
+                                ] || []
                               }
                               onFieldChange={(calculationId, field, value) =>
-                                handleCalculationFieldChange(
+                                handleCalculationLodFieldChange(
                                   selectedParam.id,
                                   calculationId,
                                   field,
@@ -3465,7 +4326,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                 )
                               }
                               onRemove={() =>
-                                handleRemoveCalculation(
+                                handleRemoveCalculationLod(
                                   selectedParam.id,
                                   calculation.id
                                 )
@@ -3475,21 +4336,701 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                         )}
                       </AnimatePresence>
 
-                      {(calculationsPerParam[selectedParam.id] || []).length ===
-                        0 && (
-                        <div className="text-center py-10 text-gray-600 text-sm bg-gradient-to-br from-red-50/50 to-rose-50/50 border-2 border-dashed border-red-300 rounded-xl shadow-inner">
-                          <Target className="w-12 h-12 mx-auto mb-3 opacity-40 text-red-600" />
-                          <p className="font-semibold text-base text-red-900">
-                            No calculations added yet.
-                          </p>
-                          <p className="text-xs mt-2 text-red-700">
-                            Click **"Add Calculation"** button above to begin.
-                          </p>
-                        </div>
+                      {(calculationsLodPerParam[selectedParam.id] || [])
+                        .length === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-sky-50 via-white to-blue-50 border-2 border-dashed border-sky-300 rounded-xl shadow-inner"
+                        >
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 left-1/4 w-48 h-48 bg-sky-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
+                          </div>
+
+                          <div className="relative z-10">
+                            <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
+                              <Target className="w-10 h-10 text-sky-400" />
+                            </div>
+                            <p className="font-semibold text-base text-sky-900 mb-1">
+                              No LOD calculations added yet
+                            </p>
+                            <p className="text-xs text-sky-600/80 max-w-sm mx-auto">
+                              Click "Add LOD Calculation" to begin
+                            </p>
+                          </div>
+                        </motion.div>
                       )}
                     </div>
-                    {/* --- END: Dynamic Calculations Section --- */}
-                  </>
+                  </motion.div>
+                )}
+
+                {/* ============= ROI GROUP CARD ============= */}
+                {(activePreparationGroups[selectedParam.id] || []).includes(
+                  "roi"
+                ) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative mb-10 p-8 rounded-2xl border-2 border-orange-200/50 bg-gradient-to-br from-orange-50/40 via-white/60 to-amber-50/40 backdrop-blur-sm shadow-2xl hover:shadow-orange-200/50 transition-all duration-500 overflow-hidden hover:scale-[1.01]"
+                  >
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-orange-400/10 to-transparent rounded-bl-full -z-10" />
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-amber-400/10 to-transparent rounded-tr-full -z-10" />
+
+                    {/* Card Header */}
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full" />
+                          <div className="relative w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                            <BiTestTube className="w-6 h-6 text-white" />
+                          </div>
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-orange-900 tracking-tight">
+                            ROI Analysis
+                          </h2>
+                          <p className="text-sm text-orange-600/80 font-medium">
+                            Residue on Ignition - Sample & Calculations
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="px-4 py-1 bg-gradient-to-r from-orange-100 to-amber-100 border-2 border-orange-300/50 rounded-full shadow-sm">
+                        <span className="text-xs font-bold text-orange-700">
+                          {(
+                            samplePreparationROIPerParam[selectedParam.id] || []
+                          ).length +
+                            (calculationsROIPerParam[selectedParam.id] || [])
+                              .length}{" "}
+                          Items
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Sample Preparation for ROI */}
+                    <div className="mb-8">
+                      <div className="flex items-center justify-between mb-4 px-2">
+                        <h3 className="text-lg font-bold text-amber-700 flex items-center gap-2.5 tracking-tight">
+                          <span className="w-1.5 h-6 bg-gradient-to-b from-orange-500 to-amber-700 rounded-full"></span>
+                          Sample Preparations for ROI
+                        </h3>
+                        <button
+                          onClick={() =>
+                            handleAddSamplePreparationROI(selectedParam.id)
+                          }
+                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-orange-600 to-amber-700 text-white font-semibold rounded-xl hover:from-orange-700 hover:to-amber-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <AnimatePresence>
+                        {(
+                          samplePreparationROIPerParam[selectedParam.id] || []
+                        ).map((samplePreparationROI) => (
+                          <div
+                            className="overflow-hidden"
+                            key={samplePreparationROI.id}
+                          >
+                            <SamplePreparationROIDetail
+                              samplePreparationROI={samplePreparationROI}
+                              onStepChange={(
+                                samplePreparationROIId,
+                                stepName,
+                                field,
+                                newValue
+                              ) =>
+                                handleSamplePreparationROIStepChange(
+                                  selectedParam.id,
+                                  samplePreparationROIId,
+                                  stepName,
+                                  field,
+                                  newValue
+                                )
+                              }
+                              onRemove={() =>
+                                handleRemoveSamplePreparationROI(
+                                  selectedParam.id,
+                                  samplePreparationROI.id
+                                )
+                              }
+                            />
+                          </div>
+                        ))}
+                      </AnimatePresence>
+
+                      {(samplePreparationROIPerParam[selectedParam.id] || [])
+                        .length === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-orange-50 via-white to-amber-50 border-2 border-dashed border-orange-300 rounded-2xl shadow-inner"
+                        >
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 left-1/4 w-64 h-64 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                            <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-amber-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                          </div>
+
+                          <div className="relative z-10">
+                            <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                              <Target className="w-14 h-14 text-orange-400" />
+                            </div>
+                            <p className="text-lg font-bold text-orange-900 mb-2">
+                              No sample preparations added yet
+                            </p>
+                            <p className="text-sm text-orange-600/80 max-w-md mx-auto mb-4">
+                              Click the add button to create ROI sample
+                              preparation
+                            </p>
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100/50 rounded-lg border border-orange-200">
+                              <div className="w-2 h-2 bg-orange-500 rounded-full animate-ping" />
+                              <span className="text-xs font-semibold text-orange-700">
+                                Ready to start
+                              </span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Visual Separator */}
+                    <div className="flex items-center gap-4 my-8">
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-orange-300 to-transparent" />
+                      <div className="px-4 py-2 bg-gradient-to-r from-orange-100 to-amber-100 rounded-lg border border-orange-300/50 shadow-sm">
+                        <span className="text-xs font-bold text-orange-700 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+                          Calculations
+                        </span>
+                      </div>
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-orange-300 to-transparent" />
+                    </div>
+
+                    {/* Calculations for ROI */}
+                    <div className="relative p-6 rounded-xl border-2 border-orange-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                      <div className="flex items-center justify-between mb-6 px-2">
+                        <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
+                          <span className="w-1.5 h-6 bg-gradient-to-b from-amber-500 to-orange-700 rounded-full"></span>
+                          <span className="text-orange-600">
+                            ROI Calculations
+                          </span>
+                        </h3>
+                        <motion.button
+                          onClick={() =>
+                            handleAddCalculationROI(selectedParam.id)
+                          }
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold rounded-full hover:from-amber-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add ROI Calculation
+                        </motion.button>
+                      </div>
+
+                      <AnimatePresence>
+                        {(calculationsROIPerParam[selectedParam.id] || []).map(
+                          (calculation) => (
+                            <CalculationDetailROI
+                              key={calculation.id}
+                              calculation={calculation}
+                              samplePreparations={
+                                samplePreparationROIPerParam[
+                                  selectedParam.id
+                                ] || []
+                              }
+                              onFieldChange={(calculationId, field, value) =>
+                                handleCalculationROIFieldChange(
+                                  selectedParam.id,
+                                  calculationId,
+                                  field,
+                                  value
+                                )
+                              }
+                              onRemove={() =>
+                                handleRemoveCalculationROI(
+                                  selectedParam.id,
+                                  calculation.id
+                                )
+                              }
+                            />
+                          )
+                        )}
+                      </AnimatePresence>
+
+                      {(calculationsROIPerParam[selectedParam.id] || [])
+                        .length === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-orange-50 via-white to-amber-50 border-2 border-dashed border-orange-300 rounded-xl shadow-inner"
+                        >
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 left-1/4 w-48 h-48 bg-orange-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
+                          </div>
+
+                          <div className="relative z-10">
+                            <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
+                              <Target className="w-10 h-10 text-orange-400" />
+                            </div>
+                            <p className="font-semibold text-base text-orange-900 mb-1">
+                              No ROI calculations added yet
+                            </p>
+                            <p className="text-xs text-orange-600/80 max-w-sm mx-auto">
+                              Click "Add ROI Calculation" to begin
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* ============= Sulphated Ash GROUP CARD ============= */}
+                {(activePreparationGroups[selectedParam.id] || []).includes("sulphatedAsh") && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative mb-10 p-8 rounded-2xl border-2 border-rose-200/50 bg-gradient-to-br from-rose-50/40 via-white/60 to-pink-50/40 backdrop-blur-sm shadow-2xl hover:shadow-rose-200/50 transition-all duration-500 overflow-hidden hover:scale-[1.01]"
+                  >
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-rose-400/10 to-transparent rounded-bl-full -z-10" />
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-pink-400/10 to-transparent rounded-tr-full -z-10" />
+                    
+                    {/* Card Header */}
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-rose-500/20 blur-xl rounded-full" />
+                          <div className="relative w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                            <BiTestTube className="w-8 h-8 text-white" />
+                          </div>
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-rose-900 tracking-tight">
+                            Sulphated Ash Analysis
+                          </h2>
+                          <p className="text-sm text-rose-600/80 font-medium">
+                            Sulphated Ash - Sample & Calculations
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="px-4 py-2 bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300/50 rounded-full shadow-sm">
+                        <span className="text-xs font-bold text-rose-700">
+                          {(samplePreparationSulphatedAshPerParam[selectedParam.id] || []).length +
+                          (calculationsSulphatedAshPerParam[selectedParam.id] || []).length} Items
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Sample Preparation for Sulphated Ash */}
+                    <div className="mb-8">
+                      <div className="flex items-center justify-between mb-4 px-2">
+                        <h3 className="text-lg font-bold text-rose-900 flex items-center gap-2.5 tracking-tight">
+                          <span className="w-1.5 h-6 bg-gradient-to-b from-rose-500 to-rose-700 rounded-full"></span>
+                          Sample Preparations for Sulphated Ash
+                        </h3>
+                        <button
+                          onClick={() => handleAddSamplePreparationSulphatedAsh(selectedParam.id)}
+                          className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-rose-600 to-rose-700 text-white font-semibold rounded-xl hover:from-rose-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <AnimatePresence>
+                        {(samplePreparationSulphatedAshPerParam[selectedParam.id] || []).map((samplePreparationSulphatedAsh) => (
+                          <div className="overflow-hidden" key={samplePreparationSulphatedAsh.id}>
+                            <SamplePreparationSulphatedAshDetail
+                              samplePreparationSulphatedAsh={samplePreparationSulphatedAsh}
+                              onStepChange={(samplePreparationSulphatedAshId, stepName, field, newValue) =>
+                                handleSamplePreparationSulphatedAshStepChange(
+                                  selectedParam.id,
+                                  samplePreparationSulphatedAshId,
+                                  stepName,
+                                  field,
+                                  newValue
+                                )
+                              }
+                              onRemove={() =>
+                                handleRemoveSamplePreparationSulphatedAsh(
+                                  selectedParam.id,
+                                  samplePreparationSulphatedAsh.id
+                                )
+                              }
+                            />
+                          </div>
+                        ))}
+                      </AnimatePresence>
+
+                      {(samplePreparationSulphatedAshPerParam[selectedParam.id] || []).length === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-rose-50 via-white to-pink-50 border-2 border-dashed border-rose-300 rounded-2xl shadow-inner"
+                        >
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 left-1/4 w-64 h-64 bg-rose-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                            <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                          </div>
+                          
+                          <div className="relative z-10">
+                            <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                              <Target className="w-14 h-14 text-rose-400" />
+                            </div>
+                            <p className="text-lg font-bold text-rose-900 mb-2">
+                              No sample preparations added yet
+                            </p>
+                            <p className="text-sm text-rose-600/80 max-w-md mx-auto mb-4">
+                              Click the add button to create Sulphated Ash sample preparation
+                            </p>
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-rose-100/50 rounded-lg border border-rose-200">
+                              <div className="w-2 h-2 bg-rose-500 rounded-full animate-ping" />
+                              <span className="text-xs font-semibold text-rose-700">Ready to start</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Visual Separator */}
+                    <div className="flex items-center gap-4 my-8">
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-rose-300 to-transparent" />
+                      <div className="px-4 py-2 bg-gradient-to-r from-rose-100 to-pink-100 rounded-lg border border-rose-300/50 shadow-sm">
+                        <span className="text-xs font-bold text-rose-700 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
+                          Calculations
+                        </span>
+                      </div>
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-rose-300 to-transparent" />
+                    </div>
+
+                    {/* Calculations for Sulphated Ash */}
+                    <div className="relative p-6 rounded-xl border-2 border-rose-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                      <div className="flex items-center justify-between mb-6 px-2">
+                        <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
+                          <span className="w-1.5 h-6 bg-gradient-to-b from-pink-500 to-rose-700 rounded-full"></span>
+                          <span className="text-pink-600">Sulphated Ash Calculations</span>
+                        </h3>
+                        <motion.button
+                          onClick={() => handleAddCalculationSulphatedAsh(selectedParam.id)}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-semibold rounded-full hover:from-pink-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add Ash Calculation
+                        </motion.button>
+                      </div>
+                      
+                      <AnimatePresence>
+                        {(calculationsSulphatedAshPerParam[selectedParam.id] || []).map((calculation) => (
+                          <CalculationDetailSulphatedAsh
+                            key={calculation.id}
+                            calculation={calculation}
+                            samplePreparations={
+                              samplePreparationSulphatedAshPerParam[selectedParam.id] || []
+                            }
+                            onFieldChange={(calculationId, field, value) =>
+                              handleCalculationSulphatedAshFieldChange(
+                                selectedParam.id,
+                                calculationId,
+                                field,
+                                value
+                              )
+                            }
+                            onRemove={() =>
+                              handleRemoveCalculationSulphatedAsh(
+                                selectedParam.id,
+                                calculation.id
+                              )
+                            }
+                          />
+                        ))}
+                      </AnimatePresence>
+
+                      {(calculationsSulphatedAshPerParam[selectedParam.id] || []).length === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-rose-50 via-white to-pink-50 border-2 border-dashed border-rose-300 rounded-xl shadow-inner"
+                        >
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 left-1/4 w-48 h-48 bg-rose-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
+                          </div>
+                          
+                          <div className="relative z-10">
+                            <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
+                              <Target className="w-10 h-10 text-rose-400" />
+                            </div>
+                            <p className="font-semibold text-base text-rose-900 mb-1">
+                              No Sulphated Ash calculations added yet
+                            </p>
+                            <p className="text-xs text-rose-600/80 max-w-sm mx-auto">
+                              Click "Add Ash Calculation" to begin
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* ============= RESIDUAL SOLVENT GROUP CARD ============= */}
+                {(activePreparationGroups[selectedParam.id] || []).includes("residualSolvent") && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative mb-10 p-8 rounded-2xl border-2 border-indigo-200/50 bg-gradient-to-br from-indigo-50/40 via-white/60 to-purple-50/40 backdrop-blur-sm shadow-2xl hover:shadow-indigo-200/50 transition-all duration-500 overflow-hidden hover:scale-[1.01]"
+                  >
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-400/10 to-transparent rounded-bl-full -z-10" />
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-purple-400/10 to-transparent rounded-tr-full -z-10" />
+                    
+                    {/* Card Header */}
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full" />
+                          <div className="relative w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                            <BiTestTube className="w-6 h-6 text-white" />
+                          </div>
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-indigo-900 tracking-tight">
+                            Residual Solvent Analysis
+                          </h2>
+                          <p className="text-sm text-indigo-600/80 font-medium">
+                            Standard, Sample & Calculations
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="px-4 py-1 bg-gradient-to-r from-indigo-100 to-purple-100 border-2 border-indigo-300/50 rounded-full shadow-sm">
+                        <span className="text-xs font-bold text-indigo-700">
+                          {(standardPreparationRSPerParam[selectedParam.id] || []).length +
+                          (samplePreparationRSPerParam[selectedParam.id] || []).length +
+                          (calculationsRSPerParam[selectedParam.id] || []).length} Items
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Combined Preparations Header with Single Add Button */}
+                    <div className="mb-8">
+                      <div className="flex items-center justify-between mb-4 px-2">
+                        <h3 className="text-lg font-bold text-indigo-900 flex items-center gap-2.5 tracking-tight">
+                          <span className="w-1.5 h-6 bg-gradient-to-b from-indigo-500 to-blue-700 rounded-full"></span>
+                          Standard & Sample Preparations for Residual Solvent
+                        </h3>
+                        <button
+                          onClick={() => handleAddStandardPreparationRS(selectedParam.id)}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform hover:scale-105"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add Preparation
+                        </button>
+                      </div>
+
+                      {/* Preparations List */}
+                      <AnimatePresence>
+                        {(standardPreparationRSPerParam[selectedParam.id] || []).map(
+                          (standardPreparation: any, idx: number) => {
+                            const assignedStandard = (
+                              addedStandards[selectedParam.id] || []
+                            ).find(
+                              (std) => std.id === standardPreparation.assignedStandardId
+                            );
+
+                            const correspondingSample = (
+                              samplePreparationRSPerParam[selectedParam.id] || []
+                            )[idx];
+
+                            return (
+                              <div key={standardPreparation.id} className="mb-6">
+                                <div className="overflow-hidden">
+                                  <StandardPreparationDetail
+                                    standardPreparation={standardPreparation}
+                                    assignedStandard={assignedStandard || null}
+                                    onStepChange={(
+                                      standardPreparationId,
+                                      stepName,
+                                      field,
+                                      newValue
+                                    ) =>
+                                      handleStandardPreparationRSStepChange(
+                                        selectedParam.id,
+                                        standardPreparationId,
+                                        stepName,
+                                        field,
+                                        newValue
+                                      )
+                                    }
+                                    onRemove={() =>
+                                      handleRemoveStandardPreparationRS(
+                                        selectedParam.id,
+                                        standardPreparation.id
+                                      )
+                                    }
+                                    isRS={true}
+                                  />
+                                </div>
+
+                                {/* Corresponding Sample Preparation for RS */}
+                                {correspondingSample && (
+                                  <div className="mt-4">
+                                    <div className="overflow-hidden">
+                                      <SamplePreparationDetail
+                                        samplePreparation={correspondingSample}
+                                        assignedStandard={assignedStandard || null}
+                                        onStepChange={(
+                                          samplePreparationId,
+                                          stepName,
+                                          field,
+                                          newValue
+                                        ) =>
+                                          handleSamplePreparationRSStepChange(
+                                            selectedParam.id,
+                                            samplePreparationId,
+                                            stepName,
+                                            field,
+                                            newValue
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveSamplePreparationRS(
+                                            selectedParam.id,
+                                            correspondingSample.id
+                                          )
+                                        }
+                                        isRS={true}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          }
+                        )}
+                      </AnimatePresence>
+
+                      {/* Empty State */}
+                      {(standardPreparationRSPerParam[selectedParam.id] || []).length === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-indigo-50 via-white to-purple-50 border-2 border-dashed border-indigo-300 rounded-2xl shadow-inner"
+                        >
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 left-1/4 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                            <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                          </div>
+                          
+                          <div className="relative z-10">
+                            <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                              <Target className="w-14 h-14 text-indigo-400" />
+                            </div>
+                            <p className="text-lg font-bold text-indigo-900 mb-2">
+                              No preparations added yet
+                            </p>
+                            <p className="text-sm text-indigo-600/80 max-w-md mx-auto mb-4">
+                              Click "Add Preparation" to create standard and sample preparations for Residual Solvent
+                            </p>
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100/50 rounded-lg border border-indigo-200">
+                              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-ping" />
+                              <span className="text-xs font-semibold text-indigo-700">Ready to start</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Visual Separator */}
+                    <div className="flex items-center gap-4 my-8">
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-indigo-300 to-transparent" />
+                      <div className="px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-lg border border-indigo-300/50 shadow-sm">
+                        <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                          Calculations
+                        </span>
+                      </div>
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-indigo-300 to-transparent" />
+                    </div>
+
+                    {/* Calculations for RS */}
+                    <div className="relative p-6 rounded-xl border-2 border-indigo-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                      <div className="flex items-center justify-between mb-6 px-2">
+                        <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
+                          <span className="w-1.5 h-6 bg-gradient-to-b from-indigo-500 to-blue-700 rounded-full"></span>
+                          <span className="text-indigo-600">Residual Solvent Calculations</span>
+                        </h3>
+                        <motion.button
+                          onClick={() => handleAddCalculationRS(selectedParam.id)}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-full hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add RS Calculation
+                        </motion.button>
+                      </div>
+
+                      <AnimatePresence>
+                        {(calculationsRSPerParam[selectedParam.id] || []).map(
+                          (calculation) => (
+                            <CalculationDetailRS
+                              key={calculation.id}
+                              calculation={calculation}
+                              standardPreparations={
+                                standardPreparationRSPerParam[selectedParam.id] || []
+                              }
+                              samplePreparations={
+                                samplePreparationRSPerParam[selectedParam.id] || []
+                              }
+                              onFieldChange={(calculationId, field, value) =>
+                                handleCalculationRSFieldChange(
+                                  selectedParam.id,
+                                  calculationId,
+                                  field,
+                                  value
+                                )
+                              }
+                              onRemove={() =>
+                                handleRemoveCalculationRS(
+                                  selectedParam.id,
+                                  calculation.id
+                                )
+                              }
+                            />
+                          )
+                        )}
+                      </AnimatePresence>
+
+                      {(calculationsRSPerParam[selectedParam.id] || []).length === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-indigo-50 via-white to-purple-50 border-2 border-dashed border-indigo-300 rounded-xl shadow-inner"
+                        >
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 left-1/4 w-48 h-48 bg-indigo-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
+                          </div>
+                          
+                          <div className="relative z-10">
+                            <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
+                              <Target className="w-10 h-10 text-indigo-400" />
+                            </div>
+                            <p className="font-semibold text-base text-indigo-900 mb-1">
+                              No RS calculations added yet
+                            </p>
+                            <p className="text-xs text-indigo-600/80 max-w-sm mx-auto">
+                              Click "Add RS Calculation" to begin
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
                 )}
 
                 {/* Preparation of Test Solution */}
@@ -3632,13 +5173,19 @@ const FormPreview: React.FC<FormPreviewProps> = ({
         onClose={() => {
           setShowStandardSelectionDialog(false);
           setCurrentParameterForStandardPrep(null);
+          setIsAddingRSStandard(false);
         }}
         availableStandards={
           currentParameterForStandardPrep !== null
-            ? getAvailableStandardsForParameter(currentParameterForStandardPrep)
+            ? getAvailableStandardsForParameter(
+                currentParameterForStandardPrep,
+                isAddingRSStandard // This flag determines which list to check
+              )
             : []
         }
-        onSelectStandard={handleStandardSelectedForPreparation}
+        onSelectStandard={(standard) => {
+          handleStandardSelectedForPreparation(standard, isAddingRSStandard);
+        }}
       />
     </div>
   );

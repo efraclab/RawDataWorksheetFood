@@ -198,7 +198,7 @@ const MobilePhaseDetail: React.FC<MobilePhaseDetailProps> = ({
                                       )
                                     }
                                     placeholder="Solvent/Chemical"
-                                    className="flex-1 min-w-[110px] px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                    className="flex-1 min-w-[110px] px-2.5 py-1.5 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-em-400 transition-all"
                                   />
                                   <span className="text-gray-500 text-xs">
                                     (Log ID:

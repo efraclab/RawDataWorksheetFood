@@ -1,48 +1,140 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, useNavigate, useParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import "./index.css";
 
-import RegistrationSearchTool from "./components/RegistrationSearchTool";
+// ========== COMPONENTS ==========
+import WorksheetDashboard from "./components/WorksheetDashboard";
+import CreateWorksheet from "./components/CreateWorksheet";
 import FormPreview from "./components/FormPreview";
+
+// ========== API & MODELS ==========
 import {
-  fetchSamples,
   fetchInstruments,
   fetchChemicals,
   fetchStandards,
   fetchColumns,
 } from "./services/api";
-import { type SampleData } from "./models/SampleData";
-import { type Instrument } from "./models/Instrument";
-import { type Chemical } from "./models/Chemical";
-import { type Standard } from "./models/Standard";
-import type { Column } from "./models/Column";
+import type { Instrument } from "./preparation_models/Instrument";
+import type { Chemical } from "./preparation_models/Chemical";
+import type { Standard } from "./preparation_models/Standard";
+import type { Column } from "./preparation_models/Column";
 
+// ========== PAGE ANIMATION ==========
+const pageVariants = {
+  initial: { opacity: 0, x: -20 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: 20 },
+};
+
+// ========== DASHBOARD PAGE ==========
+function DashboardPage() {
+  const navigate = useNavigate();
+
+  const handleNavigation = (screen: "create" | "worksheet", worksheetId?: string) => {
+    if (screen === "create") {
+      navigate("/worksheets/new");
+    } else if (worksheetId) {
+      navigate(`/worksheets/${worksheetId}`);
+    }
+  };
+
+  return (
+    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
+      <WorksheetDashboard onNavigate={handleNavigation} />
+    </motion.div>
+  );
+}
+
+// ========== CREATE WORKSHEET PAGE ==========
+function CreateWorksheetPage() {
+  const navigate = useNavigate();
+
+  return (
+    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
+      <CreateWorksheet
+        onWorksheetCreated={(id) => navigate(`/worksheets/${id}`)}
+        onCancel={() => navigate("/")}
+      />
+    </motion.div>
+  );
+}
+
+// ========== WORKSHEET PREVIEW PAGE ==========
+function WorksheetPreviewPage(props: {
+  instruments: Instrument[];
+  chemicals: Chemical[];
+  standards: Standard[];
+  columns: Column[];
+  isReferenceDataLoading: boolean;
+  referenceDataError: string | null;
+}) {
+  const { worksheetId } = useParams<{ worksheetId: string }>();
+  const navigate = useNavigate();
+
+  if (!worksheetId) return null;
+
+  return (
+    <motion.div
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30"
+    >
+      {/* Back Button */}
+      {/* Back Button */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <button
+          onClick={() => navigate("/")}
+          className="group relative inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden"
+        >
+          {/* Animated background shimmer */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+          
+          {/* Arrow icon with animation */}
+          <svg 
+            className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-300" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          
+          <span className="relative z-10">Back to Dashboard</span>
+          
+          {/* Pulsing glow effect */}
+          <div className="absolute inset-0 rounded-xl bg-emerald-400/20 blur-xl group-hover:bg-emerald-400/30 transition-all duration-300" />
+        </button>
+      </div>
+
+      <FormPreview
+        worksheetId={worksheetId}
+        instruments={props.instruments}
+        chemicals={props.chemicals}
+        standards={props.standards}
+        columns={props.columns}
+        isReferenceDataLoading={props.isReferenceDataLoading}
+        referenceDataError={props.referenceDataError}
+      />
+    </motion.div>
+  );
+}
+
+// ========== APP ROOT ==========
 function App() {
-  const [registrationNo, setRegistrationNo] = useState("");
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [reportData, setReportData] = useState<SampleData[] | null>(null);
-  const [isReportLoading, setIsReportLoading] = useState(false);
-  const [reportError, setReportError] = useState<string | null>(null);
-
+  // Reference data
   const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [chemicals, setChemicals] = useState<Chemical[]>([]);
   const [standards, setStandards] = useState<Standard[]>([]);
   const [columns, setColumns] = useState<Column[]>([]);
   const [isReferenceDataLoading, setIsReferenceDataLoading] = useState(true);
-  const [referenceDataError, setReferenceDataError] = useState<string | null>(
-    null
-  );
+  const [referenceDataError, setReferenceDataError] = useState<string | null>(null);
 
-  // Ref for the FormPreview section
-  const formPreviewRef = useRef<HTMLDivElement>(null);
-
+  // Load reference data once
   useEffect(() => {
     const loadReferenceData = async () => {
-      setIsReferenceDataLoading(true);
-      setReferenceDataError(null);
-
       try {
         const [inst, chem, std, col] = await Promise.all([
           fetchInstruments(),
@@ -56,8 +148,7 @@ function App() {
         setStandards(std);
         setColumns(col);
       } catch (e: any) {
-        console.error("Reference Data Fetch Error:", e);
-        setReferenceDataError(`Failed to load reference data: ${e.message}`);
+        setReferenceDataError(e.message || "Failed to load reference data");
       } finally {
         setIsReferenceDataLoading(false);
       }
@@ -66,97 +157,28 @@ function App() {
     loadReferenceData();
   }, []);
 
-  // Scroll to FormPreview when reportData is loaded
-  useEffect(() => {
-    if (reportData && formPreviewRef.current) {
-      // Small delay to ensure the component is rendered
-      setTimeout(() => {
-        formPreviewRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 100);
-    }
-  }, [reportData]);
-
-  const fetchReport = useCallback(async (regNoToFetch: string) => {
-    if (!regNoToFetch) {
-      setReportError("Please enter a registration number to view the report.");
-      setReportData(null);
-      return;
-    }
-
-    setIsReportLoading(true);
-    setReportError(null);
-    setReportData(null);
-
-    try {
-      const data = await fetchSamples(regNoToFetch);
-
-      if (data && Array.isArray(data) && data.length > 0) {
-        setReportData(data);
-        setError(null);
-      } else {
-        setReportData(null);
-        setReportError(null);
-      }
-    } catch (e: any) {
-      console.error("Report Fetch Error:", e);
-      setReportError(`Failed to fetch report data: ${e.message}`);
-    } finally {
-      setIsReportLoading(false);
-      setIsLoading(false);
-    }
-  }, []);
-
-  const fetchRegistrationDetails = useCallback(() => {
-    if (!registrationNo) {
-      setError("Please enter a registration number to search.");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    fetchReport(registrationNo);
-  }, [registrationNo, fetchReport]);
-
-  const handleClear = useCallback(() => {
-    setRegistrationNo("");
-    setError(null);
-    setReportData(null);
-    setReportError(null);
-    setIsReportLoading(false);
-  }, []);
-
   return (
-    <>
-      <RegistrationSearchTool
-        registrationNo={registrationNo}
-        setRegistrationNo={setRegistrationNo}
-        fetchRegistrationDetails={fetchRegistrationDetails}
-        isLoading={isLoading}
-        error={error}
-        onClear={handleClear}
-      />
-
-      {registrationNo && (
-        <div ref={formPreviewRef}>
-          <FormPreview
-            reportData={reportData}
-            loading={isReportLoading}
-            error={reportError}
-            registrationNo={registrationNo}
-            instruments={instruments}
-            chemicals={chemicals}
-            standards={standards}
-            columns={columns}
-            isReferenceDataLoading={isReferenceDataLoading}
-            referenceDataError={referenceDataError}
+    <BrowserRouter>
+      <AnimatePresence mode="wait">
+        <Routes>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/worksheets/new" element={<CreateWorksheetPage />} />
+          <Route
+            path="/worksheets/:worksheetId"
+            element={
+              <WorksheetPreviewPage
+                instruments={instruments}
+                chemicals={chemicals}
+                standards={standards}
+                columns={columns}
+                isReferenceDataLoading={isReferenceDataLoading}
+                referenceDataError={referenceDataError}
+              />
+            }
           />
-        </div>
-      )}
-    </>
+        </Routes>
+      </AnimatePresence>
+    </BrowserRouter>
   );
 }
 

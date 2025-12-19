@@ -1,54 +1,53 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { type SampleData } from "../models/SampleData";
-import type { Instrument } from "../models/Instrument";
-import type { Standard } from "../models/Standard";
-import type { Chemical } from "../models/Chemical";
-import type { MobilePhase } from "../models/MobilePhase";
-import type { MobilePhaseStep } from "../models/MobilePhaseStep";
-import type { Column } from "../models/Column";
-import type { DissoMedia } from "../models/DissoMedia";
-import type { DissoMediaStep } from "../models/DissoMediaStep";
-import type { StandardPreparation } from "../models/StandardPreparation";
-import type { SamplePreparation } from "../models/SamplePreparation";
-import type { StandardPreparationStep } from "../models/StandardPreparationStep";
-import type { SamplePreparationStep } from "../models/SamplePreparationStep";
+import { type SampleData } from "../preparation_models/SampleData";
+import type { Instrument } from "../preparation_models/Instrument";
+import type { Standard } from "../preparation_models/Standard";
+import type { Chemical } from "../preparation_models/Chemical";
+import type { Column } from "../preparation_models/Column";
+import type { StandardPreparation } from "../preparation_models/StandardPreparation";
+import type { SamplePreparation } from "../preparation_models/SamplePreparation";
+import type { StandardPreparationStep } from "../preparation_models/StandardPreparationStep";
+import type { SamplePreparationStep } from "../preparation_models/SamplePreparationStep";
 import { CgTrash } from "react-icons/cg";
-import type { SamplePreparationTitration } from "../models/SamplePreparationTitration";
-import type { SamplePreparationTitrationStep } from "../models/SamplePreparationTitrationStep";
-import type { SamplePreparationLod } from "../models/SamplePreparationLod";
-import type { SamplePreparationLodStep } from "../models/SamplePreparationLodStep";
-import type { SamplePreparationSulphatedAsh } from "../models/SamplePreparationSulphatedAsh";
-import type { SamplePreparationSulphatedAshStep } from "../models/SamplePreparationSulphatedAshStep";
-import type { SamplePreparationROI } from "../models/SamplePreparationROI";
-import type { SamplePreparationROIStep } from "../models/SamplePreparationROIStep";
-import type { SamplePreparationDisso } from "../models/SamplePreparationDisso";
-import type { SamplePreparationDissoStep } from "../models/SamplePreparationDissoStep";
-import MobilePhaseDetail from "./sub-components/MobilePhaseDetail";
-import DissoMediaDetail from "./sub-components/DissoMediaDetails";
+import type { SamplePreparationLod } from "../preparation_models/SamplePreparationLod";
+import type { SamplePreparationLodStep } from "../preparation_models/SamplePreparationLodStep";
+import type { SamplePreparationSulphatedAsh } from "../preparation_models/SamplePreparationSulphatedAsh";
+import type { SamplePreparationSulphatedAshStep } from "../preparation_models/SamplePreparationSulphatedAshStep";
+import type { SamplePreparationROI } from "../preparation_models/SamplePreparationROI";
+import type { SamplePreparationROIStep } from "../preparation_models/SamplePreparationROIStep";
+import type { SamplePreparationDisso } from "../preparation_models/SamplePreparationDisso";
+import type { SamplePreparationDissoStep } from "../preparation_models/SamplePreparationDissoStep";
 import StandardPreparationDetail from "./sub-components/StandardPreparationDetail";
 import SamplePreparationDetail from "./sub-components/SamplePreparationDetail";
 import SamplePreparationDissoDetail from "./sub-components/SamplePreparationDissoDetail";
-import SamplePreparationTitrationDetail from "./sub-components/SamplePreparationTitrationDetail";
 import SamplePreparationLodDetail from "./sub-components/SamplePreparationLodDetail";
 import SamplePreparationSulphatedAshDetail from "./sub-components/SamplePreparationSulphatedAshDetail";
 import SamplePreparationROIDetail from "./sub-components/SamplePreparationROIDetail";
-import DataPreviewDialog from "./DataPreviewDialog";
-import PrintPreviewDialog from "./PrintPreviewDialog";
 import StandardSelectionDialog from "./shared/StandardSelectionDialog";
-import type { CalculationAssay } from "../models/CalculationAssay";
+import type { CalculationAssay } from "../preparation_models/CalculationAssay";
 import CalculationDetailAssay from "./sub-components/CalculationDetailAssay";
 import { BiTestTube } from "react-icons/bi";
 import { IoFlask } from "react-icons/io5";
-import type { CalculationSulphatedAsh } from "../models/CalculationSulphatedAsh";
-import type { CalculationROI } from "../models/CalculationROI";
+import type { CalculationSulphatedAsh } from "../preparation_models/CalculationSulphatedAsh";
+import type { CalculationROI } from "../preparation_models/CalculationROI";
 import CalculationDetailROI from "./sub-components/CalculationDetailROI";
 import CalculationDetailSulphatedAsh from "./sub-components/CalculationDetailSulphatedAsh";
-import type { CalculationLod } from "../models/CalculationLod";
+import type { CalculationLod } from "../preparation_models/CalculationLod";
 import CalculationDetailLod from "./sub-components/CalculationDetailLod";
-import type { CalculationRS } from "../models/CalculationRS";
+import type { CalculationRS } from "../preparation_models/CalculationRS";
 import CalculationDetailRS from "./sub-components/CalculationDetailRS";
+import type { CalculationDisso } from "../preparation_models/CalculationDisso";
+import CalculationDetailDisso from "./sub-components/CalculationDetailDisso";
+import {
+  fetchWorksheetById,
+  updateWorksheet,
+  fetchSample,
+} from "../services/api";
+import type { WorksheetDetail } from "../models/requests/WorksheetDetail";
+import type { WorksheetRequest } from "../models/requests/WorksheetRequest";
 
+// SVG Icons
 const Target: React.FC<{ className: string }> = ({ className }) => (
   <svg
     className={className}
@@ -137,404 +136,284 @@ const ReferenceError: React.FC<{ error: string }> = ({ error }) => (
 );
 
 interface FormPreviewProps {
-  reportData: SampleData[] | null;
-  loading: boolean;
-  error: string | null;
-  registrationNo: string;
+  worksheetId: string;
   instruments: Instrument[];
   standards: Standard[];
   chemicals: Chemical[];
   columns: Column[];
   isReferenceDataLoading: boolean;
   referenceDataError: string | null;
-  testInfo?: {
-    mobilePhaseId?: string;
-    columnId?: string;
-    preparationMobilePhase?: string;
-    preparationTestSolution?: string;
-  };
-  documentInfo?: {
-    revisionNumber?: string;
-    documentCode?: string;
-    pageInfo?: string;
-    dateOfReceipt?: string;
-    preparedBy?: string;
-    issuedApprovedBy?: string;
-    effectiveIssueDate?: string;
-    approvedBy?: string;
-    classified?: string;
-    revisionDate?: string;
-    printedDate?: string;
-    printedBy?: string;
-  };
 }
 
 interface AddedParameter extends SampleData {
   id: number;
 }
 
-const createNewCalculationAssay = (index: number): CalculationAssay => {
-  return {
-    id: Date.now() + index,
-    label: `Calculation ${index + 1}`,
-    selectedStandardPrepId: null,
-    selectedSamplePrepId: null,
-    calculationType: "",
-    areaOfSample: "",
-    areaOfStandard: "",
-    v1: "",
-    v2: "",
-    v3: "",
-    v4: "",
-    v5: "",
-    v6: "",
-    v7: "",
-    v8: "",
-    v9: "",
-    v10: "",
-    v11: "",
-    v12: "",
-    v13: "",
-    v14: "",
-    sw1: "",
-    sw2: "",
-    baseXPurity: "",
-    avgWt: "",
-    mwSalt: "",
-    mwBase: "",
-    claimVolume: "",
-  };
-};
+// Factory functions for creating new preparation objects
+const createNewCalculationDisso = (index: number): CalculationDisso => ({
+  id: Date.now() + index,
+  label: `Dissolution Calculation ${index + 1}`,
+  selectedStandardPrepId: null,
+  selectedSamplePrepDissoId: null,
+  areaOfSample: "",
+  areaOfStandard: "",
+  mwBase: "",
+  mwSalt: "",
+  claim: "",
+  purity: "",
+});
 
-const createNewCalculationLod = (index: number): CalculationLod => {
-  return {
-    id: Date.now() + index,
-    label: `LOD Calculation ${index + 1}`,
-    selectedSamplePrepId: null,
-    w1_emptyDish: "",
-    w2_dishWithSample: "",
-    w3_dishAfterIgnition: "",
-  };
-};
+const createNewCalculationAssay = (index: number): CalculationAssay => ({
+  id: Date.now() + index,
+  label: `Calculation ${index + 1}`,
+  selectedStandardPrepId: null,
+  selectedSamplePrepId: null,
+  calculationType: "",
+  areaOfSample: "",
+  areaOfStandard: "",
+  v1: "",
+  v2: "",
+  v3: "",
+  v4: "",
+  v5: "",
+  v6: "",
+  v7: "",
+  v8: "",
+  v9: "",
+  v10: "",
+  v11: "",
+  v12: "",
+  v13: "",
+  v14: "",
+  sw1: "",
+  sw2: "",
+  baseXPurity: "",
+  avgWt: "",
+  mwSalt: "",
+  mwBase: "",
+  claimVolume: "",
+  labelClaim: "",
+});
 
-const createNewCalculationROI = (index: number): CalculationROI => {
-  return {
-    id: Date.now() + index,
-    label: `ROI Calculation ${index + 1}`,
-    selectedSamplePrepId: null,
-    w1_emptyDish: "",
-    w2_dishWithSample: "",
-    w3_dishAfterIgnition: "",
-  };
-};
+const createNewCalculationLod = (index: number): CalculationLod => ({
+  id: Date.now() + index,
+  label: `LOD Calculation ${index + 1}`,
+  selectedSamplePrepId: null,
+  w1_emptyDish: "",
+  w2_dishWithSample: "",
+  w3_dishAfterIgnition: "",
+});
+
+const createNewCalculationROI = (index: number): CalculationROI => ({
+  id: Date.now() + index,
+  label: `ROI Calculation ${index + 1}`,
+  selectedSamplePrepId: null,
+  w1_emptyDish: "",
+  w2_dishWithSample: "",
+  w3_dishAfterIgnition: "",
+});
 
 const createNewCalculationSulphatedAsh = (
   index: number
-): CalculationSulphatedAsh => {
-  return {
-    id: Date.now() + index,
-    label: `Sulphated Ash Calculation ${index + 1}`,
-    selectedSamplePrepId: null,
-    w1_emptyCrucible: "",
-    w2_crucibleWithSample: "",
-    w3_crucibleAfterAsh: "",
-  };
-};
+): CalculationSulphatedAsh => ({
+  id: Date.now() + index,
+  label: `Sulphated Ash Calculation ${index + 1}`,
+  selectedSamplePrepId: null,
+  w1_emptyCrucible: "",
+  w2_crucibleWithSample: "",
+  w3_crucibleAfterAsh: "",
+});
 
-const createNewMobilePhase = (index: number): MobilePhase => {
-  const label = String.fromCharCode(65 + index);
-  return {
-    id: Date.now() + index,
-    label: `Mobile Phase ${label}`,
-    steps: [
-      {
-        name: "Weighing",
-        value: "",
-        unit: "g",
-        logBookID: "",
-        solventChemical: "",
-      },
-      { name: "PH", value: "", logBookID: "" },
-      { name: "Filtration", value: "", unit: "micron" },
-      { name: "Sonication", value: "", unit: "min", mobilePhaseID: "" },
-    ],
-  };
-};
+const createNewStandardPreparation = (index: number): StandardPreparation => ({
+  id: Date.now() + index,
+  label: `Standard Preparation ${index + 1}`,
+  assignedStandardId: null,
+  steps: [
+    {
+      name: "Weighing",
+      value: "",
+      unit: "g",
+      logBookID: "",
+      solventChemical: "",
+    },
+    { name: "1st Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
+    { name: "2nd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
+    { name: "3rd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
+    { name: "4th Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
+    { name: "Filtration", value: "", unit: "micron" },
+  ],
+});
 
-const createNewDissoMedia = (index: number): DissoMedia => {
-  const label = String.fromCharCode(65 + index);
-  return {
-    id: Date.now() + index,
-    label: `Disso Media ${label}`,
-    steps: [
-      {
-        name: "Weighing",
-        value: "",
-        unit: "g",
-        logBookID: "",
-        solventChemical: "",
-      },
-      { name: "PH", value: "", logBookID: "" },
-      { name: "Filtration", value: "", unit: "micron" },
-      { name: "Sonication", value: "", unit: "min" },
-    ],
-  };
-};
+const createNewSamplePreparation = (index: number): SamplePreparation => ({
+  id: Date.now() + index,
+  label: `Sample Preparation ${index + 1}`,
+  steps: [
+    {
+      name: "Weighing",
+      value: "",
+      unit: "g",
+      logBookID: "",
+      solventChemical: "",
+    },
+    { name: "1st Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
+    { name: "2nd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
+    { name: "3rd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
+    { name: "4th Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
+    { name: "Filtration", value: "", unit: "micron" },
+  ],
+});
 
-const createNewStandardPreparation = (index: number): StandardPreparation => {
-  return {
-    id: Date.now() + index,
-    label: `Standard Preparation ${index + 1}`,
-    steps: [
-      {
-        name: "Weighing",
-        value: "",
-        unit: "g",
-        logBookID: "",
-        solventChemical: "",
-      },
-      { name: "1st Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-      { name: "2nd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-      { name: "3rd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-      { name: "4th Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-      { name: "Filtration", value: "", unit: "micron" },
-    ],
-  };
-};
-
-const createNewSamplePreparation = (index: number): SamplePreparation => {
-  return {
-    id: Date.now() + index,
-    label: `Sample Preparation ${index + 1}`,
-    steps: [
-      {
-        name: "Weighing",
-        value: "",
-        unit: "g",
-        logBookID: "",
-        solventChemical: "",
-      },
-      { name: "1st Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-      { name: "2nd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-      { name: "3rd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-      { name: "4th Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-      { name: "Filtration", value: "", unit: "micron" },
-    ],
-  };
-};
-
-const createNewSamplePreparationTitration = (
+const createNewSamplePreparationLod = (
   index: number
-): SamplePreparationTitration => {
-  return {
-    id: Date.now() + index,
-    label: `Sample Preparation ${index + 1} for Titration`,
-    steps: [
-      {
-        name: "Weighing",
-        value: "",
-        unit: "g",
-        solventChemical: "",
-        logBookID: "",
-      },
-      { name: "1st Dilution", value: "", unit: "ml" },
-      { name: "End Point Determination", value: "" },
-    ],
-  };
-};
-
-const createNewSamplePreparationLod = (index: number): SamplePreparationLod => {
-  return {
-    id: Date.now() + index,
-    label: `Sample Preparation ${index + 1} for LOD`,
-    steps: [
-      {
-        name: "Weighing (Empty Bottle)",
-        value: "",
-        unit: "g",
-        logBookID: "",
-      },
-      {
-        name: "Weighing (Before Drying)",
-        value: "",
-        unit: "g",
-        logBookID: "",
-      },
-      {
-        name: "Drying",
-        temp: "",
-        tempUnit: "°C",
-        time: "",
-        timeUnit: "min",
-        logBookID: "",
-      },
-      {
-        name: "Weighing (After Drying)",
-        value: "",
-        unit: "g",
-        logBookID: "",
-      },
-    ],
-  };
-};
+): SamplePreparationLod => ({
+  id: Date.now() + index,
+  label: `Sample Preparation ${index + 1} for LOD`,
+  steps: [
+    { name: "Weighing (Empty Bottle)", value: "", unit: "g", logBookID: "" },
+    { name: "Weighing (Before Drying)", value: "", unit: "g", logBookID: "" },
+    {
+      name: "Drying",
+      temp: "",
+      tempUnit: "°C",
+      time: "",
+      timeUnit: "min",
+      logBookID: "",
+    },
+    { name: "Weighing (After Drying)", value: "", unit: "g", logBookID: "" },
+  ],
+});
 
 const createNewSamplePreparationSulphatedAsh = (
   index: number
-): SamplePreparationSulphatedAsh => {
-  return {
-    id: Date.now() + index,
-    label: `Sample Preparation ${index + 1} for Sulphated Ash`,
-    steps: [
-      {
-        name: "Weighing (Empty Crucible)",
-        value: "",
-        unit: "g",
-        logBookID: "",
-      },
-      {
-        name: "Weighing (Before Drying)",
-        value: "",
-        unit: "g",
-        logBookID: "",
-      },
-      {
-        name: "Drying",
-        temp: "",
-        tempUnit: "°C",
-        time: "",
-        timeUnit: "min",
-        logBookID: "",
-      },
-      {
-        name: "Weighing (After Drying)",
-        value: "",
-        unit: "g",
-        logBookID: "",
-      },
-    ],
-  };
-};
+): SamplePreparationSulphatedAsh => ({
+  id: Date.now() + index,
+  label: `Sample Preparation ${index + 1} for Sulphated Ash`,
+  steps: [
+    { name: "Weighing (Empty Crucible)", value: "", unit: "g", logBookID: "" },
+    { name: "Weighing (Before Drying)", value: "", unit: "g", logBookID: "" },
+    {
+      name: "Drying",
+      temp: "",
+      tempUnit: "°C",
+      time: "",
+      timeUnit: "min",
+      logBookID: "",
+    },
+    { name: "Weighing (After Drying)", value: "", unit: "g", logBookID: "" },
+  ],
+});
 
-const createNewSamplePreparationROI = (index: number): SamplePreparationROI => {
-  return {
-    id: Date.now() + index,
-    label: `Sample Preparation ${index + 1} for ROI`,
-    steps: [
-      {
-        name: "Weighing (Empty Crucible)",
-        value: "",
-        unit: "g",
-        logBookID: "",
-      },
-      {
-        name: "Weighing (Before Drying)",
-        value: "",
-        unit: "g",
-        logBookID: "",
-      },
-      {
-        name: "Drying",
-        temp: "",
-        tempUnit: "°C",
-        time: "",
-        timeUnit: "min",
-        logBookID: "",
-      },
-      {
-        name: "Weighing (After Drying)",
-        value: "",
-        unit: "g",
-        logBookID: "",
-      },
-    ],
-  };
-};
+const createNewSamplePreparationROI = (
+  index: number
+): SamplePreparationROI => ({
+  id: Date.now() + index,
+  label: `Sample Preparation ${index + 1} for ROI`,
+  steps: [
+    { name: "Weighing (Empty Crucible)", value: "", unit: "g", logBookID: "" },
+    { name: "Weighing (Before Drying)", value: "", unit: "g", logBookID: "" },
+    {
+      name: "Drying",
+      temp: "",
+      tempUnit: "°C",
+      time: "",
+      timeUnit: "min",
+      logBookID: "",
+    },
+    { name: "Weighing (After Drying)", value: "", unit: "g", logBookID: "" },
+  ],
+});
 
 const createNewSamplePreparationDisso = (
   index: number
-): SamplePreparationDisso => {
-  return {
-    id: Date.now() + index,
-    label: `Sample Preparation ${index + 1} for Disso`,
-    steps: [
-      {
-        name: "Instrument Details",
-        id: "",
-        rpm: "",
-        temp: "",
-        tempUnit: "°C",
-      },
-      {
-        name: "Tablet Details",
-        claim: "",
-        mediaVol: "",
-        unit: "g",
-        time: "",
-        timeUnit: "min",
-      },
-      { name: "1st Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-      { name: "2nd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-      { name: "3rd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-      { name: "Filtration", value: "", unit: "micron" },
-    ],
-  };
-};
+): SamplePreparationDisso => ({
+  id: Date.now() + index,
+  label: `Sample Preparation ${index + 1}`,
+  assignedStandardId: null,
+  steps: [
+    { name: "Instrument Details", id: "", rpm: "", temp: "", tempUnit: "°C" },
+    {
+      name: "Tablet Details",
+      claim: "",
+      claimUnit: "mg",
+      mediaVol: "",
+      unit: "g",
+      time: "",
+      timeUnit: "min",
+    },
+    { name: "1st Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
+    { name: "2nd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
+    { name: "3rd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
+    { name: "Filtration", value: "", unit: "micron" },
+  ],
+});
 
-const createNewCalculationRS = (index: number): CalculationRS => {
-  return {
-    id: Date.now() + index,
-    label: `RS Calculation ${index + 1}`,
-    selectedStandardPrepId: null,
-    selectedSamplePrepId: null,
-    areaOfSample: "",
-    areaOfStandard: "",
-    sw1: "",
-    sw2: "",
-    v1: "",
-    v2: "",
-    v3: "",
-    v4: "",
-    v5: "",
-    v6: "",
-    purity: "",
-  };
-};
+const createNewCalculationRS = (index: number): CalculationRS => ({
+  id: Date.now() + index,
+  label: `RS Calculation ${index + 1}`,
+  selectedStandardPrepId: null,
+  selectedSamplePrepId: null,
+  areaOfSample: "",
+  areaOfStandard: "",
+  sw1: "",
+  sw2: "",
+  v1: "",
+  v2: "",
+  v3: "",
+  v4: "",
+  v5: "",
+  v6: "",
+  purity: "",
+});
+
+const PREPARATION_GROUPS = {
+  assay: { id: "assay", label: "Preparations for Assay", color: "red" },
+  lod: { id: "lod", label: "Preparations for LOD", color: "sky" },
+  roi: { id: "roi", label: "Preparations for ROI", color: "orange" },
+  sulphatedAsh: {
+    id: "sulphatedAsh",
+    label: "Preparations for Sulphated Ash",
+    color: "rose",
+  },
+  residualSolvent: {
+    id: "residualSolvent",
+    label: "Preparations for Residual Solvent",
+    color: "indigo",
+  },
+  dissolution: {
+    id: "dissolution",
+    label: "Preparations for Dissolution",
+    color: "emerald",
+  },
+} as const;
 
 const FormPreview: React.FC<FormPreviewProps> = ({
-  reportData,
-  loading,
-  error,
-  registrationNo,
+  worksheetId,
   instruments = [],
   chemicals = [],
   standards = [],
   columns = [],
   isReferenceDataLoading = false,
   referenceDataError = null,
-  testInfo = {},
-  documentInfo = {},
 }) => {
+  // Core state
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [registrationNo, setRegistrationNo] = useState("");
+  const [reportData, setReportData] = useState<SampleData[] | null>(null);
   const [addedParameters, setAddedParameters] = useState<AddedParameter[]>([]);
   const [showParameterDropdown, setShowParameterDropdown] = useState(false);
   const [selectedParamsForDetail, setSelectedParamsForDetail] = useState<
     number[]
   >([]);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [showDataDialog, setShowDataDialog] = useState(false);
   const [collectedData, setCollectedData] = useState<any>(null);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
 
-  // State for Columns Per Parameter
+  // Per-parameter state
   const [columnsPerParam, setColumnsPerParam] = useState<
     Record<number, string>
-  >({});
-
-  // New state for dynamic Mobile Phases - Map of Parameter ID to a list of MobilePhase objects
-  const [mobilePhasesPerParam, setMobilePhasesPerParam] = useState<
-    Record<number, MobilePhase[]>
-  >({});
-  const [dissoMediaPerParam, setDissoMediaPerParam] = useState<
-    Record<number, DissoMedia[]>
   >({});
   const [calculationsAssayPerParam, setCalculationsAssayPerParam] = useState<
     Record<number, CalculationAssay[]>
@@ -544,10 +423,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   const [samplePreparationPerParam, setSamplePreparationPerParam] = useState<
     Record<number, SamplePreparation[]>
   >({});
-  const [
-    samplePreparationTitrationPerParam,
-    setSamplePreparationTitrationPerParam,
-  ] = useState<Record<number, SamplePreparationTitration[]>>({});
   const [samplePreparationLodPerParam, setSamplePreparationLodPerParam] =
     useState<Record<number, SamplePreparationLod[]>>({});
   const [
@@ -558,8 +433,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     useState<Record<number, SamplePreparationROI[]>>({});
   const [samplePreparationDissoPerParam, setSamplePreparationDissoPerParam] =
     useState<Record<number, SamplePreparationDisso[]>>({});
-
-  // New state for dynamic tables
   const [addedInstruments, setAddedInstruments] = useState<
     Record<number, Instrument[]>
   >({});
@@ -569,44 +442,57 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   const [addedStandards, setAddedStandards] = useState<
     Record<number, Standard[]>
   >({});
-
-  // State for test solution preparation
+  // Worksheet-level caches (in case API provides top-level id arrays)
+  const [worksheetInstrumentIds, setWorksheetInstrumentIds] = useState<
+    string[]
+  >([]);
+  const [worksheetChemicalIds, setWorksheetChemicalIds] = useState<string[]>(
+    []
+  );
+  const [worksheetStandardIds, setWorksheetStandardIds] = useState<string[]>(
+    []
+  );
+  const [worksheetInstruments, setWorksheetInstruments] = useState<
+    Instrument[]
+  >([]);
+  const [worksheetChemicals, setWorksheetChemicals] = useState<Chemical[]>([]);
+  const [worksheetStandards, setWorksheetStandards] = useState<Standard[]>([]);
+  // Per-parameter id caches (string ids trimmed) to resolve when parent refs arrive
+  const [addedInstrumentIdsPerParam, setAddedInstrumentIdsPerParam] = useState<
+    Record<number, string[]>
+  >({});
+  const [addedChemicalIdsPerParam, setAddedChemicalIdsPerParam] = useState<
+    Record<number, string[]>
+  >({});
+  const [addedStandardIdsPerParam, setAddedStandardIdsPerParam] = useState<
+    Record<number, string[]>
+  >({});
   const [testSolutionPerParam, setTestSolutionPerParam] = useState<
     Record<number, string>
   >({});
   const [diluentPerParam, setDiluentPerParam] = useState<
     Record<number, string>
   >({});
-
-  const [standardAssignmentsPerParam, setStandardAssignmentsPerParam] =
-    useState<
-      Record<number, Record<number, string>> // paramId -> { standardPrepId -> standardId }
-    >({});
-
-  const [visiblePreparationsPerParam, setVisiblePreparationsPerParam] =
-    useState<Record<number, string[]>>({});
-
+  const [
+    standardPreparationDissoPerParam,
+    setStandardPreparationDissoPerParam,
+  ] = useState<Record<number, StandardPreparation[]>>({});
   const [showPreparationDropdown, setShowPreparationDropdown] = useState<
     Record<number, boolean>
   >({});
-
   const [activePreparationGroups, setActivePreparationGroups] = useState<
     Record<number, string[]>
   >({});
-
   const [calculationsLodPerParam, setCalculationsLodPerParam] = useState<
     Record<number, CalculationLod[]>
   >({});
-
   const [calculationsROIPerParam, setCalculationsROIPerParam] = useState<
     Record<number, CalculationROI[]>
   >({});
-
   const [
     calculationsSulphatedAshPerParam,
     setCalculationsSulphatedAshPerParam,
   ] = useState<Record<number, CalculationSulphatedAsh[]>>({});
-
   const [standardPreparationRSPerParam, setStandardPreparationRSPerParam] =
     useState<Record<number, StandardPreparation[]>>({});
   const [samplePreparationRSPerParam, setSamplePreparationRSPerParam] =
@@ -614,35 +500,35 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   const [calculationsRSPerParam, setCalculationsRSPerParam] = useState<
     Record<number, CalculationRS[]>
   >({});
-
+  const [calculationsDissoPerParam, setCalculationsDissoPerParam] = useState<
+    Record<number, CalculationDisso[]>
+  >({});
   const [isAddingRSStandard, setIsAddingRSStandard] = useState(false);
+  const [isAddingDissoStandard, setIsAddingDissoStandard] = useState(false);
 
-  // Control states for dynamic dropdowns
+  // Dropdown control states
   const [showInstrumentDropdown, setShowInstrumentDropdown] = useState(false);
   const [showChemicalDropdown, setShowChemicalDropdown] = useState(false);
   const [showStandardDropdown, setShowStandardDropdown] = useState(false);
-  const [showColumnDropdown, setShowColumnDropdown] = useState(false);
 
-  // Search states for dynamic dropdowns
+  // Search states
   const [instrumentSearch, setInstrumentSearch] = useState("");
   const [chemicalSearch, setChemicalSearch] = useState("");
   const [standardSearch, setStandardSearch] = useState("");
-  const [columnSearch, setColumnSearch] = useState("");
 
+  // Dialog state
   const [showStandardSelectionDialog, setShowStandardSelectionDialog] =
     useState(false);
   const [currentParameterForStandardPrep, setCurrentParameterForStandardPrep] =
     useState<number | null>(null);
 
-  const sample = reportData && reportData.length > 0 ? reportData[0] : null;
-
-  // --- START: Click Outside Logic Implementation ---
+  // Refs for click outside detection
   const instrumentRef = useRef<HTMLDivElement>(null);
   const chemicalRef = useRef<HTMLDivElement>(null);
   const standardRef = useRef<HTMLDivElement>(null);
-  const columnRef = useRef<HTMLDivElement>(null);
   const preparationDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Click outside handler
   const handleClickOutside = useCallback((event: MouseEvent) => {
     if (
       instrumentRef.current &&
@@ -663,12 +549,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       setShowStandardDropdown(false);
     }
     if (
-      columnRef.current &&
-      !columnRef.current.contains(event.target as Node)
-    ) {
-      setShowColumnDropdown(false);
-    }
-    if (
       preparationDropdownRef.current &&
       !preparationDropdownRef.current.contains(event.target as Node)
     ) {
@@ -678,126 +558,1202 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [handleClickOutside]);
 
-  const { preparationTestSolution = "" } = testInfo;
+  const dateOfReceipt = new Date().toLocaleDateString("en-GB");
+  const preparedBy = "Executive";
+  const issuedApprovedBy = "QA Manager";
+  const effectiveIssueDate = "01/05/2025";
+  const approvedBy = "Sr. Executive";
+  const classified = '"Internal Use Only"';
+  const revisionDate = "30/07/2027";
 
-  const {
-    dateOfReceipt = new Date().toLocaleDateString("en-GB"),
-    preparedBy = "Executive",
-    issuedApprovedBy = "QA Manager",
-    effectiveIssueDate = "01/05/2025",
-    approvedBy = "Sr. Executive",
-    classified = '"Internal Use Only"',
-    revisionDate = "30/07/2027",
-  } = documentInfo;
-
-  const getStorageKey = (regNo: string) => `form_draft_${regNo}`;
-
+  // Load worksheet data on mount
   useEffect(() => {
-    if (registrationNo) {
-      const storageKey = getStorageKey(registrationNo);
-      const savedData = localStorage.getItem(storageKey);
+    const loadWorksheetData = async () => {
+      if (!worksheetId) {
+        setError("No worksheet ID provided");
+        setIsLoading(false);
+        return;
+      }
 
-      if (savedData) {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Fetch worksheet details
+        const worksheetData = await fetchWorksheetById(worksheetId);
+
+        if (!worksheetData) {
+          setError("Worksheet not found");
+          setIsLoading(false);
+          return;
+        }
+
+        // Set registration number
+        setRegistrationNo(worksheetData.worksheet.registrationNo);
+
+        // Fetch sample data using registration number
+        const sampleData = await fetchSample(
+          worksheetData.worksheet.registrationNo
+        );
+
+        if (sampleData && Array.isArray(sampleData) && sampleData.length > 0) {
+          setReportData(sampleData);
+
+          // Restore worksheet state
+          restoreWorksheetToState(worksheetData, sampleData);
+        } else {
+          setError("No sample data found for this registration number");
+        }
+      } catch (err: any) {
+        console.error("Error loading worksheet:", err);
+        setError(err.message || "Failed to load worksheet");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadWorksheetData();
+  }, [worksheetId]);
+
+  const restoreWorksheetToState = (
+    worksheetData: WorksheetDetail,
+    sampleData: SampleData[]
+  ) => {
+    const { parameters } = worksheetData;
+
+    console.log("🔍 Starting worksheet restoration...");
+    console.log("Parameters received:", parameters);
+
+    // Map parameters with sample data
+    const restoredParams = parameters.map((param, index) => {
+      const matchingSample = sampleData.find(
+        (s) => s.paraCode === param.paraCode
+      );
+
+      return {
+        id: Date.now() + index,
+        paraCode: param.paraCode,
+        parameter: param.parameterName,
+        methodCode: param.methodCode,
+        methodName: param.methodName,
+        // Add all other sample data fields
+        ...(matchingSample || {}),
+      };
+    });
+
+    setAddedParameters(restoredParams as any);
+
+    // Helper function to safely parse JSON
+    const safeJSONParse = (data: any, fallback: any = []) => {
+      if (!data) return fallback;
+      if (typeof data === "string") {
         try {
-          const parsed = JSON.parse(savedData);
-
-          // Restore all state from saved data
-          if (parsed.addedParameters)
-            setAddedParameters(parsed.addedParameters);
-          if (parsed.selectedParamsForDetail)
-            setSelectedParamsForDetail(parsed.selectedParamsForDetail);
-          if (parsed.columnsPerParam)
-            setColumnsPerParam(parsed.columnsPerParam);
-          if (parsed.mobilePhasesPerParam)
-            setMobilePhasesPerParam(parsed.mobilePhasesPerParam);
-          if (parsed.dissoMediaPerParam)
-            setDissoMediaPerParam(parsed.dissoMediaPerParam);
-          if (parsed.standardPreparationPerParam)
-            setStandardPreparationPerParam(parsed.standardPreparationPerParam);
-          if (parsed.samplePreparationPerParam)
-            setSamplePreparationPerParam(parsed.samplePreparationPerParam);
-          if (parsed.samplePreparationTitrationPerParam)
-            setSamplePreparationTitrationPerParam(
-              parsed.samplePreparationTitrationPerParam
-            );
-          if (parsed.samplePreparationLodPerParam)
-            setSamplePreparationLodPerParam(
-              parsed.samplePreparationLodPerParam
-            );
-          if (parsed.samplePreparationSulphatedAshPerParam)
-            setSamplePreparationSulphatedAshPerParam(
-              parsed.samplePreparationSulphatedAshPerParam
-            );
-          if (parsed.samplePreparationROIPerParam)
-            setSamplePreparationROIPerParam(
-              parsed.samplePreparationROIPerParam
-            );
-          if (parsed.samplePreparationDissoPerParam)
-            setSamplePreparationDissoPerParam(
-              parsed.samplePreparationDissoPerParam
-            );
-          if (parsed.addedInstruments)
-            setAddedInstruments(parsed.addedInstruments);
-          if (parsed.addedChemicals) setAddedChemicals(parsed.addedChemicals);
-          if (parsed.addedStandards) setAddedStandards(parsed.addedStandards);
-          if (parsed.testSolutionPerParam)
-            setTestSolutionPerParam(parsed.testSolutionPerParam);
-          if (parsed.diluentPerParam)
-            setDiluentPerParam(parsed.diluentPerParam);
-
-          if (parsed.standardAssignmentsPerParam)
-            setStandardAssignmentsPerParam(parsed.standardAssignmentsPerParam);
-
-          if (parsed.calculationsAssayPerParam)
-            setCalculationsAssayPerParam(parsed.calculationsAssayPerParam);
-          if (parsed.calculationsLodPerParam)
-            setCalculationsROIPerParam(parsed.calculationsLodPerParam);
-          if (parsed.calculationsROIPerParam)
-            setCalculationsROIPerParam(parsed.calculationsROIPerParam);
-          if (parsed.calculationsSulphatedAshPerParam)
-            setCalculationsSulphatedAshPerParam(
-              parsed.calculationsSulphatedAshPerParam
-            );
-          if (parsed.activePreparationGroups)
-            setActivePreparationGroups(parsed.activePreparationGroups);
-          if (parsed.standardPreparationRSPerParam)
-            setStandardPreparationRSPerParam(
-              parsed.standardPreparationRSPerParam
-            );
-          if (parsed.samplePreparationRSPerParam)
-            setSamplePreparationRSPerParam(parsed.samplePreparationRSPerParam);
-          if (parsed.calculationsRSPerParam)
-            setCalculationsRSPerParam(parsed.calculationsRSPerParam);
-
-          console.log("Draft loaded for:", registrationNo);
-        } catch (err) {
-          console.error("Error loading draft:", err);
+          return JSON.parse(data);
+        } catch (e) {
+          console.error("JSON Parse Error:", e);
+          return fallback;
         }
       }
+      return data;
+    };
+
+    parameters.forEach((param, idx) => {
+      const paramId = restoredParams[idx].id;
+
+      console.log(`\n📦 Processing parameter ${idx + 1}:`, param.parameterName);
+      console.log("Parameter data:", param);
+
+      // ========== BASIC FIELDS ==========
+      if (param.columnId) {
+        setColumnsPerParam((prev) => ({ ...prev, [paramId]: param.columnId }));
+      }
+
+      if (param.diluentPreparation) {
+        setDiluentPerParam((prev) => ({
+          ...prev,
+          [paramId]: param.diluentPreparation,
+        }));
+      }
+
+      if (param.testSolutionPreparation) {
+        setTestSolutionPerParam((prev) => ({
+          ...prev,
+          [paramId]: param.testSolutionPreparation,
+        }));
+      }
+
+      // ========== INSTRUMENTS ==========
+      if (param.instrumentIds && Array.isArray(param.instrumentIds)) {
+        const validInstrumentIds = param.instrumentIds
+          .filter((id: any) => id != null)
+          .map((id: any) => String(id).trim());
+        if (validInstrumentIds.length > 0) {
+          setAddedInstrumentIdsPerParam((prev) => ({
+            ...prev,
+            [paramId]: validInstrumentIds,
+          }));
+
+          if (instruments && instruments.length) {
+            const paramInstruments = instruments.filter((inst) =>
+              validInstrumentIds.includes(String(inst.id).trim())
+            );
+            console.log("✅ Restored instruments:", paramInstruments);
+            setAddedInstruments((prev) => ({
+              ...prev,
+              [paramId]: paramInstruments,
+            }));
+          }
+        }
+      }
+
+      // ========== CHEMICALS ==========
+      if (param.chemicalIds && Array.isArray(param.chemicalIds)) {
+        const validChemicalIds = param.chemicalIds
+          .filter((id: any) => id != null)
+          .map((id: any) => String(id).trim());
+        if (validChemicalIds.length > 0) {
+          setAddedChemicalIdsPerParam((prev) => ({
+            ...prev,
+            [paramId]: validChemicalIds,
+          }));
+
+          if (chemicals && chemicals.length) {
+            const paramChemicals = chemicals.filter((chem) =>
+              validChemicalIds.includes(String(chem.id).trim())
+            );
+            console.log("✅ Restored chemicals:", paramChemicals);
+            setAddedChemicals((prev) => ({
+              ...prev,
+              [paramId]: paramChemicals,
+            }));
+          }
+        }
+      }
+
+      // ========== STANDARDS ==========
+      if (param.standardIds && Array.isArray(param.standardIds)) {
+        const validStandardIds = param.standardIds
+          .filter((id: any) => id != null)
+          .map((id: any) => String(id).trim());
+        if (validStandardIds.length > 0) {
+          setAddedStandardIdsPerParam((prev) => ({
+            ...prev,
+            [paramId]: validStandardIds,
+          }));
+
+          if (standards && standards.length) {
+            const paramStandards = standards.filter((std) =>
+              validStandardIds.includes(String(std.id).trim())
+            );
+            console.log("✅ Restored standards:", paramStandards);
+            setAddedStandards((prev) => ({
+              ...prev,
+              [paramId]: paramStandards,
+            }));
+          }
+        }
+      }
+
+      // ========== STANDARD PREPARATIONS (UNIFIED WITH TYPES) ==========
+      if (
+        param.standardPreparations &&
+        Array.isArray(param.standardPreparations) &&
+        param.standardPreparations.length > 0
+      ) {
+        console.log(
+          "📋 Standard Preparations (raw):",
+          param.standardPreparations
+        );
+
+        // Arrays to collect preparations by type
+        const assayStdPreps: any[] = [];
+        const rsStdPreps: any[] = [];
+        const dissoStdPreps: any[] = [];
+
+        param.standardPreparations.forEach((prep: any, i: number) => {
+          const parsedSteps = safeJSONParse(prep.steps, []);
+          const prepType = prep.preparationType || "assay";
+
+          console.log(
+            `  Standard Prep ${i + 1} type: ${prepType}, steps:`,
+            parsedSteps
+          );
+
+          const newPrep = {
+            id: Date.now() + i + 1000 + Math.random() * 1000,
+            label: prep.label || `Standard Preparation ${i + 1}`,
+            steps: parsedSteps,
+            assignedStandardId: prep.assignedStandardId || null,
+          };
+
+          // Route based on preparationType
+          switch (prepType) {
+            case "residual_solvent":
+              rsStdPreps.push(newPrep);
+              break;
+            case "dissolution":
+              dissoStdPreps.push(newPrep);
+              break;
+            case "assay":
+            default:
+              assayStdPreps.push(newPrep);
+              break;
+          }
+        });
+
+        // Set state for each type
+        if (assayStdPreps.length > 0) {
+          console.log(
+            "✅ Restored Assay Standard Preparations:",
+            assayStdPreps
+          );
+          setStandardPreparationPerParam((prev) => ({
+            ...prev,
+            [paramId]: assayStdPreps,
+          }));
+        }
+
+        if (rsStdPreps.length > 0) {
+          console.log("✅ Restored RS Standard Preparations:", rsStdPreps);
+          setStandardPreparationRSPerParam((prev) => ({
+            ...prev,
+            [paramId]: rsStdPreps,
+          }));
+        }
+
+        if (dissoStdPreps.length > 0) {
+          console.log(
+            "✅ Restored Dissolution Standard Preparations:",
+            dissoStdPreps
+          );
+          setStandardPreparationDissoPerParam((prev) => ({
+            ...prev,
+            [paramId]: dissoStdPreps,
+          }));
+        }
+      }
+
+      // ========== SAMPLE PREPARATIONS (UNIFIED WITH TYPES) ==========
+      if (
+        param.samplePreparations &&
+        Array.isArray(param.samplePreparations) &&
+        param.samplePreparations.length > 0
+      ) {
+        console.log("📋 Sample Preparations (raw):", param.samplePreparations);
+
+        // Arrays to collect preparations by type
+        const assaySplPreps: any[] = [];
+        const lodSplPreps: any[] = [];
+        const roiSplPreps: any[] = [];
+        const ashSplPreps: any[] = [];
+        const rsSplPreps: any[] = [];
+        const dissoSplPreps: any[] = [];
+
+        param.samplePreparations.forEach((prep: any, i: number) => {
+          const parsedSteps = safeJSONParse(prep.steps, []);
+          const prepType = prep.preparationType || "assay";
+
+          console.log(
+            `  Sample Prep ${i + 1} type: ${prepType}, steps:`,
+            parsedSteps
+          );
+
+          const newPrep = {
+            id: Date.now() + i + 2000 + Math.random() * 1000,
+            label: prep.label || `Sample Preparation ${i + 1}`,
+            steps: parsedSteps,
+            assignedStandardId: prep.assignedStandardId || null,
+          };
+
+          // Route to correct array based on preparationType
+          switch (prepType) {
+            case "lod":
+              lodSplPreps.push(newPrep);
+              break;
+            case "roi":
+              roiSplPreps.push(newPrep);
+              break;
+            case "sulphated_ash":
+              ashSplPreps.push(newPrep);
+              break;
+            case "dissolution":
+              dissoSplPreps.push(newPrep);
+              break;
+            case "residual_solvent":
+              rsSplPreps.push(newPrep);
+              break;
+            case "assay":
+            default:
+              assaySplPreps.push(newPrep);
+              break;
+          }
+        });
+
+        // Set state for each type
+        if (assaySplPreps.length > 0) {
+          console.log("✅ Restored Assay Sample Preparations:", assaySplPreps);
+          setSamplePreparationPerParam((prev) => ({
+            ...prev,
+            [paramId]: assaySplPreps,
+          }));
+        }
+
+        if (lodSplPreps.length > 0) {
+          console.log("✅ Restored LOD Sample Preparations:", lodSplPreps);
+          setSamplePreparationLodPerParam((prev) => ({
+            ...prev,
+            [paramId]: lodSplPreps,
+          }));
+        }
+
+        if (roiSplPreps.length > 0) {
+          console.log("✅ Restored ROI Sample Preparations:", roiSplPreps);
+          setSamplePreparationROIPerParam((prev) => ({
+            ...prev,
+            [paramId]: roiSplPreps,
+          }));
+        }
+
+        if (ashSplPreps.length > 0) {
+          console.log(
+            "✅ Restored Sulphated Ash Sample Preparations:",
+            ashSplPreps
+          );
+          setSamplePreparationSulphatedAshPerParam((prev) => ({
+            ...prev,
+            [paramId]: ashSplPreps,
+          }));
+        }
+
+        if (rsSplPreps.length > 0) {
+          console.log("✅ Restored RS Sample Preparations:", rsSplPreps);
+          setSamplePreparationRSPerParam((prev) => ({
+            ...prev,
+            [paramId]: rsSplPreps,
+          }));
+        }
+
+        if (dissoSplPreps.length > 0) {
+          console.log(
+            "✅ Restored Dissolution Sample Preparations:",
+            dissoSplPreps
+          );
+          setSamplePreparationDissoPerParam((prev) => ({
+            ...prev,
+            [paramId]: dissoSplPreps,
+          }));
+        }
+      }
+
+      // ========== BUILD PREP LABEL MAPPING FOR CALCULATIONS ==========
+      // Build label->newId mapping for restored preparations so we can resolve labels saved in calc data
+      const prepLabelMapping: Record<string, number> = {};
+
+      // Map standard preparations
+      if (
+        param.standardPreparations &&
+        Array.isArray(param.standardPreparations)
+      ) {
+        param.standardPreparations.forEach((prep: any, i: number) => {
+          if (prep.label) {
+            prepLabelMapping[prep.label] =
+              Date.now() + i + 1000 + Math.random() * 1000;
+          }
+        });
+      }
+
+      // Map sample preparations
+      if (param.samplePreparations && Array.isArray(param.samplePreparations)) {
+        param.samplePreparations.forEach((prep: any, i: number) => {
+          if (prep.label) {
+            prepLabelMapping[prep.label] =
+              Date.now() + i + 2000 + Math.random() * 1000;
+          }
+        });
+      }
+
+      console.log("🔗 Prep Label Mapping:", prepLabelMapping);
+
+      // ========== CALCULATIONS (UNIFIED WITH TYPES) ==========
+      if (param.calculations && Array.isArray(param.calculations)) {
+        console.log("📊 Calculations (raw):", param.calculations);
+
+        param.calculations.forEach((calc: any, i: number) => {
+          try {
+            const parsedData =
+              typeof calc.data === "string" ? JSON.parse(calc.data) : calc.data;
+            const calcType = calc.calculationType || "assay";
+
+            console.log(`  Calculation ${i + 1} type: ${calcType}`);
+
+            // Get preparation labels for linking
+            const stdLabel = parsedData.selectedStandardPreparationLabel;
+            const splLabel = parsedData.selectedSamplePreparationLabel;
+
+            // Map labels to IDs from restored preparations
+            const stdId = stdLabel ? prepLabelMapping[stdLabel] ?? null : null;
+            const splId = splLabel ? prepLabelMapping[splLabel] ?? null : null;
+
+            // Route based on calculationType
+            switch (calcType) {
+              case "assay":
+                const assayCalc = {
+                  id: Date.now() + i + 3000 + Math.random() * 1000,
+                  label: parsedData.label || calc.label,
+                  selectedStandardPrepId: stdId,
+                  selectedSamplePrepId: splId,
+                  calculationType: parsedData.calculationType || "",
+                  areaOfSample: parsedData.areaOfSample || "",
+                  areaOfStandard: parsedData.areaOfStandard || "",
+                  v1: parsedData.v1 || "",
+                  v2: parsedData.v2 || "",
+                  v3: parsedData.v3 || "",
+                  v4: parsedData.v4 || "",
+                  v5: parsedData.v5 || "",
+                  v6: parsedData.v6 || "",
+                  v7: parsedData.v7 || "",
+                  v8: parsedData.v8 || "",
+                  v9: parsedData.v9 || "",
+                  v10: parsedData.v10 || "",
+                  v11: parsedData.v11 || "",
+                  v12: parsedData.v12 || "",
+                  v13: parsedData.v13 || "",
+                  v14: parsedData.v14 || "",
+                  sw1: parsedData.sw1 || "",
+                  sw2: parsedData.sw2 || "",
+                  baseXPurity: parsedData.baseXPurity || "",
+                  avgWt: parsedData.avgWt || "",
+                  mwSalt: parsedData.mwSalt || "",
+                  mwBase: parsedData.mwBase || "",
+                  claimVolume:
+                    parsedData.claimVolume || parsedData.doseVolume || "",
+                  labelClaim: parsedData.labelClaim || "",
+                };
+                setCalculationsAssayPerParam((prev) => ({
+                  ...prev,
+                  [paramId]: [...(prev[paramId] || []), assayCalc],
+                }));
+                console.log("✅ Restored Assay Calculation:", assayCalc);
+                break;
+
+              case "lod":
+                const lodCalc = {
+                  id: Date.now() + i + 4000 + Math.random() * 1000,
+                  label: parsedData.label || calc.label,
+                  selectedSamplePrepId: splId,
+                  w1_emptyDish: parsedData.w1_emptyDish || "",
+                  w2_dishWithSample: parsedData.w2_dishWithSample || "",
+                  w3_dishAfterIgnition: parsedData.w3_dishAfterIgnition || "",
+                };
+                setCalculationsLodPerParam((prev) => ({
+                  ...prev,
+                  [paramId]: [...(prev[paramId] || []), lodCalc],
+                }));
+                console.log("✅ Restored LOD Calculation:", lodCalc);
+                break;
+
+              case "roi":
+                const roiCalc = {
+                  id: Date.now() + i + 5000 + Math.random() * 1000,
+                  label: parsedData.label || calc.label,
+                  selectedSamplePrepId: splId,
+                  w1_emptyDish: parsedData.w1_emptyDish || "",
+                  w2_dishWithSample: parsedData.w2_dishWithSample || "",
+                  w3_dishAfterIgnition: parsedData.w3_dishAfterIgnition || "",
+                };
+                setCalculationsROIPerParam((prev) => ({
+                  ...prev,
+                  [paramId]: [...(prev[paramId] || []), roiCalc],
+                }));
+                console.log("✅ Restored ROI Calculation:", roiCalc);
+                break;
+
+              case "sulphated_ash":
+                const ashCalc = {
+                  id: Date.now() + i + 6000 + Math.random() * 1000,
+                  label: parsedData.label || calc.label,
+                  selectedSamplePrepId: splId,
+                  w1_emptyCrucible: parsedData.w1_emptyCrucible || "",
+                  w2_crucibleWithSample: parsedData.w2_crucibleWithSample || "",
+                  w3_crucibleAfterAsh: parsedData.w3_crucibleAfterAsh || "",
+                };
+                setCalculationsSulphatedAshPerParam((prev) => ({
+                  ...prev,
+                  [paramId]: [...(prev[paramId] || []), ashCalc],
+                }));
+                console.log("✅ Restored Sulphated Ash Calculation:", ashCalc);
+                break;
+
+              case "residual_solvent":
+                const rsCalc = {
+                  id: Date.now() + i + 7000 + Math.random() * 1000,
+                  label: parsedData.label || calc.label,
+                  selectedStandardPrepId: stdId,
+                  selectedSamplePrepId: splId,
+                  areaOfSample: parsedData.areaOfSample || "",
+                  areaOfStandard: parsedData.areaOfStandard || "",
+                  sw1: parsedData.sw1 || "",
+                  sw2: parsedData.sw2 || "",
+                  v1: parsedData.v1 || "",
+                  v2: parsedData.v2 || "",
+                  v3: parsedData.v3 || "",
+                  v4: parsedData.v4 || "",
+                  v5: parsedData.v5 || "",
+                  v6: parsedData.v6 || "",
+                  purity: parsedData.purity || "",
+                };
+                setCalculationsRSPerParam((prev) => ({
+                  ...prev,
+                  [paramId]: [...(prev[paramId] || []), rsCalc],
+                }));
+                console.log("✅ Restored RS Calculation:", rsCalc);
+                break;
+
+              case "dissolution":
+                const dissoCalc = {
+                  id: Date.now() + i + 8000 + Math.random() * 1000,
+                  label: parsedData.label || calc.label,
+                  selectedStandardPrepId: stdId,
+                  selectedSamplePrepDissoId: splId,
+                  areaOfSample: parsedData.areaOfSample || "",
+                  areaOfStandard: parsedData.areaOfStandard || "",
+                  mwBase: parsedData.mwBase || "",
+                  mwSalt: parsedData.mwSalt || "",
+                  claim: parsedData.claim || "",
+                  purity: parsedData.purity || "",
+                };
+                setCalculationsDissoPerParam((prev) => ({
+                  ...prev,
+                  [paramId]: [...(prev[paramId] || []), dissoCalc],
+                }));
+                console.log("✅ Restored Dissolution Calculation:", dissoCalc);
+                break;
+            }
+          } catch (e) {
+            console.error(`Error parsing calculation ${i + 1}:`, e);
+          }
+        });
+      }
+
+      // ========== SET ACTIVE PREPARATION GROUPS ==========
+      const activeGroups: string[] = [];
+
+      // Check for assay preparations
+      if (
+        (param.standardPreparations?.filter(
+          (p: any) => !p.preparationType || p.preparationType === "assay"
+        ).length || 0) > 0 ||
+        (param.samplePreparations?.filter(
+          (p: any) => !p.preparationType || p.preparationType === "assay"
+        ).length || 0) > 0
+      ) {
+        activeGroups.push("assay");
+      }
+
+      // Check for LOD preparations
+      if (
+        (param.samplePreparations?.filter(
+          (p: any) => p.preparationType === "lod"
+        ).length || 0) > 0
+      ) {
+        activeGroups.push("lod");
+      }
+
+      // Check for ROI preparations
+      if (
+        (param.samplePreparations?.filter(
+          (p: any) => p.preparationType === "roi"
+        ).length || 0) > 0
+      ) {
+        activeGroups.push("roi");
+      }
+
+      // Check for Sulphated Ash preparations
+      if (
+        (param.samplePreparations?.filter(
+          (p: any) => p.preparationType === "sulphated_ash"
+        ).length || 0) > 0
+      ) {
+        activeGroups.push("sulphatedAsh");
+      }
+
+      // Check for Residual Solvent preparations
+      if (
+        (param.standardPreparations?.filter(
+          (p: any) => p.preparationType === "residual_solvent"
+        ).length || 0) > 0 ||
+        (param.samplePreparations?.filter(
+          (p: any) => p.preparationType === "residual_solvent"
+        ).length || 0) > 0
+      ) {
+        activeGroups.push("residualSolvent");
+      }
+
+      // Check for Dissolution preparations
+      if (
+        (param.standardPreparations?.filter(
+          (p: any) => p.preparationType === "dissolution"
+        ).length || 0) > 0 ||
+        (param.samplePreparations?.filter(
+          (p: any) => p.preparationType === "dissolution"
+        ).length || 0) > 0
+      ) {
+        activeGroups.push("dissolution");
+      }
+
+      if (activeGroups.length > 0) {
+        console.log("✅ Active preparation groups:", activeGroups);
+        setActivePreparationGroups((prev) => ({
+          ...prev,
+          [paramId]: activeGroups,
+        }));
+      }
+    });
+
+    // Auto-expand all parameters for viewing
+    setSelectedParamsForDetail(restoredParams.map((p) => p.id));
+
+    console.log("✅ Worksheet restoration complete!");
+  };
+
+  // Resolve per-parameter cached ids to full objects when parent lists become available
+  useEffect(() => {
+    if (!instruments || !Object.keys(addedInstrumentIdsPerParam).length) return;
+    Object.entries(addedInstrumentIdsPerParam).forEach(([paramId, idList]) => {
+      const ids = Array.isArray(idList)
+        ? idList.map(String).map((s) => s.trim())
+        : [];
+      const matched = instruments.filter((inst) =>
+        ids.includes(String(inst.id).trim())
+      );
+      setAddedInstruments((prev) => ({ ...prev, [Number(paramId)]: matched }));
+    });
+  }, [instruments, addedInstrumentIdsPerParam]);
+
+  useEffect(() => {
+    if (!chemicals || !Object.keys(addedChemicalIdsPerParam).length) return;
+    Object.entries(addedChemicalIdsPerParam).forEach(([paramId, idList]) => {
+      const ids = Array.isArray(idList)
+        ? idList.map(String).map((s) => s.trim())
+        : [];
+      const matched = chemicals.filter((chem) =>
+        ids.includes(String(chem.id).trim())
+      );
+      setAddedChemicals((prev) => ({ ...prev, [Number(paramId)]: matched }));
+    });
+  }, [chemicals, addedChemicalIdsPerParam]);
+
+  useEffect(() => {
+    if (!standards || !Object.keys(addedStandardIdsPerParam).length) return;
+    Object.entries(addedStandardIdsPerParam).forEach(([paramId, idList]) => {
+      const ids = Array.isArray(idList)
+        ? idList.map(String).map((s) => s.trim())
+        : [];
+      const matched = standards.filter((std) =>
+        ids.includes(String(std.id).trim())
+      );
+      setAddedStandards((prev) => ({ ...prev, [Number(paramId)]: matched }));
+    });
+  }, [standards, addedStandardIdsPerParam]);
+
+  // Resolve worksheet-level id arrays (if any) to full objects when parent refs arrive
+  useEffect(() => {
+    if (
+      !instruments ||
+      !worksheetInstrumentIds ||
+      !worksheetInstrumentIds.length
+    )
+      return;
+    const ids = worksheetInstrumentIds.map((s) => String(s).trim());
+    setWorksheetInstruments(
+      instruments.filter((inst) => ids.includes(String(inst.id).trim()))
+    );
+  }, [instruments, worksheetInstrumentIds]);
+
+  useEffect(() => {
+    if (!chemicals || !worksheetChemicalIds || !worksheetChemicalIds.length)
+      return;
+    const ids = worksheetChemicalIds.map((s) => String(s).trim());
+    setWorksheetChemicals(
+      chemicals.filter((chem) => ids.includes(String(chem.id).trim()))
+    );
+  }, [chemicals, worksheetChemicalIds]);
+
+  useEffect(() => {
+    if (!standards || !worksheetStandardIds || !worksheetStandardIds.length)
+      return;
+    const ids = worksheetStandardIds.map((s) => String(s).trim());
+    setWorksheetStandards(
+      standards.filter((std) => ids.includes(String(std.id).trim()))
+    );
+  }, [standards, worksheetStandardIds]);
+
+  const collectFormDataForAPI = (): WorksheetRequest => {
+    const sample = reportData && reportData.length > 0 ? reportData[0] : null;
+
+    // Helper to get prep labels by prep id for this parameter
+    const getPrepLabel = (
+      paramId: number,
+      prepId: number | null | undefined
+    ) => {
+      if (prepId == null) return "";
+
+      // Search in all standard preparation types
+      const allStandardPreps = [
+        ...(standardPreparationPerParam[paramId] || []),
+        ...(standardPreparationRSPerParam[paramId] || []),
+        ...(standardPreparationDissoPerParam[paramId] || []),
+      ];
+
+      // Search in all sample preparation types
+      const allSamplePreps = [
+        ...(samplePreparationPerParam[paramId] || []),
+        ...(samplePreparationLodPerParam[paramId] || []),
+        ...(samplePreparationROIPerParam[paramId] || []),
+        ...(samplePreparationSulphatedAshPerParam[paramId] || []),
+        ...(samplePreparationRSPerParam[paramId] || []),
+        ...(samplePreparationDissoPerParam[paramId] || []),
+      ];
+
+      const foundStd = allStandardPreps.find((p: any) => p.id === prepId);
+      if (foundStd) return foundStd.label || "";
+
+      const foundSpl = allSamplePreps.find((p: any) => p.id === prepId);
+      if (foundSpl) return foundSpl.label || "";
+
+      return "";
+    };
+
+    return {
+      registrationInfo: {
+        registrationNo: sample?.registrationNo || registrationNo || "",
+        dateOfReceipt,
+        sampleName: sample?.sampleName || "",
+        numberOfParameters: addedParameters.length,
+        dueDate: sample?.tatDate || "",
+        analysisStartDate: sample?.analysisStartDate || "",
+        analysisCompletionDate: sample?.analysisCompletionDate || "",
+      },
+      documentInfo: {
+        preparedBy,
+        analyzedBy: issuedApprovedBy,
+        approvedBy,
+        classified,
+        revisionDate,
+      },
+      parameters: addedParameters.map((param) => {
+        // Collect all standard preparations with their types
+        const standardPreparations = [
+          ...(standardPreparationPerParam[param.id] || []).map((sp) => ({
+            label: sp.label,
+            preparationType: "assay",
+            assignedStandardId: (sp as any).assignedStandardId || "",
+            steps: JSON.stringify(sp.steps),
+          })),
+          ...(standardPreparationRSPerParam[param.id] || []).map((sp) => ({
+            label: sp.label,
+            preparationType: "residual_solvent",
+            assignedStandardId: (sp as any).assignedStandardId || "",
+            steps: JSON.stringify(sp.steps),
+          })),
+          ...(standardPreparationDissoPerParam[param.id] || []).map((sp) => ({
+            label: sp.label,
+            preparationType: "dissolution",
+            assignedStandardId: (sp as any).assignedStandardId || "",
+            steps: JSON.stringify(sp.steps),
+          })),
+        ];
+
+        // Collect all sample preparations with their types
+        const samplePreparations = [
+          ...(samplePreparationPerParam[param.id] || []).map((sp) => ({
+            label: sp.label,
+            preparationType: "assay",
+            assignedStandardId: (sp as any).assignedStandardId || "",
+            steps: JSON.stringify(sp.steps),
+          })),
+          ...(samplePreparationLodPerParam[param.id] || []).map((spl) => ({
+            label: spl.label,
+            preparationType: "lod",
+            assignedStandardId: "",
+            steps: JSON.stringify(spl.steps),
+          })),
+          ...(samplePreparationROIPerParam[param.id] || []).map((spl) => ({
+            label: spl.label,
+            preparationType: "roi",
+            assignedStandardId: "",
+            steps: JSON.stringify(spl.steps),
+          })),
+          ...(samplePreparationSulphatedAshPerParam[param.id] || []).map(
+            (sps) => ({
+              label: sps.label,
+              preparationType: "sulphated_ash",
+              assignedStandardId: "",
+              steps: JSON.stringify(sps.steps),
+            })
+          ),
+          ...(samplePreparationRSPerParam[param.id] || []).map((sp) => ({
+            label: sp.label,
+            preparationType: "residual_solvent",
+            assignedStandardId: (sp as any).assignedStandardId || "",
+            steps: JSON.stringify(sp.steps),
+          })),
+          ...(samplePreparationDissoPerParam[param.id] || []).map((spd) => ({
+            label: spd.label,
+            preparationType: "dissolution",
+            assignedStandardId: (spd as any).assignedStandardId || "",
+            steps: JSON.stringify(spd.steps),
+          })),
+        ];
+
+        // Collect all calculations with their types
+        const calculations = [
+          ...(calculationsAssayPerParam[param.id] || []).map((calc) => {
+            const stdLabel = getPrepLabel(
+              param.id,
+              (calc as any).selectedStandardPrepId
+            );
+            const splLabel = getPrepLabel(
+              param.id,
+              (calc as any).selectedSamplePrepId
+            );
+            const dataObj = { ...calc } as any;
+            delete dataObj.selectedStandardPrepId;
+            delete dataObj.selectedSamplePrepId;
+            dataObj.selectedStandardPreparationLabel = stdLabel || "";
+            dataObj.selectedSamplePreparationLabel = splLabel || "";
+            return {
+              label: calc.label,
+              calculationType: "assay",
+              data: JSON.stringify(dataObj),
+            };
+          }),
+          ...(calculationsLodPerParam[param.id] || []).map((calc) => {
+            const splLabel = getPrepLabel(
+              param.id,
+              (calc as any).selectedSamplePrepId
+            );
+            const dataObj = { ...calc } as any;
+            delete dataObj.selectedSamplePrepId;
+            dataObj.selectedSamplePreparationLabel = splLabel || "";
+            return {
+              label: calc.label,
+              calculationType: "lod",
+              data: JSON.stringify(dataObj),
+            };
+          }),
+          ...(calculationsROIPerParam[param.id] || []).map((calc) => {
+            const splLabel = getPrepLabel(
+              param.id,
+              (calc as any).selectedSamplePrepId
+            );
+            const dataObj = { ...calc } as any;
+            delete dataObj.selectedSamplePrepId;
+            dataObj.selectedSamplePreparationLabel = splLabel || "";
+            return {
+              label: calc.label,
+              calculationType: "roi",
+              data: JSON.stringify(dataObj),
+            };
+          }),
+          ...(calculationsSulphatedAshPerParam[param.id] || []).map((calc) => {
+            const splLabel = getPrepLabel(
+              param.id,
+              (calc as any).selectedSamplePrepId
+            );
+            const dataObj = { ...calc } as any;
+            delete dataObj.selectedSamplePrepId;
+            dataObj.selectedSamplePreparationLabel = splLabel || "";
+            return {
+              label: calc.label,
+              calculationType: "sulphated_ash",
+              data: JSON.stringify(dataObj),
+            };
+          }),
+          ...(calculationsRSPerParam[param.id] || []).map((calc) => {
+            const stdLabel = getPrepLabel(
+              param.id,
+              (calc as any).selectedStandardPrepId
+            );
+            const splLabel = getPrepLabel(
+              param.id,
+              (calc as any).selectedSamplePrepId
+            );
+            const dataObj = { ...calc } as any;
+            delete dataObj.selectedStandardPrepId;
+            delete dataObj.selectedSamplePrepId;
+            dataObj.selectedStandardPreparationLabel = stdLabel || "";
+            dataObj.selectedSamplePreparationLabel = splLabel || "";
+            return {
+              label: calc.label,
+              calculationType: "residual_solvent",
+              data: JSON.stringify(dataObj),
+            };
+          }),
+          ...(calculationsDissoPerParam[param.id] || []).map((calc) => {
+            const stdLabel = getPrepLabel(
+              param.id,
+              (calc as any).selectedStandardPrepId
+            );
+            const splLabel = getPrepLabel(
+              param.id,
+              (calc as any).selectedSamplePrepId
+            );
+            const dataObj = { ...calc } as any;
+            delete dataObj.selectedStandardPrepId;
+            delete dataObj.selectedSamplePrepId;
+            dataObj.selectedStandardPreparationLabel = stdLabel || "";
+            dataObj.selectedSamplePreparationLabel = splLabel || "";
+            return {
+              label: calc.label,
+              calculationType: "dissolution",
+              data: JSON.stringify(dataObj),
+            };
+          }),
+        ];
+
+        return {
+          paraCode: param.paraCode,
+          parameterName: param.parameter,
+          methodCode: param.methodCode,
+          methodName: param.methodName,
+          columnId: columnsPerParam[param.id] || "",
+          diluentPreparation: diluentPerParam[param.id] || "",
+          testSolutionPreparation: testSolutionPerParam[param.id] || "",
+
+          instruments: (addedInstruments[param.id] || []).map(
+            (inst) => inst.id
+          ),
+          chemicals: (addedChemicals[param.id] || []).map((chem) => chem.id),
+          standards: (addedStandards[param.id] || []).map((std) => std.id),
+
+          // Unified arrays with type discriminators
+          standardPreparations,
+          samplePreparations,
+          calculations,
+        };
+      }),
+    };
+  };
+
+  const handleSaveDraft = async () => {
+    setIsSaving(true);
+    const worksheetData = collectFormDataForAPI();
+
+    try {
+      const response = await updateWorksheet(worksheetId, worksheetData);
+
+      if (response && response.worksheetId) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+        console.log("Draft saved successfully:", response.worksheetId);
+      } else {
+        alert("Failed to save draft");
+      }
+    } catch (err: any) {
+      console.error("Error saving draft:", err);
+      alert(`Failed to save draft: ${err.message}`);
+    } finally {
+      setIsSaving(false);
     }
-  }, [registrationNo]);
-  // --- END: LOCAL STORAGE LOGIC ---
+  };
+
+  const collectFormDataForReport = () => {
+    const sample = reportData && reportData.length > 0 ? reportData[0] : null;
+
+    return {
+      registrationInfo: {
+        registrationNo: sample?.registrationNo || registrationNo || "",
+        dateOfReceipt,
+        sampleName: sample?.sampleName || "",
+        numberOfParameters: addedParameters.length,
+        dueDate: sample?.tatDate || "",
+        analysisStartDate: sample?.analysisStartDate || "",
+        analysisCompletionDate: sample?.analysisCompletionDate || "",
+      },
+      documentInfo: {
+        preparedBy,
+        issuedApprovedBy,
+        effectiveIssueDate,
+        approvedBy,
+        classified,
+        revisionDate,
+      },
+      parameters: addedParameters.map((param) => ({
+        paraCode: param.paraCode,
+        parameterName: param.parameter,
+        methodCode: param.methodCode,
+        methodName: param.methodName,
+        instruments: (addedInstruments[param.id] || []).map((inst) => ({
+          name: inst.name,
+          calibrationDoneDate: inst.calibrationDoneDate,
+          calibrationDueDate: inst.calibrationDueDate,
+        })),
+        chemicals: (addedChemicals[param.id] || []).map((chem) => ({
+          name: chem.name,
+          make: chem.make,
+          batchNo: chem.batchNo,
+          validity: chem.validity,
+        })),
+        standards: (addedStandards[param.id] || []).map((std) => ({
+          name: std.name,
+          purity: std.purity,
+          make: std.make,
+          batchNo: std.batchNo,
+        })),
+        diluentPreparation: diluentPerParam[param.id] || "",
+        columnId: columnsPerParam[param.id] || "",
+        columnDetails:
+          columns.find((c) => c.id === columnsPerParam[param.id]) || null,
+        standardPreparation: (standardPreparationPerParam[param.id] || []).map(
+          (sp) => ({
+            label: sp.label,
+            steps: sp.steps,
+          })
+        ),
+        samplePreparation: (samplePreparationPerParam[param.id] || []).map(
+          (sp) => ({
+            label: sp.label,
+            steps: sp.steps,
+          })
+        ),
+        calculationsAssay: (calculationsAssayPerParam[param.id] || []).map(
+          (calc) => ({
+            label: calc.label,
+            selectedStandardPrepId: calc.selectedStandardPrepId,
+            selectedSamplePrepId: calc.selectedSamplePrepId,
+            calculationType: calc.calculationType,
+            areaOfSample: calc.areaOfSample,
+            areaOfStandard: calc.areaOfStandard,
+            v1: calc.v1,
+            v2: calc.v2,
+            v3: calc.v3,
+            v4: calc.v4,
+            v5: calc.v5,
+            v6: calc.v6,
+            v7: calc.v7,
+            v8: calc.v8,
+            v9: calc.v9,
+            v10: calc.v10,
+            v11: calc.v11,
+            v12: calc.v12,
+            v13: calc.v13,
+            v14: calc.v14,
+            sw1: calc.sw1,
+            sw2: calc.sw2,
+            baseXPurity: calc.baseXPurity,
+            avgWt: calc.avgWt,
+            mwSalt: calc.mwSalt,
+            mwBase: calc.mwBase,
+            doseVolume: calc.claimVolume,
+          })
+        ),
+        calculationsLod: (calculationsLodPerParam[param.id] || []).map(
+          (calc) => ({
+            label: calc.label,
+            selectedSamplePrepId: calc.selectedSamplePrepId,
+            w1_emptyDish: calc.w1_emptyDish,
+            w2_dishWithSample: calc.w2_dishWithSample,
+            w3_dishAfterIgnition: calc.w3_dishAfterIgnition,
+          })
+        ),
+        calculationsROI: (calculationsROIPerParam[param.id] || []).map(
+          (calc) => ({
+            label: calc.label,
+            selectedSamplePrepId: calc.selectedSamplePrepId,
+            w1_emptyDish: calc.w1_emptyDish,
+            w2_dishWithSample: calc.w2_dishWithSample,
+            w3_dishAfterIgnition: calc.w3_dishAfterIgnition,
+          })
+        ),
+        calculationsSulphatedAsh: (
+          calculationsSulphatedAshPerParam[param.id] || []
+        ).map((calc) => ({
+          label: calc.label,
+          selectedSamplePrepId: calc.selectedSamplePrepId,
+          w1_emptyCrucible: calc.w1_emptyCrucible,
+          w2_crucibleWithSample: calc.w2_crucibleWithSample,
+          w3_crucibleAfterAsh: calc.w3_crucibleAfterAsh,
+        })),
+        calculationsRS: (calculationsRSPerParam[param.id] || []).map(
+          (calc) => ({
+            label: calc.label,
+            selectedStandardPrepId: calc.selectedStandardPrepId,
+            selectedSamplePrepId: calc.selectedSamplePrepId,
+            areaOfSample: calc.areaOfSample,
+            areaOfStandard: calc.areaOfStandard,
+            sw1: calc.sw1,
+            sw2: calc.sw2,
+            v1: calc.v1,
+            v2: calc.v2,
+            v3: calc.v3,
+            v4: calc.v4,
+            v5: calc.v5,
+            v6: calc.v6,
+            purity: calc.purity,
+          })
+        ),
+        calculationsDisso: (calculationsDissoPerParam[param.id] || []).map(
+          (calc) => ({
+            label: calc.label,
+            selectedStandardPrepId: calc.selectedStandardPrepId,
+            selectedSamplePrepDissoId: calc.selectedSamplePrepDissoId,
+            areaOfSample: calc.areaOfSample,
+            areaOfStandard: calc.areaOfStandard,
+            mwBase: calc.mwBase,
+            mwSalt: calc.mwSalt,
+            claim: calc.claim,
+          })
+        ),
+        standardPreparationRS: (
+          standardPreparationRSPerParam[param.id] || []
+        ).map((sp) => ({
+          label: sp.label,
+          steps: sp.steps,
+        })),
+        samplePreparationRS: (samplePreparationRSPerParam[param.id] || []).map(
+          (sp) => ({
+            label: sp.label,
+            steps: sp.steps,
+          })
+        ),
+        samplePreparationDisso: (
+          samplePreparationDissoPerParam[param.id] || []
+        ).map((spd) => ({
+          label: spd.label,
+          steps: spd.steps,
+        })),
+        samplePreparationLod: (
+          samplePreparationLodPerParam[param.id] || []
+        ).map((spl) => ({
+          label: spl.label,
+          steps: spl.steps,
+        })),
+        samplePreparationROI: (
+          samplePreparationROIPerParam[param.id] || []
+        ).map((spl) => ({
+          label: spl.label,
+          steps: spl.steps,
+        })),
+        samplePreparationSulphatedAsh: (
+          samplePreparationSulphatedAshPerParam[param.id] || []
+        ).map((sps) => ({
+          label: sps.label,
+          steps: sps.steps,
+        })),
+        testSolutionPreparation: testSolutionPerParam[param.id] || "",
+      })),
+    };
+  };
 
   // Parameter Handlers
   const handleAddParameter = (param: SampleData) => {
     const newId = Date.now();
     if (!addedParameters.find((p) => p.paraCode === param.paraCode)) {
       setAddedParameters([...addedParameters, { ...param, id: newId }]);
-
-      setColumnsPerParam((prev) => ({
-        ...prev,
-        [newId]: testInfo.columnId || "",
-      }));
-
-      setTestSolutionPerParam((prev) => ({
-        ...prev,
-        [newId]: preparationTestSolution || "",
-      }));
     }
     setShowParameterDropdown(false);
   };
@@ -807,65 +1763,44 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     setSelectedParamsForDetail(
       selectedParamsForDetail.filter((paramId) => paramId !== id)
     );
-    setAddedInstruments((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
-    setAddedChemicals((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
-    setAddedStandards((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
-    setMobilePhasesPerParam((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
-    setDissoMediaPerParam((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
-    setColumnsPerParam((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
-    setDiluentPerParam((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
-    setTestSolutionPerParam((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
-    setCalculationsAssayPerParam((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
 
-    setCalculationsROIPerParam((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
-    setCalculationsLodPerParam((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
-    setCalculationsSulphatedAshPerParam((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
+    // Clean up all related state
+    const cleanupState = (setter: Function) => {
+      setter((prev: any) => {
+        const { [id]: _, ...rest } = prev;
+        return rest;
+      });
+    };
+
+    cleanupState(setAddedInstruments);
+    cleanupState(setAddedChemicals);
+    cleanupState(setAddedStandards);
+    cleanupState(setColumnsPerParam);
+    cleanupState(setDiluentPerParam);
+    cleanupState(setTestSolutionPerParam);
+    cleanupState(setCalculationsAssayPerParam);
+    cleanupState(setCalculationsROIPerParam);
+    cleanupState(setCalculationsLodPerParam);
+    cleanupState(setCalculationsSulphatedAshPerParam);
+    cleanupState(setCalculationsDissoPerParam);
+    cleanupState(setStandardPreparationPerParam);
+    cleanupState(setSamplePreparationPerParam);
+    cleanupState(setStandardPreparationDissoPerParam);
+    cleanupState(setSamplePreparationDissoPerParam);
+    cleanupState(setStandardPreparationRSPerParam);
+    cleanupState(setSamplePreparationRSPerParam);
+    cleanupState(setCalculationsRSPerParam);
+    cleanupState(setSamplePreparationLodPerParam);
+    cleanupState(setSamplePreparationROIPerParam);
+    cleanupState(setSamplePreparationSulphatedAshPerParam);
   };
 
   const toggleParameterDetail = (id: number) => {
-    if (selectedParamsForDetail.includes(id)) {
-      setSelectedParamsForDetail(
-        selectedParamsForDetail.filter((paramId) => paramId !== id)
-      );
-    } else {
-      setSelectedParamsForDetail([...selectedParamsForDetail, id]);
-    }
+    setSelectedParamsForDetail((prev) =>
+      prev.includes(id)
+        ? prev.filter((paramId) => paramId !== id)
+        : [...prev, id]
+    );
   };
 
   const availableToAdd = (reportData ?? []).filter(
@@ -873,126 +1808,11 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       !addedParameters.find((added) => added.paraCode === param.paraCode)
   );
 
-  // Mobile Phase Handlers
-  const handleAddMobilePhase = (parameterId: number) => {
-    setMobilePhasesPerParam((prev) => {
-      const currentPhases = prev[parameterId] || [];
-      const newIndex = currentPhases.length;
-      return {
-        ...prev,
-        [parameterId]: [...currentPhases, createNewMobilePhase(newIndex)],
-      };
-    });
-  };
-
-  const handleRemoveMobilePhase = (
-    parameterId: number,
-    mobilePhaseId: number
-  ) => {
-    setMobilePhasesPerParam((prev) => {
-      const updatedPhases = (prev[parameterId] || [])
-        .filter((mp) => mp.id !== mobilePhaseId)
-        .map((mp, index) => ({
-          ...mp,
-          label: `Mobile Phase ${String.fromCharCode(65 + index)}`,
-        }));
-      return {
-        ...prev,
-        [parameterId]: updatedPhases,
-      };
-    });
-  };
-
-  const handleMobilePhaseStepChange = (
-    parameterId: number,
-    mobilePhaseId: number,
-    stepName: MobilePhaseStep["name"],
-    field: "value" | "logBookID" | "mobilePhaseID" | "unit" | "solventChemical",
-    newValue: string
-  ) => {
-    setMobilePhasesPerParam((prev) => ({
-      ...prev,
-      [parameterId]: (prev[parameterId] || []).map((mp) => {
-        if (mp.id === mobilePhaseId) {
-          return {
-            ...mp,
-            steps: mp.steps.map((step) => {
-              if (step.name === stepName) {
-                return {
-                  ...step,
-                  [field]: newValue,
-                };
-              }
-              return step;
-            }),
-          };
-        }
-        return mp;
-      }),
-    }));
-  };
-
-  const handleAddDissoMedia = (parameterId: number) => {
-    setDissoMediaPerParam((prev) => {
-      const currentMedias = prev[parameterId] || [];
-      const newIndex = currentMedias.length;
-      return {
-        ...prev,
-        [parameterId]: [...currentMedias, createNewDissoMedia(newIndex)],
-      };
-    });
-  };
-
-  const handleRemoveDissoMedia = (
-    parameterId: number,
-    dissoMediaId: number
-  ) => {
-    setDissoMediaPerParam((prev) => {
-      const updatedMedias = (prev[parameterId] || [])
-        .filter((dm) => dm.id !== dissoMediaId)
-        .map((dm, index) => ({
-          ...dm,
-          label: `Disso Media ${String.fromCharCode(65 + index)}`,
-        }));
-      return {
-        ...prev,
-        [parameterId]: updatedMedias,
-      };
-    });
-  };
-
-  const handleDissoMediaStepChange = (
-    parameterId: number,
-    dissoMediaId: number,
-    stepName: DissoMediaStep["name"],
-    field: "value" | "logBookID" | "unit" | "solventChemical",
-    newValue: string
-  ) => {
-    setDissoMediaPerParam((prev) => ({
-      ...prev,
-      [parameterId]: (prev[parameterId] || []).map((dm) => {
-        if (dm.id === dissoMediaId) {
-          return {
-            ...dm,
-            steps: dm.steps.map((step) => {
-              if (step.name === stepName) {
-                return {
-                  ...step,
-                  [field]: newValue,
-                };
-              }
-              return step;
-            }),
-          };
-        }
-        return dm;
-      }),
-    }));
-  };
-
+  // Standard Preparation Handlers
   const handleAddStandardPreparation = (parameterId: number) => {
     setCurrentParameterForStandardPrep(parameterId);
     setIsAddingRSStandard(false);
+    setIsAddingDissoStandard(false);
     setShowStandardSelectionDialog(true);
   };
 
@@ -1013,7 +1833,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           label: `Standard Preparation ${1 + index}`,
         }));
 
-      // Also remove the corresponding sample preparation at the same index
       if (indexToRemove !== -1) {
         setSamplePreparationPerParam((prevSample) => {
           const samples = prevSample[parameterId] || [];
@@ -1023,17 +1842,11 @@ const FormPreview: React.FC<FormPreviewProps> = ({
               ...sp,
               label: `Sample Preparation ${1 + index}`,
             }));
-          return {
-            ...prevSample,
-            [parameterId]: updatedSamples,
-          };
+          return { ...prevSample, [parameterId]: updatedSamples };
         });
       }
 
-      return {
-        ...prev,
-        [parameterId]: updatedStandards,
-      };
+      return { ...prev, [parameterId]: updatedStandards };
     });
   };
 
@@ -1060,10 +1873,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             ...sp,
             steps: sp.steps.map((step) => {
               if (step.name === stepName) {
-                return {
-                  ...step,
-                  [field]: newValue,
-                };
+                return { ...step, [field]: newValue };
               }
               return step;
             }),
@@ -1074,35 +1884,37 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  const handleAddSamplePreparation = (parameterId: number) => {
-    setSamplePreparationPerParam((prev) => {
-      const currentSamples = prev[parameterId] || [];
-      const newIndex = currentSamples.length;
-      return {
-        ...prev,
-        [parameterId]: [
-          ...currentSamples,
-          createNewSamplePreparation(newIndex),
-        ],
-      };
-    });
-  };
-
   const handleRemoveSamplePreparation = (
     parameterId: number,
     samplePreparationId: number
   ) => {
     setSamplePreparationPerParam((prev) => {
-      const updatedSamples = (prev[parameterId] || [])
+      const samples = prev[parameterId] || [];
+      const indexToRemove = samples.findIndex(
+        (sp) => sp.id === samplePreparationId
+      );
+
+      const updatedSamples = samples
         .filter((sp) => sp.id !== samplePreparationId)
         .map((sp, index) => ({
           ...sp,
           label: `Sample Preparation ${1 + index}`,
         }));
-      return {
-        ...prev,
-        [parameterId]: updatedSamples,
-      };
+
+      if (indexToRemove !== -1) {
+        setStandardPreparationPerParam((prevStandard) => {
+          const standards = prevStandard[parameterId] || [];
+          const updatedStandards = standards
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Standard Preparation ${1 + index}`,
+            }));
+          return { ...prevStandard, [parameterId]: updatedStandards };
+        });
+      }
+
+      return { ...prev, [parameterId]: updatedSamples };
     });
   };
 
@@ -1129,10 +1941,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             ...sp,
             steps: sp.steps.map((step) => {
               if (step.name === stepName) {
-                return {
-                  ...step,
-                  [field]: newValue,
-                };
+                return { ...step, [field]: newValue };
               }
               return step;
             }),
@@ -1143,67 +1952,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  const handleAddSamplePreparationTitration = (parameterId: number) => {
-    setSamplePreparationTitrationPerParam((prev) => {
-      const currentSamples = prev[parameterId] || [];
-      const newIndex = currentSamples.length;
-      return {
-        ...prev,
-        [parameterId]: [
-          ...currentSamples,
-          createNewSamplePreparationTitration(newIndex),
-        ],
-      };
-    });
-  };
-
-  const handleRemoveSamplePreparationTitration = (
-    parameterId: number,
-    samplePreparationTitrationId: number
-  ) => {
-    setSamplePreparationTitrationPerParam((prev) => {
-      const updatedSamples = (prev[parameterId] || [])
-        .filter((spt) => spt.id !== samplePreparationTitrationId)
-        .map((spt, index) => ({
-          ...spt,
-          label: `Sample Preparation ${1 + index} for Titration`,
-        }));
-      return {
-        ...prev,
-        [parameterId]: updatedSamples,
-      };
-    });
-  };
-
-  const handleSamplePreparationTitrationStepChange = (
-    parameterId: number,
-    samplePreparationTitrationId: number,
-    stepName: SamplePreparationTitrationStep["name"],
-    field: "value" | "unit" | "logBookID" | "solventChemical",
-    newValue: string
-  ) => {
-    setSamplePreparationTitrationPerParam((prev) => ({
-      ...prev,
-      [parameterId]: (prev[parameterId] || []).map((spt) => {
-        if (spt.id === samplePreparationTitrationId) {
-          return {
-            ...spt,
-            steps: spt.steps.map((step) => {
-              if (step.name === stepName) {
-                return {
-                  ...step,
-                  [field]: newValue,
-                };
-              }
-              return step;
-            }),
-          };
-        }
-        return spt;
-      }),
-    }));
-  };
-
+  // LOD Handlers
   const handleAddSamplePreparationLod = (parameterId: number) => {
     setSamplePreparationLodPerParam((prev) => {
       const currentSamples = prev[parameterId] || [];
@@ -1229,10 +1978,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           ...spl,
           label: `Sample Preparation ${1 + index} for LOD`,
         }));
-      return {
-        ...prev,
-        [parameterId]: updatedSamples,
-      };
+      return { ...prev, [parameterId]: updatedSamples };
     });
   };
 
@@ -1258,10 +2004,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             ...spl,
             steps: spl.steps.map((step) => {
               if (step.name === stepName) {
-                return {
-                  ...step,
-                  [field]: newValue,
-                };
+                return { ...step, [field]: newValue };
               }
               return step;
             }),
@@ -1272,6 +2015,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
+  // Sulphated Ash Handlers
   const handleAddSamplePreparationSulphatedAsh = (parameterId: number) => {
     setSamplePreparationSulphatedAshPerParam((prev) => {
       const currentSamples = prev[parameterId] || [];
@@ -1297,10 +2041,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           ...spsa,
           label: `Sample Preparation ${1 + index} for Sulphated Ash`,
         }));
-      return {
-        ...prev,
-        [parameterId]: updatedSamples,
-      };
+      return { ...prev, [parameterId]: updatedSamples };
     });
   };
 
@@ -1326,10 +2067,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             ...spsa,
             steps: spsa.steps.map((step) => {
               if (step.name === stepName) {
-                return {
-                  ...step,
-                  [field]: newValue,
-                };
+                return { ...step, [field]: newValue };
               }
               return step;
             }),
@@ -1340,6 +2078,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
+  // ROI Handlers
   const handleAddSamplePreparationROI = (parameterId: number) => {
     setSamplePreparationROIPerParam((prev) => {
       const currentSamples = prev[parameterId] || [];
@@ -1365,10 +2104,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           ...spl,
           label: `Sample Preparation ${1 + index} for Loss on Ignation`,
         }));
-      return {
-        ...prev,
-        [parameterId]: updatedSamples,
-      };
+      return { ...prev, [parameterId]: updatedSamples };
     });
   };
 
@@ -1394,10 +2130,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             ...spl,
             steps: spl.steps.map((step) => {
               if (step.name === stepName) {
-                return {
-                  ...step,
-                  [field]: newValue,
-                };
+                return { ...step, [field]: newValue };
               }
               return step;
             }),
@@ -1408,35 +2141,38 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  const handleAddSamplePreparationDisso = (parameterId: number) => {
-    setSamplePreparationDissoPerParam((prev) => {
-      const currentSamples = prev[parameterId] || [];
-      const newIndex = currentSamples.length;
-      return {
-        ...prev,
-        [parameterId]: [
-          ...currentSamples,
-          createNewSamplePreparationDisso(newIndex),
-        ],
-      };
-    });
-  };
-
+  // Dissolution Handlers
   const handleRemoveSamplePreparationDisso = (
     parameterId: number,
     samplePreparationDissoId: number
   ) => {
     setSamplePreparationDissoPerParam((prev) => {
-      const updatedSamples = (prev[parameterId] || [])
-        .filter((spl) => spl.id !== samplePreparationDissoId)
-        .map((spl, index) => ({
-          ...spl,
-          label: `Sample Preparation ${1 + index} for Disso`,
+      const samples = prev[parameterId] || [];
+      const indexToRemove = samples.findIndex(
+        (sp) => sp.id === samplePreparationDissoId
+      );
+
+      const updatedSamples = samples
+        .filter((sp) => sp.id !== samplePreparationDissoId)
+        .map((sp, index) => ({
+          ...sp,
+          label: `Sample Preparation ${1 + index}`,
         }));
-      return {
-        ...prev,
-        [parameterId]: updatedSamples,
-      };
+
+      if (indexToRemove !== -1) {
+        setStandardPreparationDissoPerParam((prevStandard) => {
+          const standards = prevStandard[parameterId] || [];
+          const updatedStandards = standards
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Standard Preparation ${1 + index}`,
+            }));
+          return { ...prevStandard, [parameterId]: updatedStandards };
+        });
+      }
+
+      return { ...prev, [parameterId]: updatedSamples };
     });
   };
 
@@ -1458,6 +2194,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       | "id"
       | "rpm"
       | "claim"
+      | "claimUnit"
       | "mediaVol"
       | "solventChemical",
     newValue: string
@@ -1470,10 +2207,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             ...spl,
             steps: spl.steps.map((step) => {
               if (step.name === stepName) {
-                return {
-                  ...step,
-                  [field]: newValue,
-                };
+                return { ...step, [field]: newValue };
               }
               return step;
             }),
@@ -1484,6 +2218,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
+  // Instrument/Chemical/Standard Handlers
   const searchFilteredInstruments = instruments.filter(
     (inst) =>
       inst.name.toLowerCase().includes(instrumentSearch.toLowerCase()) ||
@@ -1502,12 +2237,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       std.name.toLowerCase().includes(standardSearch.toLowerCase()) ||
       (std.make &&
         std.make.toLowerCase().includes(standardSearch.toLowerCase()))
-  );
-
-  const searchFilteredColumns = columns.filter(
-    (col) =>
-      col.name.toLowerCase().includes(columnSearch.toLowerCase()) ||
-      col.id.toLowerCase().includes(columnSearch.toLowerCase())
   );
 
   const handleAddInstrument = (parameterId: number, instrument: Instrument) => {
@@ -1567,6 +2296,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
+  // Calculation Handlers - Assay
   const handleAddCalculationAssay = (parameterId: number) => {
     setCalculationsAssayPerParam((prev) => {
       const currentCalculations = prev[parameterId] || [];
@@ -1588,14 +2318,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     setCalculationsAssayPerParam((prev) => {
       const updatedCalculations = (prev[parameterId] || [])
         .filter((calc) => calc.id !== calculationId)
-        .map((calc, index) => ({
-          ...calc,
-          label: `Calculation ${index + 1}`,
-        }));
-      return {
-        ...prev,
-        [parameterId]: updatedCalculations,
-      };
+        .map((calc, index) => ({ ...calc, label: `Calculation ${index + 1}` }));
+      return { ...prev, [parameterId]: updatedCalculations };
     });
   };
 
@@ -1609,16 +2333,14 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((calc) => {
         if (calc.id === calculationId) {
-          return {
-            ...calc,
-            [field]: value,
-          };
+          return { ...calc, [field]: value };
         }
         return calc;
       }),
     }));
   };
 
+  // Calculation Handlers - LOD
   const handleAddCalculationLod = (parameterId: number) => {
     setCalculationsLodPerParam((prev) => {
       const currentCalculations = prev[parameterId] || [];
@@ -1644,10 +2366,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           ...calc,
           label: `LOD Calculation ${index + 1}`,
         }));
-      return {
-        ...prev,
-        [parameterId]: updatedCalculations,
-      };
+      return { ...prev, [parameterId]: updatedCalculations };
     });
   };
 
@@ -1661,16 +2380,14 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((calc) => {
         if (calc.id === calculationId) {
-          return {
-            ...calc,
-            [field]: value,
-          };
+          return { ...calc, [field]: value };
         }
         return calc;
       }),
     }));
   };
 
+  // Calculation Handlers - ROI
   const handleAddCalculationROI = (parameterId: number) => {
     setCalculationsROIPerParam((prev) => {
       const currentCalculations = prev[parameterId] || [];
@@ -1696,10 +2413,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           ...calc,
           label: `ROI Calculation ${index + 1}`,
         }));
-      return {
-        ...prev,
-        [parameterId]: updatedCalculations,
-      };
+      return { ...prev, [parameterId]: updatedCalculations };
     });
   };
 
@@ -1713,16 +2427,14 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((calc) => {
         if (calc.id === calculationId) {
-          return {
-            ...calc,
-            [field]: value,
-          };
+          return { ...calc, [field]: value };
         }
         return calc;
       }),
     }));
   };
 
+  // Calculation Handlers - Sulphated Ash
   const handleAddCalculationSulphatedAsh = (parameterId: number) => {
     setCalculationsSulphatedAshPerParam((prev) => {
       const currentCalculations = prev[parameterId] || [];
@@ -1748,10 +2460,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           ...calc,
           label: `Sulphated Ash Calculation ${index + 1}`,
         }));
-      return {
-        ...prev,
-        [parameterId]: updatedCalculations,
-      };
+      return { ...prev, [parameterId]: updatedCalculations };
     });
   };
 
@@ -1765,47 +2474,42 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((calc) => {
         if (calc.id === calculationId) {
-          return {
-            ...calc,
-            [field]: value,
-          };
+          return { ...calc, [field]: value };
         }
         return calc;
       }),
     }));
   };
 
+  // RS (Residual Solvent) Handlers
   const handleAddStandardPreparationRS = (parameterId: number) => {
     setCurrentParameterForStandardPrep(parameterId);
-    setIsAddingRSStandard(true); // Explicitly set to true for RS
+    setIsAddingRSStandard(true);
+    setIsAddingDissoStandard(false);
     setShowStandardSelectionDialog(true);
   };
 
   const handleStandardSelectedForPreparation = (
     standard: Standard,
-    isRS: boolean = false
+    isRS: boolean = false,
+    isDisso: boolean = false
   ) => {
     if (currentParameterForStandardPrep === null) return;
 
     const parameterId = currentParameterForStandardPrep;
 
     if (isRS) {
-      // Handle RS Standard Preparation
       const currentStandards = standardPreparationRSPerParam[parameterId] || [];
       const newIndex = currentStandards.length;
       const newStandardPrep = createNewStandardPreparation(newIndex);
 
       newStandardPrep.steps = newStandardPrep.steps.map((step) => {
         if (step.name === "Weighing") {
-          return {
-            ...step,
-            solventChemical: standard.name,
-          };
+          return { ...step, solventChemical: standard.name };
         }
         return step;
       });
 
-      // Add to RS Standard Preparation list
       setStandardPreparationRSPerParam((prev) => ({
         ...prev,
         [parameterId]: [
@@ -1814,7 +2518,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
         ],
       }));
 
-      // Add corresponding RS Sample Preparation
       const currentSamples = samplePreparationRSPerParam[parameterId] || [];
       const newSampleIndex = currentSamples.length;
       const newSamplePrep = createNewSamplePreparation(newSampleIndex);
@@ -1826,23 +2529,51 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           { ...newSamplePrep, assignedStandardId: standard.id },
         ],
       }));
+    } else if (isDisso) {
+      const currentStandards =
+        standardPreparationDissoPerParam[parameterId] || [];
+      const newIndex = currentStandards.length;
+      const newStandardPrep = createNewStandardPreparation(newIndex);
+
+      newStandardPrep.steps = newStandardPrep.steps.map((step) => {
+        if (step.name === "Weighing") {
+          return { ...step, solventChemical: standard.name };
+        }
+        return step;
+      });
+
+      setStandardPreparationDissoPerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentStandards,
+          { ...newStandardPrep, assignedStandardId: standard.id },
+        ],
+      }));
+
+      const currentSamples = samplePreparationDissoPerParam[parameterId] || [];
+      const newSampleIndex = currentSamples.length;
+      const newSamplePrepDisso =
+        createNewSamplePreparationDisso(newSampleIndex);
+
+      setSamplePreparationDissoPerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentSamples,
+          { ...newSamplePrepDisso, assignedStandardId: standard.id },
+        ],
+      }));
     } else {
-      // Handle regular Assay Standard Preparation
       const currentStandards = standardPreparationPerParam[parameterId] || [];
       const newIndex = currentStandards.length;
       const newStandardPrep = createNewStandardPreparation(newIndex);
 
       newStandardPrep.steps = newStandardPrep.steps.map((step) => {
         if (step.name === "Weighing") {
-          return {
-            ...step,
-            solventChemical: standard.name,
-          };
+          return { ...step, solventChemical: standard.name };
         }
         return step;
       });
 
-      // Add to regular Assay Standard Preparation list
       setStandardPreparationPerParam((prev) => ({
         ...prev,
         [parameterId]: [
@@ -1851,7 +2582,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
         ],
       }));
 
-      // Add corresponding regular Assay Sample Preparation
       const currentSamples = samplePreparationPerParam[parameterId] || [];
       const newSampleIndex = currentSamples.length;
       const newSamplePrep = createNewSamplePreparation(newSampleIndex);
@@ -1865,13 +2595,12 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       }));
     }
 
-    // Close dialog and reset state
     setShowStandardSelectionDialog(false);
     setCurrentParameterForStandardPrep(null);
     setIsAddingRSStandard(false);
+    setIsAddingDissoStandard(false);
   };
 
-  // Handler for removing RS Standard Preparation
   const handleRemoveStandardPreparationRS = (
     parameterId: number,
     standardPreparationId: number
@@ -1889,7 +2618,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           label: `Standard Preparation ${1 + index}`,
         }));
 
-      // Also remove the corresponding sample preparation at the same index
       if (indexToRemove !== -1) {
         setSamplePreparationRSPerParam((prevSample) => {
           const samples = prevSample[parameterId] || [];
@@ -1899,21 +2627,14 @@ const FormPreview: React.FC<FormPreviewProps> = ({
               ...sp,
               label: `Sample Preparation ${1 + index}`,
             }));
-          return {
-            ...prevSample,
-            [parameterId]: updatedSamples,
-          };
+          return { ...prevSample, [parameterId]: updatedSamples };
         });
       }
 
-      return {
-        ...prev,
-        [parameterId]: updatedStandards,
-      };
+      return { ...prev, [parameterId]: updatedStandards };
     });
   };
 
-  // Handler for RS Standard Preparation step changes
   const handleStandardPreparationRSStepChange = (
     parameterId: number,
     standardPreparationId: number,
@@ -1937,10 +2658,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             ...sp,
             steps: sp.steps.map((step) => {
               if (step.name === stepName) {
-                return {
-                  ...step,
-                  [field]: newValue,
-                };
+                return { ...step, [field]: newValue };
               }
               return step;
             }),
@@ -1951,41 +2669,40 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  // Handler for adding RS Sample Preparation
-  const handleAddSamplePreparationRS = (parameterId: number) => {
-    setSamplePreparationRSPerParam((prev) => {
-      const currentSamples = prev[parameterId] || [];
-      const newIndex = currentSamples.length;
-      return {
-        ...prev,
-        [parameterId]: [
-          ...currentSamples,
-          createNewSamplePreparation(newIndex),
-        ],
-      };
-    });
-  };
-
-  // Handler for removing RS Sample Preparation
   const handleRemoveSamplePreparationRS = (
     parameterId: number,
     samplePreparationId: number
   ) => {
     setSamplePreparationRSPerParam((prev) => {
-      const updatedSamples = (prev[parameterId] || [])
+      const samples = prev[parameterId] || [];
+      const indexToRemove = samples.findIndex(
+        (sp) => sp.id === samplePreparationId
+      );
+
+      const updatedSamples = samples
         .filter((sp) => sp.id !== samplePreparationId)
         .map((sp, index) => ({
           ...sp,
           label: `Sample Preparation ${1 + index}`,
         }));
-      return {
-        ...prev,
-        [parameterId]: updatedSamples,
-      };
+
+      if (indexToRemove !== -1) {
+        setStandardPreparationRSPerParam((prevStandard) => {
+          const standards = prevStandard[parameterId] || [];
+          const updatedStandards = standards
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Standard Preparation ${1 + index}`,
+            }));
+          return { ...prevStandard, [parameterId]: updatedStandards };
+        });
+      }
+
+      return { ...prev, [parameterId]: updatedSamples };
     });
   };
 
-  // Handler for RS Sample Preparation step changes
   const handleSamplePreparationRSStepChange = (
     parameterId: number,
     samplePreparationId: number,
@@ -2009,10 +2726,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             ...sp,
             steps: sp.steps.map((step) => {
               if (step.name === stepName) {
-                return {
-                  ...step,
-                  [field]: newValue,
-                };
+                return { ...step, [field]: newValue };
               }
               return step;
             }),
@@ -2023,7 +2737,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  // Handler for adding RS Calculation
   const handleAddCalculationRS = (parameterId: number) => {
     setCalculationsRSPerParam((prev) => {
       const currentCalculations = prev[parameterId] || [];
@@ -2038,7 +2751,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     });
   };
 
-  // Handler for removing RS Calculation
   const handleRemoveCalculationRS = (
     parameterId: number,
     calculationId: number
@@ -2050,14 +2762,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           ...calc,
           label: `RS Calculation ${index + 1}`,
         }));
-      return {
-        ...prev,
-        [parameterId]: updatedCalculations,
-      };
+      return { ...prev, [parameterId]: updatedCalculations };
     });
   };
 
-  // Handler for RS Calculation field changes
   const handleCalculationRSFieldChange = (
     parameterId: number,
     calculationId: number,
@@ -2068,315 +2776,162 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((calc) => {
         if (calc.id === calculationId) {
-          return {
-            ...calc,
-            [field]: value,
-          };
+          return { ...calc, [field]: value };
         }
         return calc;
       }),
     }));
   };
 
-  const handleSelectColumnForParam = (
+  // Dissolution Handlers
+  const handleAddStandardPreparationDisso = (parameterId: number) => {
+    setCurrentParameterForStandardPrep(parameterId);
+    setIsAddingRSStandard(false);
+    setIsAddingDissoStandard(true);
+    setShowStandardSelectionDialog(true);
+  };
+
+  const handleAddCalculationDisso = (parameterId: number) => {
+    setCalculationsDissoPerParam((prev) => {
+      const currentCalculations = prev[parameterId] || [];
+      const newIndex = currentCalculations.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentCalculations,
+          createNewCalculationDisso(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveStandardPreparationDisso = (
     parameterId: number,
-    columnId: string
+    standardPreparationId: number
   ) => {
-    setColumnsPerParam((prev) => ({
+    setStandardPreparationDissoPerParam((prev) => {
+      const standards = prev[parameterId] || [];
+      const indexToRemove = standards.findIndex(
+        (sp) => sp.id === standardPreparationId
+      );
+
+      const updatedStandards = standards
+        .filter((dm) => dm.id !== standardPreparationId)
+        .map((dm, index) => ({
+          ...dm,
+          label: `Standard Preparation ${1 + index}`,
+        }));
+
+      if (indexToRemove !== -1) {
+        setSamplePreparationDissoPerParam((prevSample) => {
+          const samples = prevSample[parameterId] || [];
+          const updatedSamples = samples
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Sample Preparation ${1 + index}`,
+            }));
+          return { ...prevSample, [parameterId]: updatedSamples };
+        });
+      }
+
+      return { ...prev, [parameterId]: updatedStandards };
+    });
+  };
+
+  const handleStandardPreparationDissoStepChange = (
+    parameterId: number,
+    standardPreparationId: number,
+    stepName: StandardPreparationStep["name"],
+    field:
+      | "value"
+      | "unit"
+      | "vol1"
+      | "vol2"
+      | "unit1"
+      | "unit2"
+      | "logBookID"
+      | "solventChemical",
+    newValue: string
+  ) => {
+    setStandardPreparationDissoPerParam((prev) => ({
       ...prev,
-      [parameterId]: columnId,
+      [parameterId]: (prev[parameterId] || []).map((sp) => {
+        if (sp.id === standardPreparationId) {
+          return {
+            ...sp,
+            steps: sp.steps.map((step) => {
+              if (step.name === stepName) {
+                return { ...step, [field]: newValue };
+              }
+              return step;
+            }),
+          };
+        }
+        return sp;
+      }),
     }));
-    setShowColumnDropdown(false);
-    setColumnSearch("");
+  };
+
+  const handleRemoveCalculationDisso = (
+    parameterId: number,
+    calculationId: number
+  ) => {
+    setCalculationsDissoPerParam((prev) => {
+      const updatedCalculations = (prev[parameterId] || [])
+        .filter((calc) => calc.id !== calculationId)
+        .map((calc, index) => ({
+          ...calc,
+          label: `Dissolution Calculation ${index + 1}`,
+        }));
+      return { ...prev, [parameterId]: updatedCalculations };
+    });
+  };
+
+  const handleCalculationDissoFieldChange = (
+    parameterId: number,
+    calculationId: number,
+    field: keyof CalculationDisso,
+    value: string | number | null
+  ) => {
+    setCalculationsDissoPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((calc) => {
+        if (calc.id === calculationId) {
+          return { ...calc, [field]: value };
+        }
+        return calc;
+      }),
+    }));
   };
 
   const handleTestSolutionChange = (parameterId: number, value: string) => {
-    setTestSolutionPerParam((prev) => ({
-      ...prev,
-      [parameterId]: value,
-    }));
+    setTestSolutionPerParam((prev) => ({ ...prev, [parameterId]: value }));
   };
 
   const handleDiluentChange = (parameterId: number, value: string) => {
-    setDiluentPerParam((prev) => ({
-      ...prev,
-      [parameterId]: value,
-    }));
-  };
-
-  const handleStandardAssignmentChange = (
-    parameterId: number,
-    standardPreparationId: number,
-    standardId: string
-  ) => {
-    setStandardAssignmentsPerParam((prev) => ({
-      ...prev,
-      [parameterId]: {
-        ...(prev[parameterId] || {}),
-        [standardPreparationId]: standardId,
-      },
-    }));
+    setDiluentPerParam((prev) => ({ ...prev, [parameterId]: value }));
   };
 
   const getAvailableStandardsForParameter = (
     parameterId: number,
-    isForRS: boolean = false
+    isForRS: boolean = false,
+    isForDisso: boolean = false
   ): Standard[] => {
     const paramStandards = addedStandards[parameterId] || [];
-
-    // Get preparations based on whether it's for RS or regular Assay
-    // Each type maintains its own list of assigned standards
     const preparations = isForRS
       ? standardPreparationRSPerParam[parameterId] || []
+      : isForDisso
+      ? standardPreparationDissoPerParam[parameterId] || []
       : standardPreparationPerParam[parameterId] || [];
 
-    // Get assigned standard IDs only from the specific preparation type
     const assignedStandardIds = preparations
       .map((prep: any) => prep.assignedStandardId)
       .filter(Boolean);
 
-    // Filter out only standards that are already assigned to THIS preparation type
     return paramStandards.filter(
       (std) => !assignedStandardIds.includes(std.id)
     );
-  };
-  const collectFormDataForReport = () => {
-    const formData = {
-      registrationInfo: {
-        registrationNo: sample?.registrationNo || registrationNo || "",
-        dateOfReceipt,
-        sampleName: sample?.sampleName || "",
-        numberOfParameters: addedParameters.length,
-        dueDate: sample?.tatDate || "",
-        analysisStartDate: sample?.analysisStartDate || "",
-        analysisCompletionDate: sample?.analysisCompletionDate || "",
-      },
-      documentInfo: {
-        preparedBy,
-        issuedApprovedBy,
-        effectiveIssueDate,
-        approvedBy,
-        classified,
-        revisionDate,
-      },
-      parameters: addedParameters.map((param) => ({
-        paraCode: param.paraCode,
-        parameterName: param.parameter,
-        methodCode: param.methodCode,
-        methodName: param.methodName,
-        instruments: (addedInstruments[param.id] || []).map((inst) => ({
-          name: inst.name,
-          calibrationDoneDate: inst.calibrationDoneDate,
-          calibrationDueDate: inst.calibrationDueDate,
-        })),
-        chemicals: (addedChemicals[param.id] || []).map((chem) => ({
-          name: chem.name,
-          make: chem.make,
-          batchNo: chem.batchNo,
-          validity: chem.validity,
-        })),
-        standards: (addedStandards[param.id] || []).map((std) => ({
-          name: std.name,
-          purity: std.purity,
-          make: std.make,
-          batchNo: std.batchNo,
-        })),
-        diluentPreparation: diluentPerParam[param.id] || "",
-        columnId: columnsPerParam[param.id] || "",
-        columnDetails:
-          columns.find((c) => c.id === columnsPerParam[param.id]) || null,
-        mobilePhases: (mobilePhasesPerParam[param.id] || []).map((mp) => ({
-          label: mp.label,
-          steps: mp.steps,
-        })),
-        dissoMedia: (dissoMediaPerParam[param.id] || []).map((dm) => ({
-          label: dm.label,
-          steps: dm.steps,
-        })),
-        standardPreparation: (standardPreparationPerParam[param.id] || []).map(
-          (sp) => ({
-            label: sp.label,
-            steps: sp.steps,
-          })
-        ),
-        samplePreparation: (samplePreparationPerParam[param.id] || []).map(
-          (sp) => ({
-            label: sp.label,
-            steps: sp.steps,
-          })
-        ),
-        calculationsAssay: (calculationsAssayPerParam[param.id] || []).map(
-          (calc) => ({
-            label: calc.label,
-            selectedStandardPrepId: calc.selectedStandardPrepId,
-            selectedSamplePrepId: calc.selectedSamplePrepId,
-            calculationType: calc.calculationType,
-            areaOfSample: calc.areaOfSample,
-            areaOfStandard: calc.areaOfStandard,
-            v1: calc.v1,
-            v2: calc.v2,
-            v3: calc.v3,
-            v4: calc.v4,
-            v5: calc.v5,
-            v6: calc.v6,
-            v7: calc.v7,
-            v8: calc.v8,
-            v9: calc.v9,
-            v10: calc.v10,
-            v11: calc.v11,
-            v12: calc.v12,
-            v13: calc.v13,
-            v14: calc.v14,
-            sw1: calc.sw1,
-            sw2: calc.sw2,
-            baseXPurity: calc.baseXPurity,
-            avgWt: calc.avgWt,
-            mwSalt: calc.mwSalt,
-            mwBase: calc.mwBase,
-            doseVolume: calc.claimVolume,
-          })
-        ),
-        calculationsRS: (calculationsRSPerParam[param.id] || []).map(
-          (calc) => ({
-            label: calc.label,
-            selectedStandardPrepId: calc.selectedStandardPrepId,
-            selectedSamplePrepId: calc.selectedSamplePrepId,
-            areaOfSample: calc.areaOfSample,
-            areaOfStandard: calc.areaOfStandard,
-            sw1: calc.sw1,
-            sw2: calc.sw2,
-            v1: calc.v1,
-            v2: calc.v2,
-            v3: calc.v3,
-            v4: calc.v4,
-            v5: calc.v5,
-            v6: calc.v6,
-            purity: calc.purity,
-          })
-        ),
-        standardPreparationRS: (
-          standardPreparationRSPerParam[param.id] || []
-        ).map((sp) => ({
-          label: sp.label,
-          steps: sp.steps,
-        })),
-        samplePreparationRS: (samplePreparationRSPerParam[param.id] || []).map(
-          (sp) => ({
-            label: sp.label,
-            steps: sp.steps,
-          })
-        ),
-        samplePreparationDisso: (
-          samplePreparationDissoPerParam[param.id] || []
-        ).map((spd) => ({
-          label: spd.label,
-          steps: spd.steps,
-        })),
-        samplePreparationTitration: (
-          samplePreparationTitrationPerParam[param.id] || []
-        ).map((spt) => ({
-          label: spt.label,
-          steps: spt.steps,
-        })),
-        samplePreparationLod: (
-          samplePreparationLodPerParam[param.id] || []
-        ).map((spl) => ({
-          label: spl.label,
-          steps: spl.steps,
-        })),
-        samplePreparationROI: (
-          samplePreparationROIPerParam[param.id] || []
-        ).map((spl) => ({
-          label: spl.label,
-          steps: spl.steps,
-        })),
-        samplePreparationSulphatedAsh: (
-          samplePreparationSulphatedAshPerParam[param.id] || []
-        ).map((sps) => ({
-          label: sps.label,
-          steps: sps.steps,
-        })),
-        testSolutionPreparation: testSolutionPerParam[param.id] || "",
-      })),
-    };
-    return formData;
-  };
-
-  const collectFormDataForDraft = () => {
-    const formData = {
-      registrationInfo: {
-        registrationNo: sample?.registrationNo || registrationNo || "",
-        dateOfReceipt,
-        sampleName: sample?.sampleName || "",
-        numberOfParameters: addedParameters.length,
-        dueDate: sample?.tatDate || "",
-        analysisStartDate: sample?.analysisStartDate || "",
-        analysisCompletionDate: sample?.analysisCompletionDate || "",
-      },
-      documentInfo: {
-        preparedBy,
-        issuedApprovedBy,
-        effectiveIssueDate,
-        approvedBy,
-        classified,
-        revisionDate,
-      },
-      addedParameters,
-      selectedParamsForDetail,
-      columnsPerParam,
-      mobilePhasesPerParam,
-      dissoMediaPerParam,
-      standardPreparationPerParam,
-      samplePreparationPerParam,
-      samplePreparationTitrationPerParam,
-      samplePreparationLodPerParam,
-      samplePreparationSulphatedAshPerParam,
-      samplePreparationROIPerParam,
-      samplePreparationDissoPerParam,
-      addedInstruments,
-      addedChemicals,
-      addedStandards,
-      testSolutionPerParam,
-      diluentPerParam,
-      standardAssignmentsPerParam,
-      calculationsAssayPerParam,
-      standardPreparationRSPerParam,
-      samplePreparationRSPerParam,
-      calculationsRSPerParam,
-    };
-    return formData;
-  };
-
-  // Save Draft Handler
-  const handleSaveDraft = () => {
-    const formData = collectFormDataForDraft();
-    const storageKey = getStorageKey(registrationNo);
-
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(formData));
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-      console.log("Draft saved successfully for:", registrationNo);
-    } catch (err) {
-      console.error("Error saving draft:", err);
-      alert("Failed to save draft. Please try again.");
-    }
-  };
-
-  // Submit Handler
-  const handleSubmit = () => {
-    const completeFormData = collectFormDataForReport();
-
-    // Show the data in dialog
-    setCollectedData(completeFormData);
-    setShowDataDialog(true);
-
-    // Remove from localStorage on submit
-    const storageKey = getStorageKey(registrationNo);
-    localStorage.removeItem(storageKey);
-    console.log("Draft removed from storage for:", registrationNo);
-    console.log("=== COMPLETE FORM DATA ===");
-    console.log(JSON.stringify(completeFormData, null, 2));
   };
 
   const handlePrintPreview = () => {
@@ -2386,18 +2941,14 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   };
 
   const allParameters = reportData?.map((data) => data.parameter) ?? [];
-
   const uniqueMethods = [
     ...new Map(
       (reportData ?? []).map((item) => [item.methodCode, item])
     ).values(),
   ];
-
   const allMethods = uniqueMethods.map((item) => item.methodName);
-
   const testsRequiredDisplay =
     allParameters.join(", ") + (allParameters.length > 0 ? "," : "");
-
   const methodsRequiredDisplay =
     allMethods.join(", ") + (allMethods.length > 0 ? "," : "");
 
@@ -2413,47 +2964,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     transition: { duration: 2, repeat: Infinity },
   };
 
-  const PREPARATION_GROUPS = {
-    assay: {
-      id: "assay",
-      label: "Preparations for Assay",
-      color: "red",
-      includes: [
-        "standardPreparation",
-        "samplePreparation",
-        "calculationsAssay",
-      ],
-    },
-    lod: {
-      id: "lod",
-      label: "Preparations for LOD",
-      color: "sky",
-      includes: ["samplePreparationLod", "calculationsLod"],
-    },
-    roi: {
-      id: "roi",
-      label: "Preparations for ROI",
-      color: "orange",
-      includes: ["samplePreparationROI", "calculationsROI"],
-    },
-    sulphatedAsh: {
-      id: "sulphatedAsh",
-      label: "Preparations for Sulphated Ash",
-      color: "rose",
-      includes: ["samplePreparationSulphatedAsh", "calculationsSulphatedAsh"],
-    },
-    residualSolvent: {
-      id: "residualSolvent",
-      label: "Preparations for Residual Solvent",
-      color: "indigo",
-      includes: [
-        "standardPreparationRS",
-        "samplePreparationRS",
-        "calculationsRS",
-      ],
-    },
-  } as const;
-
   const handleTogglePreparationGroup = (
     parameterId: number,
     groupId: string
@@ -2462,79 +2972,73 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       const currentGroups = prev[parameterId] || [];
 
       if (currentGroups.includes(groupId)) {
-        // Remove group and clear all associated preparations
         const group =
           PREPARATION_GROUPS[groupId as keyof typeof PREPARATION_GROUPS];
 
-        if (group.includes.includes("standardPreparation")) {
+        // Clean up state for removed group
+        if (group.id === "assay") {
           setStandardPreparationPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
-        }
-        if (group.includes.includes("samplePreparation")) {
           setSamplePreparationPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
-        }
-        if (group.includes.includes("calculationsAssay")) {
           setCalculationsAssayPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
-        }
-        if (group.includes.includes("samplePreparationLod")) {
+        } else if (group.id === "lod") {
           setSamplePreparationLodPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
-        }
-        if (group.includes.includes("calculationsLod")) {
           setCalculationsLodPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
-        }
-        if (group.includes.includes("samplePreparationROI")) {
+        } else if (group.id === "roi") {
           setSamplePreparationROIPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
-        }
-        if (group.includes.includes("calculationsROI")) {
           setCalculationsROIPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
-        }
-        if (group.includes.includes("samplePreparationSulphatedAsh")) {
+        } else if (group.id === "sulphatedAsh") {
           setSamplePreparationSulphatedAshPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
-        }
-        if (group.includes.includes("calculationsSulphatedAsh")) {
           setCalculationsSulphatedAshPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
-        }
-        // ADD RS CLEANUP
-        if (group.includes.includes("standardPreparationRS")) {
+        } else if (group.id === "residualSolvent") {
           setStandardPreparationRSPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
-        }
-        if (group.includes.includes("samplePreparationRS")) {
           setSamplePreparationRSPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
-        }
-        if (group.includes.includes("calculationsRS")) {
           setCalculationsRSPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        } else if (group.id === "dissolution") {
+          setCalculationsDissoPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+          setSamplePreparationDissoPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+          setStandardPreparationDissoPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
@@ -2556,21 +3060,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
   const getAvailablePreparationGroups = () => {
     return [
-      {
-        id: "assay",
-        label: "Preparations for Assay",
-        color: "red",
-      },
-      {
-        id: "lod",
-        label: "Preparations for LOD",
-        color: "sky",
-      },
-      {
-        id: "roi",
-        label: "Preparations for ROI",
-        color: "orange",
-      },
+      { id: "assay", label: "Preparations for Assay", color: "red" },
+      { id: "lod", label: "Preparations for LOD", color: "sky" },
+      { id: "roi", label: "Preparations for ROI", color: "orange" },
       {
         id: "sulphatedAsh",
         label: "Preparations for Sulphated Ash",
@@ -2581,30 +3073,139 @@ const FormPreview: React.FC<FormPreviewProps> = ({
         label: "Preparations for Residual Solvent",
         color: "indigo",
       },
+      {
+        id: "dissolution",
+        label: "Preparations for Dissolution",
+        color: "emerald",
+      },
     ];
   };
 
-  if (loading) {
+  // Loading/Error states
+  if (isLoading) {
     return (
-      <div className="mx-auto my-8 p-6 bg-gradient-to-br from-green-50 to-white max-w-4xl flex items-center justify-center min-h-[600px] rounded-2xl shadow-2xl">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center p-4">
         <motion.div
-          key="loading"
-          {...animationProps}
-          className="flex flex-col justify-center items-center py-20 bg-white rounded-2xl shadow-2xl border-2 border-green-300 w-full min-h-[400px]"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="relative"
         >
-          <motion.div
-            {...loadingIconProps}
-            className="p-5 rounded-full bg-gradient-to-br from-green-100 to-green-300 mb-6 shadow-lg"
-          >
-            <LoaderCircle className="w-14 h-14 text-green-700" />
-          </motion.div>
-          <span className="text-2xl font-semibold text-green-800 tracking-wide">
-            Loading Report Data
-          </span>
-          <span className="text-base text-gray-600 mt-3 max-w-md text-center font-medium">
-            Fetching results for registration{" "}
-            <span className="font-bold text-green-700">{registrationNo}</span>
-          </span>
+          {/* Animated Background Circles */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <motion.div
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.1, 0.3],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute w-64 h-64 rounded-full bg-gradient-to-br from-emerald-200 to-teal-200 blur-3xl"
+            />
+            <motion.div
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.2, 0.05, 0.2],
+              }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 0.5,
+              }}
+              className="absolute w-80 h-80 rounded-full bg-gradient-to-br from-blue-200 to-cyan-200 blur-3xl"
+            />
+          </div>
+
+          {/* Main Card */}
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 p-12 min-w-[400px]">
+            {/* Spinner */}
+            <div className="flex justify-center mb-6">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+                className="relative w-20 h-20"
+              >
+                {/* Outer Ring */}
+                <div className="absolute inset-0 rounded-full border-4 border-emerald-100"></div>
+                {/* Animated Ring */}
+                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-emerald-500 border-r-emerald-500"></div>
+                {/* Inner Glow */}
+                <div className="absolute inset-2 rounded-full bg-gradient-to-br from-emerald-50 to-teal-50"></div>
+                {/* Center Icon */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <svg
+                    className="w-8 h-8 text-emerald-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Loading Text */}
+            <div className="text-center space-y-3">
+              <motion.h3
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-2xl font-bold text-slate-800"
+              >
+                Loading Worksheet
+              </motion.h3>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="flex items-center justify-center gap-2 text-sm text-slate-600"
+              >
+                <span>Fetching data for</span>
+                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded font-semibold">
+                  {worksheetId}
+                </span>
+              </motion.div>
+
+              {/* Loading Dots */}
+              <motion.div
+                className="flex justify-center gap-1.5 pt-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      opacity: [0.3, 1, 0.3],
+                    }}
+                    transition={{
+                      duration: 1.2,
+                      repeat: Infinity,
+                      delay: i * 0.2,
+                    }}
+                    className="w-2 h-2 rounded-full bg-emerald-500"
+                  />
+                ))}
+              </motion.div>
+            </div>
+          </div>
         </motion.div>
       </div>
     );
@@ -2625,7 +3226,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             <Target className="w-14 h-14 text-red-600" />
           </motion.div>
           <span className="text-2xl font-semibold text-red-700 tracking-wide">
-            Report Fetch Failed
+            Failed to Load Worksheet
           </span>
           <span className="text-base text-gray-600 mt-3 max-w-md text-center">
             {error}
@@ -2635,7 +3236,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     );
   }
 
-  if (!sample) {
+  if (!reportData || reportData.length === 0) {
     return (
       <div className="mx-auto my-8 p-6 bg-white max-w-4xl flex items-center justify-center min-h-[600px]">
         <motion.div
@@ -2650,14 +3251,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             <Target className="w-14 h-14 text-gray-500" />
           </motion.div>
           <span className="text-2xl font-semibold text-gray-700 tracking-wide">
-            {registrationNo
-              ? "No Sample Data Found"
-              : "Enter Registration Number"}
+            No Sample Data Found
           </span>
           <span className="text-base text-gray-500 mt-3 max-w-md text-center">
-            {registrationNo
-              ? `The search for ${registrationNo} returned no associated sample records.`
-              : "Please use the search tool above to look up a Raw Data Work Sheet."}
+            Unable to load sample data for this worksheet
           </span>
         </motion.div>
       </div>
@@ -2670,15 +3267,16 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       <div className="flex justify-between items-center text-sm mb-6 pb-4 border-b-2 border-emerald-200">
         <div></div>
         <div className="flex flex-col items-end">
-          <img src="./ic_efrac.png" alt="EFRAC Logo" className="h-10" />
+          <img src="/ic_efrac.png" alt="EFRAC Logo" className="h-10" />
         </div>
       </div>
 
       {/* Company Title */}
       <div className="my-4 border-2 border-emerald-400 rounded-xl overflow-hidden shadow-lg">
         <div className="flex justify-between items-center px-6 py-4 bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-700">
-          <h1 className="text-lg font-bold text-white tracking-wide">
-            EDWARD FOOD RESEARCH & ANALYSIS CENTRE LTD
+          <h1 className="flex items-baseline gap-3 tracking-wide text-white">
+            <span className="text-sm font-semibold">Worksheet ID:</span>
+            <span className="text-2xl font-extrabold">{worksheetId}</span>
           </h1>
         </div>
       </div>
@@ -2691,7 +3289,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
               Registration No:
             </span>
             <span className="font-semibold text-slate-700">
-              {sample?.registrationNo || registrationNo || "---"}
+              {reportData && reportData.length > 0
+                ? reportData[0].registrationNo
+                : registrationNo || "---"}
             </span>
           </div>
           <div className="flex items-center px-4 py-3">
@@ -2710,7 +3310,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
               Sample Name:
             </span>
             <span className="font-semibold text-slate-700">
-              {sample?.sampleName || "---"}
+              {reportData[0].sampleName || "---"}
             </span>
           </div>
           <div className="flex items-center px-4 py-3">
@@ -2727,7 +3327,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           <div className="flex items-center px-4 py-3 border-r-2 border-emerald-300">
             <span className="font-bold mr-2 text-emerald-900">Due Date:</span>
             <span className="font-semibold text-slate-700">
-              {sample?.tatDate || "---"}
+              {reportData[0]?.tatDate || "---"}
             </span>
           </div>
           <div className="flex items-center px-4 py-3 border-r-2 border-emerald-300">
@@ -2735,7 +3335,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
               Analysis Started On:
             </span>
             <span className="font-semibold text-slate-700">
-              {sample?.analysisStartDate || "---"}
+              {reportData[0]?.analysisStartDate || "---"}
             </span>
           </div>
           <div className="flex items-center px-4 py-3">
@@ -2743,7 +3343,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
               Analysis Completed On:
             </span>
             <span className="font-semibold text-slate-700">
-              {sample?.analysisCompletionDate || "---"}
+              {reportData[0]?.analysisCompletionDate || "---"}
             </span>
           </div>
         </div>
@@ -2763,7 +3363,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                   sample to be entered):
                 </td>
                 <td className="px-3 py-3 font-medium">
-                  {sample?.sampleName || "---"}
+                  {reportData[0]?.sampleName || "---"}
                 </td>
               </tr>
               <tr className="border-b-2 border-emerald-400 hover:bg-emerald-50 transition-colors">
@@ -3608,68 +4208,20 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                       const activeGroups =
                         activePreparationGroups[selectedParam.id] || [];
 
-                      const groupInfo = {};
+                      const groupInfo: Record<
+                        string,
+                        { label?: string; color?: string }
+                      > = {};
 
                       activeGroups.forEach((groupId) => {
-                        const group = PREPARATION_GROUPS[groupId];
-                        let count = 0;
-
-                        if (groupId === "assay") {
-                          count =
-                            (
-                              standardPreparationPerParam[selectedParam.id] ||
-                              []
-                            ).length +
-                            (samplePreparationPerParam[selectedParam.id] || [])
-                              .length +
-                            (calculationsAssayPerParam[selectedParam.id] || [])
-                              .length;
-                        } else if (groupId === "lod") {
-                          count =
-                            (
-                              samplePreparationLodPerParam[selectedParam.id] ||
-                              []
-                            ).length +
-                            (calculationsLodPerParam[selectedParam.id] || [])
-                              .length;
-                        } else if (groupId === "roi") {
-                          count =
-                            (
-                              samplePreparationROIPerParam[selectedParam.id] ||
-                              []
-                            ).length +
-                            (calculationsROIPerParam[selectedParam.id] || [])
-                              .length;
-                        } else if (groupId === "sulphatedAsh") {
-                          count =
-                            (
-                              samplePreparationSulphatedAshPerParam[
-                                selectedParam.id
-                              ] || []
-                            ).length +
-                            (
-                              calculationsSulphatedAshPerParam[
-                                selectedParam.id
-                              ] || []
-                            ).length;
-                        } else if (groupId === "residualSolvent") {
-                          count =
-                            (
-                              standardPreparationRSPerParam[selectedParam.id] ||
-                              []
-                            ).length +
-                            (
-                              samplePreparationRSPerParam[selectedParam.id] ||
-                              []
-                            ).length +
-                            (calculationsRSPerParam[selectedParam.id] || [])
-                              .length;
-                        }
+                        const group =
+                          PREPARATION_GROUPS[
+                            groupId as keyof typeof PREPARATION_GROUPS
+                          ];
 
                         groupInfo[groupId] = {
                           label: group.label,
                           color: group.color,
-                          count,
                         };
                       });
 
@@ -3753,8 +4305,13 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                 {Object.entries(groupInfo).map(
                                   ([groupId, info]) => {
                                     const colors =
-                                      colorClasses[info.color] ||
-                                      colorClasses["default"];
+                                      info &&
+                                      typeof info === "object" &&
+                                      "color" in info
+                                        ? colorClasses[
+                                            info.color as keyof typeof colorClasses
+                                          ] || colorClasses.default
+                                        : colorClasses.default;
 
                                     return (
                                       <motion.div
@@ -4213,7 +4770,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                         {(
                           samplePreparationLodPerParam[selectedParam.id] || []
                         ).map((samplePreparationLod) => (
-                          <div className="overflow-hidden" key={samplePreparationLod.id}>
+                          <div
+                            className="overflow-hidden"
+                            key={samplePreparationLod.id}
+                          >
                             <SamplePreparationLodDetail
                               samplePreparationLod={samplePreparationLod}
                               onStepChange={(
@@ -4589,7 +5149,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 )}
 
                 {/* ============= Sulphated Ash GROUP CARD ============= */}
-                {(activePreparationGroups[selectedParam.id] || []).includes("sulphatedAsh") && (
+                {(activePreparationGroups[selectedParam.id] || []).includes(
+                  "sulphatedAsh"
+                ) && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -4598,7 +5160,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                     {/* Decorative elements */}
                     <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-rose-400/10 to-transparent rounded-bl-full -z-10" />
                     <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-pink-400/10 to-transparent rounded-tr-full -z-10" />
-                    
+
                     {/* Card Header */}
                     <div className="flex items-center justify-between mb-8">
                       <div className="flex items-center gap-4">
@@ -4617,11 +5179,20 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="px-4 py-2 bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300/50 rounded-full shadow-sm">
                         <span className="text-xs font-bold text-rose-700">
-                          {(samplePreparationSulphatedAshPerParam[selectedParam.id] || []).length +
-                          (calculationsSulphatedAshPerParam[selectedParam.id] || []).length} Items
+                          {(
+                            samplePreparationSulphatedAshPerParam[
+                              selectedParam.id
+                            ] || []
+                          ).length +
+                            (
+                              calculationsSulphatedAshPerParam[
+                                selectedParam.id
+                              ] || []
+                            ).length}{" "}
+                          Items
                         </span>
                       </div>
                     </div>
@@ -4634,7 +5205,11 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           Sample Preparations for Sulphated Ash
                         </h3>
                         <button
-                          onClick={() => handleAddSamplePreparationSulphatedAsh(selectedParam.id)}
+                          onClick={() =>
+                            handleAddSamplePreparationSulphatedAsh(
+                              selectedParam.id
+                            )
+                          }
                           className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-rose-600 to-rose-700 text-white font-semibold rounded-xl hover:from-rose-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg transform text-sm"
                         >
                           <Plus className="w-4 h-4" />
@@ -4643,11 +5218,25 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                       </div>
 
                       <AnimatePresence>
-                        {(samplePreparationSulphatedAshPerParam[selectedParam.id] || []).map((samplePreparationSulphatedAsh) => (
-                          <div className="overflow-hidden" key={samplePreparationSulphatedAsh.id}>
+                        {(
+                          samplePreparationSulphatedAshPerParam[
+                            selectedParam.id
+                          ] || []
+                        ).map((samplePreparationSulphatedAsh) => (
+                          <div
+                            className="overflow-hidden"
+                            key={samplePreparationSulphatedAsh.id}
+                          >
                             <SamplePreparationSulphatedAshDetail
-                              samplePreparationSulphatedAsh={samplePreparationSulphatedAsh}
-                              onStepChange={(samplePreparationSulphatedAshId, stepName, field, newValue) =>
+                              samplePreparationSulphatedAsh={
+                                samplePreparationSulphatedAsh
+                              }
+                              onStepChange={(
+                                samplePreparationSulphatedAshId,
+                                stepName,
+                                field,
+                                newValue
+                              ) =>
                                 handleSamplePreparationSulphatedAshStepChange(
                                   selectedParam.id,
                                   samplePreparationSulphatedAshId,
@@ -4667,7 +5256,11 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                         ))}
                       </AnimatePresence>
 
-                      {(samplePreparationSulphatedAshPerParam[selectedParam.id] || []).length === 0 && (
+                      {(
+                        samplePreparationSulphatedAshPerParam[
+                          selectedParam.id
+                        ] || []
+                      ).length === 0 && (
                         <motion.div
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
@@ -4677,7 +5270,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                             <div className="absolute top-0 left-1/4 w-64 h-64 bg-rose-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
                             <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
                           </div>
-                          
+
                           <div className="relative z-10">
                             <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
                               <Target className="w-14 h-14 text-rose-400" />
@@ -4686,11 +5279,14 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                               No sample preparations added yet
                             </p>
                             <p className="text-sm text-rose-600/80 max-w-md mx-auto mb-4">
-                              Click the add button to create Sulphated Ash sample preparation
+                              Click the add button to create Sulphated Ash
+                              sample preparation
                             </p>
                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-rose-100/50 rounded-lg border border-rose-200">
                               <div className="w-2 h-2 bg-rose-500 rounded-full animate-ping" />
-                              <span className="text-xs font-semibold text-rose-700">Ready to start</span>
+                              <span className="text-xs font-semibold text-rose-700">
+                                Ready to start
+                              </span>
                             </div>
                           </div>
                         </motion.div>
@@ -4714,10 +5310,14 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                       <div className="flex items-center justify-between mb-6 px-2">
                         <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
                           <span className="w-1.5 h-6 bg-gradient-to-b from-pink-500 to-rose-700 rounded-full"></span>
-                          <span className="text-pink-600">Sulphated Ash Calculations</span>
+                          <span className="text-pink-600">
+                            Sulphated Ash Calculations
+                          </span>
                         </h3>
                         <motion.button
-                          onClick={() => handleAddCalculationSulphatedAsh(selectedParam.id)}
+                          onClick={() =>
+                            handleAddCalculationSulphatedAsh(selectedParam.id)
+                          }
                           whileHover={{ scale: 1 }}
                           whileTap={{ scale: 1 }}
                           className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-semibold rounded-xl hover:from-pink-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
@@ -4726,14 +5326,19 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           Add Ash Calculation
                         </motion.button>
                       </div>
-                      
+
                       <AnimatePresence>
-                        {(calculationsSulphatedAshPerParam[selectedParam.id] || []).map((calculation) => (
+                        {(
+                          calculationsSulphatedAshPerParam[selectedParam.id] ||
+                          []
+                        ).map((calculation) => (
                           <CalculationDetailSulphatedAsh
                             key={calculation.id}
                             calculation={calculation}
                             samplePreparations={
-                              samplePreparationSulphatedAshPerParam[selectedParam.id] || []
+                              samplePreparationSulphatedAshPerParam[
+                                selectedParam.id
+                              ] || []
                             }
                             onFieldChange={(calculationId, field, value) =>
                               handleCalculationSulphatedAshFieldChange(
@@ -4753,7 +5358,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                         ))}
                       </AnimatePresence>
 
-                      {(calculationsSulphatedAshPerParam[selectedParam.id] || []).length === 0 && (
+                      {(
+                        calculationsSulphatedAshPerParam[selectedParam.id] || []
+                      ).length === 0 && (
                         <motion.div
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
@@ -4762,7 +5369,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           <div className="absolute inset-0 opacity-5">
                             <div className="absolute top-0 left-1/4 w-48 h-48 bg-rose-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
                           </div>
-                          
+
                           <div className="relative z-10">
                             <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
                               <Target className="w-10 h-10 text-rose-400" />
@@ -4781,7 +5388,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                 )}
 
                 {/* ============= RESIDUAL SOLVENT GROUP CARD ============= */}
-                {(activePreparationGroups[selectedParam.id] || []).includes("residualSolvent") && (
+                {(activePreparationGroups[selectedParam.id] || []).includes(
+                  "residualSolvent"
+                ) && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -4790,7 +5399,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                     {/* Decorative elements */}
                     <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-400/10 to-transparent rounded-bl-full -z-10" />
                     <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-purple-400/10 to-transparent rounded-tr-full -z-10" />
-                    
+
                     {/* Card Header */}
                     <div className="flex items-center justify-between mb-8">
                       <div className="flex items-center gap-4">
@@ -4809,12 +5418,20 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="px-4 py-1 bg-gradient-to-r from-indigo-100 to-purple-100 border-2 border-indigo-300/50 rounded-full shadow-sm">
                         <span className="text-xs font-bold text-indigo-700">
-                          {(standardPreparationRSPerParam[selectedParam.id] || []).length +
-                          (samplePreparationRSPerParam[selectedParam.id] || []).length +
-                          (calculationsRSPerParam[selectedParam.id] || []).length} Items
+                          {(
+                            standardPreparationRSPerParam[selectedParam.id] ||
+                            []
+                          ).length +
+                            (
+                              samplePreparationRSPerParam[selectedParam.id] ||
+                              []
+                            ).length +
+                            (calculationsRSPerParam[selectedParam.id] || [])
+                              .length}{" "}
+                          Items
                         </span>
                       </div>
                     </div>
@@ -4827,7 +5444,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           Standard & Sample Preparations for Residual Solvent
                         </h3>
                         <button
-                          onClick={() => handleAddStandardPreparationRS(selectedParam.id)}
+                          onClick={() =>
+                            handleAddStandardPreparationRS(selectedParam.id)
+                          }
                           className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                         >
                           <Plus className="w-4 h-4" />
@@ -4837,88 +5456,92 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
                       {/* Preparations List */}
                       <AnimatePresence>
-                        {(standardPreparationRSPerParam[selectedParam.id] || []).map(
-                          (standardPreparation: any, idx: number) => {
-                            const assignedStandard = (
-                              addedStandards[selectedParam.id] || []
-                            ).find(
-                              (std) => std.id === standardPreparation.assignedStandardId
-                            );
+                        {(
+                          standardPreparationRSPerParam[selectedParam.id] || []
+                        ).map((standardPreparation: any, idx: number) => {
+                          const assignedStandard = (
+                            addedStandards[selectedParam.id] || []
+                          ).find(
+                            (std) =>
+                              std.id === standardPreparation.assignedStandardId
+                          );
 
-                            const correspondingSample = (
-                              samplePreparationRSPerParam[selectedParam.id] || []
-                            )[idx];
+                          const correspondingSample =
+                            (samplePreparationRSPerParam[selectedParam.id] ||
+                              [])[idx];
 
-                            return (
-                              <div key={standardPreparation.id} className="mb-6">
-                                <div className="overflow-hidden">
-                                  <StandardPreparationDetail
-                                    standardPreparation={standardPreparation}
-                                    assignedStandard={assignedStandard || null}
-                                    onStepChange={(
+                          return (
+                            <div key={standardPreparation.id} className="mb-6">
+                              <div className="overflow-hidden">
+                                <StandardPreparationDetail
+                                  standardPreparation={standardPreparation}
+                                  assignedStandard={assignedStandard || null}
+                                  onStepChange={(
+                                    standardPreparationId,
+                                    stepName,
+                                    field,
+                                    newValue
+                                  ) =>
+                                    handleStandardPreparationRSStepChange(
+                                      selectedParam.id,
                                       standardPreparationId,
                                       stepName,
                                       field,
                                       newValue
-                                    ) =>
-                                      handleStandardPreparationRSStepChange(
-                                        selectedParam.id,
-                                        standardPreparationId,
+                                    )
+                                  }
+                                  onRemove={() =>
+                                    handleRemoveStandardPreparationRS(
+                                      selectedParam.id,
+                                      standardPreparation.id
+                                    )
+                                  }
+                                  isRS={true}
+                                />
+                              </div>
+
+                              {/* Corresponding Sample Preparation for RS */}
+                              {correspondingSample && (
+                                <div className="mt-4">
+                                  <div className="overflow-hidden">
+                                    <SamplePreparationDetail
+                                      samplePreparation={correspondingSample}
+                                      assignedStandard={
+                                        assignedStandard || null
+                                      }
+                                      onStepChange={(
+                                        samplePreparationId,
                                         stepName,
                                         field,
                                         newValue
-                                      )
-                                    }
-                                    onRemove={() =>
-                                      handleRemoveStandardPreparationRS(
-                                        selectedParam.id,
-                                        standardPreparation.id
-                                      )
-                                    }
-                                    isRS={true}
-                                  />
-                                </div>
-
-                                {/* Corresponding Sample Preparation for RS */}
-                                {correspondingSample && (
-                                  <div className="mt-4">
-                                    <div className="overflow-hidden">
-                                      <SamplePreparationDetail
-                                        samplePreparation={correspondingSample}
-                                        assignedStandard={assignedStandard || null}
-                                        onStepChange={(
+                                      ) =>
+                                        handleSamplePreparationRSStepChange(
+                                          selectedParam.id,
                                           samplePreparationId,
                                           stepName,
                                           field,
                                           newValue
-                                        ) =>
-                                          handleSamplePreparationRSStepChange(
-                                            selectedParam.id,
-                                            samplePreparationId,
-                                            stepName,
-                                            field,
-                                            newValue
-                                          )
-                                        }
-                                        onRemove={() =>
-                                          handleRemoveSamplePreparationRS(
-                                            selectedParam.id,
-                                            correspondingSample.id
-                                          )
-                                        }
-                                        isRS={true}
-                                      />
-                                    </div>
+                                        )
+                                      }
+                                      onRemove={() =>
+                                        handleRemoveSamplePreparationRS(
+                                          selectedParam.id,
+                                          correspondingSample.id
+                                        )
+                                      }
+                                      isRS={true}
+                                    />
                                   </div>
-                                )}
-                              </div>
-                            );
-                          }
-                        )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </AnimatePresence>
 
                       {/* Empty State */}
-                      {(standardPreparationRSPerParam[selectedParam.id] || []).length === 0 && (
+                      {(standardPreparationRSPerParam[selectedParam.id] || [])
+                        .length === 0 && (
                         <motion.div
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
@@ -4928,7 +5551,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                             <div className="absolute top-0 left-1/4 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
                             <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
                           </div>
-                          
+
                           <div className="relative z-10">
                             <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
                               <Target className="w-14 h-14 text-indigo-400" />
@@ -4937,11 +5560,14 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                               No preparations added yet
                             </p>
                             <p className="text-sm text-indigo-600/80 max-w-md mx-auto mb-4">
-                              Click "Add Preparation" to create standard and sample preparations for Residual Solvent
+                              Click "Add Preparation" to create standard and
+                              sample preparations for Residual Solvent
                             </p>
                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100/50 rounded-lg border border-indigo-200">
                               <div className="w-2 h-2 bg-indigo-500 rounded-full animate-ping" />
-                              <span className="text-xs font-semibold text-indigo-700">Ready to start</span>
+                              <span className="text-xs font-semibold text-indigo-700">
+                                Ready to start
+                              </span>
                             </div>
                           </div>
                         </motion.div>
@@ -4965,11 +5591,15 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                       <div className="flex items-center justify-between mb-6 px-2">
                         <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
                           <span className="w-1.5 h-6 bg-gradient-to-b from-indigo-500 to-blue-700 rounded-full"></span>
-                          <span className="text-indigo-600">Residual Solvent Calculations</span>
+                          <span className="text-indigo-600">
+                            Residual Solvent Calculations
+                          </span>
                         </h3>
                         <motion.button
-                          onClick={() => handleAddCalculationRS(selectedParam.id)}
-                          whileHover={{ scale: 1}}
+                          onClick={() =>
+                            handleAddCalculationRS(selectedParam.id)
+                          }
+                          whileHover={{ scale: 1 }}
                           whileTap={{ scale: 1 }}
                           className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                         >
@@ -4985,10 +5615,13 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                               key={calculation.id}
                               calculation={calculation}
                               standardPreparations={
-                                standardPreparationRSPerParam[selectedParam.id] || []
+                                standardPreparationRSPerParam[
+                                  selectedParam.id
+                                ] || []
                               }
                               samplePreparations={
-                                samplePreparationRSPerParam[selectedParam.id] || []
+                                samplePreparationRSPerParam[selectedParam.id] ||
+                                []
                               }
                               onFieldChange={(calculationId, field, value) =>
                                 handleCalculationRSFieldChange(
@@ -5009,7 +5642,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                         )}
                       </AnimatePresence>
 
-                      {(calculationsRSPerParam[selectedParam.id] || []).length === 0 && (
+                      {(calculationsRSPerParam[selectedParam.id] || [])
+                        .length === 0 && (
                         <motion.div
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
@@ -5018,7 +5652,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           <div className="absolute inset-0 opacity-5">
                             <div className="absolute top-0 left-1/4 w-48 h-48 bg-indigo-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
                           </div>
-                          
+
                           <div className="relative z-10">
                             <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
                               <Target className="w-10 h-10 text-indigo-400" />
@@ -5028,6 +5662,288 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                             </p>
                             <p className="text-xs text-indigo-600/80 max-w-sm mx-auto">
                               Click "Add RS Calculation" to begin
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {(activePreparationGroups[selectedParam.id] || []).includes(
+                  "dissolution"
+                ) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-green-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 overflow-hidden hover:scale-[1.01]"
+                  >
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                    {/* Card Header */}
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                          <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                            <BiTestTube className="w-6 h-6 text-white" />
+                          </div>
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
+                            Dissolution Analysis
+                          </h2>
+                          <p className="text-sm text-emerald-600/80 font-medium">
+                            Standard, Sample & Calculations
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-green-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                        <span className="text-xs font-bold text-emerald-700">
+                          {(
+                            standardPreparationDissoPerParam[
+                              selectedParam.id
+                            ] || []
+                          ).length +
+                            (
+                              samplePreparationDissoPerParam[
+                                selectedParam.id
+                              ] || []
+                            ).length +
+                            (calculationsDissoPerParam[selectedParam.id] || [])
+                              .length}
+                          Items
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Standard & Sample Preparations Section */}
+                    <div className="mb-8">
+                      <div className="flex items-center justify-between mb-4 px-2">
+                        <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight">
+                          <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-green-700 rounded-full"></span>
+                          Standard & Sample Preparations for Dissolution
+                        </h3>
+                        <button
+                          onClick={() =>
+                            handleAddStandardPreparationDisso(selectedParam.id)
+                          }
+                          className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-green-700 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-green-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add Preparation
+                        </button>
+                      </div>
+
+                      <AnimatePresence>
+                        {(
+                          standardPreparationDissoPerParam[selectedParam.id] ||
+                          []
+                        ).map((standardPreparation: any, idx: number) => {
+                          const assignedStandard = (
+                            addedStandards[selectedParam.id] || []
+                          ).find(
+                            (std) =>
+                              std.id === standardPreparation.assignedStandardId
+                          );
+
+                          const correspondingSample =
+                            (samplePreparationDissoPerParam[selectedParam.id] ||
+                              [])[idx];
+
+                          return (
+                            <div key={standardPreparation.id} className="mb-6">
+                              <div className="overflow-hidden">
+                                <StandardPreparationDetail
+                                  standardPreparation={standardPreparation}
+                                  assignedStandard={assignedStandard || null}
+                                  onStepChange={(
+                                    standardPreparationId,
+                                    stepName,
+                                    field,
+                                    newValue
+                                  ) =>
+                                    handleStandardPreparationDissoStepChange(
+                                      selectedParam.id,
+                                      standardPreparationId,
+                                      stepName,
+                                      field,
+                                      newValue
+                                    )
+                                  }
+                                  onRemove={() =>
+                                    handleRemoveStandardPreparationDisso(
+                                      selectedParam.id,
+                                      standardPreparation.id
+                                    )
+                                  }
+                                  isDisso={true}
+                                />
+                              </div>
+
+                              {correspondingSample && (
+                                <div className="mt-4">
+                                  <div className="overflow-hidden">
+                                    <SamplePreparationDissoDetail
+                                      samplePreparationDisso={
+                                        correspondingSample
+                                      }
+                                      onStepChange={(
+                                        samplePreparationDissoId,
+                                        stepName,
+                                        field,
+                                        newValue
+                                      ) =>
+                                        handleSamplePreparationDissoStepChange(
+                                          selectedParam.id,
+                                          samplePreparationDissoId,
+                                          stepName,
+                                          field,
+                                          newValue
+                                        )
+                                      }
+                                      onRemove={() =>
+                                        handleRemoveSamplePreparationDisso(
+                                          selectedParam.id,
+                                          correspondingSample.id
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </AnimatePresence>
+
+                      {(
+                        standardPreparationDissoPerParam[selectedParam.id] || []
+                      ).length === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-green-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                        >
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                            <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                          </div>
+
+                          <div className="relative z-10">
+                            <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                              <Target className="w-14 h-14 text-emerald-400" />
+                            </div>
+                            <p className="text-lg font-bold text-emerald-900 mb-2">
+                              No preparations added yet
+                            </p>
+                            <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
+                              Click "Add Preparation" to create your first
+                              standard and sample preparation for dissolution
+                            </p>
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                              <span className="text-xs font-semibold text-emerald-700">
+                                Ready to start
+                              </span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Visual Separator */}
+                    <div className="flex items-center gap-4 my-8">
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                      <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-green-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                        <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                          Calculations
+                        </span>
+                      </div>
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                    </div>
+
+                    {/* Calculations Section */}
+                    <div className="relative p-6 rounded-xl border-2 border-emerald-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                      <div className="flex items-center justify-between mb-6 px-2">
+                        <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
+                          <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-green-700 rounded-full"></span>
+                          <span className="text-emerald-600">
+                            Dissolution Calculations
+                          </span>
+                        </h3>
+                        <motion.button
+                          onClick={() =>
+                            handleAddCalculationDisso(selectedParam.id)
+                          }
+                          whileHover={{ scale: 1 }}
+                          whileTap={{ scale: 1 }}
+                          className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add Dissolution Calculation
+                        </motion.button>
+                      </div>
+
+                      <AnimatePresence>
+                        {(
+                          calculationsDissoPerParam[selectedParam.id] || []
+                        ).map((calculation) => (
+                          <CalculationDetailDisso
+                            key={calculation.id}
+                            calculation={calculation}
+                            standardPreparations={
+                              standardPreparationDissoPerParam[
+                                selectedParam.id
+                              ] || []
+                            }
+                            samplePreparationsDisso={
+                              samplePreparationDissoPerParam[
+                                selectedParam.id
+                              ] || []
+                            }
+                            onFieldChange={(calculationId, field, value) =>
+                              handleCalculationDissoFieldChange(
+                                selectedParam.id,
+                                calculationId,
+                                field,
+                                value
+                              )
+                            }
+                            onRemove={() =>
+                              handleRemoveCalculationDisso(
+                                selectedParam.id,
+                                calculation.id
+                              )
+                            }
+                          />
+                        ))}
+                      </AnimatePresence>
+
+                      {(calculationsDissoPerParam[selectedParam.id] || [])
+                        .length === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-green-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
+                        >
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 left-1/4 w-48 h-48 bg-emerald-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
+                          </div>
+
+                          <div className="relative z-10">
+                            <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
+                              <Target className="w-10 h-10 text-emerald-400" />
+                            </div>
+                            <p className="font-semibold text-base text-emerald-900 mb-1">
+                              No dissolution calculations added yet
+                            </p>
+                            <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
+                              Click "Add Dissolution Calculation" to begin
                             </p>
                           </div>
                         </motion.div>
@@ -5122,54 +6038,111 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
         {/* Action Buttons */}
         <div className="mt-6 flex gap-3 justify-center no-print">
+          {/* Save Draft Button with Loading State */}
           <motion.button
             onClick={handleSaveDraft}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="relative px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2"
+            disabled={isSaving}
+            whileHover={!isSaving ? { scale: 1.02 } : {}}
+            whileTap={!isSaving ? { scale: 0.98 } : {}}
+            className={`relative px-6 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all duration-200 flex items-center gap-2 min-w-[140px] justify-center ${
+              isSaving
+                ? "bg-gradient-to-r from-blue-400 to-blue-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl"
+            } text-white`}
           >
-            Save Draft
+            {isSaving ? (
+              <>
+                {/* Attractive Spinner */}
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                  />
+                </svg>
+                <span>Save Draft</span>
+              </>
+            )}
+
+            {/* Success Checkmark */}
             <AnimatePresence>
               {saveSuccess && (
                 <motion.span
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0 }}
-                  className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1"
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg"
                 >
-                  <Check className="w-3 h-3" />
+                  <Check className="w-3.5 h-3.5 text-white" />
                 </motion.span>
               )}
             </AnimatePresence>
           </motion.button>
+
+          {/* Submit Button - DISABLED */}
           <button
-            onClick={handleSubmit}
-            className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg text-sm"
+            disabled
+            className="px-6 py-3 bg-gradient-to-r from-slate-300 to-slate-400 text-slate-500 font-semibold rounded-xl shadow-md cursor-not-allowed text-sm opacity-60"
+            title="Submit functionality coming soon"
           >
-            Submit for Review
+            <span className="flex items-center gap-2">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Submit for Review
+            </span>
           </button>
+
+          {/* Print Button - DISABLED */}
           <button
-            onClick={handlePrintPreview}
-            className="px-6 py-2.5 bg-gradient-to-r from-teal-600 to-teal-700 text-white font-semibold rounded-lg hover:from-teal-700 hover:to-teal-800 transition-all shadow-md hover:shadow-lg text-sm"
+            disabled
+            className="px-6 py-3 bg-gradient-to-r from-slate-300 to-slate-400 text-slate-500 font-semibold rounded-xl shadow-md cursor-not-allowed text-sm opacity-60"
+            title="Print functionality coming soon"
           >
-            Print Preview
+            <span className="flex items-center gap-2">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                />
+              </svg>
+              Print Preview
+            </span>
           </button>
         </div>
       </div>
-
-      {/* Data Preview Dialog */}
-      <DataPreviewDialog
-        isOpen={showDataDialog}
-        onClose={() => setShowDataDialog(false)}
-        data={collectedData}
-      />
-
-      {/* Print Preview Dialog */}
-      <PrintPreviewDialog
-        isOpen={showPrintPreview}
-        onClose={() => setShowPrintPreview(false)}
-        data={collectedData}
-      />
 
       <StandardSelectionDialog
         isOpen={showStandardSelectionDialog}
@@ -5177,17 +6150,23 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           setShowStandardSelectionDialog(false);
           setCurrentParameterForStandardPrep(null);
           setIsAddingRSStandard(false);
+          setIsAddingDissoStandard(false);
         }}
         availableStandards={
           currentParameterForStandardPrep !== null
             ? getAvailableStandardsForParameter(
                 currentParameterForStandardPrep,
-                isAddingRSStandard // This flag determines which list to check
+                isAddingRSStandard,
+                isAddingDissoStandard
               )
             : []
         }
         onSelectStandard={(standard) => {
-          handleStandardSelectedForPreparation(standard, isAddingRSStandard);
+          handleStandardSelectedForPreparation(
+            standard,
+            isAddingRSStandard,
+            isAddingDissoStandard
+          );
         }}
       />
     </div>

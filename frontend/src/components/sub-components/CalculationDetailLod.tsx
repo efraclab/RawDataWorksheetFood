@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Calculator, Trash, CheckCircle, AlertTriangle, X } from "lucide-react"; 
-import type { CalculationLod } from "../../models/CalculationLod";
-import type { SamplePreparationLod } from "../../models/SamplePreparationLod";
+import type { CalculationLod } from "../../preparation_models/CalculationLod";
+import type { SamplePreparationLod } from "../../preparation_models/SamplePreparationLod";
 import CustomDropdown from "../shared/CustomDropdown";
 
 interface CalculationDetailLodProps {

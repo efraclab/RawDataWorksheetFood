@@ -1,14 +1,39 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Droplets, Trash } from "lucide-react";
-import type { SamplePreparationDisso } from "../../models/SamplePreparationDisso";
-import type { SamplePreparationDissoStep } from "../../models/SamplePreparationDissoStep";
+import type { SamplePreparationDisso } from "../../preparation_models/SamplePreparationDisso";
+import type { SamplePreparationDissoStep } from "../../preparation_models/SamplePreparationDissoStep";
+import CustomDropdown from "../shared/CustomDropdown";
 
-const weightUnitOptions = ["g", "mg", "kg"];
-const filtrationUnitOptions = ["micron", "µm", "mm"];
-const volumeUnitOptions = ["ml", "L", "µL"];
-const timeUnitOptions = ["min", "hr", "sec"];
-const tempUnitOptions = ["°C", "°F", "K"];
+const weightUnitOptions = [
+  { value: "mg", label: "mg" },
+  { value: "g", label: "g" },
+  { value: "kg", label: "kg" },
+];
+
+const filtrationUnitOptions = [
+  { value: "micron", label: "micron" },
+  { value: "µm", label: "µm" },
+  { value: "mm", label: "mm" },
+];
+
+const volumeUnitOptions = [
+  { value: "ml", label: "ml" },
+  { value: "L", label: "L" },
+  { value: "µL", label: "µL" },
+];
+
+const timeUnitOptions = [
+  { value: "min", label: "min" },
+  { value: "hr", label: "hr" },
+  { value: "sec", label: "sec" },
+];
+
+const tempUnitOptions = [
+  { value: "°C", label: "°C" },
+  { value: "°F", label: "°F" },
+  { value: "K", label: "K" },
+];
 
 interface SamplePreparationDissoDetailProps {
   samplePreparationDisso: SamplePreparationDisso;
@@ -29,6 +54,7 @@ interface SamplePreparationDissoDetailProps {
       | "id"
       | "rpm"
       | "claim"
+      | "claimUnit"
       | "mediaVol"
       | "solventChemical",
     newValue: string
@@ -48,14 +74,14 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="relative group"
+      className="relative group z-20"
     >
       {/* Glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-orange-400/20 to-orange-400/20 rounded-lg blur-xl group-hover:blur-xl transition-all duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-green-400/20 rounded-lg blur-xl group-hover:blur-xl transition-all duration-300" />
 
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-orange-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-emerald-200/50 transition-all duration-300 mb-4">
         {/* Elegant Header */}
-        <div className="relative bg-gradient-to-r from-orange-600 via-orange-500 to-red-500 overflow-hidden">
+        <div className={`relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-500 ${isExpanded ? 'rounded-t-lg' : 'rounded-lg'}`}>
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
 
@@ -79,7 +105,7 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                 <h4 className="text-sm font-semibold text-white tracking-wide">
                   {samplePreparationDisso.label}
                 </h4>
-                <p className="text-xs text-orange-100">
+                <p className="text-xs text-emerald-100">
                   Sample Preparation Details
                 </p>
               </div>
@@ -124,9 +150,8 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
             >
-              <div className="p-5 space-y-3 bg-gradient-to-br from-orange-50/50 to-red-50/30">
+              <div className="p-5 space-y-3 bg-gradient-to-br from-emerald-50/50 to-green-50/30">
                 {samplePreparationDisso.steps.map((step, index) => {
                   const isInstrument = step.name === "Instrument Details";
                   const isTablet = step.name === "Tablet Details";
@@ -143,11 +168,11 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                       transition={{ delay: index * 0.1 }}
                       className="group/item relative"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-orange-400/0 via-orange-400/5 to-red-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/0 via-emerald-400/5 to-emerald-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
 
-                      <div className="relative bg-white rounded-xl border border-orange-200/60 shadow-sm hover:shadow-md hover:border-orange-300 transition-all duration-200 p-4">
+                      <div className="relative bg-white rounded-xl border border-emerald-200/60 hover:border-emerald-300 transition-all duration-200 p-4">
                         <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-md">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center shadow-md">
                             <span className="text-white text-xs font-bold">
                               {index + 1}
                             </span>
@@ -155,10 +180,10 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
 
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-3">
-                              <div className="font-bold text-orange-900 text-sm">
+                              <div className="font-bold text-emerald-900 text-sm">
                                 {step.name}
                               </div>
-                              <div className="h-px flex-1 bg-gradient-to-r from-orange-200 to-transparent" />
+                              <div className="h-px flex-1 bg-gradient-to-r from-emerald-200 to-transparent" />
                             </div>
 
                             {isInstrument && (
@@ -168,7 +193,7 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                     Id
                                   </span>
                                   <input
-                                  type="text"
+                                    type="text"
                                     value={step.id || ""}
                                     onChange={(e) =>
                                       onStepChange(
@@ -179,7 +204,7 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                       )
                                     }
                                     placeholder="Enter Id"
-                                    className="w-20 px-2.5 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
+                                    className="w-20 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                                   />
                                   
                                   <span className="text-gray-600 ml-2 font-medium">
@@ -200,9 +225,9 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                       )
                                     }
                                     placeholder="Enter Value"
-                                    className="flex-1 min-w-[120px] px-2.5 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
+                                    className="flex-1 min-w-[120px] px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
-                                  <span className="text-gray-500 font-medium ml-2 text-xs">
+                                  <span className="text-gray-600 font-medium ml-2">
                                     Temperature
                                   </span>
                                   <input
@@ -220,26 +245,24 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                       )
                                     }
                                     placeholder="Enter Temp"
-                                    className="w-24 px-2.5 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
+                                    className="w-24 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
-                                  <select
-                                    value={step.tempUnit || "min"}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationDisso.id,
-                                        step.name,
-                                        "tempUnit",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-16 px-2 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
-                                  >
-                                    {tempUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  <div className="w-16">
+                                    <CustomDropdown
+                                      options={tempUnitOptions}
+                                      value={step.tempUnit || "°C"}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationDisso.id,
+                                          step.name,
+                                          "tempUnit",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="emerald"
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             )}
@@ -251,7 +274,10 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                     Claim
                                   </span>
                                   <input
-                                  type="text"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputMode="decimal"
                                     value={step.claim || ""}
                                     onChange={(e) =>
                                       onStepChange(
@@ -262,8 +288,24 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                       )
                                     }
                                     placeholder="Enter Claim"
-                                    className="w-24 px-2.5 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
+                                    className="w-24 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                                   />
+                                  <div className="w-20">
+                                    <CustomDropdown
+                                      options={weightUnitOptions}
+                                      value={step.claimUnit || "mg"}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationDisso.id,
+                                          step.name,
+                                          "claimUnit",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="emerald"
+                                    />
+                                  </div>
                                   
                                   <span className="text-gray-600 ml-2 font-medium">
                                     Media Volume
@@ -283,27 +325,25 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                       )
                                     }
                                     placeholder="Enter Volume"
-                                    className="flex-1 min-w-[100px] px-2.5 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
+                                    className="flex-1 min-w-[100px] px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
-                                  <select
-                                    value={step.unit || "g"}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationDisso.id,
-                                        step.name,
-                                        "unit",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-16 px-2 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
-                                  >
-                                    {weightUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
-                                  <span className="text-gray-500 ml-4 font-medium text-xs">
+                                  <div className="w-16">
+                                    <CustomDropdown
+                                      options={volumeUnitOptions}
+                                      value={step.unit || "ml"}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationDisso.id,
+                                          step.name,
+                                          "unit",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="emerald"
+                                    />
+                                  </div>
+                                  <span className="text-gray-600 ml-4 font-medium">
                                     Sampling Time
                                   </span>
                                   <input
@@ -321,32 +361,29 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                       )
                                     }
                                     placeholder="Enter Time"
-                                    className="w-24 px-2.5 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
+                                    className="w-24 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
-                                  <select
-                                    value={step.tempUnit || "min"}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationDisso.id,
-                                        step.name,
-                                        "timeUnit",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-16 px-2 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
-                                  >
-                                    {timeUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  <div className="w-20">
+                                    <CustomDropdown
+                                      options={timeUnitOptions}
+                                      value={step.timeUnit || "min"}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationDisso.id,
+                                          step.name,
+                                          "timeUnit",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="emerald"
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             )}
 
-                            {(is1stDilution || is2ndDilution ||
-                              is3rdDilution) && (
+                            {(is1stDilution || is2ndDilution || is3rdDilution) && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   <span className="text-gray-600 font-medium">
@@ -367,34 +404,32 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                       )
                                     }
                                     placeholder="Enter Volume"
-                                    className="w-30 px-2.5 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
+                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
-                                  <select
-                                    value={step.unit1 || "ml"}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationDisso.id,
-                                        step.name,
-                                        "unit1",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-16 px-2 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
-                                  >
-                                    {volumeUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  <div className="w-16">
+                                    <CustomDropdown
+                                      options={volumeUnitOptions}
+                                      value={step.unit1 || "ml"}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationDisso.id,
+                                          step.name,
+                                          "unit1",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="emerald"
+                                    />
+                                  </div>
                                   <span className="text-gray-600 font-medium">
                                     of{" "}
-                                    {is2ndDilution
+                                    {is1stDilution
+                                      ? "stock"
+                                      : is2ndDilution
                                       ? "1st"
-                                      : is3rdDilution
-                                      ? "2nd"
-                                      : "3rd"}{" "}
-                                    Dilution Solution & dilute to
+                                      : "2nd"}{" "}
+                                    {is1stDilution ? "solution" : "Dilution Solution"} & dilute to
                                   </span>
                                   <input
                                     type="number"
@@ -411,26 +446,24 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                       )
                                     }
                                     placeholder="Enter Volume"
-                                    className="w-30 px-2.5 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
+                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
-                                  <select
-                                    value={step.unit2 || "ml"}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationDisso.id,
-                                        step.name,
-                                        "unit2",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-16 px-2 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
-                                  >
-                                    {volumeUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  <div className="w-16">
+                                    <CustomDropdown
+                                      options={volumeUnitOptions}
+                                      value={step.unit2 || "ml"}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationDisso.id,
+                                          step.name,
+                                          "unit2",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="emerald"
+                                    />
+                                  </div>
                                   <span className="text-gray-600 font-medium">
                                     with diluent
                                   </span>
@@ -458,26 +491,24 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                     )
                                   }
                                   placeholder="Enter Size"
-                                  className="w-30 px-2.5 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
+                                  className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                 />
-                                <select
-                                  value={step.unit}
-                                  onChange={(e) =>
-                                    onStepChange(
-                                      samplePreparationDisso.id,
-                                      step.name,
-                                      "unit",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="w-20 px-2 py-1.5 border border-orange-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
-                                >
-                                  {filtrationUnitOptions.map((unit) => (
-                                    <option key={unit} value={unit}>
-                                      {unit}
-                                    </option>
-                                  ))}
-                                </select>
+                                <div className="w-20">
+                                  <CustomDropdown
+                                    options={filtrationUnitOptions}
+                                    value={step.unit || "µm"}
+                                    onChange={(newUnit) =>
+                                      onStepChange(
+                                        samplePreparationDisso.id,
+                                        step.name,
+                                        "unit",
+                                        newUnit
+                                      )
+                                    }
+                                    placeholder="Unit"
+                                    colorScheme="emerald"
+                                  />
+                                </div>
                                 <span className="text-gray-600 font-medium">
                                   syringe filter
                                 </span>
@@ -498,4 +529,4 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
   );
 };
 
-export default SamplePreparationDissoDetail
+export default SamplePreparationDissoDetail;

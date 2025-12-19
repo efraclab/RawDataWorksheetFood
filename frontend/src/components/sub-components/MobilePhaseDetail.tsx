@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Droplets, Trash } from "lucide-react";
-import type { MobilePhase } from "../../models/MobilePhase";
-import type { MobilePhaseStep } from "../../models/MobilePhaseStep";
+import type { MobilePhase } from "../../preparation_models/MobilePhase";
+import type { MobilePhaseStep } from "../../preparation_models/MobilePhaseStep";
 
 const weightUnitOptions = ["g", "mg", "kg"];
 const filtrationUnitOptions = ["micron", "µm", "mm"];

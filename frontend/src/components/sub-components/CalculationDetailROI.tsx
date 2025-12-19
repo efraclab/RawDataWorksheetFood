@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Calculator, Trash, CheckCircle, AlertTriangle, X } from "lucide-react"; 
-import type { CalculationROI } from "../../models/CalculationROI";
-import type { SamplePreparationROI } from "../../models/SamplePreparationROI";
+import type { CalculationROI } from "../../preparation_models/CalculationROI";
+import type { SamplePreparationROI } from "../../preparation_models/SamplePreparationROI";
 import CustomDropdown from "../shared/CustomDropdown";
 
 interface CalculationDetailROIProps {

@@ -1,0 +1,159 @@
+[
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.AuthController",
+    "Method": "Login",
+    "RelativePath": "api/auth/login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.Requests.LogInRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
+    "Method": "GetChemicals",
+    "RelativePath": "api/chemicals",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
+    "Method": "GetColumns",
+    "RelativePath": "api/columns",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
+    "Method": "GetInstruments",
+    "RelativePath": "api/instruments",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
+    "Method": "GetSampleDetailsById",
+    "RelativePath": "api/sample-details",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "regNo",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
+    "Method": "GetStandards",
+    "RelativePath": "api/standards",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
+    "Method": "Create",
+    "RelativePath": "api/worksheets",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.Requests.SaveWorksheetRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
+    "Method": "GetAll",
+    "RelativePath": "api/worksheets",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "status",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
+    "Method": "Update",
+    "RelativePath": "api/worksheets/{worksheetId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "worksheetId",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.Requests.SaveWorksheetRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
+    "Method": "Delete",
+    "RelativePath": "api/worksheets/{worksheetId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "worksheetId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
+    "Method": "GetById",
+    "RelativePath": "api/worksheets/{worksheetId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "worksheetId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

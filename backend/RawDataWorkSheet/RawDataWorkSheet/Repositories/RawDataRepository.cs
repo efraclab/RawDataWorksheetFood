@@ -10,7 +10,7 @@ namespace RawDataWorkSheet.Repositories
 
         public RawDataRepository(IConfiguration configuration)
         {
-            _connectionString = configuration["Connnectionstrings:MyConnection"];
+            _connectionString = configuration["Connnectionstrings:Connection1"];
         }
 
         public async Task<IEnumerable<SampleDetails>> GetSampleDetailsByIdAsync(string regNo)

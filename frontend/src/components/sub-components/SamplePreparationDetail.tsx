@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Droplets, Trash } from "lucide-react";
-import type { SamplePreparation } from "../../models/SamplePreparation";
-import type { SamplePreparationStep } from "../../models/SamplePreparationStep";
-import type { Standard } from "../../models/Standard";
+import type { SamplePreparation } from "../../preparation_models/SamplePreparation";
+import type { SamplePreparationStep } from "../../preparation_models/SamplePreparationStep";
+import type { Standard } from "../../preparation_models/Standard";
 import CustomDropdown from "../shared/CustomDropdown";
 
 const weightUnitOptions = [
-  { value: "g", label: "g" },
   { value: "mg", label: "mg" },
+  { value: "g", label: "g" },
   { value: "kg", label: "kg" },
 ];
 
@@ -56,13 +56,18 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
 
   const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
 
-  const filteredSteps = isRS
-    ? samplePreparation.steps.filter((step) => 
-        step.name === "Weighing" || 
-        step.name === "1st Dilution" || 
+  // Ensure steps is an array before filtering/mapping
+  const stepsArray: SamplePreparationStep[] = Array.isArray(samplePreparation?.steps)
+    ? samplePreparation.steps
+    : [];
+
+  const filteredSteps: SamplePreparationStep[] = isRS
+    ? stepsArray.filter((step) =>
+        step.name === "Weighing" ||
+        step.name === "1st Dilution" ||
         step.name === "Filtration"
       )
-    : samplePreparation.steps;
+    : stepsArray;
 
   return (
     <motion.div

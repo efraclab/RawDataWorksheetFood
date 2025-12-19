@@ -81,3 +81,4 @@ D:\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkShe
 D:\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net8.0\ref\RawDataWorkSheet.dll
 D:\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net8.0\swae.build.ex.cache
 D:\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+D:\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\bin\Debug\net8.0\Newtonsoft.Json.dll

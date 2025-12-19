@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Calculator, Trash, CheckCircle, AlertTriangle, X } from "lucide-react"; 
-import type { CalculationAssay, CalculationType } from "../../models/CalculationAssay";
-import type { StandardPreparation } from "../../models/StandardPreparation";
-import type { SamplePreparation } from "../../models/SamplePreparation";
+import type { CalculationAssay, CalculationType } from "../../preparation_models/CalculationAssay";
+import type { StandardPreparation } from "../../preparation_models/StandardPreparation";
+import type { SamplePreparation } from "../../preparation_models/SamplePreparation";
 import CustomDropdown from "../shared/CustomDropdown";
 
 // 1. UPDATED: Added "For Raw Material"
@@ -155,11 +155,12 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
   // Extract dilution values from preparations
   const getStandardDilutions = () => {
     if (!selectedStandardPrep) return [];
-    return selectedStandardPrep.steps
-      .filter((step) => 
-        step.name === "1st Dilution" || 
-        step.name === "2nd Dilution" || 
-        step.name === "3rd Dilution" || 
+    const stepsArr = Array.isArray(selectedStandardPrep.steps) ? selectedStandardPrep.steps : [];
+    return stepsArr
+      .filter((step) =>
+        step.name === "1st Dilution" ||
+        step.name === "2nd Dilution" ||
+        step.name === "3rd Dilution" ||
         step.name === "4th Dilution"
       )
       .map((step) => ({
@@ -173,11 +174,12 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
 
   const getSampleDilutions = () => {
     if (!selectedSamplePrep) return [];
-    return selectedSamplePrep.steps
-      .filter((step) => 
-        step.name === "1st Dilution" || 
-        step.name === "2nd Dilution" || 
-        step.name === "3rd Dilution" || 
+    const stepsArr = Array.isArray(selectedSamplePrep.steps) ? selectedSamplePrep.steps : [];
+    return stepsArr
+      .filter((step) =>
+        step.name === "1st Dilution" ||
+        step.name === "2nd Dilution" ||
+        step.name === "3rd Dilution" ||
         step.name === "4th Dilution"
       )
       .map((step) => ({
@@ -191,9 +193,8 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
 
   const getStandardWeight = () => {
     if (!selectedStandardPrep) return { value: "", unit: "g" };
-    const weighingStep = selectedStandardPrep.steps.find(
-      (step) => step.name === "Weighing"
-    );
+    const stepsArr = Array.isArray(selectedStandardPrep.steps) ? selectedStandardPrep.steps : [];
+    const weighingStep = stepsArr.find((step) => step.name === "Weighing");
     return {
       value: weighingStep?.value || "",
       unit: weighingStep?.unit || "g",
@@ -202,9 +203,8 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
 
   const getSampleWeight = () => {
     if (!selectedSamplePrep) return { value: "", unit: "g" };
-    const weighingStep = selectedSamplePrep.steps.find(
-      (step) => step.name === "Weighing"
-    );
+    const stepsArr = Array.isArray(selectedSamplePrep.steps) ? selectedSamplePrep.steps : [];
+    const weighingStep = stepsArr.find((step) => step.name === "Weighing");
     return {
       value: weighingStep?.value || "",
       unit: weighingStep?.unit || "g",

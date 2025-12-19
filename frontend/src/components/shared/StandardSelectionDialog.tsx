@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, AlertCircle } from "lucide-react";
-import type { Standard } from "../../models/Standard";
+import type { Standard } from "../../preparation_models/Standard";
 
 interface StandardSelectionDialogProps {
   isOpen: boolean;

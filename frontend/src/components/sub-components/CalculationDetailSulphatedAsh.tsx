@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Calculator, Trash, CheckCircle, AlertTriangle, X } from "lucide-react"; 
-import type { CalculationSulphatedAsh } from "../../models/CalculationSulphatedAsh";
-import type { SamplePreparationSulphatedAsh } from "../../models/SamplePreparationSulphatedAsh";
+import type { CalculationSulphatedAsh } from "../../preparation_models/CalculationSulphatedAsh";
+import type { SamplePreparationSulphatedAsh } from "../../preparation_models/SamplePreparationSulphatedAsh";
 import CustomDropdown from "../shared/CustomDropdown";
 
 interface CalculationDetailSulphatedAshProps {

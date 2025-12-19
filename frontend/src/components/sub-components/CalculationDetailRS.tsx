@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Calculator, Trash, CheckCircle, AlertTriangle, X } from "lucide-react";
-import type { CalculationRS } from "../../models/CalculationRS";
-import type { StandardPreparation } from "../../models/StandardPreparation";
-import type { SamplePreparation } from "../../models/SamplePreparation";
+import type { CalculationRS } from "../../preparation_models/CalculationRS";
+import type { StandardPreparation } from "../../preparation_models/StandardPreparation";
+import type { SamplePreparation } from "../../preparation_models/SamplePreparation";
 import CustomDropdown from "../shared/CustomDropdown";
 
 interface CalculationDetailRSProps {

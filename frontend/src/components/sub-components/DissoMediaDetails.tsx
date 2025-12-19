@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { DissoMedia } from "../../models/DissoMedia";
-import type { DissoMediaStep } from "../../models/DissoMediaStep";
+import type { DissoMedia } from "../../preparation_models/DissoMedia";
+import type { DissoMediaStep } from "../../preparation_models/DissoMediaStep";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Droplets, Trash } from "lucide-react";
 

@@ -1,0 +1,507 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "RawDataWorkSheet",
+    "version": "1.0"
+  },
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogInRequest"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogInRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogInRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogInRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/sample-details": {
+      "post": {
+        "tags": [
+          "RawData"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/instruments": {
+      "get": {
+        "tags": [
+          "RawData"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/chemicals": {
+      "get": {
+        "tags": [
+          "RawData"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/standards": {
+      "get": {
+        "tags": [
+          "RawData"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/columns": {
+      "get": {
+        "tags": [
+          "RawData"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/worksheets": {
+      "post": {
+        "tags": [
+          "Worksheet"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorksheetRequest"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorksheetRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorksheetRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorksheetRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Worksheet"
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/worksheets/{worksheetId}": {
+      "put": {
+        "tags": [
+          "Worksheet"
+        ],
+        "parameters": [
+          {
+            "name": "worksheetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorksheetRequest"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorksheetRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorksheetRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorksheetRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Worksheet"
+        ],
+        "parameters": [
+          {
+            "name": "worksheetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Worksheet"
+        ],
+        "parameters": [
+          {
+            "name": "worksheetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CalculationDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "nullable": true
+          },
+          "calculationType": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DocumentInfoDto": {
+        "type": "object",
+        "properties": {
+          "preparedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "analyzedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "approvedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "classified": {
+            "type": "string",
+            "nullable": true
+          },
+          "revisionDate": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "LogInRequest": {
+        "required": [
+          "employeeId",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "password": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ParameterDto": {
+        "type": "object",
+        "properties": {
+          "paraCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "parameterName": {
+            "type": "string",
+            "nullable": true
+          },
+          "methodCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "methodName": {
+            "type": "string",
+            "nullable": true
+          },
+          "columnId": {
+            "type": "string",
+            "nullable": true
+          },
+          "diluentPreparation": {
+            "type": "string",
+            "nullable": true
+          },
+          "testSolutionPreparation": {
+            "type": "string",
+            "nullable": true
+          },
+          "instruments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "chemicals": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "standards": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "standardPreparations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StandardPreparationDto"
+            },
+            "nullable": true
+          },
+          "samplePreparations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SamplePreparationDto"
+            },
+            "nullable": true
+          },
+          "calculations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalculationDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegistrationInfoDto": {
+        "type": "object",
+        "properties": {
+          "registrationNo": {
+            "type": "string",
+            "nullable": true
+          },
+          "sampleName": {
+            "type": "string",
+            "nullable": true
+          },
+          "numberOfParameters": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "dueDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "analysisStartDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "analysisCompletionDate": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SamplePreparationDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "nullable": true
+          },
+          "assignedStandardId": {
+            "type": "string",
+            "nullable": true
+          },
+          "preparationType": {
+            "type": "string",
+            "nullable": true
+          },
+          "steps": {
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SaveWorksheetRequest": {
+        "type": "object",
+        "properties": {
+          "worksheetId": {
+            "type": "string",
+            "nullable": true
+          },
+          "registrationInfo": {
+            "$ref": "#/components/schemas/RegistrationInfoDto"
+          },
+          "documentInfo": {
+            "$ref": "#/components/schemas/DocumentInfoDto"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParameterDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "StandardPreparationDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "nullable": true
+          },
+          "assignedStandardId": {
+            "type": "string",
+            "nullable": true
+          },
+          "preparationType": {
+            "type": "string",
+            "nullable": true
+          },
+          "steps": {
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

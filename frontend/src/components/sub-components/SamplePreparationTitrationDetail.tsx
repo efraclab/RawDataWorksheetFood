@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Droplets, Trash } from "lucide-react";
-import type { SamplePreparationTitration } from "../../models/SamplePreparationTitration";
-import type { SamplePreparationTitrationStep } from "../../models/SamplePreparationTitrationStep";
+import type { SamplePreparationTitration } from "../../preparation_models/SamplePreparationTitration";
+import type { SamplePreparationTitrationStep } from "../../preparation_models/SamplePreparationTitrationStep";
 
 const weightUnitOptions = ["g", "mg", "kg"];
 const volumeUnitOptions = ["ml", "L", "µL"];

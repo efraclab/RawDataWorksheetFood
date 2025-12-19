@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Droplets, Trash } from "lucide-react";
-import type { SamplePreparationROI } from "../../models/SamplePreparationROI";
-import type { SamplePreparationROIStep } from "../../models/SamplePreparationROIStep";
+import type { SamplePreparationROI } from "../../preparation_models/SamplePreparationROI";
+import type { SamplePreparationROIStep } from "../../preparation_models/SamplePreparationROIStep";
 import CustomDropdown from "../shared/CustomDropdown"; // Import CustomDropdown
 
 // Define options for CustomDropdown
 const weightUnitOptions = [
-  { value: "g", label: "g" },
   { value: "mg", label: "mg" },
+  { value: "g", label: "g" },
   { value: "kg", label: "kg" },
 ];
 

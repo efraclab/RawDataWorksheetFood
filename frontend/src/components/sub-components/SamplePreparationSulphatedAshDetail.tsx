@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Droplets, Trash } from "lucide-react";
-import type { SamplePreparationSulphatedAsh } from "../../models/SamplePreparationSulphatedAsh";
-import type { SamplePreparationSulphatedAshStep } from "../../models/SamplePreparationSulphatedAshStep";
+import type { SamplePreparationSulphatedAsh } from "../../preparation_models/SamplePreparationSulphatedAsh";
+import type { SamplePreparationSulphatedAshStep } from "../../preparation_models/SamplePreparationSulphatedAshStep";
 // IMPORT CustomDropdown
 import CustomDropdown from "../shared/CustomDropdown";
 
 // CONVERTED to object array format for CustomDropdown
 const weightUnitOptions = [
-  { value: "g", label: "g" },
   { value: "mg", label: "mg" },
+  { value: "g", label: "g" },
   { value: "kg", label: "kg" },
 ];
 const timeUnitOptions = [

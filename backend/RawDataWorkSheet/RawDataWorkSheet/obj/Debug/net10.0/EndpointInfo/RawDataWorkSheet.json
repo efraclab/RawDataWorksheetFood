@@ -293,18 +293,6 @@
             "type": "string",
             "nullable": true
           },
-          "analyzedBy": {
-            "type": "string",
-            "nullable": true
-          },
-          "approvedBy": {
-            "type": "string",
-            "nullable": true
-          },
-          "classified": {
-            "type": "string",
-            "nullable": true
-          },
           "revisionDate": {
             "type": "string",
             "nullable": true
@@ -357,7 +345,31 @@
             "type": "string",
             "nullable": true
           },
-          "testSolutionPreparation": {
+          "otherInfo": {
+            "type": "string",
+            "nullable": true
+          },
+          "analyzedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "approvedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "analysisStartDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "analysisCompletionDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "approvedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
             "type": "string",
             "nullable": true
           },
@@ -423,14 +435,6 @@
             "nullable": true
           },
           "dueDate": {
-            "type": "string",
-            "nullable": true
-          },
-          "analysisStartDate": {
-            "type": "string",
-            "nullable": true
-          },
-          "analysisCompletionDate": {
             "type": "string",
             "nullable": true
           }

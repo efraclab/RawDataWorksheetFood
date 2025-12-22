@@ -1,16 +1,18 @@
 import React, { useState } from "react";
-import { Search, Sparkles, X, Shield, FileSpreadsheet, CheckCircle, ArrowRight, Beaker, ClipboardList, Loader2, Hash } from "lucide-react";
+import { Search, X, FileSpreadsheet, CheckCircle, ArrowRight, Beaker, ClipboardList, Loader2, Hash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchSample, createWorksheet } from "../services/api";
 import type { SampleData } from "../preparation_models/SampleData";
-import type { WorksheetRequest } from "../models/requests/WorksheetRequest";
+import type { WorksheetRequest } from "../models/WorksheetRequest";
 
 interface CreateWorksheetProps {
+  employeeId: string;
   onWorksheetCreated: (worksheetId: string, registrationNo: string) => void;
   onCancel: () => void;
 }
 
 const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
+  employeeId,
   onWorksheetCreated,
   onCancel,
 }) => {
@@ -72,12 +74,12 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
         worksheetId: worksheetId,
         registrationInfo: {
           registrationNo: firstSample.registrationNo,
-          dateOfReceipt: firstSample.registrationDate,
           sampleName: firstSample.sampleName,
           numberOfParameters: sampleData.length,
           dueDate: firstSample.tatDate,
-          analysisStartDate: firstSample.analysisStartDate,
-          analysisCompletionDate: firstSample.analysisCompletionDate || "",
+        },
+        documentInfo: {
+          preparedBy: employeeId,
         }
       };
 

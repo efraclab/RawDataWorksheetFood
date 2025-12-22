@@ -1,34 +1,58 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, useNavigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import "./index.css";
 
-// ========== COMPONENTS ==========
+import Login from "./components/Login";
 import WorksheetDashboard from "./components/WorksheetDashboard";
 import CreateWorksheet from "./components/CreateWorksheet";
-import FormPreview from "./components/FormPreview";
+import Worksheet from "./components/Worksheet";
 
-// ========== API & MODELS ==========
+import type { Instrument } from "./preparation_models/Instrument";
+import type { Chemical } from "./preparation_models/Chemical";
+import type { Standard } from "./preparation_models/Standard";
+import type { Column } from "./preparation_models/Column";
+
 import {
   fetchInstruments,
   fetchChemicals,
   fetchStandards,
   fetchColumns,
 } from "./services/api";
-import type { Instrument } from "./preparation_models/Instrument";
-import type { Chemical } from "./preparation_models/Chemical";
-import type { Standard } from "./preparation_models/Standard";
-import type { Column } from "./preparation_models/Column";
 
-// ========== PAGE ANIMATION ==========
+const isTokenExpired = (token: string) => {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    const decoded = JSON.parse(jsonPayload);
+
+    if (!decoded || !decoded.exp) return true;
+    return decoded.exp * 1000 < Date.now();
+  } catch (error) {
+    return true;
+  }
+};
+
 const pageVariants = {
   initial: { opacity: 0, x: -20 },
   animate: { opacity: 1, x: 0 },
   exit: { opacity: 0, x: 20 },
 };
 
-// ========== DASHBOARD PAGE ==========
-function DashboardPage() {
+interface AuthenticatedAppProps {
+  username: string;
+  designation: string;
+  onLogout: () => void;
+}
+
+function DashboardPage({ username, designation, onLogout }: AuthenticatedAppProps) {
   const navigate = useNavigate();
 
   const handleNavigation = (screen: "create" | "worksheet", worksheetId?: string) => {
@@ -41,18 +65,23 @@ function DashboardPage() {
 
   return (
     <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
-      <WorksheetDashboard onNavigate={handleNavigation} />
+      <WorksheetDashboard 
+        onNavigate={handleNavigation}
+        username={username}
+        designation={designation}
+        onLogout={onLogout}
+      />
     </motion.div>
   );
 }
 
-// ========== CREATE WORKSHEET PAGE ==========
-function CreateWorksheetPage() {
+function CreateWorksheetPage({ employeeId }: { employeeId: string }) {
   const navigate = useNavigate();
 
   return (
     <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
       <CreateWorksheet
+      employeeId={employeeId}
         onWorksheetCreated={(id) => navigate(`/worksheets/${id}`)}
         onCancel={() => navigate("/")}
       />
@@ -60,7 +89,6 @@ function CreateWorksheetPage() {
   );
 }
 
-// ========== WORKSHEET PREVIEW PAGE ==========
 function WorksheetPreviewPage(props: {
   instruments: Instrument[];
   chemicals: Chemical[];
@@ -68,6 +96,8 @@ function WorksheetPreviewPage(props: {
   columns: Column[];
   isReferenceDataLoading: boolean;
   referenceDataError: string | null;
+  employeeId: string;
+  role: string;
 }) {
   const { worksheetId } = useParams<{ worksheetId: string }>();
   const navigate = useNavigate();
@@ -82,17 +112,13 @@ function WorksheetPreviewPage(props: {
       exit="exit"
       className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30"
     >
-      {/* Back Button */}
-      {/* Back Button */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <button
           onClick={() => navigate("/")}
           className="group relative inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden"
         >
-          {/* Animated background shimmer */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
           
-          {/* Arrow icon with animation */}
           <svg 
             className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-300" 
             fill="none" 
@@ -104,12 +130,11 @@ function WorksheetPreviewPage(props: {
           
           <span className="relative z-10">Back to Dashboard</span>
           
-          {/* Pulsing glow effect */}
           <div className="absolute inset-0 rounded-xl bg-emerald-400/20 blur-xl group-hover:bg-emerald-400/30 transition-all duration-300" />
         </button>
       </div>
 
-      <FormPreview
+      <Worksheet
         worksheetId={worksheetId}
         instruments={props.instruments}
         chemicals={props.chemicals}
@@ -117,14 +142,14 @@ function WorksheetPreviewPage(props: {
         columns={props.columns}
         isReferenceDataLoading={props.isReferenceDataLoading}
         referenceDataError={props.referenceDataError}
+        employeeId={props.employeeId}
+        role={props.role}
       />
     </motion.div>
   );
 }
 
-// ========== APP ROOT ==========
-function App() {
-  // Reference data
+function AuthenticatedApp({ username, designation, onLogout }: AuthenticatedAppProps) {
   const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [chemicals, setChemicals] = useState<Chemical[]>([]);
   const [standards, setStandards] = useState<Standard[]>([]);
@@ -132,7 +157,9 @@ function App() {
   const [isReferenceDataLoading, setIsReferenceDataLoading] = useState(true);
   const [referenceDataError, setReferenceDataError] = useState<string | null>(null);
 
-  // Load reference data once
+  const employeeId = localStorage.getItem("EmployeeId") || "Unknown";
+  const role = localStorage.getItem("Role") || "Unknown";
+
   useEffect(() => {
     const loadReferenceData = async () => {
       try {
@@ -161,8 +188,17 @@ function App() {
     <BrowserRouter>
       <AnimatePresence mode="wait">
         <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/worksheets/new" element={<CreateWorksheetPage />} />
+          <Route 
+            path="/" 
+            element={
+              <DashboardPage 
+                username={username} 
+                designation={designation} 
+                onLogout={onLogout} 
+              />
+            } 
+          />
+          <Route path="/worksheets/new" element={<CreateWorksheetPage employeeId={employeeId} />} />
           <Route
             path="/worksheets/:worksheetId"
             element={
@@ -173,13 +209,124 @@ function App() {
                 columns={columns}
                 isReferenceDataLoading={isReferenceDataLoading}
                 referenceDataError={referenceDataError}
+                employeeId={employeeId}
+                role={role}
               />
             }
           />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AnimatePresence>
     </BrowserRouter>
   );
 }
 
-export default App;
+export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sessionKey, setSessionKey] = useState(Date.now());
+
+  const INACTIVITY_TIMEOUT = 
+    localStorage.getItem("EmployeeId") === "admin" ? 1800000 : 3600000;
+
+  const clearAuthData = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("EmployeeId");
+    localStorage.removeItem("Username");
+    localStorage.removeItem("Designation");
+    localStorage.removeItem("Role");
+  };
+
+  const checkAuth = () => {
+    const token = localStorage.getItem("authToken");
+
+    if (token && !isTokenExpired(token)) {
+      setIsAuthenticated(true);
+    } else {
+      clearAuthData();
+      setIsAuthenticated(false);
+    }
+
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+    setSessionKey(Date.now());
+  };
+
+  const handleLogout = () => {
+    clearAuthData();
+    setIsAuthenticated(false);
+    setSessionKey(Date.now());
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let inactivityTimer: ReturnType<typeof setTimeout>;
+
+    const resetTimer = () => {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        handleLogout();
+      }, INACTIVITY_TIMEOUT);
+    };
+
+    const activityEvents = ["mousemove", "keydown", "scroll", "click"];
+
+    activityEvents.forEach((event) =>
+      window.addEventListener(event, resetTimer)
+    );
+
+    resetTimer();
+
+    return () => {
+      activityEvents.forEach((event) =>
+        window.removeEventListener(event, resetTimer)
+      );
+      clearTimeout(inactivityTimer);
+    };
+  }, [isAuthenticated, INACTIVITY_TIMEOUT]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-emerald-50 to-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+            <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+          </div>
+          <p className="text-slate-700 text-lg font-semibold">Loading...</p>
+          <p className="text-slate-500 text-sm mt-1">Initializing Rawdata Worksheet System</p>
+        </div>
+      </div>
+    );
+  }
+
+  const username = localStorage.getItem("Username") || "User";
+  const designation = localStorage.getItem("Designation") || "Employee";
+
+  return (
+    <>
+      {isAuthenticated ? (
+        <AuthenticatedApp 
+          key={sessionKey} 
+          username={username}
+          designation={designation}
+          onLogout={handleLogout}
+        />
+      ) : (
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </BrowserRouter>
+      )}
+    </>
+  );
+}

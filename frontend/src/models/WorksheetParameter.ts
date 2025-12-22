@@ -1,6 +1,6 @@
-import type { CalculationData } from "./requests/CalculationData";
-import type { SamplePreparationData } from "./requests/SamplePreparationData";
-import type { StandardPreparationData } from "./requests/StandardPreparationData";
+import type { CalculationData } from "./CalculationData";
+import type { SamplePreparationData } from "./SamplePreparationData";
+import type { StandardPreparationData } from "./StandardPreparationData";
 
 
 export interface WorksheetParameter {
@@ -8,31 +8,21 @@ export interface WorksheetParameter {
     parameterName: string;
     methodCode: string;
     methodName: string;
-    columnId: string;
-    diluentPreparation: string;
-    testSolutionPreparation: string;
+    columnId?: string;
+    diluentPreparation?: string;
+    otherInfo?: string;
+    analyzedBy?: string;
+    approvedBy?: string;
+    analysisStartDate?: string;
+    analysisCompletionDate?: string;
+    approvedAt?: string;
 
-    // Only IDs for reference tables
     instruments: string[];
     chemicals: string[];
     standards: string[];
 
-    // JSON data for preparations and calculations
-    standardPreparation?: StandardPreparationData[];
-    samplePreparation?: SamplePreparationData[];
-    samplePreparationTitration?: SamplePreparationData[];
-    samplePreparationLod?: SamplePreparationData[];
-    samplePreparationROI?: SamplePreparationData[];
-    samplePreparationSulphatedAsh?: SamplePreparationData[];
-    standardPreparationRS?: StandardPreparationData[];
-    samplePreparationRS?: SamplePreparationData[];
-    standardPreparationDisso?: StandardPreparationData[];
-    samplePreparationDisso?: SamplePreparationData[];
+    standardPreparations?: StandardPreparationData[];
+    samplePreparations?: SamplePreparationData[];
 
-    calculationsAssay?: CalculationData[];
-    calculationsLod?: CalculationData[];
-    calculationsROI?: CalculationData[];
-    calculationsSulphatedAsh?: CalculationData[];
-    calculationsRS?: CalculationData[];
-    calculationsDisso?: CalculationData[];
+    calculations?: CalculationData[];
 }

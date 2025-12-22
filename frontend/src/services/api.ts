@@ -4,12 +4,42 @@ import type { Column } from '../preparation_models/Column';
 import type { Instrument } from '../preparation_models/Instrument';
 import type { SampleData } from '../preparation_models/SampleData';
 import type { Standard } from '../preparation_models/Standard';
-import type { WorksheetDetail } from '../models/requests/WorksheetDetail';
-import type { WorksheetSummary } from '../models/requests/WorksheetSummary';
-import type { WorksheetRequest } from '../models/requests/WorksheetRequest';
+import type { WorksheetDetail } from '../models/WorksheetDetail';
+import type { WorksheetSummary } from '../models/WorksheetSummary';
+import type { WorksheetRequest } from '../models/WorksheetRequest';
+import type { LoginRequest } from '../models/LoginRequest';
+import type { LoginResponse } from '../models/LoginResponse';
 
 
 const API_BASE_URL = 'http://192.168.3.116:5076/api';
+
+export async function login(
+  payload: LoginRequest
+): Promise<LoginResponse> {
+  try {
+    const response = await axios.post<LoginResponse>(
+      `${API_BASE_URL}/auth/login`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("Login response:", response.data);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Login failed: ${error.message}`
+      );
+    }
+    throw new Error("An unexpected error occurred during login.");
+  }
+}
+
 
 export const fetchSample = async (regNo: string): Promise<SampleData[]> => {
   if (!regNo) {

@@ -7,7 +7,6 @@
         public string? SampleName { get; set; }
         public int? NumberOfParameters { get; set; }
         public string? DueDate { get; set; }
-        public string? AnalysisStartDate { get; set; }
-        public string? AnalysisCompletionDate { get; set; }
+        
     }
 }

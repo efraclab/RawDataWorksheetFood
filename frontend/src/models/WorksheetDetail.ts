@@ -9,16 +9,10 @@ export interface WorksheetDetail {
         dateOfReceipt: string;
         numberOfParameters: number;
         dueDate: string;
-        analysisStartDate: string;
-        analysisCompletionDate: string;
         preparedBy: string;
-        analyzedBy: string;
-        approvedBy: string;
-        classified: string;
         revisionDate: string;
         status: string;
         submittedAt: string | null;
-        approvedAt: string | null;
         createdAt: string;
         updatedAt: string | null;
     };

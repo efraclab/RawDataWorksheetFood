@@ -1,23 +1,18 @@
-import type { WorksheetParameter } from "./requests/WorksheetParameter";
+import type { WorksheetParameter } from "./WorksheetParameter";
 
 export interface WorksheetRequest {
-  registrationInfo: {
+  worksheetId?: string;
+  registrationInfo?: {
     registrationNo: string;
     sampleName: string;
-    dateOfReceipt: string;
     numberOfParameters: number;
     dueDate: string;
-    analysisStartDate: string;
-    analysisCompletionDate: string;
   };
-  documentInfo: {
-    preparedBy: string;
-    analyzedBy: string;
-    approvedBy: string;
-    classified: string;
-    revisionDate: string;
+  documentInfo?: {
+    preparedBy?: string;
+    revisionDate?: string;
   };
-  parameters: WorksheetParameter[];
+  parameters?: WorksheetParameter[];
 }
 
 

@@ -1,4 +1,4 @@
-import type { WorksheetDetail } from "./requests/WorksheetDetail";
+import type { WorksheetDetail } from "./WorksheetDetail";
 
 
 export interface WorksheetResponse {

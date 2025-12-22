@@ -11,15 +11,15 @@ import {
   CheckCircle2,
   FileEdit,
   TrendingUp,
-  Calendar,
   Hash,
   AlertCircle,
   Beaker,
-  FileText,
-  Sparkles,
+  User,
+  LogOut,
+  ChevronDown,
 } from "lucide-react";
 import { fetchAllWorksheets } from "../services/api";
-import type { WorksheetSummary } from "../models/requests/WorksheetSummary";
+import type { WorksheetSummary } from "../models/WorksheetSummary";
 
 interface WorksheetItem {
   id: number;
@@ -37,19 +37,24 @@ interface WorksheetDashboardProps {
     screen: "worksheet" | "create",
     id?: string | number
   ) => void | Promise<void>;
+  username: string;
+  designation: string;
+  onLogout: () => void;
 }
 
 export default function WorksheetDashboard({
   onNavigate,
+  username,
+  designation,
+  onLogout,
 }: WorksheetDashboardProps) {
   const [worksheets, setWorksheets] = useState<WorksheetItem[]>([]);
-  const [filteredWorksheets, setFilteredWorksheets] = useState<WorksheetItem[]>(
-    []
-  );
+  const [filteredWorksheets, setFilteredWorksheets] = useState<WorksheetItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [error, setError] = useState<string | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
     fetchWorksheets();
@@ -100,9 +105,7 @@ export default function WorksheetDashboard({
       filtered = filtered.filter(
         (ws) =>
           ws.worksheetId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          ws.registrationNo
-            ?.toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
+          ws.registrationNo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           ws.sampleName.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -177,10 +180,6 @@ export default function WorksheetDashboard({
           from { opacity: 0; transform: translateX(-20px); }
           to { opacity: 1; transform: translateX(0); }
         }
-        @keyframes scaleIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
-        }
         @keyframes shimmer {
           0% { background-position: -200% center; }
           100% { background-position: 200% center; }
@@ -189,9 +188,13 @@ export default function WorksheetDashboard({
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-4px); }
         }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
         .animate-fadeIn { animation: fadeIn 0.5s ease-out; }
         .animate-slideIn { animation: slideIn 0.4s ease-out; }
-        .animate-scaleIn { animation: scaleIn 0.3s ease-out; }
+        .animate-slideDown { animation: slideDown 0.2s ease-out; }
         
         .worksheet-card {
           animation: fadeIn 0.4s ease-out backwards;
@@ -227,20 +230,6 @@ export default function WorksheetDashboard({
         .worksheet-card:hover .shimmer-effect {
           animation: shimmer 1.5s ease-in-out;
         }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f5f9;
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(180deg, #10b981, #059669);
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(180deg, #059669, #047857);
-        }
         .stat-card {
           background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
           transition: all 0.3s ease;
@@ -255,53 +244,133 @@ export default function WorksheetDashboard({
       `}</style>
 
       <div className="w-full overflow-x-hidden">
-        {/* Header */}
-        <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 px-4 sm:px-6 lg:px-8 py-4 mb-2">
+        {/* Header with User Info */}
+        <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 px-4 sm:px-6 lg:px-8 py-5 shadow-lg">
           {/* Decorative Elements */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3"></div>
           <div className="absolute bottom-0 left-1/4 w-32 h-32 bg-white/5 rounded-full translate-y-1/2"></div>
-          <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-white/10 rounded-full animate-float"></div>
 
-          <div className="max-w-[1600px] mx-auto relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="flex items-center gap-5">
-              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/20">
-                <FileSpreadsheet className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <div className="flex items-center">
+          <div className="max-w-[1600px] mx-auto relative z-10">
+            <div className="flex items-center justify-between">
+              {/* Left: Logo and Title */}
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/20">
+                  <FileSpreadsheet className="w-6 h-6 text-white" />
+                </div>
+                <div>
                   <h1 className="text-2xl font-bold text-white tracking-tight">
                     Rawdata Dashboard
                   </h1>
+                  <p className="text-emerald-100 text-sm mt-0.5 flex items-center gap-2">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    Manage and track all rawdata worksheets
+                  </p>
                 </div>
-                <p className="text-emerald-100 text-sm mt-1 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4" />
-                  Manage and track all rawdata worksheets
-                </p>
               </div>
-            </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <button
-                onClick={fetchWorksheets}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white/15 hover:bg-white/25 text-white rounded-lg transition-all duration-300 font-medium text-sm border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <RefreshCw
-                  className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
-                />
-                Refresh
-              </button>
-              <button
-                onClick={() => onNavigate("create")}
-                className="create-btn flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-emerald-50 text-emerald-700 text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 border border-white/50"
-              >
-                <Plus className="w-4 h-4" />
-                New Worksheet
-              </button>
+
+              {/* Right: User Menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-3 px-4 py-2.5 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-xl transition-all duration-300 border border-white/20 group"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center border border-white/30">
+                    <User className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left hidden sm:block">
+                    <p className="text-white font-semibold text-sm leading-tight">
+                      {username}
+                    </p>
+                    <p className="text-emerald-100 text-xs">
+                      {designation}
+                    </p>
+                  </div>
+                  <ChevronDown
+                    className={`w-4 h-4 text-white transition-transform duration-200 ${
+                      showUserMenu ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Dropdown Menu */}
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden animate-slideDown">
+                    <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 border-b border-emerald-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                          <User className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-800 text-sm">
+                            {username}
+                          </p>
+                          <p className="text-xs text-slate-600">
+                            {designation}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        onLogout();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-red-50 transition-colors group"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-red-100 group-hover:bg-red-200 flex items-center justify-center transition-colors">
+                        <LogOut className="w-4 h-4 text-red-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">
+                          Logout
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          Sign out of your account
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Action Buttons Bar */}
+        <div className="bg-white border-b border-slate-200 shadow-sm">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-6 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-full"></div>
+                <h2 className="text-lg font-bold text-slate-800">All Worksheets</h2>
+                <span className="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full">
+                  {stats.total}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={fetchWorksheets}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-all duration-300 font-medium text-sm border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+                >
+                  <RefreshCw
+                    className={`w-4 h-4 ${isLoading ? "animate-spin" : "group-hover:rotate-180"} transition-transform duration-500`}
+                  />
+                  <span className="hidden sm:inline">Refresh</span>
+                </button>
+                <button
+                  onClick={() => onNavigate("create")}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Worksheet
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-[1600px] mx-auto bg-gray-50 px-4 sm:px-6 lg:px-8 py-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 animate-slideIn">
             {[
@@ -337,11 +406,11 @@ export default function WorksheetDashboard({
               <div
                 key={stat.label}
                 style={{ animationDelay: `${index * 50}ms` }}
-                className="stat-card rounded-xl border border-slate-200 p-5 animate-fadeIn"
+                className="stat-card rounded-xl border border-slate-300 p-5 animate-fadeIn"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div
-                    className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.bgGradient} flex items-center justify-center shadow-lg shadow-${stat.color}-500/20`}
+                    className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.bgGradient} flex items-center justify-center shadow-lg`}
                   >
                     <stat.icon className="w-5 h-5 text-white" />
                   </div>
@@ -539,10 +608,6 @@ export default function WorksheetDashboard({
                                 Params: {worksheet.numberOfParameters}
                               </span>
                             </div>
-                            {/* <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-slate-400" />
-                            <span className="truncate">{worksheet.dateOfReceipt || "N/A"}</span>
-                          </div> */}
                           </div>
                         </div>
 

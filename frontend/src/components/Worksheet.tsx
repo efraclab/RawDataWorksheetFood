@@ -39,13 +39,14 @@ import type { CalculationRS } from "../preparation_models/CalculationRS";
 import CalculationDetailRS from "./sub-components/CalculationDetailRS";
 import type { CalculationDisso } from "../preparation_models/CalculationDisso";
 import CalculationDetailDisso from "./sub-components/CalculationDetailDisso";
+import AnalystSelectionDialog from "./shared/AnalystSelectionDialog";
 import {
   fetchWorksheetById,
   updateWorksheet,
   fetchSample,
 } from "../services/api";
-import type { WorksheetDetail } from "../models/requests/WorksheetDetail";
-import type { WorksheetRequest } from "../models/requests/WorksheetRequest";
+import type { WorksheetDetail } from "../models/WorksheetDetail";
+import type { WorksheetRequest } from "../models/WorksheetRequest";
 
 // SVG Icons
 const Target: React.FC<{ className: string }> = ({ className }) => (
@@ -135,7 +136,7 @@ const ReferenceError: React.FC<{ error: string }> = ({ error }) => (
   </div>
 );
 
-interface FormPreviewProps {
+interface WorksheetProps {
   worksheetId: string;
   instruments: Instrument[];
   standards: Standard[];
@@ -143,6 +144,8 @@ interface FormPreviewProps {
   columns: Column[];
   isReferenceDataLoading: boolean;
   referenceDataError: string | null;
+  employeeId: string;
+  role: string;
 }
 
 interface AddedParameter extends SampleData {
@@ -386,7 +389,7 @@ const PREPARATION_GROUPS = {
   },
 } as const;
 
-const FormPreview: React.FC<FormPreviewProps> = ({
+const Worksheet: React.FC<WorksheetProps> = ({
   worksheetId,
   instruments = [],
   chemicals = [],
@@ -394,6 +397,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   columns = [],
   isReferenceDataLoading = false,
   referenceDataError = null,
+  employeeId,
+  role,
 }) => {
   // Core state
   const [isLoading, setIsLoading] = useState(true);
@@ -407,9 +412,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   >([]);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [showDataDialog, setShowDataDialog] = useState(false);
-  const [collectedData, setCollectedData] = useState<any>(null);
-  const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [showAnalystDialog, setShowAnalystDialog] = useState(false);
+  const [pendingParameter, setPendingParameter] = useState<SampleData | null>(null);
+  const [selectedAnalyst, setSelectedAnalyst] = useState<string>("");
+  const [analysts, setAnalysts] = useState<Array<{employeeId: string, name: string, role: string}>>([]);
 
   // Per-parameter state
   const [columnsPerParam, setColumnsPerParam] = useState<
@@ -467,10 +473,25 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   const [addedStandardIdsPerParam, setAddedStandardIdsPerParam] = useState<
     Record<number, string[]>
   >({});
-  const [testSolutionPerParam, setTestSolutionPerParam] = useState<
+  const [otherInfoPerParam, setOtherInfoPerParam] = useState<
     Record<number, string>
   >({});
   const [diluentPerParam, setDiluentPerParam] = useState<
+    Record<number, string>
+  >({});
+  const [analysisStartDatePerParam, setAnalysisStartDatePerParam] = useState<
+    Record<number, string>
+  >({});
+  const [analysisCompletionDatePerParam, setAnalysisCompletionDatePerParam] = useState<
+    Record<number, string>
+  >({});
+    const [analyzedByPerParam, setAnalyzedByPerParam] = useState<
+    Record<number, string>
+  >({});
+    const [approvedByPerParam, setApprovedByPerParam] = useState<
+    Record<number, string>
+  >({});
+    const [approvedAtPerParam, setApprovedAtPerParam] = useState<
     Record<number, string>
   >({});
   const [
@@ -568,6 +589,27 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   const approvedBy = "Sr. Executive";
   const classified = '"Internal Use Only"';
   const revisionDate = "30/07/2027";
+
+useEffect(() => {
+  const fetchAnalysts = async () => {
+    try {
+      const mockAnalysts = [
+        { employeeId: 'EMP001', name: 'John Doe', role: 'Analyst' },
+        { employeeId: 'EMP002', name: 'Jane Smith', role: 'Senior Analyst' },
+        { employeeId: 'EMP003', name: 'Bob Johnson', role: 'Analyst' },
+        { employeeId: 'EMP004', name: 'Alice Brown ', role: 'Analyst' },
+      ];
+      
+      setAnalysts(mockAnalysts);
+    } catch (error) {
+      console.error('Error fetching analysts:', error);
+    }
+  };
+
+  if (role === 'HOD LAB') {
+    fetchAnalysts();
+  }
+}, [role]);
 
   // Load worksheet data on mount
   useEffect(() => {
@@ -678,10 +720,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
         }));
       }
 
-      if (param.testSolutionPreparation) {
-        setTestSolutionPerParam((prev) => ({
+      if (param.otherInfo) {
+        setOtherInfoPerParam((prev) => ({
           ...prev,
-          [paramId]: param.testSolutionPreparation,
+          [paramId]: param.otherInfo,
         }));
       }
 
@@ -1330,22 +1372,16 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     return {
       registrationInfo: {
         registrationNo: sample?.registrationNo || registrationNo || "",
-        dateOfReceipt,
         sampleName: sample?.sampleName || "",
         numberOfParameters: addedParameters.length,
         dueDate: sample?.tatDate || "",
-        analysisStartDate: sample?.analysisStartDate || "",
-        analysisCompletionDate: sample?.analysisCompletionDate || "",
       },
       documentInfo: {
-        preparedBy,
-        analyzedBy: issuedApprovedBy,
-        approvedBy,
-        classified,
+        preparedBy: employeeId,
         revisionDate,
       },
       parameters: addedParameters.map((param) => {
-        // Collect all standard preparations with their types
+        
         const standardPreparations = [
           ...(standardPreparationPerParam[param.id] || []).map((sp) => ({
             label: sp.label,
@@ -1522,7 +1558,12 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           methodName: param.methodName,
           columnId: columnsPerParam[param.id] || "",
           diluentPreparation: diluentPerParam[param.id] || "",
-          testSolutionPreparation: testSolutionPerParam[param.id] || "",
+          otherInfo: otherInfoPerParam[param.id] || "",
+          analysisStartDate: analysisStartDatePerParam[param.id] || "",
+          analysisCompletionDate: analysisCompletionDatePerParam[param.id] || "",
+          analyzedBy: analyzedByPerParam[param.id] || "",
+          approvedBy: approvedByPerParam[param.id] || "",
+          approvedAt: approvedAtPerParam[param.id] || "",
 
           instruments: (addedInstruments[param.id] || []).map(
             (inst) => inst.id
@@ -1744,56 +1785,94 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           label: sps.label,
           steps: sps.steps,
         })),
-        testSolutionPreparation: testSolutionPerParam[param.id] || "",
+        otherInfo: otherInfoPerParam[param.id] || "",
       })),
     };
   };
 
-  // Parameter Handlers
   const handleAddParameter = (param: SampleData) => {
+  if (addedParameters.find((p) => p.paraCode === param.paraCode)) {
+    return;
+  }
+
+  if (role === 'HOD LAB') {
+    // Show analyst selection dialog for HOD LAB
+    setPendingParameter(param);
+    setShowAnalystDialog(true);
+  } else {
+    // Directly add parameter for non-HOD LAB users
     const newId = Date.now();
-    if (!addedParameters.find((p) => p.paraCode === param.paraCode)) {
-      setAddedParameters([...addedParameters, { ...param, id: newId }]);
-    }
+    setAddedParameters([...addedParameters, { ...param, id: newId }]);
     setShowParameterDropdown(false);
-  };
+  }
+};
+
+const handleAnalystSelected = (employeeId: string) => {
+  if (pendingParameter) {
+    const newId = Date.now();
+    setAddedParameters([
+      ...addedParameters,
+      { ...pendingParameter, id: newId }
+    ]);
+    
+    // Store the assigned analyst for this parameter
+    setAnalyzedByPerParam((prev) => ({
+      ...prev,
+      [newId]: employeeId,
+    }));
+  }
+  
+  setShowAnalystDialog(false);
+  setShowParameterDropdown(false);
+  setPendingParameter(null);
+};
 
   const handleRemoveParameter = (id: number) => {
-    setAddedParameters(addedParameters.filter((p) => p.id !== id));
-    setSelectedParamsForDetail(
-      selectedParamsForDetail.filter((paramId) => paramId !== id)
-    );
+  setAddedParameters(addedParameters.filter((p) => p.id !== id));
+  setSelectedParamsForDetail(
+    selectedParamsForDetail.filter((paramId) => paramId !== id)
+  );
 
-    // Clean up all related state
-    const cleanupState = (setter: Function) => {
-      setter((prev: any) => {
-        const { [id]: _, ...rest } = prev;
-        return rest;
-      });
-    };
-
-    cleanupState(setAddedInstruments);
-    cleanupState(setAddedChemicals);
-    cleanupState(setAddedStandards);
-    cleanupState(setColumnsPerParam);
-    cleanupState(setDiluentPerParam);
-    cleanupState(setTestSolutionPerParam);
-    cleanupState(setCalculationsAssayPerParam);
-    cleanupState(setCalculationsROIPerParam);
-    cleanupState(setCalculationsLodPerParam);
-    cleanupState(setCalculationsSulphatedAshPerParam);
-    cleanupState(setCalculationsDissoPerParam);
-    cleanupState(setStandardPreparationPerParam);
-    cleanupState(setSamplePreparationPerParam);
-    cleanupState(setStandardPreparationDissoPerParam);
-    cleanupState(setSamplePreparationDissoPerParam);
-    cleanupState(setStandardPreparationRSPerParam);
-    cleanupState(setSamplePreparationRSPerParam);
-    cleanupState(setCalculationsRSPerParam);
-    cleanupState(setSamplePreparationLodPerParam);
-    cleanupState(setSamplePreparationROIPerParam);
-    cleanupState(setSamplePreparationSulphatedAshPerParam);
+  // Clean up all related state
+  const cleanupState = (setter: Function) => {
+    setter((prev: any) => {
+      const { [id]: _, ...rest } = prev;
+      return rest;
+    });
   };
+
+  // Clean up all parameter-related states
+  cleanupState(setAnalyzedByPerParam);  // ✅ Added - Clean up assigned analyst
+  cleanupState(setApprovedByPerParam);
+  cleanupState(setAnalysisStartDatePerParam);
+  cleanupState(setAnalysisCompletionDatePerParam);
+  cleanupState(setApprovedAtPerParam);
+  cleanupState(setAddedInstruments);
+  cleanupState(setAddedChemicals);
+  cleanupState(setAddedStandards);
+  cleanupState(setColumnsPerParam);
+  cleanupState(setDiluentPerParam);
+  cleanupState(setOtherInfoPerParam);
+  cleanupState(setCalculationsAssayPerParam);
+  cleanupState(setCalculationsROIPerParam);
+  cleanupState(setCalculationsLodPerParam);
+  cleanupState(setCalculationsSulphatedAshPerParam);
+  cleanupState(setCalculationsDissoPerParam);
+  cleanupState(setStandardPreparationPerParam);
+  cleanupState(setSamplePreparationPerParam);
+  cleanupState(setStandardPreparationDissoPerParam);
+  cleanupState(setSamplePreparationDissoPerParam);
+  cleanupState(setStandardPreparationRSPerParam);
+  cleanupState(setSamplePreparationRSPerParam);
+  cleanupState(setCalculationsRSPerParam);
+  cleanupState(setSamplePreparationLodPerParam);
+  cleanupState(setSamplePreparationROIPerParam);
+  cleanupState(setSamplePreparationSulphatedAshPerParam);
+  cleanupState(setActivePreparationGroups);  // ✅ Also clean up active prep groups
+  cleanupState(setAddedInstrumentIdsPerParam);  // ✅ Clean up cached IDs
+  cleanupState(setAddedChemicalIdsPerParam);    // ✅ Clean up cached IDs
+  cleanupState(setAddedStandardIdsPerParam);    // ✅ Clean up cached IDs
+};
 
   const toggleParameterDetail = (id: number) => {
     setSelectedParamsForDetail((prev) =>
@@ -2783,7 +2862,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  // Dissolution Handlers
   const handleAddStandardPreparationDisso = (parameterId: number) => {
     setCurrentParameterForStandardPrep(parameterId);
     setIsAddingRSStandard(false);
@@ -2905,8 +2983,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }));
   };
 
-  const handleTestSolutionChange = (parameterId: number, value: string) => {
-    setTestSolutionPerParam((prev) => ({ ...prev, [parameterId]: value }));
+  const handleOtherInfoChange = (parameterId: number, value: string) => {
+    setOtherInfoPerParam((prev) => ({ ...prev, [parameterId]: value }));
   };
 
   const handleDiluentChange = (parameterId: number, value: string) => {
@@ -2934,11 +3012,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     );
   };
 
-  const handlePrintPreview = () => {
-    const completeFormData = collectFormDataForReport();
-    setCollectedData(completeFormData);
-    setShowPrintPreview(true);
-  };
 
   const allParameters = reportData?.map((data) => data.parameter) ?? [];
   const uniqueMethods = [
@@ -3323,27 +3396,11 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 text-sm bg-gradient-to-r from-emerald-50 to-teal-50">
-          <div className="flex items-center px-4 py-3 border-r-2 border-emerald-300">
+        <div className="grid grid-cols-1 text-sm bg-gradient-to-r from-emerald-50 to-teal-50">
+          <div className="flex items-center px-4 py-3">
             <span className="font-bold mr-2 text-emerald-900">Due Date:</span>
             <span className="font-semibold text-slate-700">
               {reportData[0]?.tatDate || "---"}
-            </span>
-          </div>
-          <div className="flex items-center px-4 py-3 border-r-2 border-emerald-300">
-            <span className="font-bold mr-2 text-emerald-900">
-              Analysis Started On:
-            </span>
-            <span className="font-semibold text-slate-700">
-              {reportData[0]?.analysisStartDate || "---"}
-            </span>
-          </div>
-          <div className="flex items-center px-4 py-3">
-            <span className="font-bold mr-2 text-emerald-900">
-              Analysis Completed On:
-            </span>
-            <span className="font-semibold text-slate-700">
-              {reportData[0]?.analysisCompletionDate || "---"}
             </span>
           </div>
         </div>
@@ -3406,52 +3463,56 @@ const FormPreview: React.FC<FormPreviewProps> = ({
             <h3 className="text-xl font-bold text-emerald-900 flex items-center gap-2">
               <div className="relative">
                 <div className="flex item-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
-                         <IoFlask className="w-6 h-6 text-white" />
+                  <IoFlask className="w-6 h-6 text-white" />
                 </div>
               </div>
               Parameters Management
             </h3>
-            <div className="relative">
-              <button
-                onClick={() => setShowParameterDropdown(!showParameterDropdown)}
-                disabled={availableToAdd.length === 0}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-              >
-                <Plus className="w-4 h-4" />
-                Add Parameter
-              </button>
+            
+            {/* ✅ Only show Add Parameter button for HOD LAB */}
+            {role === 'HOD LAB' && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowParameterDropdown(!showParameterDropdown)}
+                  disabled={availableToAdd.length === 0}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Parameter
+                </button>
 
-              <AnimatePresence>
-                {showParameterDropdown && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-72 bg-white border border-emerald-300 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto"
-                  >
-                    {availableToAdd.map((param) => (
-                      <button
-                        key={param.paraCode}
-                        onClick={() => handleAddParameter(param)}
-                        className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
-                      >
-                        <div className="font-semibold text-gray-900">
-                          {param.parameter}
+                <AnimatePresence>
+                  {showParameterDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute right-0 mt-2 w-72 bg-white border border-emerald-300 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto"
+                    >
+                      {availableToAdd.map((param) => (
+                        <button
+                          key={param.paraCode}
+                          onClick={() => handleAddParameter(param)}
+                          className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
+                        >
+                          <div className="font-semibold text-gray-900">
+                            {param.parameter}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {param.paraCode} • {param.methodName}
+                          </div>
+                        </button>
+                      ))}
+                      {availableToAdd.length === 0 && (
+                        <div className="px-3 py-4 text-center text-gray-500 text-sm">
+                          All parameters have been added
                         </div>
-                        <div className="text-xs text-gray-600">
-                          {param.paraCode} • {param.methodName}
-                        </div>
-                      </button>
-                    ))}
-                    {availableToAdd.length === 0 && (
-                      <div className="px-3 py-4 text-center text-gray-500 text-sm">
-                        All parameters have been added
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
 
           <AnimatePresence>
@@ -3477,6 +3538,12 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                       <div className="text-xs text-emerald-600">
                         {param.paraCode} • {param.methodName}
                       </div>
+                      {/* ✅ Display Assigned Analyst */}
+                      {analyzedByPerParam[param.id] && (
+                        <div className="mt-1 text-xs text-indigo-700 font-medium">
+                          Assigned to: {analyzedByPerParam[param.id]}
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -3491,14 +3558,18 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           ? "Hide Details"
                           : "View Details"}
                       </button>
-                      <motion.button
-                        onClick={() => handleRemoveParameter(param.id)}
-                        whileHover={{ scale: 1.1, rotate: 10 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="mx-2"
-                      >
-                        <CgTrash className="w-5 h-5 text-red-500" />
-                      </motion.button>
+                      
+                      {/* ✅ Only show remove button for HOD LAB */}
+                      {role === 'HOD LAB' && (
+                        <motion.button
+                          onClick={() => handleRemoveParameter(param.id)}
+                          whileHover={{ scale: 1.1, rotate: 10 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="mx-2"
+                        >
+                          <CgTrash className="w-5 h-5 text-red-500" />
+                        </motion.button>
+                      )}
                     </div>
                   </motion.div>
                 ))}
@@ -3516,15 +3587,16 @@ const FormPreview: React.FC<FormPreviewProps> = ({
               layout
             >
               <div className="inline-block">
-                            <Target className="w-14 h-14 text-gray-300" />     
+                <Target className="w-14 h-14 text-gray-300" />     
               </div>
               <p className="text-base font-bold text-gray-800 mb-2">
-                            No parameters added yet
+                No parameters added yet
               </p>
               <p className="text-sm text-gray-600 max-w-md mx-auto">
-                            Click the{" "}
-                <strong className="text-emerald-700">"Add Parameters"</strong>
-                button above to add parameters
+                {role === 'HOD LAB' 
+                  ? 'Click the "Add Parameters" button above to add parameters'
+                  : 'HOD LAB will add parameters for analysis'
+                }
               </p>
             </motion.div>
           )}
@@ -3575,94 +3647,163 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                   </table>
                 </div>
 
+                {/* ✅ Display Assigned Analyst Info */}
+                {analyzedByPerParam[selectedParam.id] && (
+                  <div className="mb-4 p-4 bg-indigo-50 border-2 border-indigo-200 rounded-xl shadow-md">
+                    <h4 className="text-sm font-bold text-indigo-900 mb-3 flex items-center gap-2">
+                      <span className="w-1.5 h-6 bg-gradient-to-b from-indigo-500 to-indigo-700 rounded-full"></span>
+                      Assigned Analyst
+                    </h4>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                        <span className="text-white text-sm font-bold">
+                          {analysts.find(a => a.employeeId === analyzedByPerParam[selectedParam.id])?.name.charAt(0) || 'A'}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-sm text-gray-900">
+                          {analysts.find(a => a.employeeId === analyzedByPerParam[selectedParam.id])?.name || 'Unknown'}
+                        </div>
+                        <div className="text-xs text-gray-600 flex items-center gap-2">
+                          <span className="px-2 py-0.5 bg-indigo-100 rounded text-indigo-700 font-medium">
+                            {analyzedByPerParam[selectedParam.id]}
+                          </span>
+                          <span>•</span>
+                          <span>
+                            {analysts.find(a => a.employeeId === analyzedByPerParam[selectedParam.id])?.role || 'Analyst'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Analysis Information Section */}
+                {(analysisStartDatePerParam[selectedParam.id] || 
+                  analysisCompletionDatePerParam[selectedParam.id] ||
+                  approvedByPerParam[selectedParam.id]) && (
+                  <div className="mb-4 border-2 border-emerald-300 rounded-xl overflow-hidden shadow-md">
+                    <div className="bg-gradient-to-r from-emerald-100 to-emerald-200 px-4 py-2">
+                      <h3 className="text-base font-bold text-emerald-900">
+                        Analysis Information
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-white">
+                      {analysisStartDatePerParam[selectedParam.id] && (
+                        <div>
+                          <span className="text-sm font-semibold text-emerald-900">Analysis Start Date:</span>
+                          <p className="text-sm text-gray-700 mt-1">{analysisStartDatePerParam[selectedParam.id]}</p>
+                        </div>
+                      )}
+                      {analysisCompletionDatePerParam[selectedParam.id] && (
+                        <div>
+                          <span className="text-sm font-semibold text-emerald-900">Analysis Completion Date:</span>
+                          <p className="text-sm text-gray-700 mt-1">{analysisCompletionDatePerParam[selectedParam.id]}</p>
+                        </div>
+                      )}
+                      {approvedByPerParam[selectedParam.id] && (
+                        <div>
+                          <span className="text-sm font-semibold text-emerald-900">Approved By:</span>
+                          <p className="text-sm text-gray-700 mt-1">{approvedByPerParam[selectedParam.id]}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Instruments Details */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight mb-3">
                       <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
                       Instruments Details:
                     </h3>
-                    <div className="relative" ref={instrumentRef}>
-                      <button
-                        onClick={() =>
-                          setShowInstrumentDropdown(!showInstrumentDropdown)
-                        }
-                        disabled={
-                          isReferenceDataLoading ||
-                          !!referenceDataError ||
-                          instruments.length === 0
-                        }
-                        className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
+                    
+                    {/* ✅ Only show Add button for HOD LAB */}
+                    {role === 'HOD LAB' && (
+                      <div className="relative" ref={instrumentRef}>
+                        <button
+                          onClick={() =>
+                            setShowInstrumentDropdown(!showInstrumentDropdown)
+                          }
+                          disabled={
+                            isReferenceDataLoading ||
+                            !!referenceDataError ||
+                            instruments.length === 0
+                          }
+                          className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
 
-                      <AnimatePresence>
-                        {showInstrumentDropdown && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            onMouseDown={(e) => e.stopPropagation()}
-                            className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
-                          >
-                            <div className="p-2 border-b border-emerald-200">
-                              <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                <input
-                                  type="text"
-                                  placeholder="Search instruments..."
-                                  value={instrumentSearch}
-                                  onChange={(e) =>
-                                    setInstrumentSearch(e.target.value)
-                                  }
-                                  className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                />
+                        <AnimatePresence>
+                          {showInstrumentDropdown && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              onMouseDown={(e) => e.stopPropagation()}
+                              className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
+                            >
+                              <div className="p-2 border-b border-emerald-200">
+                                <div className="relative">
+                                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                  <input
+                                    type="text"
+                                    placeholder="Search instruments..."
+                                    value={instrumentSearch}
+                                    onChange={(e) =>
+                                      setInstrumentSearch(e.target.value)
+                                    }
+                                    className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                  />
+                                </div>
                               </div>
-                            </div>
-                            <div className="max-h-64 overflow-y-auto">
-                              {searchFilteredInstruments
-                                .filter(
+                              <div className="max-h-64 overflow-y-auto">
+                                {searchFilteredInstruments
+                                  .filter(
+                                    (inst) =>
+                                      !addedInstruments[selectedParam.id]?.find(
+                                        (added) => added.id === inst.id
+                                      )
+                                  )
+                                  .map((inst) => (
+                                    <button
+                                      key={inst.id}
+                                      onClick={() =>
+                                        handleAddInstrument(
+                                          selectedParam.id,
+                                          inst
+                                        )
+                                      }
+                                      className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
+                                    >
+                                      <div className="font-semibold text-gray-900">
+                                        {inst.name}
+                                      </div>
+                                      <div className="text-xs text-gray-600">
+                                        {inst.tag}
+                                      </div>
+                                    </button>
+                                  ))}
+                                {searchFilteredInstruments.filter(
                                   (inst) =>
                                     !addedInstruments[selectedParam.id]?.find(
                                       (added) => added.id === inst.id
                                     )
-                                )
-                                .map((inst) => (
-                                  <button
-                                    key={inst.id}
-                                    onClick={() =>
-                                      handleAddInstrument(
-                                        selectedParam.id,
-                                        inst
-                                      )
-                                    }
-                                    className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
-                                  >
-                                    <div className="font-semibold text-gray-900">
-                                      {inst.name}
-                                    </div>
-                                    <div className="text-xs text-gray-600">
-                                      {inst.tag}
-                                    </div>
-                                  </button>
-                                ))}
-                              {searchFilteredInstruments.filter(
-                                (inst) =>
-                                  !addedInstruments[selectedParam.id]?.find(
-                                    (added) => added.id === inst.id
-                                  )
-                              ).length === 0 && (
-                                <div className="px-3 py-4 text-center text-gray-500 text-sm">
-                                  {instrumentSearch
-                                    ? "No matching instruments"
-                                    : "All available instruments added"}
-                                </div>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                                ).length === 0 && (
+                                  <div className="px-3 py-4 text-center text-gray-500 text-sm">
+                                    {instrumentSearch
+                                      ? "No matching instruments"
+                                      : "All available instruments added"}
+                                  </div>
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
                   </div>
 
                   {isReferenceDataLoading && <ReferenceLoading />}
@@ -3686,9 +3827,11 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                           <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                             Calibration Due On
                           </th>
-                          <th className="px-3 py-2 text-center font-bold w-20">
-                            Action
-                          </th>
+                          {role === 'HOD LAB' && (
+                            <th className="px-3 py-2 text-center font-bold w-20">
+                              Action
+                            </th>
+                          )}
                         </tr>
                       </thead>
                       <tbody>
@@ -3715,35 +3858,40 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                                   <td className="px-3 py-2 border-r-2 border-emerald-500">
                                     {instrument.calibrationDueDate || "---"}
                                   </td>
-                                  <td className="px-3 py-2 text-center">
-                                    <motion.button
-                                      onClick={() =>
-                                        handleRemoveInstrument(
-                                          selectedParam.id,
-                                          instrument.id
-                                        )
-                                      }
-                                      whileHover={{ scale: 1.1, rotate: 10 }}
-                                      whileTap={{ scale: 0.9 }}
-                                      className="mx-2"
-                                    >
-                                      <CgTrash className="w-5 h-5 text-red-500" />
-                                    </motion.button>
-                                  </td>
+                                  {/* ✅ Only show remove button for HOD LAB */}
+                                  {role === 'HOD LAB' && (
+                                    <td className="px-3 py-2 text-center">
+                                      <motion.button
+                                        onClick={() =>
+                                          handleRemoveInstrument(
+                                            selectedParam.id,
+                                            instrument.id
+                                          )
+                                        }
+                                        whileHover={{ scale: 1.1, rotate: 10 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        className="mx-2"
+                                      >
+                                        <CgTrash className="w-5 h-5 text-red-500" />
+                                      </motion.button>
+                                    </td>
+                                  )}
                                 </motion.tr>
                               )
                             )
                           ) : (
                             <tr className="border-2 border-emerald-500">
                               <td
-                                colSpan={5}
+                                colSpan={role === 'HOD LAB' ? 5 : 4}
                                 className="px-3 py-4 text-center text-gray-500"
                               >
                                 <div className="flex flex-col items-center gap-2">
                                   <Target className="w-8 h-8 opacity-30" />
                                   <span>
-                                    No instruments added. Click "Add Instrument"
-                                    to add.
+                                    {role === 'HOD LAB' 
+                                      ? 'No instruments added. Click "Add Instrument" to add.'
+                                      : 'No instruments added yet.'
+                                    }
                                   </span>
                                 </div>
                               </td>
@@ -3762,448 +3910,474 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                       <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
                       Reagents and Chemicals Details:
                     </h3>
-                    <div className="relative" ref={chemicalRef}>
-                      <button
-                        onClick={() =>
-                          setShowChemicalDropdown(!showChemicalDropdown)
-                        }
-                        disabled={
-                          isReferenceDataLoading ||
-                          !!referenceDataError ||
-                          chemicals.length === 0
-                        }
-                        className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
+                    
+                    {/* ✅ Only show Add button for HOD LAB */}
+                    {role === 'HOD LAB' && (
+                      <div className="relative" ref={chemicalRef}>
+                        <button
+                          onClick={() =>
+                            setShowChemicalDropdown(!showChemicalDropdown)
+                          }
+                          disabled={
+                            isReferenceDataLoading ||
+                            !!referenceDataError ||
+                        chemicals.length === 0
+                      }
+                      className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
 
-                      <AnimatePresence>
-                        {showChemicalDropdown && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            onMouseDown={(e) => e.stopPropagation()}
-                            className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
-                          >
-                            <div className="p-2 border-b border-emerald-200">
-                              <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                <input
-                                  type="text"
-                                  placeholder="Search chemicals..."
-                                  value={chemicalSearch}
-                                  onChange={(e) =>
-                                    setChemicalSearch(e.target.value)
-                                  }
-                                  className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                />
-                              </div>
+                    <AnimatePresence>
+                      {showChemicalDropdown && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
+                        >
+                          <div className="p-2 border-b border-emerald-200">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                              <input
+                                type="text"
+                                placeholder="Search chemicals..."
+                                value={chemicalSearch}
+                                onChange={(e) =>
+                                  setChemicalSearch(e.target.value)
+                                }
+                                className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              />
                             </div>
-                            <div className="max-h-64 overflow-y-auto">
-                              {searchFilteredChemicals
-                                .filter(
-                                  (chem) =>
-                                    !addedChemicals[selectedParam.id]?.find(
-                                      (added) => added.id === chem.id
-                                    )
-                                )
-                                .map((chem) => (
-                                  <button
-                                    key={chem.id}
-                                    onClick={() =>
-                                      handleAddChemical(selectedParam.id, chem)
-                                    }
-                                    className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
-                                  >
-                                    <div className="font-semibold text-gray-900">
-                                      {chem.name}
-                                    </div>
-                                    <div className="text-xs text-gray-600">
-                                      {chem.make} • Batch: {chem.batchNo}
-                                    </div>
-                                  </button>
-                                ))}
-                              {searchFilteredChemicals.filter(
+                          </div>
+                          <div className="max-h-64 overflow-y-auto">
+                            {searchFilteredChemicals
+                              .filter(
                                 (chem) =>
                                   !addedChemicals[selectedParam.id]?.find(
                                     (added) => added.id === chem.id
                                   )
-                              ).length === 0 && (
-                                <div className="px-3 py-4 text-center text-gray-500 text-sm">
-                                  {chemicalSearch
-                                    ? "No matching chemicals"
-                                    : "All available chemicals added"}
-                                </div>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-
-                  {isReferenceDataLoading && <ReferenceLoading />}
-                  {referenceDataError && (
-                    <ReferenceError error={referenceDataError} />
-                  )}
-
-                  {!isReferenceDataLoading && !referenceDataError && (
-                    <table className="w-full border-collapse text-sm shadow-md">
-                      <thead>
-                        <tr className="bg-emerald-100 border-2 border-emerald-500">
-                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
-                            Name of Solvents
-                          </th>
-                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
-                            Make
-                          </th>
-                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
-                            Lot No./Batch No.
-                          </th>
-                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
-                            Validity
-                          </th>
-                          <th className="px-3 py-2 text-center font-bold w-20">
-                            Action
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <AnimatePresence>
-                          {addedChemicals[selectedParam.id]?.length > 0 ? (
-                            addedChemicals[selectedParam.id].map((chemical) => (
-                              <motion.tr
-                                key={chemical.id}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                className="border-2 border-emerald-500 hover:bg-emerald-50 transition-colors"
-                              >
-                                <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                  {chemical.name || "---"}
-                                </td>
-                                <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                  {chemical.make || "---"}
-                                </td>
-                                <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                  {chemical.batchNo || "---"}
-                                </td>
-                                <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                  {chemical.validity || "---"}
-                                </td>
-                                <td className="px-3 py-2 text-center">
-                                  <motion.button
-                                    onClick={() =>
-                                      handleRemoveChemical(
-                                        selectedParam.id,
-                                        chemical.id
-                                      )
-                                    }
-                                    whileHover={{ scale: 1.1, rotate: 10 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    className="mx-2"
-                                  >
-                                    <CgTrash className="w-5 h-5 text-red-500" />
-                                  </motion.button>
-                                </td>
-                              </motion.tr>
-                            ))
-                          ) : (
-                            <tr className="border-2 border-emerald-500">
-                              <td
-                                colSpan={5}
-                                className="px-3 py-4 text-center text-gray-500"
-                              >
-                                <div className="flex flex-col items-center gap-2">
-                                  <Target className="w-8 h-8 opacity-30" />
-                                  <span>
-                                    No chemicals added. Click "Add Chemical" to
-                                    add.
-                                  </span>
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </AnimatePresence>
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-
-                {/* Standards Used - Dynamic with Add/Remove */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight mb-3">
-                      <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
-                      Standards Details:
-                    </h3>
-                    <div className="relative" ref={standardRef}>
-                      <button
-                        onClick={() =>
-                          setShowStandardDropdown(!showStandardDropdown)
-                        }
-                        disabled={
-                          isReferenceDataLoading ||
-                          !!referenceDataError ||
-                          standards.length === 0
-                        }
-                        className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-
-                      <AnimatePresence>
-                        {showStandardDropdown && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            onMouseDown={(e) => e.stopPropagation()}
-                            className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
-                          >
-                            <div className="p-2 border-b border-emerald-200">
-                              <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                <input
-                                  type="text"
-                                  placeholder="Search standards..."
-                                  value={standardSearch}
-                                  onChange={(e) =>
-                                    setStandardSearch(e.target.value)
+                              )
+                              .map((chem) => (
+                                <button
+                                  key={chem.id}
+                                  onClick={() =>
+                                    handleAddChemical(selectedParam.id, chem)
                                   }
-                                  className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                />
-                              </div>
-                            </div>
-                            <div className="max-h-64 overflow-y-auto">
-                              {searchFilteredStandards
-                                .filter(
-                                  (std) =>
-                                    !addedStandards[selectedParam.id]?.find(
-                                      (added) => added.id === std.id
-                                    )
+                                  className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
+                                >
+                                  <div className="font-semibold text-gray-900">
+                                    {chem.name}
+                                  </div>
+                                  <div className="text-xs text-gray-600">
+                                    {chem.make} • Batch: {chem.batchNo}
+                                  </div>
+                                </button>
+                              ))}
+                            {searchFilteredChemicals.filter(
+                              (chem) =>
+                                !addedChemicals[selectedParam.id]?.find(
+                                  (added) => added.id === chem.id
                                 )
-                                .map((std) => (
-                                  <button
-                                    key={std.id}
-                                    onClick={() =>
-                                      handleAddStandard(selectedParam.id, std)
-                                    }
-                                    className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
-                                  >
-                                    <div className="font-semibold text-gray-900">
-                                      {std.name}
-                                    </div>
-                                    <div className="text-xs text-gray-600">
-                                      {std.make} • Purity: {std.purity}
-                                    </div>
-                                  </button>
-                                ))}
-                              {searchFilteredStandards.filter(
+                            ).length === 0 && (
+                              <div className="px-3 py-4 text-center text-gray-500 text-sm">
+                                {chemicalSearch
+                                  ? "No matching chemicals"
+                                  : "All available chemicals added"}
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+
+              {isReferenceDataLoading && <ReferenceLoading />}
+              {referenceDataError && (
+                <ReferenceError error={referenceDataError} />
+              )}
+
+              {!isReferenceDataLoading && !referenceDataError && (
+                <table className="w-full border-collapse text-sm shadow-md">
+                  <thead>
+                    <tr className="bg-emerald-100 border-2 border-emerald-500">
+                      <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                        Name of Solvents
+                      </th>
+                      <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                        Make
+                      </th>
+                      <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                        Lot No./Batch No.
+                      </th>
+                      <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                        Validity
+                      </th>
+                      {role === 'HOD LAB' && (
+                        <th className="px-3 py-2 text-center font-bold w-20">
+                          Action
+                        </th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <AnimatePresence>
+                      {addedChemicals[selectedParam.id]?.length > 0 ? (
+                        addedChemicals[selectedParam.id].map((chemical) => (
+                          <motion.tr
+                            key={chemical.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            className="border-2 border-emerald-500 hover:bg-emerald-50 transition-colors"
+                          >
+                            <td className="px-3 py-2 border-r-2 border-emerald-500">
+                              {chemical.name || "---"}
+                            </td>
+                            <td className="px-3 py-2 border-r-2 border-emerald-500">
+                              {chemical.make || "---"}
+                            </td>
+                            <td className="px-3 py-2 border-r-2 border-emerald-500">
+                              {chemical.batchNo || "---"}
+                            </td>
+                            <td className="px-3 py-2 border-r-2 border-emerald-500">
+                              {chemical.validity || "---"}
+                            </td>
+                            {/* ✅ Only show remove button for HOD LAB */}
+                            {role === 'HOD LAB' && (
+                              <td className="px-3 py-2 text-center">
+                                <motion.button
+                                  onClick={() =>
+                                    handleRemoveChemical(
+                                      selectedParam.id,
+                                      chemical.id
+                                    )
+                                  }
+                                  whileHover={{ scale: 1.1, rotate: 10 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  className="mx-2"
+                                >
+                                  <CgTrash className="w-5 h-5 text-red-500" />
+                                </motion.button>
+                              </td>
+                            )}
+                          </motion.tr>
+                        ))
+                      ) : (
+                        <tr className="border-2 border-emerald-500">
+                          <td
+                            colSpan={role === 'HOD LAB' ? 5 : 4}
+                            className="px-3 py-4 text-center text-gray-500"
+                          >
+                            <div className="flex flex-col items-center gap-2">
+                              <Target className="w-8 h-8 opacity-30" />
+                              <span>
+                                {role === 'HOD LAB' 
+                                  ? 'No chemicals added. Click "Add Chemical" to add.'
+                                  : 'No chemicals added yet.'
+                                }
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Standards Used - Dynamic with Add/Remove */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight mb-3">
+                  <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
+                  Standards Details:
+                </h3>
+                
+                {/* ✅ Only show Add button for HOD LAB */}
+                {role === 'HOD LAB' && (
+                  <div className="relative" ref={standardRef}>
+                    <button
+                      onClick={() =>
+                        setShowStandardDropdown(!showStandardDropdown)
+                      }
+                      disabled={
+                        isReferenceDataLoading ||
+                        !!referenceDataError ||
+                        standards.length === 0
+                      }
+                      className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+
+                    <AnimatePresence>
+                      {showStandardDropdown && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
+                        >
+                          <div className="p-2 border-b border-emerald-200">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                              <input
+                                type="text"
+                                placeholder="Search standards..."
+                                value={standardSearch}
+                                onChange={(e) =>
+                                  setStandardSearch(e.target.value)
+                                }
+                                className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              />
+                            </div>
+                          </div>
+                          <div className="max-h-64 overflow-y-auto">
+                            {searchFilteredStandards
+                              .filter(
                                 (std) =>
                                   !addedStandards[selectedParam.id]?.find(
                                     (added) => added.id === std.id
                                   )
-                              ).length === 0 && (
-                                <div className="px-3 py-4 text-center text-gray-500 text-sm">
-                                  {standardSearch
-                                    ? "No matching standards"
-                                    : "All available standards added"}
-                                </div>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-
-                  {isReferenceDataLoading && <ReferenceLoading />}
-                  {referenceDataError && (
-                    <ReferenceError error={referenceDataError} />
-                  )}
-
-                  {!isReferenceDataLoading && !referenceDataError && (
-                    <table className="w-full border-collapse text-sm shadow-md">
-                      <thead>
-                        <tr className="bg-emerald-100 border-2 border-emerald-500">
-                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
-                            Name of Standard
-                          </th>
-                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
-                            Purity
-                          </th>
-                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
-                            Make
-                          </th>
-                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
-                            Lot No./Batch No.
-                          </th>
-                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
-                            Validity
-                          </th>
-                          <th className="px-3 py-2 text-center font-bold w-20">
-                            Action
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <AnimatePresence>
-                          {addedStandards[selectedParam.id]?.length > 0 ? (
-                            addedStandards[selectedParam.id].map((standard) => (
-                              <motion.tr
-                                key={standard.id}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                className="border-2 border-emerald-500 hover:bg-emerald-50 transition-colors"
-                              >
-                                <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                  {standard.name || "---"}
-                                </td>
-                                <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                  {standard.purity || "---"}
-                                </td>
-                                <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                  {standard.make || "---"}
-                                </td>
-                                <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                  {standard.batchNo || "---"}
-                                </td>
-                                <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                  {standard.validity || "---"}
-                                </td>
-                                <td className="px-3 py-2 text-center">
-                                  <motion.button
-                                    onClick={() =>
-                                      handleRemoveStandard(
-                                        selectedParam.id,
-                                        standard.id
-                                      )
-                                    }
-                                    whileHover={{ scale: 1.1, rotate: 10 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    className="mx-2"
-                                  >
-                                    <CgTrash className="w-5 h-5 text-red-500" />
-                                  </motion.button>
-                                </td>
-                              </motion.tr>
-                            ))
-                          ) : (
-                            <tr className="border-2 border-emerald-500">
-                              <td
-                                colSpan={6}
-                                className="px-3 py-4 text-center text-gray-500"
-                              >
-                                <div className="flex flex-col items-center gap-2">
-                                  <Target className="w-8 h-8 opacity-30" />
-                                  <span>
-                                    No standards added. Click "Add Standard" to
-                                    add.
-                                  </span>
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </AnimatePresence>
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-
-                {/* Preparation of Diluent */}
-                <div className="mb-4">
-                  <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight mb-3">
-                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
-                    Preparation of Diluent:
-                  </h3>
-                  <textarea
-                    value={diluentPerParam[selectedParam.id] || ""}
-                    onChange={(e) =>
-                      handleDiluentChange(selectedParam.id, e.target.value)
-                    }
-                    placeholder="Enter diluent preparation details..."
-                    className="w-full min-h-[100px] border border-emerald-300 rounded-lg p-3 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  />
-                </div>
-
-                {/* ============= PREPARATIONS MANAGEMENT SECTION ============= */}
-                <div className="mb-8 p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-400 rounded-2xl shadow-2xl">
-                  {/* Header with Add Button */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
-                          <BiTestTube className="w-6 h-6 text-white" />
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-emerald-900 tracking-tight">
-                          Preparations Management
-                        </h3>
-                        <p className="text-xs text-emerald-600 font-medium">
-                          Configure analysis preparations for this parameter
-                        </p>
-                      </div>
-                    </div>
-                    <div className="relative" ref={preparationDropdownRef}>
-                      <button
-                        onClick={() =>
-                          setShowPreparationDropdown((prev) => ({
-                            ...prev,
-                            [selectedParam.id]: !prev[selectedParam.id],
-                          }))
-                        }
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                        <Plus className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
-                        <span className="relative z-10">Add Preparations</span>
-                      </button>
-                      {/* Dropdown Menu */}
-                      <AnimatePresence>
-                        {showPreparationDropdown[selectedParam.id] && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="absolute right-0 mt-2 w-72 bg-white border border-emerald-300 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto"
-                          >
-                            {getAvailablePreparationGroups().map((group) => {
-                              const isActive = (
-                                activePreparationGroups[selectedParam.id] || []
-                              ).includes(group.id);
-                              return (
+                              )
+                              .map((std) => (
                                 <button
-                                  key={group.id}
+                                  key={std.id}
                                   onClick={() =>
-                                    handleTogglePreparationGroup(
-                                      selectedParam.id,
-                                      group.id
-                                    )
+                                    handleAddStandard(selectedParam.id, std)
                                   }
-                                  className="w-full text-left px-3 py-3 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
+                                  className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
                                 >
-                                  <div className="flex items-center justify-between">
-                                    <span className="font-semibold text-gray-900">
-                                      {group.label}
-                                    </span>
-                                    {isActive && (
-                                      <Check className="w-4 h-4 text-emerald-600" />
-                                    )}
+                                  <div className="font-semibold text-gray-900">
+                                    {std.name}
+                                  </div>
+                                  <div className="text-xs text-gray-600">
+                                    {std.make} • Purity: {std.purity}
                                   </div>
                                 </button>
-                              );
-                            })}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                              ))}
+                            {searchFilteredStandards.filter(
+                              (std) =>
+                                !addedStandards[selectedParam.id]?.find(
+                                  (added) => added.id === std.id
+                                )
+                            ).length === 0 && (
+                              <div className="px-3 py-4 text-center text-gray-500 text-sm">
+                                {standardSearch
+                                  ? "No matching standards"
+                                  : "All available standards added"}
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+
+              {isReferenceDataLoading && <ReferenceLoading />}
+              {referenceDataError && (
+                <ReferenceError error={referenceDataError} />
+              )}
+
+              {!isReferenceDataLoading && !referenceDataError && (
+                <table className="w-full border-collapse text-sm shadow-md">
+                  <thead>
+                    <tr className="bg-emerald-100 border-2 border-emerald-500">
+                      <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                        Name of Standard
+                      </th>
+                      <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                        Purity
+                      </th>
+                      <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                        Make
+                      </th>
+                      <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                        Lot No./Batch No.
+                      </th>
+                      <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                        Validity
+                      </th>
+                      {role === 'HOD LAB' && (
+                        <th className="px-3 py-2 text-center font-bold w-20">
+                          Action
+                        </th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <AnimatePresence>
+                      {addedStandards[selectedParam.id]?.length > 0 ? (
+                        addedStandards[selectedParam.id].map((standard) => (
+                          <motion.tr
+                            key={standard.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            className="border-2 border-emerald-500 hover:bg-emerald-50 transition-colors"
+                          >
+                            <td className="px-3 py-2 border-r-2 border-emerald-500">
+                              {standard.name || "---"}
+                            </td>
+                            <td className="px-3 py-2 border-r-2 border-emerald-500">
+                              {standard.purity || "---"}
+                            </td>
+                            <td className="px-3 py-2 border-r-2 border-emerald-500">
+                              {standard.make || "---"}
+                            </td>
+                            <td className="px-3 py-2 border-r-2 border-emerald-500">
+                              {standard.batchNo || "---"}
+                            </td>
+                            <td className="px-3 py-2 border-r-2 border-emerald-500">
+                              {standard.validity || "---"}
+                            </td>
+                            {/* ✅ Only show remove button for HOD LAB */}
+                            {role === 'HOD LAB' && (
+                              <td className="px-3 py-2 text-center">
+                                <motion.button
+                                  onClick={() =>
+                                    handleRemoveStandard(
+                                      selectedParam.id,
+                                      standard.id
+                                    )
+                                  }
+                                  whileHover={{ scale: 1.1, rotate: 10 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  className="mx-2"
+                                >
+                                  <CgTrash className="w-5 h-5 text-red-500" />
+                                </motion.button>
+                              </td>
+                            )}
+                          </motion.tr>
+                        ))
+                      ) : (
+                        <tr className="border-2 border-emerald-500">
+                          <td
+                            colSpan={role === 'HOD LAB' ? 6 : 5}
+                            className="px-3 py-4 text-center text-gray-500"
+                          >
+                            <div className="flex flex-col items-center gap-2">
+                              <Target className="w-8 h-8 opacity-30" />
+                              <span>
+                                {role === 'HOD LAB' 
+                                  ? 'No standards added. Click "Add Standard" to add.'
+                                  : 'No standards added yet.'
+                                }
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Preparation of Diluent */}
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight mb-3">
+                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
+                Preparation of Diluent:
+              </h3>
+              <textarea
+                value={diluentPerParam[selectedParam.id] || ""}
+                onChange={(e) =>
+                  handleDiluentChange(selectedParam.id, e.target.value)
+                }
+                placeholder="Enter diluent preparation details..."
+                className="w-full min-h-[100px] border border-emerald-300 rounded-lg p-3 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                readOnly={role !== 'HOD LAB'}
+              />
+            </div>
+
+            {/* ============= PREPARATIONS MANAGEMENT SECTION ============= */}
+            <div className="mb-8 p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-400 rounded-2xl shadow-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <BiTestTube className="w-6 h-6 text-white" />
                     </div>
                   </div>
-                  {/* Added Preparations Chips Display */}
-                  <AnimatePresence>
+                  <div>
+                    <h3 className="text-xl font-bold text-emerald-900 tracking-tight">
+                      Preparations Management
+                    </h3>
+                    <p className="text-xs text-emerald-600 font-medium">
+                      Configure analysis preparations for this parameter
+                    </p>
+                  </div>
+                </div>
+                
+                {/* ✅ Only show Add Preparations button for HOD LAB */}
+                {role === 'HOD LAB' && (
+                  <div className="relative" ref={preparationDropdownRef}>
+                    <button
+                      onClick={() =>
+                        setShowPreparationDropdown((prev) => ({
+                          ...prev,
+                          [selectedParam.id]: !prev[selectedParam.id],
+                        }))
+                      }
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                      <Plus className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
+                      <span className="relative z-10">Add Preparations</span>
+                    </button>
+                    {/* Dropdown Menu */}
+                    <AnimatePresence>
+                      {showPreparationDropdown[selectedParam.id] && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute right-0 mt-2 w-72 bg-white border border-emerald-300 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto"
+                        >
+                          {getAvailablePreparationGroups().map((group) => {
+                            const isActive = (
+                              activePreparationGroups[selectedParam.id] || []
+                            ).includes(group.id);
+                            return (
+                              <button
+                                key={group.id}
+                                onClick={() =>
+                                  handleTogglePreparationGroup(
+                                    selectedParam.id,
+                                    group.id
+                                  )
+                                }
+                                className="w-full text-left px-3 py-3 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="font-semibold text-gray-900">
+                                    {group.label}
+                                  </span>
+                                  {isActive && (
+                                    <Check className="w-4 h-4 text-emerald-600" />
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+              
+              <AnimatePresence>
                     {(() => {
                       const activeGroups =
                         activePreparationGroups[selectedParam.id] || [];
@@ -5958,9 +6132,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
                     Preparation of Test solution or Sample solution:
                   </h3>
                   <textarea
-                    value={testSolutionPerParam[selectedParam.id] || ""}
+                    value={otherInfoPerParam[selectedParam.id] || ""}
                     onChange={(e) =>
-                      handleTestSolutionChange(selectedParam.id, e.target.value)
+                      handleOtherInfoChange(selectedParam.id, e.target.value)
                     }
                     placeholder="Enter test solution preparation details..."
                     className="w-full min-h-[100px] border border-green-300 rounded-lg p-3 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -6169,8 +6343,22 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           );
         }}
       />
+
+      <AnimatePresence>
+        {showAnalystDialog && (
+          <AnalystSelectionDialog
+            isOpen={showAnalystDialog}
+            onClose={() => {
+              setShowAnalystDialog(false);
+              setPendingParameter(null);
+            }}
+            analysts={analysts}
+            onSelectAnalyst={handleAnalystSelected}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
-export default FormPreview;
+export default Worksheet;

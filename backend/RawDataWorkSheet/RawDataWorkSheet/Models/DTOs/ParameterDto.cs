@@ -8,7 +8,14 @@
         public string? MethodName { get; set; }
         public string? ColumnId { get; set; }
         public string? DiluentPreparation { get; set; }
-        public string? TestSolutionPreparation { get; set; }
+        public string? OtherInfo { get; set; }
+
+        public string? AnalyzedBy { get; set; }
+        public string? ApprovedBy { get; set; }
+        public string? AnalysisStartDate { get; set; }
+        public string? AnalysisCompletionDate { get; set; }
+        public string? ApprovedAt { get; set; }
+        public string? Status { get; set; }
 
         public List<string>? Instruments { get; set; }
         public List<string>? Chemicals { get; set; }

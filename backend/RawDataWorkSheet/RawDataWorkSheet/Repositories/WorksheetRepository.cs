@@ -42,9 +42,8 @@ namespace RawDataWorkSheet.Repositories
                     sample_name,
                     number_of_parameters,
                     due_date,
-                    analysis_start_date,
-                    analysis_completion_date,
                     status,
+                    prepared_by,
                     created_at
                 )
                 VALUES (
@@ -53,9 +52,8 @@ namespace RawDataWorkSheet.Repositories
                     @SampleName,
                     @NumberOfParameters,
                     @DueDate,
-                    @AnalysisStartDate,
-                    @AnalysisCompletionDate,
                     'Draft',
+                    @PreparedBy,
                     SYSDATETIME()
                 )
             """;
@@ -64,12 +62,11 @@ namespace RawDataWorkSheet.Repositories
             await conn.ExecuteAsync(sql, new
             {
                 request.WorksheetId,
-                request.RegistrationInfo.RegistrationNo,
+                request.RegistrationInfo!.RegistrationNo,
                 request.RegistrationInfo.SampleName,
                 request.RegistrationInfo.NumberOfParameters,
-                DueDate = ParseDate(request.RegistrationInfo.DueDate),
-                AnalysisStartDate = ParseDate(request.RegistrationInfo.AnalysisStartDate),
-                AnalysisCompletionDate = ParseDate(request.RegistrationInfo.AnalysisCompletionDate)
+                request.DocumentInfo!.PreparedBy,
+                DueDate = ParseDate(request.RegistrationInfo!.DueDate)
             });
         }
 
@@ -88,12 +85,7 @@ namespace RawDataWorkSheet.Repositories
                     SET sample_name = @SampleName,
                         number_of_parameters = @NumberOfParameters,
                         due_date = @DueDate,
-                        analysis_start_date = @AnalysisStartDate,
-                        analysis_completion_date = @AnalysisCompletionDate,
                         prepared_by = @PreparedBy,
-                        analyzed_by = @AnalyzedBy,
-                        approved_by = @ApprovedBy,
-                        classified = @Classified,
                         revision_date = @RevisionDate,
                         updated_at = SYSDATETIME()
                     WHERE worksheet_id = @WorksheetId";
@@ -106,12 +98,7 @@ namespace RawDataWorkSheet.Repositories
                         request.RegistrationInfo.SampleName,
                         request.RegistrationInfo.NumberOfParameters,
                         DueDate = ParseDate(request.RegistrationInfo.DueDate),
-                        AnalysisStartDate = ParseDate(request.RegistrationInfo.AnalysisStartDate),
-                        AnalysisCompletionDate = ParseDate(request.RegistrationInfo.AnalysisCompletionDate),
                         request.DocumentInfo.PreparedBy,
-                        request.DocumentInfo.AnalyzedBy,
-                        request.DocumentInfo.ApprovedBy,
-                        request.DocumentInfo.Classified,
                         RevisionDate = ParseDate(request.DocumentInfo.RevisionDate)
                     },
                     transaction);
@@ -162,16 +149,10 @@ namespace RawDataWorkSheet.Repositories
         sample_name       AS SampleName,
         number_of_parameters AS NumberOfParameters,
         due_date           AS DueDate,
-        analysis_start_date AS AnalysisStartDate,
-        analysis_completion_date AS AnalysisCompletionDate,
         prepared_by        AS PreparedBy,
-        analyzed_by        AS AnalyzedBy,
-        approved_by        AS ApprovedBy,
-        classified         AS Classified,
         revision_date      AS RevisionDate,
         status             AS Status,
         submitted_at       AS SubmittedAt,
-        approved_at        AS ApprovedAt,
         created_at         AS CreatedAt,
         updated_at         AS UpdatedAt
     FROM raw_data_worksheets
@@ -224,10 +205,12 @@ namespace RawDataWorkSheet.Repositories
             var sql = @"
                 INSERT INTO worksheet_parameters 
                 (worksheet_id, para_code, parameter_name, method_code, method_name, 
-                 column_id, diluent_preparation, test_solution_preparation)
+                 column_id, diluent_preparation, other_info, 
+                 analyzed_by, approved_by, analysis_start_date, analysis_completion_date, approved_at, status)
                 VALUES 
                 (@WorksheetId, @ParaCode, @ParameterName, @MethodCode, @MethodName, 
-                 @ColumnId, @DiluentPreparation, @TestSolutionPreparation);
+                 @ColumnId, @DiluentPreparation, @OtherInfo, @AnalyzedBy, @ApprovedBy,
+                 @AnalysisStartDate, @AnalysisCompletionDate, @ApprovedAt, @Status);
                 
                 SELECT CAST(SCOPE_IDENTITY() as int);";
 
@@ -242,7 +225,12 @@ namespace RawDataWorkSheet.Repositories
                     param.MethodName,
                     param.ColumnId,
                     param.DiluentPreparation,
-                    param.TestSolutionPreparation
+                    param.OtherInfo,
+                    param.AnalyzedBy,
+                    param.ApprovedBy,
+                    param.AnalysisStartDate,
+                    param.AnalysisCompletionDate,
+                    param.ApprovedAt
                 },
                 transaction);
 
@@ -450,7 +438,6 @@ namespace RawDataWorkSheet.Repositories
                 Parameters = new List<ParameterDetailDto>()
             };
 
-            // Get all parameters
             var parametersSql = @"
                 SELECT
                     id                    AS Id,
@@ -460,7 +447,13 @@ namespace RawDataWorkSheet.Repositories
                     method_name           AS MethodName,
                     column_id             AS ColumnId,
                     diluent_preparation   AS DiluentPreparation,
-                    test_solution_preparation AS TestSolutionPreparation
+                    analysis_start_date   AS AnalysisStartDate,
+                    analysis_completion_date   AS AnalysisCompletionDate,
+                    analyzed_by   AS AnalyzedBy,
+                    approved_by   AS ApprovedBy,
+                    approved_at   AS ApprovedAT,
+                    other_info    AS OtherInfo,
+                    status        AS Status
                 FROM worksheet_parameters
                 WHERE worksheet_id = @WorksheetId;
             ";
@@ -479,7 +472,12 @@ namespace RawDataWorkSheet.Repositories
                     MethodName = param.MethodName,
                     ColumnId = param.ColumnId,
                     DiluentPreparation = param.DiluentPreparation,
-                    TestSolutionPreparation = param.TestSolutionPreparation
+                    OtherInfo = param.OtherInfo,
+                    AnalysisStartDate = param.AnalysisStartDate?.ToString("dd/MM/yyyy"),
+                    AnalysisCompletionDate = param.AnalysisCompletionDate?.ToString("dd/MM/yyyy"),
+                    AnalyzedBy = param.AnalyzedBy,
+                    ApprovedBy = param.ApprovedBy,
+                    ApprovedAt = param.ApprovedAt?.ToString("dd/MM/yyyy"),
                 };
 
                 // Get instrument IDs
@@ -562,19 +560,12 @@ namespace RawDataWorkSheet.Repositories
                 WorksheetId = worksheet.WorksheetId,
                 RegistrationNo = worksheet.RegistrationNo,
                 SampleName = worksheet.SampleName,
-                DateOfReceipt = worksheet.DateOfReceipt?.ToString("dd/MM/yyyy"),
                 NumberOfParameters = worksheet.NumberOfParameters,
                 DueDate = worksheet.DueDate?.ToString("dd/MM/yyyy"),
-                AnalysisStartDate = worksheet.AnalysisStartDate?.ToString("dd/MM/yyyy"),
-                AnalysisCompletionDate = worksheet.AnalysisCompletionDate?.ToString("dd/MM/yyyy"),
                 PreparedBy = worksheet.PreparedBy,
-                AnalyzedBy = worksheet.AnalyzedBy,
-                ApprovedBy = worksheet.ApprovedBy,
-                Classified = worksheet.Classified,
                 RevisionDate = worksheet.RevisionDate?.ToString("dd/MM/yyyy"),
                 Status = worksheet.Status,
                 SubmittedAt = worksheet.SubmittedAt,
-                ApprovedAt = worksheet.ApprovedAt,
                 CreatedAt = worksheet.CreatedAt,
                 UpdatedAt = worksheet.UpdatedAt
             };

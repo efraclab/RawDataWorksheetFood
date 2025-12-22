@@ -2,7 +2,6 @@ import type { StandardPreparationData } from "./StandardPreparationData";
 import type { SamplePreparationData } from "./SamplePreparationData";
 import type { CalculationData } from "./CalculationData";
 
-
 export interface ParameterDetail {
     id: number;
     paraCode: string;
@@ -11,7 +10,12 @@ export interface ParameterDetail {
     methodName: string;
     columnId: string;
     diluentPreparation: string;
-    testSolutionPreparation: string;
+    otherInfo: string;
+    analyzedBy: string;
+    approvedBy: string;
+    analysisStartDate: string;
+    analysisCompletionDate: string;
+    approvedAt: string | null;
 
     instrumentIds: string[];
     chemicalIds: string[];

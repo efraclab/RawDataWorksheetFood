@@ -1,6 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Calculator, Trash, CheckCircle, AlertTriangle, X } from "lucide-react"; 
+import {
+  ChevronDown,
+  Calculator,
+  Trash,
+  CheckCircle,
+  AlertTriangle,
+  X,
+} from "lucide-react";
 import type { CalculationLod } from "../../preparation_models/CalculationLod";
 import type { SamplePreparationLod } from "../../preparation_models/SamplePreparationLod";
 import CustomDropdown from "../shared/CustomDropdown";
@@ -14,6 +21,7 @@ interface CalculationDetailLodProps {
     value: string | number | null
   ) => void;
   onRemove: () => void;
+  role: string;
 }
 
 // Helper component for warning indicator
@@ -23,7 +31,10 @@ const WarningIndicator: React.FC<{ value: string | number }> = ({ value }) => {
 
   if (isInvalid) {
     return (
-      <span className="text-blue-500 ml-2" title="Missing or zero value detected, calculation will fail.">
+      <span
+        className="text-blue-500 ml-2"
+        title="Missing or zero value detected, calculation will fail."
+      >
         <AlertTriangle className="w-4 h-4 inline-block" />
       </span>
     );
@@ -60,42 +71,66 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
   samplePreparations,
   onFieldChange,
   onRemove,
+  role,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [calculationResult, setCalculationResult] = useState<string | null>(null);
+  const [calculationResult, setCalculationResult] = useState<string | null>(
+    null
+  );
 
   // Get selected sample preparation
   const selectedSamplePrep = samplePreparations.find(
     (prep) => prep.id === calculation.selectedSamplePrepId
   );
 
+  useEffect(() => {
+    if (samplePreparations.length === 1 && !calculation.selectedSamplePrepId) {
+      onFieldChange(
+        calculation.id,
+        "selectedSamplePrepId",
+        samplePreparations[0].id
+      );
+    }
+  }, [
+    samplePreparations,
+    calculation.selectedSamplePrepId,
+    calculation.id,
+    onFieldChange,
+  ]);
+
   // Extract weight values from sample preparation steps
   const getSampleWeights = () => {
     if (!selectedSamplePrep) {
-      return { 
+      return {
         w1: { value: "", unit: "g" },
         w2: { value: "", unit: "g" },
-        w3: { value: "", unit: "g" }
+        w3: { value: "", unit: "g" },
       };
     }
 
-    const weighingEmptyCrucible = selectedSamplePrep.steps.find(s => s.name === "Weighing (Empty Bottle)");
-    const weighingBeforeDrying = selectedSamplePrep.steps.find(s => s.name === "Weighing (Before Drying)");
-    const weighingAfterDrying = selectedSamplePrep.steps.find(s => s.name === "Weighing (After Drying)");
+    const weighingEmptyCrucible = selectedSamplePrep.steps.find(
+      (s) => s.name === "Weighing (Empty Bottle)"
+    );
+    const weighingBeforeDrying = selectedSamplePrep.steps.find(
+      (s) => s.name === "Weighing (Before Drying)"
+    );
+    const weighingAfterDrying = selectedSamplePrep.steps.find(
+      (s) => s.name === "Weighing (After Drying)"
+    );
 
     return {
       w1: {
         value: weighingEmptyCrucible?.value || "",
-        unit: weighingEmptyCrucible?.unit || "g"
+        unit: weighingEmptyCrucible?.unit || "g",
       },
       w2: {
         value: weighingBeforeDrying?.value || "",
-        unit: weighingBeforeDrying?.unit || "g"
+        unit: weighingBeforeDrying?.unit || "g",
       },
       w3: {
         value: weighingAfterDrying?.value || "",
-        unit: weighingAfterDrying?.unit || "g"
-      }
+        unit: weighingAfterDrying?.unit || "g",
+      },
     };
   };
 
@@ -130,7 +165,7 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
     console.log("1. Raw Inputs:", {
       W1_EmptyDish: W1_raw,
       W2_DishWithSample: W2_raw,
-      W3_DishAfterIgnition: W3_raw
+      W3_DishAfterIgnition: W3_raw,
     });
 
     console.log("2. Converted to grams:", { W1, W2, W3 });
@@ -141,7 +176,7 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
 
     console.log("3. Calculation Steps:", {
       "W2 - W3 (numerator)": numerator,
-      "W2 - W1 (denominator)": denominator
+      "W2 - W1 (denominator)": denominator,
     });
 
     if (denominator === 0) {
@@ -153,12 +188,20 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
 
     const Lod_Percentage = (numerator / denominator) * 100;
 
-    console.log(`%c 4. FINAL FORMULA: [(${W2} - ${W3}) / (${W2} - ${W1})] x 100`, "color: blue; font-weight: bold");
-    console.log(`%c Calculated Lod Result: ${Lod_Percentage.toFixed(4)} %`, "color: green; font-weight: bold; font-size: 14px");
+    console.log(
+      `%c 4. FINAL FORMULA: [(${W2} - ${W3}) / (${W2} - ${W1})] x 100`,
+      "color: blue; font-weight: bold"
+    );
+    console.log(
+      `%c Calculated Lod Result: ${Lod_Percentage.toFixed(4)} %`,
+      "color: green; font-weight: bold; font-size: 14px"
+    );
     console.groupEnd();
 
     if (isNaN(Lod_Percentage) || !isFinite(Lod_Percentage)) {
-      setCalculationResult("Error: Result is NaN or Infinite. Check console for details.");
+      setCalculationResult(
+        "Error: Result is NaN or Infinite. Check console for details."
+      );
     } else {
       setCalculationResult(`Result: ${Lod_Percentage.toFixed(2)} % w/w`);
     }
@@ -197,7 +240,9 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
                 <h4 className="text-sm font-semibold text-white tracking-wide">
                   {calculation.label}
                 </h4>
-                <p className="text-xs text-sky-100">Calculation for Residue on Ignition</p>
+                <p className="text-xs text-sky-100">
+                  Calculation for Residue on Ignition
+                </p>
               </div>
             </div>
 
@@ -216,18 +261,20 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
                 </motion.div>
               </motion.button>
 
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove();
-                }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${calculation.label}`}
-              >
-                <Trash className="w-4 h-4 text-white" />
-              </motion.button>
+              {role === "HOD LAB" && (
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove();
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                  title={`Remove ${calculation.label}`}
+                >
+                  <Trash className="w-4 h-4 text-white" />
+                </motion.button>
+              )}
             </div>
           </div>
         </div>
@@ -285,25 +332,31 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
                       <div className="space-y-2.5">
                         {/* W1 - Empty Crucible */}
                         <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-sky-100 to-sky-50 p-3 rounded-lg border border-sky-200 hover:shadow-md transition-all">
-                          <span className="font-bold text-sky-800 bg-sky-200/50 px-2 rounded-md">W1 (Empty Bottle):</span>
+                          <span className="font-bold text-sky-800 bg-sky-200/50 px-2 rounded-md">
+                            W1 (Empty Bottle):
+                          </span>
                           <span className="text-gray-800 font-semibold flex items-center">
                             {sampleWeights.w1.value} {sampleWeights.w1.unit}
                             <WarningIndicator value={sampleWeights.w1.value} />
                           </span>
                         </div>
-                        
+
                         {/* W2 - Crucible + Sample */}
                         <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-sky-100 to-sky-50 p-3 rounded-lg border border-sky-200 hover:shadow-md transition-all">
-                          <span className="font-bold text-sky-800 bg-sky-200/50 px-2 rounded-md">W2 (Bottle + Sample):</span>
+                          <span className="font-bold text-sky-800 bg-sky-200/50 px-2 rounded-md">
+                            W2 (Bottle + Sample):
+                          </span>
                           <span className="text-gray-800 font-semibold flex items-center">
                             {sampleWeights.w2.value} {sampleWeights.w2.unit}
                             <WarningIndicator value={sampleWeights.w2.value} />
                           </span>
                         </div>
-                        
+
                         {/* W3 - After Drying */}
                         <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-sky-100 to-sky-50 p-3 rounded-lg border border-sky-200 hover:shadow-md transition-all">
-                          <span className="font-bold text-sky-800 bg-sky-200/50 px-2 rounded-md">W3 (After Drying):</span>
+                          <span className="font-bold text-sky-800 bg-sky-200/50 px-2 rounded-md">
+                            W3 (After Drying):
+                          </span>
                           <span className="text-gray-800 font-semibold flex items-center">
                             {sampleWeights.w3.value} {sampleWeights.w3.unit}
                             <WarningIndicator value={sampleWeights.w3.value} />
@@ -318,45 +371,63 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
                 {canCalculate && (
                   <>
                     {/* Calculate Button */}
-                      <div className="flex justify-center pt-2">
-                        <motion.button
-                          onClick={performCalculation}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="flex items-center justify-center w-full gap-2 px-6 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white font-semibold rounded-lg hover:from-sky-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg text-sm"
-                        >
-                          <Calculator className="w-4 h-4" />
-                          Calculate Lod
-                        </motion.button>
-                      </div>
+                    <div className="flex justify-center pt-2">
+                      <motion.button
+                        onClick={performCalculation}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex items-center justify-center w-full gap-2 px-6 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white font-semibold rounded-lg hover:from-sky-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg text-sm"
+                      >
+                        <Calculator className="w-4 h-4" />
+                        Calculate Lod
+                      </motion.button>
+                    </div>
 
-                      {/* Result Display */}
-                      {calculationResult && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className={`bg-gradient-to-br ${calculationResult.startsWith("Error") ? 'from-red-100 to-red-50 border-2 border-red-300' : 'from-green-50 to-emerald-50 border-2 border-green-300'} rounded-lg p-4`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-2 mb-2">
-                              <CheckCircle className={`w-5 h-5 ${calculationResult.startsWith("Error") ? 'text-red-600' : 'text-green-600'}`} />
-                              <h6 className={`text-sm font-bold ${calculationResult.startsWith("Error") ? 'text-red-700' : 'text-green-700'}`}>
-                                Calculation Result
-                              </h6>
-                            </div>
-                            <motion.button
-                              onClick={() => setCalculationResult(null)}
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              className="p-1 -mt-1 -mr-1 text-gray-400 hover:text-sky-500 transition-colors"
-                              title="Close result"
+                    {/* Result Display */}
+                    {calculationResult && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`bg-gradient-to-br ${
+                          calculationResult.startsWith("Error")
+                            ? "from-red-100 to-red-50 border-2 border-red-300"
+                            : "from-green-50 to-emerald-50 border-2 border-green-300"
+                        } rounded-lg p-4`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle
+                              className={`w-5 h-5 ${
+                                calculationResult.startsWith("Error")
+                                  ? "text-red-600"
+                                  : "text-green-600"
+                              }`}
+                            />
+                            <h6
+                              className={`text-sm font-bold ${
+                                calculationResult.startsWith("Error")
+                                  ? "text-red-700"
+                                  : "text-green-700"
+                              }`}
                             >
-                              <X className="w-4 h-4" />
-                            </motion.button>
+                              Calculation Result
+                            </h6>
                           </div>
-                          <p className="text-sm text-gray-700">{calculationResult}</p>
-                        </motion.div>
-                      )}
+                          <motion.button
+                            onClick={() => setCalculationResult(null)}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="p-1 -mt-1 -mr-1 text-gray-400 hover:text-sky-500 transition-colors"
+                            title="Close result"
+                          >
+                            <X className="w-4 h-4" />
+                          </motion.button>
+                        </div>
+                        <p className="text-sm text-gray-700">
+                          {calculationResult}
+                        </p>
+                      </motion.div>
+                    )}
                   </>
                 )}
 

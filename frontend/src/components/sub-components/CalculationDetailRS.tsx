@@ -1,6 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Calculator, Trash, CheckCircle, AlertTriangle, X } from "lucide-react";
+import {
+  ChevronDown,
+  Calculator,
+  Trash,
+  CheckCircle,
+  AlertTriangle,
+  X,
+} from "lucide-react";
 import type { CalculationRS } from "../../preparation_models/CalculationRS";
 import type { StandardPreparation } from "../../preparation_models/StandardPreparation";
 import type { SamplePreparation } from "../../preparation_models/SamplePreparation";
@@ -16,6 +23,7 @@ interface CalculationDetailRSProps {
     value: string | number | null
   ) => void;
   onRemove: () => void;
+  role: string;
 }
 
 // Helper component for warning indicator
@@ -25,7 +33,10 @@ const WarningIndicator: React.FC<{ value: string | number }> = ({ value }) => {
 
   if (isInvalid) {
     return (
-      <span className="text-amber-500 ml-2" title="Missing or zero value detected">
+      <span
+        className="text-amber-500 ml-2"
+        title="Missing or zero value detected"
+      >
         <AlertTriangle className="w-4 h-4 inline-block" />
       </span>
     );
@@ -40,12 +51,17 @@ const convertMassToMg = (value: string | number, unit: string): number => {
 
   const lowerUnit = unit.toLowerCase().trim();
   switch (lowerUnit) {
-    case "mg": return val;
-    case "g": return val * 1000;
-    case "kg": return val * 1000000;
+    case "mg":
+      return val;
+    case "g":
+      return val * 1000;
+    case "kg":
+      return val * 1000000;
     case "mcg":
-    case "ug": return val / 1000;
-    default: return val;
+    case "ug":
+      return val / 1000;
+    default:
+      return val;
   }
 };
 
@@ -55,11 +71,15 @@ const convertVolumeToMl = (value: string | number, unit: string): number => {
 
   const lowerUnit = unit.toLowerCase().trim();
   switch (lowerUnit) {
-    case "ml": return val;
-    case "l": return val * 1000;
+    case "ml":
+      return val;
+    case "l":
+      return val * 1000;
     case "ul":
-    case "µl": return val / 1000;
-    default: return val;
+    case "µl":
+      return val / 1000;
+    default:
+      return val;
   }
 };
 
@@ -69,11 +89,12 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
   samplePreparations,
   onFieldChange,
   onRemove,
+  role,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [calculationResult, setCalculationResult] = useState<string | null>(null);
-
-  
+  const [calculationResult, setCalculationResult] = useState<string | null>(
+    null
+  );
 
   // Get selected preparations
   const selectedStandardPrep = standardPreparations.find(
@@ -87,12 +108,16 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
   const preparationPairs = standardPreparations
     .map((stdPrep) => {
       const matchingSamplePrep = samplePreparations.find(
-        (samplePrep) => samplePrep.label.charAt(samplePrep.label.length - 1) === stdPrep.label.charAt(stdPrep.label.length - 1)
+        (samplePrep) =>
+          samplePrep.label.charAt(samplePrep.label.length - 1) ===
+          stdPrep.label.charAt(stdPrep.label.length - 1)
       );
       if (matchingSamplePrep) {
         return {
           value: stdPrep.label,
-          label: `Preparation ${stdPrep.label}`,
+          label: `Preparation ${stdPrep.label.charAt(
+            stdPrep.label.length - 1
+          )}`,
           standardId: stdPrep.id,
           sampleId: matchingSamplePrep.id,
         };
@@ -104,12 +129,51 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
   // Get current selected preparation label
   const currentPrepLabel = selectedStandardPrep?.label || "";
 
+  useEffect(() => {
+    // Auto-select if there's exactly one preparation pair and nothing is selected yet
+    if (
+      preparationPairs.length === 1 &&
+      !calculation.selectedStandardPrepId &&
+      !calculation.selectedSamplePrepId
+    ) {
+      const singlePair = preparationPairs[0];
+      if (singlePair) {
+        onFieldChange(
+          calculation.id,
+          "selectedStandardPrepId",
+          singlePair.standardId
+        );
+        onFieldChange(
+          calculation.id,
+          "selectedSamplePrepId",
+          singlePair.sampleId
+        );
+
+        console.log(`✅ Auto-selected preparation pair: ${singlePair.label}`);
+      }
+    }
+  }, [
+    preparationPairs.length,
+    calculation.selectedStandardPrepId,
+    calculation.selectedSamplePrepId,
+    calculation.id,
+    onFieldChange,
+  ]);
+
   // Handle preparation pair selection
   const handlePreparationChange = (value: string) => {
     const selectedPair = preparationPairs.find((pair) => pair?.value === value);
     if (selectedPair) {
-      onFieldChange(calculation.id, "selectedStandardPrepId", selectedPair.standardId);
-      onFieldChange(calculation.id, "selectedSamplePrepId", selectedPair.sampleId);
+      onFieldChange(
+        calculation.id,
+        "selectedStandardPrepId",
+        selectedPair.standardId
+      );
+      onFieldChange(
+        calculation.id,
+        "selectedSamplePrepId",
+        selectedPair.sampleId
+      );
     } else {
       onFieldChange(calculation.id, "selectedStandardPrepId", null);
       onFieldChange(calculation.id, "selectedSamplePrepId", null);
@@ -120,10 +184,11 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
   const getStandardDilutions = () => {
     if (!selectedStandardPrep) return [];
     return selectedStandardPrep.steps
-      .filter((step) => 
-        step.name === "1st Dilution" || 
-        step.name === "2nd Dilution" || 
-        step.name === "3rd Dilution"
+      .filter(
+        (step) =>
+          step.name === "1st Dilution" ||
+          step.name === "2nd Dilution" ||
+          step.name === "3rd Dilution"
       )
       .map((step) => ({
         name: step.name,
@@ -182,15 +247,21 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
 
     if (!canCalculate) {
       console.warn("Cannot calculate: Missing preparations");
-      setCalculationResult("Error: Please select both Standard and Sample preparations");
+      setCalculationResult(
+        "Error: Please select both Standard and Sample preparations"
+      );
       console.groupEnd();
       return;
     }
 
     // Parse inputs
     const AreaOfSample = parseFloat(calculation.areaOfSample as string) || 0;
-    const AreaOfStandard = parseFloat(calculation.areaOfStandard as string) || 0;
-    const SW1_Standard = convertMassToMg(standardWeight.value, standardWeight.unit);
+    const AreaOfStandard =
+      parseFloat(calculation.areaOfStandard as string) || 0;
+    const SW1_Standard = convertMassToMg(
+      standardWeight.value,
+      standardWeight.unit
+    );
     const SW2_Sample = convertMassToMg(sampleWeight.value, sampleWeight.unit);
     const Purity = parseFloat(calculation.purity as string) || 0;
 
@@ -199,16 +270,28 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
       AreaStandard: AreaOfStandard,
       SW1: SW1_Standard,
       SW2: SW2_Sample,
-      Purity: Purity
+      Purity: Purity,
     });
 
     // Get volumes
-    const V1 = standardDilutions[0] ? convertVolumeToMl(standardDilutions[0].vol1, standardDilutions[0].unit1) : 0;
-    const V2 = standardDilutions[1] ? convertVolumeToMl(standardDilutions[1].vol1, standardDilutions[1].unit1) : 0;
-    const V3 = standardDilutions[1] ? convertVolumeToMl(standardDilutions[1].vol2, standardDilutions[1].unit2) : 0;
-    const V4 = standardDilutions[2] ? convertVolumeToMl(standardDilutions[2].vol1, standardDilutions[2].unit1) : 0;
-    const V5 = standardDilutions[2] ? convertVolumeToMl(standardDilutions[2].vol2, standardDilutions[2].unit2) : 0;
-    const V6 = sampleDilutions[0] ? convertVolumeToMl(sampleDilutions[0].vol1, sampleDilutions[0].unit1) : 0;
+    const V1 = standardDilutions[0]
+      ? convertVolumeToMl(standardDilutions[0].vol1, standardDilutions[0].unit1)
+      : 0;
+    const V2 = standardDilutions[1]
+      ? convertVolumeToMl(standardDilutions[1].vol1, standardDilutions[1].unit1)
+      : 0;
+    const V3 = standardDilutions[1]
+      ? convertVolumeToMl(standardDilutions[1].vol2, standardDilutions[1].unit2)
+      : 0;
+    const V4 = standardDilutions[2]
+      ? convertVolumeToMl(standardDilutions[2].vol1, standardDilutions[2].unit1)
+      : 0;
+    const V5 = standardDilutions[2]
+      ? convertVolumeToMl(standardDilutions[2].vol2, standardDilutions[2].unit2)
+      : 0;
+    const V6 = sampleDilutions[0]
+      ? convertVolumeToMl(sampleDilutions[0].vol1, sampleDilutions[0].unit1)
+      : 0;
 
     console.log("2. Volumes (converted to mL):", { V1, V2, V3, V4, V5, V6 });
 
@@ -218,7 +301,7 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
 
     console.log("3. Ratios:", {
       AreaRatio,
-      PurityFactor
+      PurityFactor,
     });
 
     // Formula: (Area/ABS of Sample × SW1 × V2 × V4 × V6 × Purity) / (Area/ABS of Standard × V1 × V3 × V5 × SW2 × 100)
@@ -227,7 +310,7 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
     const denominator = AreaOfStandard * V1 * V3 * V5 * SW2_Sample * 100;
 
     if (denominator !== 0) {
-      FinalResult = numerator / denominator * 1000000;
+      FinalResult = (numerator / denominator) * 1000000;
     }
 
     const formulaDebugString = `(${AreaOfSample} × ${SW1_Standard} × ${V2} × ${V4} × ${V6} × ${Purity}) / (${AreaOfStandard} × ${V1} × ${V3} × ${V5} × ${SW2_Sample} × 100)`;
@@ -237,7 +320,9 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
     console.groupEnd();
 
     if (isNaN(FinalResult) || !isFinite(FinalResult)) {
-      setCalculationResult("Error: Result is NaN or Infinite. Check console for details.");
+      setCalculationResult(
+        "Error: Result is NaN or Infinite. Check console for details."
+      );
     } else {
       setCalculationResult(`Result: ${FinalResult.toFixed(2)} ppm`);
     }
@@ -276,7 +361,9 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                 <h4 className="text-sm font-semibold text-white tracking-wide">
                   {calculation.label}
                 </h4>
-                <p className="text-xs text-indigo-100">Residual Solvent Calculation</p>
+                <p className="text-xs text-indigo-100">
+                  Residual Solvent Calculation
+                </p>
               </div>
             </div>
 
@@ -295,18 +382,20 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                 </motion.div>
               </motion.button>
 
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove();
-                }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${calculation.label}`}
-              >
-                <Trash className="w-4 h-4 text-white" />
-              </motion.button>
+              {role === "HOD LAB" && (
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove();
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                  title={`Remove ${calculation.label}`}
+                >
+                  <Trash className="w-4 h-4 text-white" />
+                </motion.button>
+              )}
             </div>
           </div>
         </div>
@@ -360,7 +449,9 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                         <div className="space-y-2.5">
                           {/* SW1 */}
                           <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-indigo-100 to-indigo-50 p-3 rounded-lg border border-indigo-200">
-                            <span className="font-bold text-indigo-800 bg-indigo-200/50 px-2 rounded-md">SW1:</span>
+                            <span className="font-bold text-indigo-800 bg-indigo-200/50 px-2 rounded-md">
+                              SW1:
+                            </span>
                             <span className="text-gray-800 font-semibold flex items-center">
                               {standardWeight.value} {standardWeight.unit}
                               <WarningIndicator value={standardWeight.value} />
@@ -385,9 +476,19 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                                   V{idx * 2 + 1}:
                                 </span>
                                 <span className="text-gray-800 font-semibold flex items-center">
-                                  {dilution.name === "1st Dilution" ? dilution.vol1 : dilution.vol2}{" "}
-                                  {dilution.name === "1st Dilution" ? dilution.unit1 : dilution.unit2}
-                                  <WarningIndicator value={dilution.name === "1st Dilution" ? dilution.vol1 : dilution.vol2} />
+                                  {dilution.name === "1st Dilution"
+                                    ? dilution.vol1
+                                    : dilution.vol2}{" "}
+                                  {dilution.name === "1st Dilution"
+                                    ? dilution.unit1
+                                    : dilution.unit2}
+                                  <WarningIndicator
+                                    value={
+                                      dilution.name === "1st Dilution"
+                                        ? dilution.vol1
+                                        : dilution.vol2
+                                    }
+                                  />
                                 </span>
                               </div>
                             </div>
@@ -406,7 +507,9 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                         <div className="space-y-2.5">
                           {/* SW2 */}
                           <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-indigo-100 to-indigo-50 p-3 rounded-lg border border-indigo-200">
-                            <span className="font-bold text-indigo-800 bg-indigo-200/50 px-2 rounded-md">SW2:</span>
+                            <span className="font-bold text-indigo-800 bg-indigo-200/50 px-2 rounded-md">
+                              SW2:
+                            </span>
                             <span className="text-gray-800 font-semibold flex items-center">
                               {sampleWeight.value} {sampleWeight.unit}
                               <WarningIndicator value={sampleWeight.value} />
@@ -441,7 +544,7 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                         Calculation Formula Inputs
                       </h5>
                     </div>
-                    
+
                     <div className="p-4 space-y-4">
                       {/* Area/ABS Inputs */}
                       <div className="grid grid-cols-2 gap-3">
@@ -453,7 +556,11 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                             type="text"
                             value={calculation.areaOfSample}
                             onChange={(e) =>
-                              onFieldChange(calculation.id, "areaOfSample", e.target.value)
+                              onFieldChange(
+                                calculation.id,
+                                "areaOfSample",
+                                e.target.value
+                              )
                             }
                             placeholder="Enter Sample Area/ABS"
                             className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -467,7 +574,11 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                             type="text"
                             value={calculation.areaOfStandard}
                             onChange={(e) =>
-                              onFieldChange(calculation.id, "areaOfStandard", e.target.value)
+                              onFieldChange(
+                                calculation.id,
+                                "areaOfStandard",
+                                e.target.value
+                              )
                             }
                             placeholder="Enter Standard Area/ABS"
                             className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -484,7 +595,11 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                           type="text"
                           value={calculation.purity}
                           onChange={(e) =>
-                            onFieldChange(calculation.id, "purity", e.target.value)
+                            onFieldChange(
+                              calculation.id,
+                              "purity",
+                              e.target.value
+                            )
                           }
                           placeholder="Enter Purity"
                           className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -509,12 +624,28 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`bg-gradient-to-br ${calculationResult.startsWith("Error") ? 'from-red-100 to-red-50 border-2 border-red-300' : 'from-green-50 to-emerald-50 border-2 border-green-300'} rounded-lg p-4`}
+                          className={`bg-gradient-to-br ${
+                            calculationResult.startsWith("Error")
+                              ? "from-red-100 to-red-50 border-2 border-red-300"
+                              : "from-green-50 to-emerald-50 border-2 border-green-300"
+                          } rounded-lg p-4`}
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-2 mb-2">
-                              <CheckCircle className={`w-5 h-5 ${calculationResult.startsWith("Error") ? 'text-red-600' : 'text-green-600'}`} />
-                              <h6 className={`text-sm font-bold ${calculationResult.startsWith("Error") ? 'text-red-900' : 'text-green-900'}`}>
+                              <CheckCircle
+                                className={`w-5 h-5 ${
+                                  calculationResult.startsWith("Error")
+                                    ? "text-red-600"
+                                    : "text-green-600"
+                                }`}
+                              />
+                              <h6
+                                className={`text-sm font-bold ${
+                                  calculationResult.startsWith("Error")
+                                    ? "text-red-900"
+                                    : "text-green-900"
+                                }`}
+                              >
                                 Calculation Result
                               </h6>
                             </div>
@@ -528,7 +659,9 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                               <X className="w-4 h-4" />
                             </motion.button>
                           </div>
-                          <p className="text-sm text-gray-700">{calculationResult}</p>
+                          <p className="text-sm text-gray-700">
+                            {calculationResult}
+                          </p>
                         </motion.div>
                       )}
                     </div>

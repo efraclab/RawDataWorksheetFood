@@ -73,7 +73,7 @@
   },
   {
     "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
-    "Method": "Create",
+    "Method": "CreateWorksheet",
     "RelativePath": "api/worksheets",
     "HttpMethod": "POST",
     "IsController": true,
@@ -89,23 +89,7 @@
   },
   {
     "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
-    "Method": "GetAll",
-    "RelativePath": "api/worksheets",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "status",
-        "Type": "System.String",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
-    "Method": "Update",
+    "Method": "UpdateWorksheet",
     "RelativePath": "api/worksheets/{worksheetId}",
     "HttpMethod": "PUT",
     "IsController": true,
@@ -126,7 +110,7 @@
   },
   {
     "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
-    "Method": "Delete",
+    "Method": "DeleteWorksheet",
     "RelativePath": "api/worksheets/{worksheetId}",
     "HttpMethod": "DELETE",
     "IsController": true,
@@ -142,15 +126,83 @@
   },
   {
     "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
-    "Method": "GetById",
-    "RelativePath": "api/worksheets/{worksheetId}",
+    "Method": "GetAnalysts",
+    "RelativePath": "api/worksheets/analysts",
     "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
+    "Method": "GetAllWorksheets",
+    "RelativePath": "api/worksheets/get-all",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.FetchWorksheetsRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
+    "Method": "GetWorksheetById",
+    "RelativePath": "api/worksheets/get/{worksheetId}",
+    "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
         "Name": "worksheetId",
         "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.FetchWorksheetsRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
+    "Method": "UpdateParameter",
+    "RelativePath": "api/worksheets/parameters/{parameterId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "parameterId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.DTOs.ParameterDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
+    "Method": "DeleteParameter",
+    "RelativePath": "api/worksheets/parameters/{parameterId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "parameterId",
+        "Type": "System.Int32",
         "IsRequired": true
       }
     ],

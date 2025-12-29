@@ -33,6 +33,7 @@
         public string AnalyzedBy { get; set; }
         public string ApprovedBy { get; set; }
         public DateTime? ApprovedAt { get; set; }
+        public string? Status { get; set; }
     }
 
     public class WorksheetInstrument

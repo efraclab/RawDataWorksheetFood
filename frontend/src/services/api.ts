@@ -9,6 +9,10 @@ import type { WorksheetSummary } from '../models/WorksheetSummary';
 import type { WorksheetRequest } from '../models/WorksheetRequest';
 import type { LoginRequest } from '../models/LoginRequest';
 import type { LoginResponse } from '../models/LoginResponse';
+import type { Analyst } from '../models/Analyst';
+import type { FetchWorksheetRequest } from '../models/FetchWorksheetRequest';
+import type { WorksheetParameter } from '../models/WorksheetParameter';
+import type { ParameterDetail } from '../models/ParameterDetail';
 
 
 const API_BASE_URL = 'http://192.168.3.116:5076/api';
@@ -145,11 +149,7 @@ export const createWorksheet = async (
   }
 };
 
-/**
- * Update an existing worksheet
- * PUT /api/worksheets/{worksheetId}
- * returns: { worksheetId }
- */
+
 export const updateWorksheet = async (
   worksheetId: string,
   worksheetData: WorksheetRequest
@@ -177,26 +177,48 @@ export const updateWorksheet = async (
   }
 };
 
-/**
- * Fetch worksheet by worksheetId
- * GET /api/worksheets/{worksheetId}
- */
+export const updateParameter = async (
+  parameterId: number,
+  parameterData: ParameterDetail
+): Promise<{ parameterId: number }> => {
+  if (!parameterId) {
+    throw new Error("Parameter ID is required.");
+  }
+
+  try {
+    console.log("Updating parameter with ID:", parameterId, "and data:", parameterData);
+    const response = await axios.put<{ parameterId: number }>(
+      `${API_BASE_URL}/worksheets/parameters/${parameterId}`,
+      parameterData,
+      { headers: { "Content-Type": "application/json" } }
+    );
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to update parameter: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+
 export const fetchWorksheetById = async (
-  worksheetId: string
+  worksheetId: string,
+  request: FetchWorksheetRequest
 ): Promise<WorksheetDetail | null> => {
   if (!worksheetId) {
     throw new Error("Worksheet ID is required.");
   }
 
   try {
-    const response = await axios.get(`${API_BASE_URL}/worksheets/${worksheetId}`);
+    const response = await axios.post<WorksheetDetail>(`${API_BASE_URL}/worksheets/get/${worksheetId}`, request);
     const data = response.data;
     console.log("Fetched worksheet detail (raw):", data);
     if (!data) return null;
-    // support wrapped responses { success, message, data: { worksheet..., parameters... } }
-    if (data.data && (data.data.worksheet || data.data.parameters)) return data.data as WorksheetDetail;
-    // support direct WorksheetDetail
-    if (data.worksheet || data.parameters) return data as WorksheetDetail;
+    if (data.sample || data.parameters) return data as WorksheetDetail;
     return null;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
@@ -210,25 +232,19 @@ export const fetchWorksheetById = async (
   }
 };
 
-/**
- * Fetch all worksheets (optional status filter)
- * GET /api/worksheets?status=
- */
+
 export const fetchAllWorksheets = async (
-  status?: "Draft" | "Submitted" | "Approved"
+  request: FetchWorksheetRequest
 ): Promise<WorksheetSummary[]> => {
   try {
-    const url = status
-      ? `${API_BASE_URL}/worksheets?status=${status}`
-      : `${API_BASE_URL}/worksheets`;
+    const url = `${API_BASE_URL}/worksheets/get-all`;
 
-    const response = await axios.get(url);
+    const response = await axios.post<WorksheetSummary[]>(url, request);
     const data = response.data;
     console.log("Fetched worksheets:", data);
 
     if (Array.isArray(data)) return data as WorksheetSummary[];
-    if (data && Array.isArray(data.data)) return data.data as WorksheetSummary[];
-
+  
     return [];
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
@@ -241,11 +257,6 @@ export const fetchAllWorksheets = async (
   }
 };
 
-/**
- * Delete worksheet
- * DELETE /api/worksheets/{worksheetId}
- * returns: nothing (204)
- */
 export const deleteWorksheet = async (worksheetId: string): Promise<void> => {
   if (!worksheetId) {
     throw new Error("Worksheet ID is required.");
@@ -264,11 +275,25 @@ export const deleteWorksheet = async (worksheetId: string): Promise<void> => {
   }
 };
 
-/**
- * Submit worksheet by registration number (client wrapper).
- * If the backend exposes a dedicated submit endpoint, this will call it.
- * Otherwise this function can be updated to use the appropriate update flow.
- */
+export const deleteParameter = async (parameterId: number): Promise<void> => {
+  if (!parameterId) {
+    throw new Error("Parameter ID is required.");
+  }
+
+  try {
+    console.log("Deleting parameter with ID:", parameterId);
+    await axios.delete(`${API_BASE_URL}/worksheets/parameters/${parameterId}`);
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to delete parameter: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
 export const submitWorksheet = async (
   registrationNo: string
 ): Promise<{ success: boolean; message?: string }> => {
@@ -282,6 +307,30 @@ export const submitWorksheet = async (
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || `Failed to submit worksheet: ${error.message}`);
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+export const fetchAnalysts = async (
+): Promise<Analyst[]> => {
+  try {
+    const url = `${API_BASE_URL}/worksheets/analysts`;
+
+    const response = await axios.get(url);
+    const data = response.data;
+    console.log("Fetched analysts:", data);
+
+    if (Array.isArray(data)) return data as Analyst[];
+    if (data && Array.isArray(data.data)) return data.data as Analyst[];
+
+    return [];
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to fetch analysts: ${error.message}`
+      );
     }
     throw new Error(`Unexpected error: ${error.message}`);
   }

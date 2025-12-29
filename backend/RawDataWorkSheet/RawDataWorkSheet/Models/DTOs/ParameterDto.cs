@@ -2,6 +2,7 @@
 {
     public class ParameterDto
     {
+        public int? Id { get; set; }
         public string? ParaCode { get; set; }
         public string? ParameterName { get; set; }
         public string? MethodCode { get; set; }

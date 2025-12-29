@@ -5,7 +5,6 @@
         public string WorksheetId { get; set; }
         public string RegistrationNo { get; set; }
         public string SampleName { get; set; }
-        public string DateOfReceipt { get; set; }
         public int NumberOfParameters { get; set; }
         public string DueDate { get; set; }
         public string PreparedBy { get; set; }

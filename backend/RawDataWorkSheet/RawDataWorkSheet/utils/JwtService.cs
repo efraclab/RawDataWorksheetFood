@@ -33,7 +33,7 @@ namespace RawDataWorkSheet.Utils
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(2),
+                expires: DateTime.UtcNow.AddHours(72),
                 signingCredentials: creds
             );
 

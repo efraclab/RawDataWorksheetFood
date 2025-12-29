@@ -43,6 +43,7 @@ interface SamplePreparationDetailProps {
   ) => void;
   onRemove: () => void;
   isRS?: boolean;
+  role: string;
 }
 
 const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
@@ -51,21 +52,25 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
   onStepChange,
   onRemove,
   isRS = false,
+  role,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
 
   // Ensure steps is an array before filtering/mapping
-  const stepsArray: SamplePreparationStep[] = Array.isArray(samplePreparation?.steps)
+  const stepsArray: SamplePreparationStep[] = Array.isArray(
+    samplePreparation?.steps
+  )
     ? samplePreparation.steps
     : [];
 
   const filteredSteps: SamplePreparationStep[] = isRS
-    ? stepsArray.filter((step) =>
-        step.name === "Weighing" ||
-        step.name === "1st Dilution" ||
-        step.name === "Filtration"
+    ? stepsArray.filter(
+        (step) =>
+          step.name === "Weighing" ||
+          step.name === "1st Dilution" ||
+          step.name === "Filtration"
       )
     : stepsArray;
 
@@ -77,10 +82,26 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
       className="relative group z-20"
     >
       {/* Glow effect */}
-      <div className={`absolute inset-0 bg-gradient-to-r ${isRS ? 'from-indigo-400/20 to-blue-400/20' : 'from-red-400/20 to-rose-400/20'} rounded-xl blur-xl group-hover:blur-xl transition-all duration-300`} />
+      <div
+        className={`absolute inset-0 bg-gradient-to-r ${
+          isRS
+            ? "from-indigo-400/20 to-blue-400/20"
+            : "from-red-400/20 to-rose-400/20"
+        } rounded-xl blur-xl group-hover:blur-xl transition-all duration-300`}
+      />
 
-      <div className={`relative bg-white/95 backdrop-blur-sm rounded-lg border ${isRS ? 'border-indigo-200/50' : 'border-red-200/50'} transition-all duration-300 mb-4`}>
-        <div className={`relative bg-gradient-to-r ${isRS ? 'from-indigo-600 via-indigo-500 to-blue-500' : 'from-red-600 via-red-500 to-rose-500'} ${headerRoundingClass}`}>
+      <div
+        className={`relative bg-white/95 backdrop-blur-sm rounded-lg border ${
+          isRS ? "border-indigo-200/50" : "border-red-200/50"
+        } transition-all duration-300 mb-4`}
+      >
+        <div
+          className={`relative bg-gradient-to-r ${
+            isRS
+              ? "from-indigo-600 via-indigo-500 to-blue-500"
+              : "from-red-600 via-red-500 to-rose-500"
+          } ${headerRoundingClass}`}
+        >
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
 
@@ -102,10 +123,16 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
 
               <div>
                 <h4 className="text-sm font-semibold text-white tracking-wide">
-                  {`${samplePreparation.label} ${assignedStandard ? `(${assignedStandard.name})` : ''}`}
+                  {`${samplePreparation.label} ${
+                    assignedStandard ? `(${assignedStandard.name})` : ""
+                  }`}
                 </h4>
-                <p className={`text-xs ${isRS ? 'text-indigo-100' : 'text-red-100'}`}>
-                  Sample Preparation Details {isRS ? '(RS)' : ''}
+                <p
+                  className={`text-xs ${
+                    isRS ? "text-indigo-100" : "text-red-100"
+                  }`}
+                >
+                  Sample Preparation Details {isRS ? "(RS)" : ""}
                 </p>
               </div>
             </div>
@@ -125,18 +152,20 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                 </motion.div>
               </motion.button>
 
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove();
-                }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${samplePreparation.label}`}
-              >
-                <Trash className="w-4 h-4 text-white" />
-              </motion.button>
+              {role === "HOD LAB" && (
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove();
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                  title={`Remove ${samplePreparation.label}`}
+                >
+                  <Trash className="w-4 h-4 text-white" />
+                </motion.button>
+              )}
             </div>
           </div>
         </div>
@@ -150,7 +179,13 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
             >
-              <div className={`p-5 space-y-3 bg-gradient-to-br ${isRS ? 'from-indigo-50/50 to-blue-50/30' : 'from-red-50/50 to-rose-50/30'}`}>
+              <div
+                className={`p-5 space-y-3 bg-gradient-to-br ${
+                  isRS
+                    ? "from-indigo-50/50 to-blue-50/30"
+                    : "from-red-50/50 to-rose-50/30"
+                }`}
+              >
                 {filteredSteps.map((step, index) => {
                   const isWeighing = step.name === "Weighing";
                   const is1stDilution = step.name === "1st Dilution";
@@ -159,15 +194,25 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                   const is4thDilution = step.name === "4th Dilution";
                   const isFiltration = step.name === "Filtration";
 
-                  const colorScheme = isRS ? 'indigo' : 'red';
-                  const gradientFrom = isRS ? 'from-indigo-500' : 'from-red-500';
-                  const gradientTo = isRS ? 'to-blue-500' : 'to-rose-500';
-                  const borderColor = isRS ? 'border-indigo-200/60' : 'border-red-200/60';
-                  const hoverBorderColor = isRS ? 'hover:border-indigo-300' : 'hover:border-red-300';
-                  const textColor = isRS ? 'text-indigo-900' : 'text-red-900';
-                  const bgColor = isRS ? 'bg-indigo-50' : 'bg-red-50';
-                  const inputBorderColor = isRS ? 'border-indigo-300' : 'border-red-300';
-                  const focusRingColor = isRS ? 'focus:ring-indigo-400' : 'focus:ring-red-400';
+                  const colorScheme = isRS ? "indigo" : "red";
+                  const gradientFrom = isRS
+                    ? "from-indigo-500"
+                    : "from-red-500";
+                  const gradientTo = isRS ? "to-blue-500" : "to-rose-500";
+                  const borderColor = isRS
+                    ? "border-indigo-200/60"
+                    : "border-red-200/60";
+                  const hoverBorderColor = isRS
+                    ? "hover:border-indigo-300"
+                    : "hover:border-red-300";
+                  const textColor = isRS ? "text-indigo-900" : "text-red-900";
+                  const bgColor = isRS ? "bg-indigo-50" : "bg-red-50";
+                  const inputBorderColor = isRS
+                    ? "border-indigo-300"
+                    : "border-red-300";
+                  const focusRingColor = isRS
+                    ? "focus:ring-indigo-400"
+                    : "focus:ring-red-400";
 
                   return (
                     <motion.div
@@ -177,11 +222,21 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                       transition={{ delay: index * 0.1 }}
                       className="group/item relative"
                     >
-                      <div className={`absolute inset-0 bg-gradient-to-r ${isRS ? 'from-indigo-400/0 via-indigo-400/5 to-indigo-400/0' : 'from-red-400/0 via-red-400/5 to-red-400/0'} rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity`} />
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-r ${
+                          isRS
+                            ? "from-indigo-400/0 via-indigo-400/5 to-indigo-400/0"
+                            : "from-red-400/0 via-red-400/5 to-red-400/0"
+                        } rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity`}
+                      />
 
-                      <div className={`relative bg-white rounded-xl border ${borderColor} ${hoverBorderColor} transition-all duration-200 p-4`}>
+                      <div
+                        className={`relative bg-white rounded-xl border ${borderColor} ${hoverBorderColor} transition-all duration-200 p-4`}
+                      >
                         <div className="flex items-start gap-3">
-                          <div className={`flex-shrink-0 w-7 h-7 bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-full flex items-center justify-center shadow-md`}>
+                          <div
+                            className={`flex-shrink-0 w-7 h-7 bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-full flex items-center justify-center shadow-md`}
+                          >
                             <span className="text-white text-xs font-bold">
                               {index + 1}
                             </span>
@@ -192,7 +247,11 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                               <div className={`font-bold ${textColor} text-sm`}>
                                 {step.name}
                               </div>
-                              <div className={`h-px flex-1 bg-gradient-to-r ${isRS ? 'from-indigo-200' : 'from-red-200'} to-transparent`} />
+                              <div
+                                className={`h-px flex-1 bg-gradient-to-r ${
+                                  isRS ? "from-indigo-200" : "from-red-200"
+                                } to-transparent`}
+                              />
                             </div>
 
                             {isWeighing && (
@@ -237,10 +296,12 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                   <span className="text-gray-600 font-medium">
                                     of
                                   </span>
-                                  
+
                                   {/* Display assigned standard name (read-only) or allow manual input */}
                                   {assignedStandard ? (
-                                    <div className={`flex-1 min-w-[150px] px-3 py-2 ${bgColor} border ${inputBorderColor} rounded-lg text-xs font-semibold ${textColor}`}>
+                                    <div
+                                      className={`flex-1 min-w-[150px] px-3 py-2 ${bgColor} border ${inputBorderColor} rounded-lg text-xs font-semibold ${textColor}`}
+                                    >
                                       {assignedStandard.name}
                                     </div>
                                   ) : (

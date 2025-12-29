@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Mvc;
+using RawDataWorkSheet.Models;
+using RawDataWorkSheet.Models.DTOs;
 using RawDataWorkSheet.Models.Requests;
 using RawDataWorkSheet.Services;
 
@@ -8,20 +11,37 @@ namespace RawDataWorkSheet.Controllers
     [Route("api/worksheets")]
     public class WorksheetController : ControllerBase
     {
-        private readonly IWorksheetService _service;
+        private readonly IWorksheetService _worksheetService;
+        private readonly IUserService _userService;
 
-        public WorksheetController(IWorksheetService service)
+        public WorksheetController(IWorksheetService worksheetService, IUserService userService)
         {
-            _service = service;
+            _worksheetService = worksheetService;
+            _userService = userService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] SaveWorksheetRequest request)
+        [HttpGet("analysts")]
+        public async Task<IActionResult> GetAnalysts()
         {
             try
             {
-                var worksheetId = await _service.CreateAsync(request);
-                return CreatedAtAction(nameof(GetById), new { worksheetId }, new { worksheetId });
+                var analysts = await _userService.GetAnalystsAsync();
+                return Ok(analysts);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        
+
+        [HttpPost()]
+        public async Task<IActionResult> CreateWorksheet([FromBody] SaveWorksheetRequest request)
+        {
+            try
+            {
+                var worksheetId = await _worksheetService.CreateWorksheetAsync(request);
+                return CreatedAtAction(nameof(GetWorksheetById), new { worksheetId }, new { worksheetId });
             }
             catch (Exception ex)
             {
@@ -30,12 +50,12 @@ namespace RawDataWorkSheet.Controllers
         }
 
         [HttpPut("{worksheetId}")]
-        public async Task<IActionResult> Update(string worksheetId, [FromBody] SaveWorksheetRequest request)
+        public async Task<IActionResult> UpdateWorksheet(string worksheetId, [FromBody] SaveWorksheetRequest request)
         {
             try
             {
                 request.WorksheetId = worksheetId;
-                var id = await _service.UpdateAsync(request);
+                var id = await _worksheetService.UpdateWorksheetAsync(request);
                 return Ok(new { worksheetId = id });
             }
             catch (KeyNotFoundException ex)
@@ -48,12 +68,31 @@ namespace RawDataWorkSheet.Controllers
             }
         }
 
-        [HttpDelete("{worksheetId}")]
-        public async Task<IActionResult> Delete(string worksheetId)
+        [HttpPut("parameters/{parameterId}")]
+        public async Task<IActionResult> UpdateParameter(int parameterId, [FromBody] ParameterDto request)
         {
             try
             {
-                await _service.DeleteAsync(worksheetId);
+                request.Id = parameterId;
+                var id = await _worksheetService.UpdateParameterAsync(parameterId, request);
+                return Ok(new { ParameterId = id });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{worksheetId}")]
+        public async Task<IActionResult> DeleteWorksheet(string worksheetId)
+        {
+            try
+            {
+                await _worksheetService.DeleteWorksheetAsync(worksheetId);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)
@@ -62,12 +101,13 @@ namespace RawDataWorkSheet.Controllers
             }
         }
 
-        [HttpGet("{worksheetId}")]
-        public async Task<IActionResult> GetById(string worksheetId)
+        [HttpDelete("parameters/{parameterId}")]
+        public async Task<IActionResult> DeleteParameter(int parameterId)
         {
             try
             {
-                return Ok(await _service.GetAsync(worksheetId));
+                await _worksheetService.DeleteParameterAsync(parameterId);
+                return NoContent();
             }
             catch (KeyNotFoundException ex)
             {
@@ -75,10 +115,29 @@ namespace RawDataWorkSheet.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? status)
+        [HttpPost("get/{worksheetId}")]
+        public async Task<IActionResult> GetWorksheetById(string worksheetId, [FromBody] FetchWorksheetsRequest request)
         {
-            return Ok(await _service.GetAllAsync(status));
+            try
+            {
+                return Ok(await _worksheetService.GetWorksheetByIdAsync(worksheetId, request));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
+        //[HttpGet]
+        //public async Task<IActionResult> GetAll([FromQuery] string? status)
+        //{
+        //    return Ok(await _worksheetService.GetAllAsync(status));
+        //}
+
+        [HttpPost("get-all")]
+        public async Task<IActionResult> GetAllWorksheets([FromBody] FetchWorksheetsRequest request)
+        {
+            return Ok(await _worksheetService.GetAllWorksheetsAsync(request));
         }
     }
 }

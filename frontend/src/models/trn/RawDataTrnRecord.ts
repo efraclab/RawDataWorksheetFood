@@ -1,0 +1,39 @@
+
+export interface RawDataTrnRecord {
+  WorksheetId: string;
+  Plantcd: string;
+  TRNREFRW2: string;
+  Instcd: string | null;
+  CalibDueOn: string | null;
+  CalibDonOn: string | null;
+  Chemcd: string | null;
+  Mak: string | null;
+  BatchLot: string | null;
+  Validity: string | null;
+  Stdcd: string | null;
+  Purity: string | null;
+  Make: string | null;
+  BatchLot1: string | null;
+  Validity1: string | null;
+  Colmcd: string | null;
+  Regno: string;
+  Dateofrec: string | null;
+  Prodcd: string | null;
+  Nos: number;
+  Duedt: string | null;
+  Anastdt: string | null;
+  Anacompdt: string | null;
+  Trn2header: string;
+  Batchno: string | null;
+  PreparationName: string;
+  DilutName: string;
+  Qty1: number | null;
+  Unit1: string | null;
+  Ver1: string | null;
+  Qty2: number | null;
+  Unit2: string | null;
+  Ver2: string | null;
+  Micron: string | null;
+  LogBookid: string | null;
+}
+

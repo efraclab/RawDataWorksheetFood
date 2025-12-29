@@ -40,16 +40,18 @@ interface SamplePreparationLodDetailProps {
     newValue: string
   ) => void;
   onRemove: () => void;
+  role: string;
 }
 
 const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
   samplePreparationLod,
   onStepChange,
   onRemove,
+  role,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
-   const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
+  const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
 
   return (
     <motion.div
@@ -63,7 +65,9 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
 
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-sky-200/50 transition-all duration-300 mb-4">
         {/* Elegant Header */}
-        <div className={`relative bg-gradient-to-r from-sky-600 via-sky-500 to-blue-500 ${headerRoundingClass}`}>
+        <div
+          className={`relative bg-gradient-to-r from-sky-600 via-sky-500 to-blue-500 ${headerRoundingClass}`}
+        >
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
 
@@ -108,18 +112,20 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                 </motion.div>
               </motion.button>
 
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove();
-                }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${samplePreparationLod.label}`}
-              >
-                <Trash className="w-4 h-4 text-white" />
-              </motion.button>
+              {role === "HOD LAB" && (
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove();
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                  title={`Remove ${samplePreparationLod.label}`}
+                >
+                  <Trash className="w-4 h-4 text-white" />
+                </motion.button>
+              )}
             </div>
           </div>
         </div>
@@ -434,4 +440,4 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
   );
 };
 
-export default SamplePreparationLodDetail
+export default SamplePreparationLodDetail;

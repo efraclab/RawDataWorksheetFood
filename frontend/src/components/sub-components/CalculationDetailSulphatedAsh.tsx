@@ -1,6 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Calculator, Trash, CheckCircle, AlertTriangle, X } from "lucide-react"; 
+import {
+  ChevronDown,
+  Calculator,
+  Trash,
+  CheckCircle,
+  AlertTriangle,
+  X,
+} from "lucide-react";
 import type { CalculationSulphatedAsh } from "../../preparation_models/CalculationSulphatedAsh";
 import type { SamplePreparationSulphatedAsh } from "../../preparation_models/SamplePreparationSulphatedAsh";
 import CustomDropdown from "../shared/CustomDropdown";
@@ -14,6 +21,7 @@ interface CalculationDetailSulphatedAshProps {
     value: string | number | null
   ) => void;
   onRemove: () => void;
+  role: string;
 }
 
 const WarningIndicator: React.FC<{ value: string | number }> = ({ value }) => {
@@ -22,14 +30,16 @@ const WarningIndicator: React.FC<{ value: string | number }> = ({ value }) => {
 
   if (isInvalid) {
     return (
-      <span className="text-amber-500 ml-2" title="Missing or zero value detected, calculation will fail.">
+      <span
+        className="text-amber-500 ml-2"
+        title="Missing or zero value detected, calculation will fail."
+      >
         <AlertTriangle className="w-4 h-4 inline-block" />
       </span>
     );
   }
   return null;
 };
-
 
 const convertMassToG = (value: string | number, unit: string): number => {
   const val = parseFloat(String(value));
@@ -52,14 +62,13 @@ const convertMassToG = (value: string | number, unit: string): number => {
   }
 };
 
-const CalculationDetailSulphatedAsh: React.FC<CalculationDetailSulphatedAshProps> = ({
-  calculation,
-  samplePreparations,
-  onFieldChange,
-  onRemove,
-}) => {
+const CalculationDetailSulphatedAsh: React.FC<
+  CalculationDetailSulphatedAshProps
+> = ({ calculation, samplePreparations, onFieldChange, onRemove, role }) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [calculationResult, setCalculationResult] = useState<string | null>(null);
+  const [calculationResult, setCalculationResult] = useState<string | null>(
+    null
+  );
 
   // Conditional rounding class (Fixing header corner issue)
   const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
@@ -68,32 +77,53 @@ const CalculationDetailSulphatedAsh: React.FC<CalculationDetailSulphatedAshProps
     (prep) => prep.id === calculation.selectedSamplePrepId
   );
 
+  useEffect(() => {
+    if (samplePreparations.length === 1 && !calculation.selectedSamplePrepId) {
+      onFieldChange(
+        calculation.id,
+        "selectedSamplePrepId",
+        samplePreparations[0].id
+      );
+    }
+  }, [
+    samplePreparations,
+    calculation.selectedSamplePrepId,
+    calculation.id,
+    onFieldChange,
+  ]);
+
   const getSampleWeights = () => {
     if (!selectedSamplePrep) {
-      return { 
+      return {
         w1: { value: "", unit: "g" },
         w2: { value: "", unit: "g" },
-        w3: { value: "", unit: "g" }
+        w3: { value: "", unit: "g" },
       };
     }
 
-    const weighingEmptyCrucible = selectedSamplePrep.steps.find(s => s.name === "Weighing (Empty Crucible)");
-    const weighingCrucibleWithSample = selectedSamplePrep.steps.find(s => s.name === "Weighing (Before Drying)");
-    const weighingAfterDrying = selectedSamplePrep.steps.find(s => s.name === "Weighing (After Drying)");
+    const weighingEmptyCrucible = selectedSamplePrep.steps.find(
+      (s) => s.name === "Weighing (Empty Crucible)"
+    );
+    const weighingCrucibleWithSample = selectedSamplePrep.steps.find(
+      (s) => s.name === "Weighing (Before Drying)"
+    );
+    const weighingAfterDrying = selectedSamplePrep.steps.find(
+      (s) => s.name === "Weighing (After Drying)"
+    );
 
     return {
       w1: {
         value: weighingEmptyCrucible?.value || "",
-        unit: weighingEmptyCrucible?.unit || "g"
+        unit: weighingEmptyCrucible?.unit || "g",
       },
       w2: {
         value: weighingCrucibleWithSample?.value || "",
-        unit: weighingCrucibleWithSample?.unit || "g"
+        unit: weighingCrucibleWithSample?.unit || "g",
       },
       w3: {
         value: weighingAfterDrying?.value || "",
-        unit: weighingAfterDrying?.unit || "g"
-      }
+        unit: weighingAfterDrying?.unit || "g",
+      },
     };
   };
 
@@ -128,7 +158,7 @@ const CalculationDetailSulphatedAsh: React.FC<CalculationDetailSulphatedAshProps
     console.log("1. Raw Inputs:", {
       W1_EmptyDish: W1_raw,
       W2_DishWithSample: W2_raw,
-      W3_DishAfterIgnition: W3_raw
+      W3_DishAfterIgnition: W3_raw,
     });
 
     console.log("2. Converted to grams:", { W1, W2, W3 });
@@ -139,7 +169,7 @@ const CalculationDetailSulphatedAsh: React.FC<CalculationDetailSulphatedAshProps
 
     console.log("3. Calculation Steps:", {
       "W2 - W3 (numerator)": numerator,
-      "W2 - W1 (denominator)": denominator
+      "W2 - W1 (denominator)": denominator,
     });
 
     if (denominator === 0) {
@@ -151,11 +181,19 @@ const CalculationDetailSulphatedAsh: React.FC<CalculationDetailSulphatedAshProps
 
     const AshContent_Percentage = (numerator / denominator) * 100;
 
-    console.log(`%c 4. FINAL FORMULA: [(${W2} - ${W3}) / (${W2} - ${W1})] x 100`, "color: blue; font-weight: bold");
-    console.log(`%c Calculated Ash Content Result: ${AshContent_Percentage.toFixed(4)} %`, "color: green; font-weight: bold; font-size: 14px");
+    console.log(
+      `%c 4. FINAL FORMULA: [(${W2} - ${W3}) / (${W2} - ${W1})] x 100`,
+      "color: blue; font-weight: bold"
+    );
+    console.log(
+      `%c Calculated Ash Content Result: ${AshContent_Percentage.toFixed(4)} %`,
+      "color: green; font-weight: bold; font-size: 14px"
+    );
     console.groupEnd();
     if (isNaN(AshContent_Percentage) || !isFinite(AshContent_Percentage)) {
-      setCalculationResult("Error: Result is NaN or Infinite. Check console for details.");
+      setCalculationResult(
+        "Error: Result is NaN or Infinite. Check console for details."
+      );
     } else {
       setCalculationResult(`Result: ${AshContent_Percentage.toFixed(2)} % w/w`);
     }
@@ -166,16 +204,17 @@ const CalculationDetailSulphatedAsh: React.FC<CalculationDetailSulphatedAshProps
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      // FIX 1: Added z-index to float card over siblings
-      className="relative group z-20" 
+      className="relative group z-20"
     >
       {/* Glow effect - Rose Theme */}
-      <div className="absolute inset-0 bg-gradient-to-r from-rose-400/20 to-rose-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
-      
+      <div className="absolute inset-0 bg-gradient-to-r from-rose-400/20 to-rose-400/20 rounded-xl blur-xl group-hover:blur-xl overflow-hidden transition-all duration-300" />
+
       {/* Main Card Container - Rose Theme & FIX 2: Removed overflow-hidden */}
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-rose-200/50 shadow-lg hover:shadow-xl transition-all duration-300 mb-4">
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-rose-200/50 shadow-lg hover:shadow-xl transition-all overflow-hidden duration-300 mb-4">
         {/* Header - Rose Theme & FIX 3: Conditional Rounding & Removed overflow-hidden */}
-        <div className={`relative bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 ${headerRoundingClass}`}>
+        <div
+          className={`relative bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 ${headerRoundingClass}`}
+        >
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
 
@@ -200,7 +239,9 @@ const CalculationDetailSulphatedAsh: React.FC<CalculationDetailSulphatedAshProps
                   {calculation.label}
                 </h4>
                 {/* Text Color - Rose Theme */}
-                <p className="text-xs text-rose-100">Calculation for Sulphated Ash</p>
+                <p className="text-xs text-rose-100">
+                  Calculation for Sulphated Ash
+                </p>
               </div>
             </div>
 
@@ -219,18 +260,20 @@ const CalculationDetailSulphatedAsh: React.FC<CalculationDetailSulphatedAshProps
                 </motion.div>
               </motion.button>
 
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove();
-                }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${calculation.label}`}
-              >
-                <Trash className="w-4 h-4 text-white" />
-              </motion.button>
+              {role === "HOD LAB" && (
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove();
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                  title={`Remove ${calculation.label}`}
+                >
+                  <Trash className="w-4 h-4 text-white" />
+                </motion.button>
+              )}
             </div>
           </div>
         </div>
@@ -295,25 +338,31 @@ const CalculationDetailSulphatedAsh: React.FC<CalculationDetailSulphatedAshProps
                       <div className="space-y-2.5">
                         {/* W1 - Empty Crucible - Rose Theme */}
                         <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-rose-100 to-rose-50 p-3 rounded-lg border border-rose-200 hover:shadow-md transition-all">
-                          <span className="font-bold text-rose-800 bg-rose-200/50 px-2 rounded-md">W1 (Empty Crucible):</span>
+                          <span className="font-bold text-rose-800 bg-rose-200/50 px-2 rounded-md">
+                            W1 (Empty Crucible):
+                          </span>
                           <span className="text-gray-800 font-semibold flex items-center">
                             {sampleWeights.w1.value} {sampleWeights.w1.unit}
                             <WarningIndicator value={sampleWeights.w1.value} />
                           </span>
                         </div>
-                        
+
                         {/* W2 - Crucible + Sample - Rose Theme */}
                         <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-rose-100 to-rose-50 p-3 rounded-lg border border-rose-200 hover:shadow-md transition-all">
-                          <span className="font-bold text-rose-800 bg-rose-200/50 px-2 rounded-md">W2 (Crucible + Sample):</span>
+                          <span className="font-bold text-rose-800 bg-rose-200/50 px-2 rounded-md">
+                            W2 (Crucible + Sample):
+                          </span>
                           <span className="text-gray-800 font-semibold flex items-center">
                             {sampleWeights.w2.value} {sampleWeights.w2.unit}
                             <WarningIndicator value={sampleWeights.w2.value} />
                           </span>
                         </div>
-                        
+
                         {/* W3 - After Drying - Rose Theme */}
                         <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-rose-100 to-rose-50 p-3 rounded-lg border border-rose-200 hover:shadow-md transition-all">
-                          <span className="font-bold text-rose-800 bg-rose-200/50 px-2 rounded-md">W3 (After Drying):</span>
+                          <span className="font-bold text-rose-800 bg-rose-200/50 px-2 rounded-md">
+                            W3 (After Drying):
+                          </span>
                           <span className="text-gray-800 font-semibold flex items-center">
                             {sampleWeights.w3.value} {sampleWeights.w3.unit}
                             <WarningIndicator value={sampleWeights.w3.value} />
@@ -328,49 +377,67 @@ const CalculationDetailSulphatedAsh: React.FC<CalculationDetailSulphatedAshProps
                 {canCalculate && (
                   <>
                     {/* Calculate Button - Rose Theme */}
-                      <div className="flex justify-center pt-2">
-                        <motion.button
-                          onClick={performCalculation}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="flex w-full items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 text-white font-semibold rounded-lg hover:from-rose-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg text-sm"
-                        >
-                          <Calculator className="w-4 h-4" />
-                          Calculate Ash Content
-                        </motion.button>
-                      </div>
+                    <div className="flex justify-center pt-2">
+                      <motion.button
+                        onClick={performCalculation}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex w-full items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 text-white font-semibold rounded-lg hover:from-rose-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg text-sm"
+                      >
+                        <Calculator className="w-4 h-4" />
+                        Calculate Ash Content
+                      </motion.button>
+                    </div>
 
-                      {/* Result Display - Rose/Pink Theme */}
-                      {calculationResult && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          // Success/Error Color - Rose/Pink Theme
-                          className={`bg-gradient-to-br ${calculationResult.startsWith("Error") ? 'from-red-100 to-red-50 border-2 border-red-300' : 'from-green-50 to-emerald-50 border-2 border-green-300'} rounded-lg p-4`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-2 mb-2">
-                              {/* Icon Color - Rose/Pink Theme */}
-                              <CheckCircle className={`w-5 h-5 ${calculationResult.startsWith("Error") ? 'text-red-600' : 'text-green-600'}`} />
-                              {/* Text Color - Rose/Pink Theme */}
-                              <h6 className={`text-sm font-bold ${calculationResult.startsWith("Error") ? 'text-red-700' : 'text-green-700'}`}>
-                                Calculation Result
-                              </h6>
-                            </div>
-                            <motion.button
-                              onClick={() => setCalculationResult(null)}
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              // Close Button Hover - Rose Theme
-                              className="p-1 -mt-1 -mr-1 text-gray-400 hover:text-rose-500 transition-colors"
-                              title="Close result"
+                    {/* Result Display - Rose/Pink Theme */}
+                    {calculationResult && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        // Success/Error Color - Rose/Pink Theme
+                        className={`bg-gradient-to-br ${
+                          calculationResult.startsWith("Error")
+                            ? "from-red-100 to-red-50 border-2 border-red-300"
+                            : "from-green-50 to-emerald-50 border-2 border-green-300"
+                        } rounded-lg p-4`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2 mb-2">
+                            {/* Icon Color - Rose/Pink Theme */}
+                            <CheckCircle
+                              className={`w-5 h-5 ${
+                                calculationResult.startsWith("Error")
+                                  ? "text-red-600"
+                                  : "text-green-600"
+                              }`}
+                            />
+                            {/* Text Color - Rose/Pink Theme */}
+                            <h6
+                              className={`text-sm font-bold ${
+                                calculationResult.startsWith("Error")
+                                  ? "text-red-700"
+                                  : "text-green-700"
+                              }`}
                             >
-                              <X className="w-4 h-4" />
-                            </motion.button>
+                              Calculation Result
+                            </h6>
                           </div>
-                          <p className="text-sm text-gray-700">{calculationResult}</p>
-                        </motion.div>
-                      )}
+                          <motion.button
+                            onClick={() => setCalculationResult(null)}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            // Close Button Hover - Rose Theme
+                            className="p-1 -mt-1 -mr-1 text-gray-400 hover:text-rose-500 transition-colors"
+                            title="Close result"
+                          >
+                            <X className="w-4 h-4" />
+                          </motion.button>
+                        </div>
+                        <p className="text-sm text-gray-700">
+                          {calculationResult}
+                        </p>
+                      </motion.div>
+                    )}
                   </>
                 )}
 

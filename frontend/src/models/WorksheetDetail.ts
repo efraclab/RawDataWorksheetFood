@@ -1,20 +1,7 @@
 import type { ParameterDetail } from "./ParameterDetail";
-
+import type { WorksheetSummary } from "./WorksheetSummary";
 
 export interface WorksheetDetail {
-    worksheet: {
-        worksheetId: string;
-        registrationNo: string;
-        sampleName: string;
-        dateOfReceipt: string;
-        numberOfParameters: number;
-        dueDate: string;
-        preparedBy: string;
-        revisionDate: string;
-        status: string;
-        submittedAt: string | null;
-        createdAt: string;
-        updatedAt: string | null;
-    };
+    sample: WorksheetSummary;
     parameters: ParameterDetail[];
 }

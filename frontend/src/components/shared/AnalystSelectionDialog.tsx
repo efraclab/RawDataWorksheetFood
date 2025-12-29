@@ -1,11 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Check, User, ChevronDown, X, Sparkles } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import type { Analyst } from "../../models/Analyst";
 
 interface AnalystSelectionDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  analysts: Array<{employeeId: string, name: string, designation: string}>;
+  analysts: Analyst[];
   onSelectAnalyst: (employeeId: string) => void;
 }
 
@@ -15,6 +16,8 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
   analysts,
   onSelectAnalyst,
 }) => {
+
+    console.log("Analysts passed to dialog:", analysts);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedId, setSelectedId] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -42,11 +45,19 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
 
   if (!isOpen) return null;
 
-  const filteredAnalysts = analysts.filter(analyst =>
-    analyst.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    analyst.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    analyst.designation.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredAnalysts = analysts.filter((analyst) => {
+  const name = analyst.username?.toLowerCase() ?? "";
+  const employeeId = analyst.employeeId?.toLowerCase() ?? "";
+  const designation = analyst.designation?.toLowerCase() ?? "";
+  const search = searchTerm.toLowerCase();
+
+  return (
+    name.includes(search) ||
+    employeeId.includes(search) ||
+    designation.includes(search)
   );
+});
+
 
   const selectedAnalyst = analysts.find(a => a.employeeId === selectedId);
 
@@ -146,7 +157,7 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
                       <User className="w-4 h-4 text-emerald-700" />
                     </div>
                     <div className="text-left">
-                      <div className="font-semibold text-gray-900 text-sm">{selectedAnalyst.name}</div>
+                      <div className="font-semibold text-gray-900 text-sm">{selectedAnalyst.username}</div>
                       <div className="text-xs text-gray-500">
                         {selectedAnalyst.employeeId} • {selectedAnalyst.designation}
                       </div>
@@ -229,7 +240,7 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
                                     ? "text-emerald-900" 
                                     : "text-gray-900"
                                 }`}>
-                                  {analyst.name}
+                                  {analyst.username}
                                 </div>
                                 <div className="text-xs text-gray-500 truncate">
                                   {analyst.employeeId} • {analyst.designation}
@@ -269,7 +280,7 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-emerald-900 uppercase tracking-wide mb-1">Selected</p>
-                    <p className="font-bold text-gray-900">{selectedAnalyst.name}</p>
+                    <p className="font-bold text-gray-900">{selectedAnalyst.username}</p>
                     <p className="text-sm text-gray-600">{selectedAnalyst.designation}</p>
                   </div>
                 </div>

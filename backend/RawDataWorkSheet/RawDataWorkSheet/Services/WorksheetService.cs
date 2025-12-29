@@ -1,4 +1,6 @@
-﻿using RawDataWorkSheet.Models.Requests;
+﻿using RawDataWorkSheet.Models;
+using RawDataWorkSheet.Models.DTOs;
+using RawDataWorkSheet.Models.Requests;
 using RawDataWorkSheet.Repositories;
 
 namespace RawDataWorkSheet.Services
@@ -13,41 +15,56 @@ namespace RawDataWorkSheet.Services
             _repo = repo;
         }
 
-        public async Task<string> CreateAsync(SaveWorksheetRequest request)
+        public async Task<string> CreateWorksheetAsync(SaveWorksheetRequest request)
         {
-            if (await _repo.ExistsAsync(request.WorksheetId))
+            if (await _repo.ExistsWorksheetAsync(request.WorksheetId))
                 throw new InvalidOperationException("Worksheet already exists.");
 
-            await _repo.CreateAsync(request);
+            await _repo.CreateWorksheetAsync(request);
             return request.WorksheetId;
         }
 
-        public async Task<string> UpdateAsync(SaveWorksheetRequest request)
+        public async Task<string> UpdateWorksheetAsync(SaveWorksheetRequest request)
         {
-            if (!await _repo.ExistsAsync(request.WorksheetId))
+            if (!await _repo.ExistsWorksheetAsync(request.WorksheetId))
                 throw new KeyNotFoundException("Worksheet not found.");
 
-            await _repo.UpdateAsync(request);
+            await _repo.UpdateWorksheetAsync(request);
             return request.WorksheetId;
         }
 
-        public async Task DeleteAsync(string worksheetId)
+        public async Task<int> UpdateParameterAsync(int parameterId, ParameterDto request)
         {
-            if (!await _repo.ExistsAsync(worksheetId))
-                throw new KeyNotFoundException("Worksheet not found.");
 
-            await _repo.DeleteAsync(worksheetId);
+            await _repo.UpdateParameterAsync(parameterId, request);
+            return parameterId;
         }
 
-        public async Task<object> GetAsync(string worksheetId)
+        public async Task DeleteParameterAsync(int parameterId)
         {
-            return await _repo.GetByWorksheetIdAsync(worksheetId)
+            if (!await _repo.ExistsParameterAsync(parameterId))
+                throw new KeyNotFoundException("Parameter not found.");
+
+            await _repo.DeleteParameterAsync(parameterId);
+        }
+
+        public async Task DeleteWorksheetAsync(string worksheetId)
+        {
+            if (!await _repo.ExistsWorksheetAsync(worksheetId))
+                throw new KeyNotFoundException("Worksheet not found.");
+
+            await _repo.DeleteWorksheetAsync(worksheetId);
+        }
+
+        public async Task<WorksheetDetailDto> GetWorksheetByIdAsync(string worksheetId, FetchWorksheetsRequest request)
+        {
+            return await _repo.GetWorksheetByIdAsync(worksheetId, request)
                    ?? throw new KeyNotFoundException("Worksheet not found.");
         }
 
-        public async Task<List<object>> GetAllAsync(string? status)
+        public async Task<IEnumerable<WorksheetSummaryDto>> GetAllWorksheetsAsync(FetchWorksheetsRequest request)
         {
-            return (await _repo.GetAllAsync(status)).Cast<object>().ToList();
+            return (await _repo.GetAllWorksheetsAsync(request));
         }
     }
 }

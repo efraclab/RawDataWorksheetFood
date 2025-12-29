@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity.Data;
+using RawDataWorkSheet.Models;
 using RawDataWorkSheet.Models.Requests;
 using RawDataWorkSheet.Repositories;
 using RawDataWorkSheet.Utils;
@@ -36,6 +37,14 @@ namespace RawDataWorkSheet.Services
                 return null;
 
             return _jwtService.GenerateToken(user);
+        }
+
+
+        public async Task<IEnumerable<User?>> GetAnalystsAsync()
+        {
+            var analysts = await _userRepository.GetAnalystsAsync();
+
+            return analysts;
         }
     }
 }

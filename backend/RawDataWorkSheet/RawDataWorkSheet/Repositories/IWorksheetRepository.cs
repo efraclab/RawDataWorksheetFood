@@ -1,15 +1,19 @@
-﻿using RawDataWorkSheet.Models.DTOs;
+﻿using RawDataWorkSheet.Models;
+using RawDataWorkSheet.Models.DTOs;
 using RawDataWorkSheet.Models.Requests;
 
 namespace RawDataWorkSheet.Repositories
 {
     public interface IWorksheetRepository
     {
-        Task<bool> ExistsAsync(string worksheetId);
-        Task CreateAsync(SaveWorksheetRequest request);
-        Task UpdateAsync(SaveWorksheetRequest request);
-        Task DeleteAsync(string worksheetId);
-        Task<WorksheetDetailDto?> GetByWorksheetIdAsync(string worksheetId);
-        Task<List<WorksheetSummaryDto>> GetAllAsync(string? status);
+        Task CreateWorksheetAsync(SaveWorksheetRequest request);
+        Task DeleteParameterAsync(int parameterId);
+        Task DeleteWorksheetAsync(string worksheetId);
+        Task<bool> ExistsParameterAsync(int parameterId);
+        Task<bool> ExistsWorksheetAsync(string worksheetId);
+        Task<List<WorksheetSummaryDto>> GetAllWorksheetsAsync(FetchWorksheetsRequest request);
+        Task<WorksheetDetailDto> GetWorksheetByIdAsync(string worksheetId, FetchWorksheetsRequest request);
+        Task UpdateParameterAsync(int parameterId, ParameterDto request);
+        Task UpdateWorksheetAsync(SaveWorksheetRequest request);
     }
 }

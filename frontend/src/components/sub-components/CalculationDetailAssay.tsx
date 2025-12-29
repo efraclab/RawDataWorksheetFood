@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Calculator, Trash, CheckCircle, AlertTriangle, X } from "lucide-react"; 
 import type { CalculationAssay, CalculationType } from "../../preparation_models/CalculationAssay";
@@ -26,6 +26,7 @@ interface CalculationDetailAssayProps {
     value: string | number | null
   ) => void;
   onRemove: () => void;
+  role: string
 }
 
 // Helper component for warning indicator
@@ -101,6 +102,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
   samplePreparations,
   onFieldChange,
   onRemove,
+  role,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [calculationResult, setCalculationResult] = useState<string | null>(null);
@@ -128,7 +130,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
       if (matchingSamplePrep) {
         return {
           value: stdPrep.label,
-          label: `Preparation ${stdPrep.label}`,
+          label: `Preparation ${stdPrep.label.charAt(stdPrep.label.length - 1)}`,
           standardId: stdPrep.id,
           sampleId: matchingSamplePrep.id,
         };
@@ -139,6 +141,24 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
 
   // Get current selected preparation label
   const currentPrepLabel = selectedStandardPrep?.label || "";
+
+  useEffect(() => {
+    // Auto-select if there's exactly one preparation pair and nothing is selected yet
+    if (
+      preparationPairs.length === 1 && 
+      !calculation.selectedStandardPrepId && 
+      !calculation.selectedSamplePrepId
+    ) {
+      const singlePair = preparationPairs[0];
+      if (singlePair) {
+        onFieldChange(calculation.id, "selectedStandardPrepId", singlePair.standardId);
+        onFieldChange(calculation.id, "selectedSamplePrepId", singlePair.sampleId);
+        
+        console.log(`✅ Auto-selected preparation pair: ${singlePair.label}`);
+      }
+    }
+  }, [preparationPairs.length, calculation.selectedStandardPrepId, calculation.selectedSamplePrepId, calculation.id, onFieldChange]);
+
 
   // Handle preparation pair selection
   const handlePreparationChange = (value: string) => {
@@ -536,18 +556,20 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                 </motion.div>
               </motion.button>
 
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove();
-                }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${calculation.label}`}
-              >
-                <Trash className="w-4 h-4 text-white" />
-              </motion.button>
+              {role === "HOD LAB" && (
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove();
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                  title={`Remove ${calculation.label}`}
+                >
+                  <Trash className="w-4 h-4 text-white" />
+                </motion.button>
+              )}
             </div>
           </div>
         </div>

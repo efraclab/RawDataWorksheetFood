@@ -60,13 +60,12 @@ interface SamplePreparationDissoDetailProps {
     newValue: string
   ) => void;
   onRemove: () => void;
+  role: string;
 }
 
-const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> = ({
-  samplePreparationDisso,
-  onStepChange,
-  onRemove,
-}) => {
+const SamplePreparationDissoDetail: React.FC<
+  SamplePreparationDissoDetailProps
+> = ({ samplePreparationDisso, onStepChange, onRemove, role }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
@@ -81,7 +80,11 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
 
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-emerald-200/50 transition-all duration-300 mb-4">
         {/* Elegant Header */}
-        <div className={`relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-500 ${isExpanded ? 'rounded-t-lg' : 'rounded-lg'}`}>
+        <div
+          className={`relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-500 ${
+            isExpanded ? "rounded-t-lg" : "rounded-lg"
+          }`}
+        >
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
 
@@ -126,18 +129,20 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                 </motion.div>
               </motion.button>
 
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove();
-                }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${samplePreparationDisso.label}`}
-              >
-                <Trash className="w-4 h-4 text-white" />
-              </motion.button>
+              {role === "HOD LAB" && (
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove();
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                  title={`Remove ${samplePreparationDisso.label}`}
+                >
+                  <Trash className="w-4 h-4 text-white" />
+                </motion.button>
+              )}
             </div>
           </div>
         </div>
@@ -206,7 +211,7 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                     placeholder="Enter Id"
                                     className="w-20 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                                   />
-                                  
+
                                   <span className="text-gray-600 ml-2 font-medium">
                                     RPM
                                   </span>
@@ -306,7 +311,7 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                       colorScheme="emerald"
                                     />
                                   </div>
-                                  
+
                                   <span className="text-gray-600 ml-2 font-medium">
                                     Media Volume
                                   </span>
@@ -383,7 +388,9 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                               </div>
                             )}
 
-                            {(is1stDilution || is2ndDilution || is3rdDilution) && (
+                            {(is1stDilution ||
+                              is2ndDilution ||
+                              is3rdDilution) && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   <span className="text-gray-600 font-medium">
@@ -429,7 +436,10 @@ const SamplePreparationDissoDetail: React.FC<SamplePreparationDissoDetailProps> 
                                       : is2ndDilution
                                       ? "1st"
                                       : "2nd"}{" "}
-                                    {is1stDilution ? "solution" : "Dilution Solution"} & dilute to
+                                    {is1stDilution
+                                      ? "solution"
+                                      : "Dilution Solution"}{" "}
+                                    & dilute to
                                   </span>
                                   <input
                                     type="number"

@@ -17,9 +17,11 @@ import {
   User,
   LogOut,
   ChevronDown,
+  Calendar,
 } from "lucide-react";
 import { fetchAllWorksheets } from "../services/api";
 import type { WorksheetSummary } from "../models/WorksheetSummary";
+import type { FetchWorksheetRequest } from "../models/FetchWorksheetRequest";
 
 interface WorksheetItem {
   id: number;
@@ -33,23 +35,26 @@ interface WorksheetItem {
 }
 
 interface WorksheetDashboardProps {
-  onNavigate: (
-    screen: "worksheet" | "create",
-    id?: string | number
-  ) => void | Promise<void>;
+  onNavigate: (screen: "worksheet" | "create", id?: string | number) => void;
+  employeeId: string;
   username: string;
   designation: string;
+  role: string;
   onLogout: () => void;
 }
 
 export default function WorksheetDashboard({
   onNavigate,
+  employeeId,
   username,
   designation,
+  role,
   onLogout,
 }: WorksheetDashboardProps) {
   const [worksheets, setWorksheets] = useState<WorksheetItem[]>([]);
-  const [filteredWorksheets, setFilteredWorksheets] = useState<WorksheetItem[]>([]);
+  const [filteredWorksheets, setFilteredWorksheets] = useState<WorksheetItem[]>(
+    []
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -68,8 +73,11 @@ export default function WorksheetDashboard({
     setIsLoading(true);
     setError(null);
     try {
-      const response: WorksheetSummary[] = await fetchAllWorksheets();
+      const requestData: FetchWorksheetRequest = { employeeId, role };
 
+      const response: WorksheetSummary[] = await fetchAllWorksheets(
+        requestData
+      );
       if (response && Array.isArray(response)) {
         const mapped = response.map((r, idx) => ({
           id: idx,
@@ -105,7 +113,9 @@ export default function WorksheetDashboard({
       filtered = filtered.filter(
         (ws) =>
           ws.worksheetId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          ws.registrationNo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          ws.registrationNo
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
           ws.sampleName.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -144,7 +154,7 @@ export default function WorksheetDashboard({
         icon: FileEdit,
         dot: "bg-amber-500",
       },
-      Submitted: {
+      "Submitted For Analysis": {
         bg: "bg-gradient-to-br from-blue-50 to-indigo-50",
         border: "border-blue-200",
         text: "text-blue-700",
@@ -165,7 +175,8 @@ export default function WorksheetDashboard({
   const stats = {
     total: worksheets.length,
     draft: worksheets.filter((f) => f.status === "Draft").length,
-    submitted: worksheets.filter((f) => f.status === "Submitted").length,
+    submitted: worksheets.filter((f) => f.status === "Submitted For Analysis")
+      .length,
     approved: worksheets.filter((f) => f.status === "Approved").length,
   };
 
@@ -281,9 +292,7 @@ export default function WorksheetDashboard({
                     <p className="text-white font-semibold text-sm leading-tight">
                       {username}
                     </p>
-                    <p className="text-emerald-100 text-xs">
-                      {designation}
-                    </p>
+                    <p className="text-emerald-100 text-xs">{designation}</p>
                   </div>
                   <ChevronDown
                     className={`w-4 h-4 text-white transition-transform duration-200 ${
@@ -342,7 +351,9 @@ export default function WorksheetDashboard({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-6 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-full"></div>
-                <h2 className="text-lg font-bold text-slate-800">All Worksheets</h2>
+                <h2 className="text-lg font-bold text-slate-800">
+                  All Worksheets
+                </h2>
                 <span className="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full">
                   {stats.total}
                 </span>
@@ -354,17 +365,21 @@ export default function WorksheetDashboard({
                   className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-all duration-300 font-medium text-sm border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
                   <RefreshCw
-                    className={`w-4 h-4 ${isLoading ? "animate-spin" : "group-hover:rotate-180"} transition-transform duration-500`}
+                    className={`w-4 h-4 ${
+                      isLoading ? "animate-spin" : "group-hover:rotate-180"
+                    } transition-transform duration-500`}
                   />
                   <span className="hidden sm:inline">Refresh</span>
                 </button>
-                <button
-                  onClick={() => onNavigate("create")}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  <Plus className="w-4 h-4" />
-                  New Worksheet
-                </button>
+                {role === "HOD LAB" && (
+                  <button
+                    onClick={() => onNavigate("create")}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <Plus className="w-4 h-4" />
+                    New Worksheet
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -389,7 +404,7 @@ export default function WorksheetDashboard({
                 bgGradient: "from-amber-500 to-amber-600",
               },
               {
-                label: "Submitted",
+                label: "Submitted For Analysis",
                 value: stats.submitted,
                 icon: Clock,
                 color: "blue",
@@ -452,8 +467,8 @@ export default function WorksheetDashboard({
                       { value: "all", label: "All", count: stats.total },
                       { value: "Draft", label: "Draft", count: stats.draft },
                       {
-                        value: "Submitted",
-                        label: "Submitted",
+                        value: "Submitted For Analysis",
+                        label: "Submitted For Analysis",
                         count: stats.submitted,
                       },
                       {
@@ -530,36 +545,90 @@ export default function WorksheetDashboard({
                   <p className="text-sm text-slate-500 mb-4">
                     {searchQuery || statusFilter !== "all"
                       ? "Try adjusting your search or filter"
-                      : "Create your first worksheet to get started"}
+                      : role === "HOD LAB"
+                      ? "Create your first worksheet to get started"
+                      : "No worksheets available at the moment"}
                   </p>
-                  {!searchQuery && statusFilter === "all" && (
-                    <button
-                      onClick={() => onNavigate("create")}
-                      className="px-5 py-2.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors text-sm font-medium shadow-sm"
-                    >
-                      Create New Worksheet
-                    </button>
-                  )}
+                  {!searchQuery &&
+                    statusFilter === "all" &&
+                    role === "HOD LAB" && (
+                      <button
+                        onClick={() => onNavigate("create")}
+                        className="px-5 py-2.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors text-sm font-medium shadow-sm"
+                      >
+                        Create New Worksheet
+                      </button>
+                    )}
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
                 {filteredWorksheets.map((worksheet, index) => {
                   const statusConfig = getStatusConfig(worksheet.status);
-                  const StatusIcon = statusConfig.icon;
 
                   return (
                     <div
                       key={worksheet.id}
                       onClick={() => handleWorksheetClick(worksheet)}
                       style={{ animationDelay: `${index * 30}ms` }}
-                      className="worksheet-card group bg-white border border-slate-200 rounded-xl cursor-pointer overflow-hidden shadow-sm hover:shadow-xl"
+                      className=" flex flex-col h-full worksheet-card group bg-white border border-slate-200 rounded-xl cursor-pointer overflow-hidden shadow-sm hover:shadow-xl"
                     >
                       <div className="shimmer-effect absolute inset-0 pointer-events-none"></div>
 
-                      {/* Compact Header with Status */}
+                      {/* Card Header */}
+                      <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <FileSpreadsheet className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                              <h3 className="text-sm font-bold text-slate-900 truncate">
+                                {worksheet.worksheetId}
+                              </h3>
+                            </div>
+                            <p className="text-xs text-slate-500 font-mono truncate">
+                              {worksheet.registrationNo}
+                            </p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0 mt-1" />
+                        </div>
+                      </div>
+
+                      {/* Card Body */}
+                      <div className="p-4">
+                        {/* Sample Name */}
+                        <div className="mb-4">
+                          <div className="flex items-start gap-2">
+                            <Beaker className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+                            <p className="text-xs font-medium text-slate-700 line-clamp-2">
+                              {worksheet.sampleName}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Info Grid */}
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-slate-500 flex items-center gap-1.5">
+                              <Hash className="w-3.5 h-3.5" />
+                              Parameters
+                            </span>
+                            <span className="font-semibold text-slate-700">
+                              {worksheet.numberOfParameters}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-slate-500 flex items-center gap-1.5">
+                              <Calendar className="w-3.5 h-3.5" />
+                              Created
+                            </span>
+                            <span className="font-medium text-slate-600">
+                              {formatDate(worksheet.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                       <div
-                        className={`${statusConfig.bg} px-3 py-2 border-b ${statusConfig.border}`}
+                        className={`${statusConfig.bg} flex flex-col mt-auto px-3 py-2 border-b ${statusConfig.border}`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
@@ -570,53 +639,6 @@ export default function WorksheetDashboard({
                               className={`text-[10px] font-bold uppercase tracking-wider ${statusConfig.text}`}
                             >
                               {worksheet.status}
-                            </span>
-                          </div>
-                          <ChevronRight
-                            className={`w-3.5 h-3.5 ${statusConfig.text} opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300`}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Compact Card Body */}
-                      <div className="p-3">
-                        {/* Worksheet ID - Bold & Prominent */}
-                        <div className="mb-2.5">
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <h3 className="text-md font-bold text-slate-800 truncate leading-tight">
-                              {worksheet.worksheetId || `WS-${worksheet.id}`}
-                            </h3>
-                          </div>
-                          <p className="text-[10px] font-medium text-slate-500">
-                            {worksheet.registrationNo || "No Reg"}
-                          </p>
-                        </div>
-
-                        {/* Compact Sample Info */}
-                        <div className="space-y-1.5 mb-2.5">
-                          <div className="flex items-center gap-1.5">
-                            <Beaker className="w-3 h-3 text-slate-400 flex-shrink-0" />
-                            <span className="text-[11px] font-medium text-slate-700 truncate">
-                              {worksheet.sampleName || "Untitled"}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-between text-[10px] text-slate-500">
-                            <div className="flex items-center gap-1">
-                              <Hash className="w-3 h-3 text-slate-400" />
-                              <span>
-                                Params: {worksheet.numberOfParameters}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Minimal Footer */}
-                        <div className="pt-2 border-t border-slate-100">
-                          <div className="flex items-center gap-1 text-[9px] text-slate-400">
-                            <Clock className="w-2.5 h-2.5" />
-                            <span className="truncate">
-                              {formatDate(worksheet.createdAt)}
                             </span>
                           </div>
                         </div>

@@ -39,12 +39,12 @@ interface SamplePreparationSulphatedAshDetailProps {
     newValue: string
   ) => void;
   onRemove: () => void;
+  role: string;
 }
-
 
 const SamplePreparationSulphatedAshDetail: React.FC<
   SamplePreparationSulphatedAshDetailProps
-> = ({ samplePreparationSulphatedAsh, onStepChange, onRemove }) => {
+> = ({ samplePreparationSulphatedAsh, onStepChange, onRemove, role }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   // Conditional rounding for the header (Fix 3)
@@ -55,13 +55,15 @@ const SamplePreparationSulphatedAshDetail: React.FC<
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="relative group z-20" 
+      className="relative group z-20"
     >
       {/* Glow effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-rose-400/20 to-rose-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
 
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-rose-200/50 transition-all duration-300 mb-4">
-        <div className={`relative bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 ${headerRoundingClass}`}>
+        <div
+          className={`relative bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 ${headerRoundingClass}`}
+        >
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
 
@@ -106,18 +108,20 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                 </motion.div>
               </motion.button>
 
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove();
-                }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${samplePreparationSulphatedAsh.label}`}
-              >
-                <Trash className="w-4 h-4 text-white" />
-              </motion.button>
+              {role === "HOD LAB" && (
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove();
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                  title={`Remove ${samplePreparationSulphatedAsh.label}`}
+                >
+                  <Trash className="w-4 h-4 text-white" />
+                </motion.button>
+              )}
             </div>
           </div>
         </div>
@@ -437,5 +441,4 @@ const SamplePreparationSulphatedAshDetail: React.FC<
   );
 };
 
-
-export default SamplePreparationSulphatedAshDetail
+export default SamplePreparationSulphatedAshDetail;

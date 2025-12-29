@@ -8,14 +8,15 @@ export interface ParameterDetail {
     parameterName: string;
     methodCode: string;
     methodName: string;
-    columnId: string;
-    diluentPreparation: string;
-    otherInfo: string;
-    analyzedBy: string;
-    approvedBy: string;
-    analysisStartDate: string;
-    analysisCompletionDate: string;
-    approvedAt: string | null;
+    columnId?: string;
+    diluentPreparation?: string;
+    otherInfo?: string;
+    analyzedBy?: string;
+    approvedBy?: string;
+    analysisStartDate?: string;
+    analysisCompletionDate?: string;
+    approvedAt?: string;
+    status?: string;
 
     instrumentIds: string[];
     chemicalIds: string[];

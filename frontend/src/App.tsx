@@ -47,12 +47,14 @@ const pageVariants = {
 };
 
 interface AuthenticatedAppProps {
+  employeeId: string;
+  role: string;
   username: string;
   designation: string;
   onLogout: () => void;
 }
 
-function DashboardPage({ username, designation, onLogout }: AuthenticatedAppProps) {
+function DashboardPage({ employeeId, role, username, designation, onLogout }: AuthenticatedAppProps) {
   const navigate = useNavigate();
 
   const handleNavigation = (screen: "create" | "worksheet", worksheetId?: string) => {
@@ -69,6 +71,8 @@ function DashboardPage({ username, designation, onLogout }: AuthenticatedAppProp
         onNavigate={handleNavigation}
         username={username}
         designation={designation}
+        employeeId={employeeId}
+        role={role}
         onLogout={onLogout}
       />
     </motion.div>
@@ -149,16 +153,13 @@ function WorksheetPreviewPage(props: {
   );
 }
 
-function AuthenticatedApp({ username, designation, onLogout }: AuthenticatedAppProps) {
+function AuthenticatedApp({ employeeId, role, username, designation, onLogout }: AuthenticatedAppProps) {
   const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [chemicals, setChemicals] = useState<Chemical[]>([]);
   const [standards, setStandards] = useState<Standard[]>([]);
   const [columns, setColumns] = useState<Column[]>([]);
   const [isReferenceDataLoading, setIsReferenceDataLoading] = useState(true);
   const [referenceDataError, setReferenceDataError] = useState<string | null>(null);
-
-  const employeeId = localStorage.getItem("EmployeeId") || "Unknown";
-  const role = localStorage.getItem("Role") || "Unknown";
 
   useEffect(() => {
     const loadReferenceData = async () => {
@@ -192,9 +193,11 @@ function AuthenticatedApp({ username, designation, onLogout }: AuthenticatedAppP
             path="/" 
             element={
               <DashboardPage 
+                employeeId={employeeId} 
+                role={role}
                 username={username} 
                 designation={designation} 
-                onLogout={onLogout} 
+                onLogout={onLogout}
               />
             } 
           />
@@ -307,14 +310,18 @@ export default function App() {
     );
   }
 
-  const username = localStorage.getItem("Username") || "User";
-  const designation = localStorage.getItem("Designation") || "Employee";
+  const username = localStorage.getItem("Username") || "Unknown";
+  const designation = localStorage.getItem("Designation") || "Unknown";
+  const employeeId = localStorage.getItem("EmployeeId") || "Unknown";
+  const role = localStorage.getItem("Role") || "Unknown";
 
   return (
     <>
       {isAuthenticated ? (
         <AuthenticatedApp 
           key={sessionKey} 
+          employeeId={employeeId}
+          role={role}
           username={username}
           designation={designation}
           onLogout={handleLogout}

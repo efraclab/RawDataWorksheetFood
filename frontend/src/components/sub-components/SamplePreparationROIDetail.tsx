@@ -40,11 +40,15 @@ interface SamplePreparationROIDetailProps {
     newValue: string
   ) => void;
   onRemove: () => void;
+  role: string;
 }
 
-const SamplePreparationROIDetail: React.FC<
-  SamplePreparationROIDetailProps
-> = ({ samplePreparationROI, onStepChange, onRemove }) => {
+const SamplePreparationROIDetail: React.FC<SamplePreparationROIDetailProps> = ({
+  samplePreparationROI,
+  onStepChange,
+  onRemove,
+  role,
+}) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
@@ -107,18 +111,20 @@ const SamplePreparationROIDetail: React.FC<
                 </motion.div>
               </motion.button>
 
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove();
-                }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${samplePreparationROI.label}`}
-              >
-                <Trash className="w-4 h-4 text-white" />
-              </motion.button>
+              {role === "HOD LAB" && (
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove();
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                  title={`Remove ${samplePreparationROI.label}`}
+                >
+                  <Trash className="w-4 h-4 text-white" />
+                </motion.button>
+              )}
             </div>
           </div>
         </div>
@@ -434,4 +440,4 @@ const SamplePreparationROIDetail: React.FC<
   );
 };
 
-export default SamplePreparationROIDetail
+export default SamplePreparationROIDetail;

@@ -1,3 +1,4 @@
+import type { ParameterDetail } from "./ParameterDetail";
 import type { WorksheetParameter } from "./WorksheetParameter";
 
 export interface WorksheetRequest {
@@ -11,8 +12,9 @@ export interface WorksheetRequest {
   documentInfo?: {
     preparedBy?: string;
     revisionDate?: string;
+    status?: string;
   };
-  parameters?: WorksheetParameter[];
+  parameters?: ParameterDetail[];
 }
 
 

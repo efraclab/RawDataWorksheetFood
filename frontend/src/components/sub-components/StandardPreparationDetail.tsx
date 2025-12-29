@@ -42,9 +42,9 @@ interface StandardPreparationDetailProps {
     newValue: string
   ) => void;
   onRemove: () => void;
-  // NEW PROP: Determines if this is for Residual Solvent (RS) calculation
   isRS?: boolean;
   isDisso?: boolean;
+  role: string;
 }
 
 const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
@@ -53,7 +53,8 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
   onStepChange,
   onRemove,
   isRS = false,
-  isDisso = false
+  isDisso = false,
+  role,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -192,18 +193,20 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                 </motion.div>
               </motion.button>
 
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove();
-                }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${standardPreparation.label}`}
-              >
-                <Trash className="w-4 h-4 text-white" />
-              </motion.button>
+              {role === "HOD LAB" && (
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove();
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                  title={`Remove ${standardPreparation.label}`}
+                >
+                  <Trash className="w-4 h-4 text-white" />
+                </motion.button>
+              )}
             </div>
           </div>
         </div>

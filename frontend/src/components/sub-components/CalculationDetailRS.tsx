@@ -4,9 +4,8 @@ import {
   ChevronDown,
   Calculator,
   Trash,
-  CheckCircle,
   AlertTriangle,
-  X,
+  CheckCircle2,
 } from "lucide-react";
 import type { CalculationRS } from "../../preparation_models/CalculationRS";
 import type { StandardPreparation } from "../../preparation_models/StandardPreparation";
@@ -67,7 +66,7 @@ const convertMassToMg = (value: string | number, unit: string): number => {
 
 const convertVolumeToMl = (value: string | number, unit: string): number => {
   const val = parseFloat(String(value));
-  if (isNaN(val)) return 0;
+  if (isNaN(val)) return 1;
 
   const lowerUnit = unit.toLowerCase().trim();
   switch (lowerUnit) {
@@ -92,16 +91,14 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
   role,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [calculationResult, setCalculationResult] = useState<string | null>(
-    null
-  );
 
   // Get selected preparations
   const selectedStandardPrep = standardPreparations.find(
-    (prep) => prep.id === calculation.selectedStandardPrepId
+    (prep) => prep.label === calculation.selectedStandardPrepLabel
   );
+
   const selectedSamplePrep = samplePreparations.find(
-    (prep) => prep.id === calculation.selectedSamplePrepId
+    (prep) => prep.label === calculation.selectedSamplePrepLabel
   );
 
   // Create preparation pair options
@@ -112,14 +109,13 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
           samplePrep.label.charAt(samplePrep.label.length - 1) ===
           stdPrep.label.charAt(stdPrep.label.length - 1)
       );
+
       if (matchingSamplePrep) {
         return {
           value: stdPrep.label,
-          label: `Preparation ${stdPrep.label.charAt(
-            stdPrep.label.length - 1
-          )}`,
-          standardId: stdPrep.id,
-          sampleId: matchingSamplePrep.id,
+          label: `Preparation ${stdPrep.label.slice(-1)}`,
+          standardLabel: stdPrep.label,
+          sampleLabel: matchingSamplePrep.label,
         };
       }
       return null;
@@ -130,53 +126,40 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
   const currentPrepLabel = selectedStandardPrep?.label || "";
 
   useEffect(() => {
-    // Auto-select if there's exactly one preparation pair and nothing is selected yet
     if (
-      preparationPairs.length === 1 &&
-      !calculation.selectedStandardPrepId &&
-      !calculation.selectedSamplePrepId
+      calculation.selectedStandardPrepLabel &&
+      calculation.selectedSamplePrepLabel
     ) {
-      const singlePair = preparationPairs[0];
-      if (singlePair) {
-        onFieldChange(
-          calculation.id,
-          "selectedStandardPrepId",
-          singlePair.standardId
-        );
-        onFieldChange(
-          calculation.id,
-          "selectedSamplePrepId",
-          singlePair.sampleId
-        );
-
-        console.log(`✅ Auto-selected preparation pair: ${singlePair.label}`);
-      }
+      preparationPairs.find(
+        (pair) =>
+          pair?.standardLabel === calculation.selectedStandardPrepLabel &&
+          pair?.sampleLabel === calculation.selectedSamplePrepLabel
+      );
     }
   }, [
-    preparationPairs.length,
-    calculation.selectedStandardPrepId,
-    calculation.selectedSamplePrepId,
-    calculation.id,
-    onFieldChange,
+    calculation.selectedStandardPrepLabel,
+    calculation.selectedSamplePrepLabel,
+    preparationPairs,
   ]);
 
   // Handle preparation pair selection
   const handlePreparationChange = (value: string) => {
     const selectedPair = preparationPairs.find((pair) => pair?.value === value);
+
     if (selectedPair) {
       onFieldChange(
         calculation.id,
-        "selectedStandardPrepId",
-        selectedPair.standardId
+        "selectedStandardPrepLabel",
+        selectedPair.standardLabel
       );
       onFieldChange(
         calculation.id,
-        "selectedSamplePrepId",
-        selectedPair.sampleId
+        "selectedSamplePrepLabel",
+        selectedPair.sampleLabel
       );
     } else {
-      onFieldChange(calculation.id, "selectedStandardPrepId", null);
-      onFieldChange(calculation.id, "selectedSamplePrepId", null);
+      onFieldChange(calculation.id, "selectedStandardPrepLabel", null);
+      onFieldChange(calculation.id, "selectedSamplePrepLabel", null);
     }
   };
 
@@ -192,8 +175,8 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
       )
       .map((step) => ({
         name: step.name,
-        vol1: step.vol1 || "",
-        vol2: step.vol2 || "",
+        vol1: step.value1 || "",
+        vol2: step.value2 || "",
         unit1: step.unit1 || "ml",
         unit2: step.unit2 || "ml",
       }));
@@ -205,8 +188,8 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
       .filter((step) => step.name === "1st Dilution")
       .map((step) => ({
         name: step.name,
-        vol1: step.vol1 || "",
-        vol2: step.vol2 || "",
+        vol1: step.value1 || "",
+        vol2: step.value2 || "",
         unit1: step.unit1 || "ml",
         unit2: step.unit2 || "ml",
       }));
@@ -218,8 +201,8 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
       (step) => step.name === "Weighing"
     );
     return {
-      value: weighingStep?.value || "",
-      unit: weighingStep?.unit || "g",
+      value: weighingStep?.value1 || "",
+      unit: weighingStep?.unit1 || "g",
     };
   };
 
@@ -229,8 +212,8 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
       (step) => step.name === "Weighing"
     );
     return {
-      value: weighingStep?.value || "",
-      unit: weighingStep?.unit || "g",
+      value: weighingStep?.value1 || "",
+      unit: weighingStep?.unit1 || "g",
     };
   };
 
@@ -247,23 +230,25 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
 
     if (!canCalculate) {
       console.warn("Cannot calculate: Missing preparations");
-      setCalculationResult(
-        "Error: Please select both Standard and Sample preparations"
+      onFieldChange(
+        calculation.id,
+        "calculationResult",
+        "Error: Please select both Standard and Sample preparations and a calculation type."
       );
       console.groupEnd();
       return;
     }
 
     // Parse inputs
-    const AreaOfSample = parseFloat(calculation.areaOfSample as string) || 0;
+    const AreaOfSample = parseFloat(calculation.areaOfSample as string) || 1;
     const AreaOfStandard =
-      parseFloat(calculation.areaOfStandard as string) || 0;
+      parseFloat(calculation.areaOfStandard as string) || 1;
     const SW1_Standard = convertMassToMg(
       standardWeight.value,
       standardWeight.unit
     );
     const SW2_Sample = convertMassToMg(sampleWeight.value, sampleWeight.unit);
-    const Purity = parseFloat(calculation.purity as string) || 0;
+    const Purity = parseFloat(calculation.purity as string) || 1;
 
     console.log("1. Raw Inputs:", {
       AreaSample: AreaOfSample,
@@ -276,22 +261,22 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
     // Get volumes
     const V1 = standardDilutions[0]
       ? convertVolumeToMl(standardDilutions[0].vol1, standardDilutions[0].unit1)
-      : 0;
+      : 1;
     const V2 = standardDilutions[1]
       ? convertVolumeToMl(standardDilutions[1].vol1, standardDilutions[1].unit1)
-      : 0;
+      : 1;
     const V3 = standardDilutions[1]
       ? convertVolumeToMl(standardDilutions[1].vol2, standardDilutions[1].unit2)
-      : 0;
+      : 1;
     const V4 = standardDilutions[2]
       ? convertVolumeToMl(standardDilutions[2].vol1, standardDilutions[2].unit1)
-      : 0;
+      : 1;
     const V5 = standardDilutions[2]
       ? convertVolumeToMl(standardDilutions[2].vol2, standardDilutions[2].unit2)
-      : 0;
+      : 1;
     const V6 = sampleDilutions[0]
       ? convertVolumeToMl(sampleDilutions[0].vol1, sampleDilutions[0].unit1)
-      : 0;
+      : 1;
 
     console.log("2. Volumes (converted to mL):", { V1, V2, V3, V4, V5, V6 });
 
@@ -320,11 +305,15 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
     console.groupEnd();
 
     if (isNaN(FinalResult) || !isFinite(FinalResult)) {
-      setCalculationResult(
+      onFieldChange(
+        calculation.id,
+        "calculationResult",
         "Error: Result is NaN or Infinite. Check console for details."
       );
     } else {
-      setCalculationResult(`Result: ${FinalResult.toFixed(2)} ppm`);
+      const result= `${FinalResult.toFixedNoRound(4)}`;
+      onFieldChange(calculation.id, "calculationResult", result);
+      onFieldChange(calculation.id, "calculationResultUnit", 'ppm');
     }
   };
 
@@ -619,51 +608,6 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                         </motion.button>
                       </div>
 
-                      {/* Result Display */}
-                      {calculationResult && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className={`bg-gradient-to-br ${
-                            calculationResult.startsWith("Error")
-                              ? "from-red-100 to-red-50 border-2 border-red-300"
-                              : "from-green-50 to-emerald-50 border-2 border-green-300"
-                          } rounded-lg p-4`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-2 mb-2">
-                              <CheckCircle
-                                className={`w-5 h-5 ${
-                                  calculationResult.startsWith("Error")
-                                    ? "text-red-600"
-                                    : "text-green-600"
-                                }`}
-                              />
-                              <h6
-                                className={`text-sm font-bold ${
-                                  calculationResult.startsWith("Error")
-                                    ? "text-red-900"
-                                    : "text-green-900"
-                                }`}
-                              >
-                                Calculation Result
-                              </h6>
-                            </div>
-                            <motion.button
-                              onClick={() => setCalculationResult(null)}
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              className="p-1 -mt-1 -mr-1 text-gray-400 hover:text-indigo-500 transition-colors"
-                              title="Close result"
-                            >
-                              <X className="w-4 h-4" />
-                            </motion.button>
-                          </div>
-                          <p className="text-sm text-gray-700">
-                            {calculationResult}
-                          </p>
-                        </motion.div>
-                      )}
                     </div>
                   </div>
                 )}
@@ -677,6 +621,86 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                   </div>
                 )}
               </div>
+
+              {/* FIXED BOTTOM RESULTS SECTION - NON-CLOSABLE */}
+              {calculation.calculationResult && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="border-t-4 border-indigo-200"
+                >
+                  <div
+                    className={`p-6 ${
+                      calculation.calculationResult.startsWith("Error")
+                        ? "bg-gradient-to-br from-red-50 via-red-100/50 to-rose-50"
+                        : "bg-gradient-to-br from-emerald-50 via-green-100/30 to-teal-50"
+                    }`}
+                  >
+                    <div className="max-w-4xl mx-auto space-y-4">
+                      {/* Header */}
+                      <div className="flex items-center gap-3 pb-3">
+                        <CheckCircle2
+                          className={`w-6 h-6 ${
+                            calculation.calculationResult.startsWith("Error")
+                              ? "text-red-700"
+                              : "text-green-700"
+                          }`}
+                        />
+                        <div>
+                          <h6
+                            className={`text-lg font-bold ${
+                              calculation.calculationResult.startsWith("Error")
+                                ? "text-red-700"
+                                : "text-green-700"
+                            }`}
+                          >
+                            Calculation Results
+                          </h6>
+                        </div>
+                      </div>
+
+                      {/* Results Grid */}
+                      <div className="grid gap-4">
+                        <div className="bg-white rounded-lg shadow-lg border-2 border-green-300 overflow-hidden">
+                            <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2">
+                              <h6 className="text-sm font-bold text-white">
+                                Primary Result
+                              </h6>
+                            </div>
+                            <div className="p-4">
+                              <p className="text-2xl font-bold text-gray-800">
+                                {calculation.calculationResult} {" "} {!calculation.calculationResult.startsWith("Error") ? calculation.calculationResultUnit : ''}
+                              </p>
+                            </div>
+                          </div>
+                      </div>
+
+                      {/* Summary Info */}
+                      <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4">
+                        <div className="grid md:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-600 font-medium">
+                              Standard Prep
+                            </p>
+                            <p className="text-gray-900 font-semibold">
+                              {calculation.selectedStandardPrepLabel || "N/A"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600 font-medium">
+                              Sample Prep
+                            </p>
+                            <p className="text-gray-900 font-semibold">
+                              {calculation.selectedSamplePrepLabel || "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

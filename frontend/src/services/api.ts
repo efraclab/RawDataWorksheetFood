@@ -11,8 +11,8 @@ import type { LoginRequest } from '../models/LoginRequest';
 import type { LoginResponse } from '../models/LoginResponse';
 import type { Analyst } from '../models/Analyst';
 import type { FetchWorksheetRequest } from '../models/FetchWorksheetRequest';
-import type { WorksheetParameter } from '../models/WorksheetParameter';
 import type { ParameterDetail } from '../models/ParameterDetail';
+import type { WorksheetDbPayload } from '../helpers/WorksheetDbPayload';
 
 
 const API_BASE_URL = 'http://192.168.3.116:5076/api';
@@ -31,7 +31,6 @@ export async function login(
       }
     );
 
-    console.log("Login response:", response.data);
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
@@ -131,7 +130,6 @@ export const createWorksheet = async (
   worksheetData: WorksheetRequest
 ): Promise<{ worksheetId: string }> => {
   try {
-    console.log("Creating worksheet with data:", worksheetData);
     const response = await axios.post<{ worksheetId: string }>(
       `${API_BASE_URL}/worksheets`,
       worksheetData,
@@ -158,8 +156,9 @@ export const updateWorksheet = async (
     throw new Error("Worksheet ID is required.");
   }
 
+  console.log(worksheetData)
+
   try {
-    console.log("Updating worksheet with ID:", worksheetId, "and data:", worksheetData);
     const response = await axios.put<{ worksheetId: string }>(
       `${API_BASE_URL}/worksheets/${worksheetId}`,
       worksheetData,
@@ -186,7 +185,6 @@ export const updateParameter = async (
   }
 
   try {
-    console.log("Updating parameter with ID:", parameterId, "and data:", parameterData);
     const response = await axios.put<{ parameterId: number }>(
       `${API_BASE_URL}/worksheets/parameters/${parameterId}`,
       parameterData,
@@ -216,7 +214,6 @@ export const fetchWorksheetById = async (
   try {
     const response = await axios.post<WorksheetDetail>(`${API_BASE_URL}/worksheets/get/${worksheetId}`, request);
     const data = response.data;
-    console.log("Fetched worksheet detail (raw):", data);
     if (!data) return null;
     if (data.sample || data.parameters) return data as WorksheetDetail;
     return null;
@@ -241,7 +238,6 @@ export const fetchAllWorksheets = async (
 
     const response = await axios.post<WorksheetSummary[]>(url, request);
     const data = response.data;
-    console.log("Fetched worksheets:", data);
 
     if (Array.isArray(data)) return data as WorksheetSummary[];
   
@@ -281,7 +277,6 @@ export const deleteParameter = async (parameterId: number): Promise<void> => {
   }
 
   try {
-    console.log("Deleting parameter with ID:", parameterId);
     await axios.delete(`${API_BASE_URL}/worksheets/parameters/${parameterId}`);
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
@@ -295,13 +290,14 @@ export const deleteParameter = async (parameterId: number): Promise<void> => {
 };
 
 export const submitWorksheet = async (
-  registrationNo: string
+  worksheet: WorksheetDbPayload
 ): Promise<{ success: boolean; message?: string }> => {
-  if (!registrationNo) throw new Error("Registration number is required.");
+  if (!worksheet) throw new Error("Worksheet data is required.");
 
   try {
     const response = await axios.post<{ success: boolean; message?: string }>(
-      `${API_BASE_URL}/worksheets/submit/${registrationNo}`
+      `${API_BASE_URL}/raw-data/save`, worksheet,
+      { headers: { "Content-Type": "application/json" } }
     );
     return response.data;
   } catch (error: any) {
@@ -319,7 +315,6 @@ export const fetchAnalysts = async (
 
     const response = await axios.get(url);
     const data = response.data;
-    console.log("Fetched analysts:", data);
 
     if (Array.isArray(data)) return data as Analyst[];
     if (data && Array.isArray(data.data)) return data.data as Analyst[];

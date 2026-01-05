@@ -41,6 +41,42 @@
         }
       }
     },
+    "/api/raw-data/save": {
+      "post": {
+        "tags": [
+          "FinalRawData"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorksheetRawDataRequest"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorksheetRawDataRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorksheetRawDataRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorksheetRawDataRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/sample-details": {
       "post": {
         "tags": [
@@ -420,6 +456,10 @@
             "type": "string",
             "nullable": true
           },
+          "approvedAt": {
+            "type": "string",
+            "nullable": true
+          },
           "status": {
             "type": "string",
             "nullable": true
@@ -519,21 +559,21 @@
             "type": "string",
             "nullable": true
           },
-          "instruments": {
+          "instrumentIds": {
             "type": "array",
             "items": {
               "type": "string"
             },
             "nullable": true
           },
-          "chemicals": {
+          "chemicalIds": {
             "type": "array",
             "items": {
               "type": "string"
             },
             "nullable": true
           },
-          "standards": {
+          "standardIds": {
             "type": "array",
             "items": {
               "type": "string"
@@ -559,6 +599,338 @@
             "items": {
               "$ref": "#/components/schemas/CalculationDto"
             },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RawDataCalculationDto": {
+        "type": "object",
+        "properties": {
+          "worksheetId": {
+            "type": "string",
+            "nullable": true
+          },
+          "parameterCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "calculationLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "calculationType": {
+            "type": "string",
+            "nullable": true
+          },
+          "calculationFor": {
+            "type": "string",
+            "nullable": true
+          },
+          "areaOfSample": {
+            "type": "string",
+            "nullable": true
+          },
+          "areaOfStandard": {
+            "type": "string",
+            "nullable": true
+          },
+          "purity": {
+            "type": "string",
+            "nullable": true
+          },
+          "avgWeight": {
+            "type": "string",
+            "nullable": true
+          },
+          "avgWeightUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "avgContent": {
+            "type": "string",
+            "nullable": true
+          },
+          "avgContentUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "sampleVol": {
+            "type": "string",
+            "nullable": true
+          },
+          "sampleVolUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "mwSalt": {
+            "type": "string",
+            "nullable": true
+          },
+          "mwBase": {
+            "type": "string",
+            "nullable": true
+          },
+          "claim": {
+            "type": "string",
+            "nullable": true
+          },
+          "claimUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "labelClaim": {
+            "type": "string",
+            "nullable": true
+          },
+          "labelClaimUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "lodWaterType": {
+            "type": "string",
+            "nullable": true
+          },
+          "lodWaterValue": {
+            "type": "string",
+            "nullable": true
+          },
+          "w1_EmptyDish": {
+            "type": "string",
+            "nullable": true
+          },
+          "w2_DishWithSample": {
+            "type": "string",
+            "nullable": true
+          },
+          "w3_DishAfterIgnition": {
+            "type": "string",
+            "nullable": true
+          },
+          "w1_EmptyCrucible": {
+            "type": "string",
+            "nullable": true
+          },
+          "w2_CrucibleWithSample": {
+            "type": "string",
+            "nullable": true
+          },
+          "w3_CrucibleAfterAsh": {
+            "type": "string",
+            "nullable": true
+          },
+          "calculationResult": {
+            "type": "string",
+            "nullable": true
+          },
+          "calculationResultUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "labelClaimPercentResult": {
+            "type": "string",
+            "nullable": true
+          },
+          "lodWaterBasisResult": {
+            "type": "string",
+            "nullable": true
+          },
+          "selectedStandardPrepLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "selectedSamplePrepLabel": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RawDataParameterDto": {
+        "type": "object",
+        "properties": {
+          "worksheetId": {
+            "type": "string",
+            "nullable": true
+          },
+          "parameterCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "parameterName": {
+            "type": "string",
+            "nullable": true
+          },
+          "methodCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "methodName": {
+            "type": "string",
+            "nullable": true
+          },
+          "columnId": {
+            "type": "string",
+            "nullable": true
+          },
+          "diluentPreparation": {
+            "type": "string",
+            "nullable": true
+          },
+          "otherInfo": {
+            "type": "string",
+            "nullable": true
+          },
+          "parameterAnalyzedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "parameterApprovedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "parameterStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "parameterApprovedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RawDataPreparationDto": {
+        "type": "object",
+        "properties": {
+          "worksheetId": {
+            "type": "string",
+            "nullable": true
+          },
+          "parameterCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "prepCategory": {
+            "type": "string",
+            "nullable": true
+          },
+          "prepLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "preparationType": {
+            "type": "string",
+            "nullable": true
+          },
+          "assignedStandardId": {
+            "type": "string",
+            "nullable": true
+          },
+          "stepName": {
+            "type": "string",
+            "nullable": true
+          },
+          "stepOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "value1": {
+            "type": "string",
+            "nullable": true
+          },
+          "unit1": {
+            "type": "string",
+            "nullable": true
+          },
+          "value2": {
+            "type": "string",
+            "nullable": true
+          },
+          "unit2": {
+            "type": "string",
+            "nullable": true
+          },
+          "value3": {
+            "type": "string",
+            "nullable": true
+          },
+          "unit3": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RawDataReferenceDto": {
+        "type": "object",
+        "properties": {
+          "worksheetId": {
+            "type": "string",
+            "nullable": true
+          },
+          "parameterCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "referenceType": {
+            "type": "string",
+            "nullable": true
+          },
+          "referenceCode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RawDataWorksheetDto": {
+        "type": "object",
+        "properties": {
+          "worksheetId": {
+            "type": "string",
+            "nullable": true
+          },
+          "registrationNo": {
+            "type": "string",
+            "nullable": true
+          },
+          "sampleName": {
+            "type": "string",
+            "nullable": true
+          },
+          "numberOfParameters": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "worksheetPreparedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "worksheetStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "worksheetCreatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "worksheetUpdatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "worksheetApprovedAt": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           }
         },
@@ -608,10 +980,51 @@
         },
         "additionalProperties": false
       },
+      "SaveWorksheetRawDataRequest": {
+        "type": "object",
+        "properties": {
+          "worksheet": {
+            "$ref": "#/components/schemas/RawDataWorksheetDto"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RawDataParameterDto"
+            },
+            "nullable": true
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RawDataReferenceDto"
+            },
+            "nullable": true
+          },
+          "preparations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RawDataPreparationDto"
+            },
+            "nullable": true
+          },
+          "calculations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RawDataCalculationDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "SaveWorksheetRequest": {
         "type": "object",
         "properties": {
           "worksheetId": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
             "type": "string",
             "nullable": true
           },

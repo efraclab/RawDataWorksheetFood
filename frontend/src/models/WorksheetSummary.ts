@@ -9,7 +9,7 @@ export interface WorksheetSummary {
     preparedBy: string;
     revisionDate: string;
     status: string;
-    submittedAt: string | null;
+    approvedAt: string | null;
     createdAt: string;
     updatedAt: string | null;
 }

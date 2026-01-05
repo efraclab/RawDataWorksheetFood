@@ -1,18 +1,19 @@
 import type { ParameterDetail } from "./ParameterDetail";
-import type { WorksheetParameter } from "./WorksheetParameter";
 
 export interface WorksheetRequest {
+  role: string;
   worksheetId?: string;
   registrationInfo?: {
     registrationNo: string;
-    sampleName: string;
+    sampleName?: string;
     numberOfParameters: number;
-    dueDate: string;
+    dueDate?: string;
   };
   documentInfo?: {
     preparedBy?: string;
     revisionDate?: string;
     status?: string;
+    approvedAt?: string | null;
   };
   parameters?: ParameterDetail[];
 }

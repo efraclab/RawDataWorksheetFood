@@ -20,8 +20,8 @@ import {
   Calendar,
 } from "lucide-react";
 import { fetchAllWorksheets } from "../services/api";
-import type { WorksheetSummary } from "../models/WorksheetSummary";
 import type { FetchWorksheetRequest } from "../models/FetchWorksheetRequest";
+import type { WorksheetSummary } from "../models/WorksheetSummary";
 
 interface WorksheetItem {
   id: number;
@@ -60,6 +60,8 @@ export default function WorksheetDashboard({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [error, setError] = useState<string | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const isScientist = role === "Scientist";
 
   useEffect(() => {
     fetchWorksheets();
@@ -179,6 +181,60 @@ export default function WorksheetDashboard({
       .length,
     approved: worksheets.filter((f) => f.status === "Approved").length,
   };
+
+  // Build stats cards based on role
+  const statsCards = [
+    {
+      label: "Total Worksheets",
+      value: stats.total,
+      icon: FileSpreadsheet,
+      color: "slate",
+      bgGradient: "from-slate-500 to-slate-600",
+      show: true,
+    },
+    {
+      label: "Draft",
+      value: stats.draft,
+      icon: FileEdit,
+      color: "amber",
+      bgGradient: "from-amber-500 to-amber-600",
+      show: !isScientist,
+    },
+    {
+      label: "Submitted For Analysis",
+      value: stats.submitted,
+      icon: Clock,
+      color: "blue",
+      bgGradient: "from-blue-500 to-blue-600",
+      show: true,
+    },
+    {
+      label: "Approved",
+      value: stats.approved,
+      icon: CheckCircle2,
+      color: "emerald",
+      bgGradient: "from-emerald-500 to-emerald-600",
+      show: true,
+    },
+  ].filter((stat) => stat.show);
+
+  // Build status filters based on role
+  const statusFilters = [
+    { value: "all", label: "All", count: stats.total, show: true },
+    { value: "Draft", label: "Draft", count: stats.draft, show: !isScientist },
+    {
+      value: "Submitted For Analysis",
+      label: "Submitted For Analysis",
+      count: stats.submitted,
+      show: true,
+    },
+    {
+      value: "Approved",
+      label: "Approved",
+      count: stats.approved,
+      show: true,
+    },
+  ].filter((status) => status.show);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
@@ -303,7 +359,7 @@ export default function WorksheetDashboard({
 
                 {/* Dropdown Menu */}
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden animate-slideDown">
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden animate-slideDown z-50">
                     <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 border-b border-emerald-100">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
@@ -387,37 +443,8 @@ export default function WorksheetDashboard({
 
         <div className="max-w-[1600px] mx-auto bg-gray-50 px-4 sm:px-6 lg:px-8 py-6">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 animate-slideIn">
-            {[
-              {
-                label: "Total Worksheets",
-                value: stats.total,
-                icon: FileSpreadsheet,
-                color: "slate",
-                bgGradient: "from-slate-500 to-slate-600",
-              },
-              {
-                label: "Draft",
-                value: stats.draft,
-                icon: FileEdit,
-                color: "amber",
-                bgGradient: "from-amber-500 to-amber-600",
-              },
-              {
-                label: "Submitted For Analysis",
-                value: stats.submitted,
-                icon: Clock,
-                color: "blue",
-                bgGradient: "from-blue-500 to-blue-600",
-              },
-              {
-                label: "Approved",
-                value: stats.approved,
-                icon: CheckCircle2,
-                color: "emerald",
-                bgGradient: "from-emerald-500 to-emerald-600",
-              },
-            ].map((stat, index) => (
+          <div className={`grid grid-cols-1 sm:grid-cols-2 ${isScientist ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-4 mb-6 animate-slideIn`}>
+            {statsCards.map((stat, index) => (
               <div
                 key={stat.label}
                 style={{ animationDelay: `${index * 50}ms` }}
@@ -462,21 +489,8 @@ export default function WorksheetDashboard({
                 {/* Status Filter */}
                 <div className="flex items-center gap-2">
                   <Filter className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                  <div className="flex gap-2">
-                    {[
-                      { value: "all", label: "All", count: stats.total },
-                      { value: "Draft", label: "Draft", count: stats.draft },
-                      {
-                        value: "Submitted For Analysis",
-                        label: "Submitted For Analysis",
-                        count: stats.submitted,
-                      },
-                      {
-                        value: "Approved",
-                        label: "Approved",
-                        count: stats.approved,
-                      },
-                    ].map((status) => (
+                  <div className="flex gap-2 flex-wrap">
+                    {statusFilters.map((status) => (
                       <button
                         key={status.value}
                         onClick={() => setStatusFilter(status.value)}
@@ -571,7 +585,7 @@ export default function WorksheetDashboard({
                       key={worksheet.id}
                       onClick={() => handleWorksheetClick(worksheet)}
                       style={{ animationDelay: `${index * 30}ms` }}
-                      className=" flex flex-col h-full worksheet-card group bg-white border border-slate-200 rounded-xl cursor-pointer overflow-hidden shadow-sm hover:shadow-xl"
+                      className="flex flex-col h-full worksheet-card group bg-white border border-slate-200 rounded-xl cursor-pointer overflow-hidden shadow-sm hover:shadow-xl"
                     >
                       <div className="shimmer-effect absolute inset-0 pointer-events-none"></div>
 

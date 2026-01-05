@@ -1,4 +1,9 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { type SampleData } from "../preparation_models/SampleData";
 import type { Instrument } from "../preparation_models/Instrument";
@@ -47,6 +52,7 @@ import {
   fetchSample,
   fetchAnalysts,
   deleteParameter,
+  submitWorksheet,
 } from "../services/api";
 import type { WorksheetDetail } from "../models/WorksheetDetail";
 import type { WorksheetRequest } from "../models/WorksheetRequest";
@@ -62,10 +68,11 @@ import { BsPlayFill } from "react-icons/bs";
 import ApproveParameterDialog from "./shared/ApproveParameterDialog";
 import DisapproveParameterDialog from "./shared/DisapproveParameterDialog";
 import RevisionRequestDialog from "./shared/RevisionRequestDialog";
-import { FcApproval } from "react-icons/fc";
-import { MdApproval, MdDone } from "react-icons/md";
 import ApproveWorksheetDialog from "./shared/ApproveWorksheetDialog";
 import Toast from "./shared/Toast";
+import { WorksheetDbMapper } from "../helpers/WorksheetDbMapper";
+import { MdDone } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 
 // SVG Icons
 const Target: React.FC<{ className: string }> = ({ className }) => (
@@ -165,81 +172,91 @@ interface WorksheetProps {
   referenceDataError: string | null;
   employeeId: string;
   role: string;
+  onPrint?: (
+    info: WorksheetDetail, 
+    analysts: Analyst[],
+    instruments: Instrument[], 
+    chemicals: Chemical[], 
+    standards: Standard[]
+  ) => void;
 }
 
 // Factory functions for creating new preparation objects
 const createNewCalculationDisso = (index: number): CalculationDisso => ({
   id: Date.now() + index,
-  label: `Dissolution Calculation ${index + 1}`,
-  selectedStandardPrepId: null,
-  selectedSamplePrepDissoId: null,
+  label: `Calculation ${index + 1}`,
+  selectedStandardPrepLabel: null,
+  selectedSamplePrepLabel: null,
   areaOfSample: "",
   areaOfStandard: "",
   mwBase: "",
   mwSalt: "",
-  claim: "",
   purity: "",
+  calculationResult: null,
+  calculationResultUnit: null,
 });
 
 const createNewCalculationAssay = (index: number): CalculationAssay => ({
   id: Date.now() + index,
   label: `Calculation ${index + 1}`,
-  selectedStandardPrepId: null,
-  selectedSamplePrepId: null,
-  calculationType: "",
+  selectedStandardPrepLabel: null,
+  selectedSamplePrepLabel: null,
+  calculationFor: "",
   areaOfSample: "",
   areaOfStandard: "",
-  v1: "",
-  v2: "",
-  v3: "",
-  v4: "",
-  v5: "",
-  v6: "",
-  v7: "",
-  v8: "",
-  v9: "",
-  v10: "",
-  v11: "",
-  v12: "",
-  v13: "",
-  v14: "",
-  sw1: "",
-  sw2: "",
-  baseXPurity: "",
-  avgWt: "",
+  avgWeight: "",
   mwSalt: "",
   mwBase: "",
-  claimVolume: "",
+  claim: "",
   labelClaim: "",
+  lodWaterType: "",
+  lodWaterValue: "",
+  calculationResult: null,
+  labelClaimPercent: null,
+  lodWaterBasisResult: null,
+  purity: "",
+  avgWeightUnit: "",
+  avgContent: "",
+  avgContentUnit: "",
+  sampleVol: "",
+  sampleVolUnit: "",
+  claimUnit: "",
+  calculationResultUnit: null,
 });
 
 const createNewCalculationLod = (index: number): CalculationLod => ({
   id: Date.now() + index,
-  label: `LOD Calculation ${index + 1}`,
-  selectedSamplePrepId: null,
+  label: `Calculation ${index + 1}`,
+  selectedSamplePrepLabel: null,
   w1_emptyDish: "",
   w2_dishWithSample: "",
   w3_dishAfterIgnition: "",
+  calculationResult: null,
+  calculationResultUnit: null,
 });
 
 const createNewCalculationROI = (index: number): CalculationROI => ({
   id: Date.now() + index,
-  label: `ROI Calculation ${index + 1}`,
-  selectedSamplePrepId: null,
+  label: `Calculation ${index + 1}`,
+  selectedSamplePrepLabel: null,
   w1_emptyDish: "",
   w2_dishWithSample: "",
   w3_dishAfterIgnition: "",
+  calculationResult: null,
+  calculationResultUnit: null,
 });
 
 const createNewCalculationSulphatedAsh = (
   index: number
 ): CalculationSulphatedAsh => ({
   id: Date.now() + index,
-  label: `Sulphated Ash Calculation ${index + 1}`,
-  selectedSamplePrepId: null,
+  label: `Calculation ${index + 1}`,
+  selectedSamplePrepLabel: null,
   w1_emptyCrucible: "",
   w2_crucibleWithSample: "",
   w3_crucibleAfterAsh: "",
+  calculationResult: null,
+  calculationResultUnit: null,
 });
 
 const createNewStandardPreparation = (index: number): StandardPreparation => ({
@@ -249,16 +266,16 @@ const createNewStandardPreparation = (index: number): StandardPreparation => ({
   steps: [
     {
       name: "Weighing",
-      value: "",
-      unit: "g",
+      value1: "",
+      unit1: "g",
       logBookID: "",
       solventChemical: "",
     },
-    { name: "1st Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-    { name: "2nd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-    { name: "3rd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-    { name: "4th Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-    { name: "Filtration", value: "", unit: "micron" },
+    { name: "1st Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "2nd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "3rd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "4th Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "Filtration", value1: "", unit1: "micron" },
   ],
 });
 
@@ -268,16 +285,16 @@ const createNewSamplePreparation = (index: number): SamplePreparation => ({
   steps: [
     {
       name: "Weighing",
-      value: "",
-      unit: "g",
+      value1: "",
+      unit1: "g",
       logBookID: "",
       solventChemical: "",
     },
-    { name: "1st Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-    { name: "2nd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-    { name: "3rd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-    { name: "4th Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-    { name: "Filtration", value: "", unit: "micron" },
+    { name: "1st Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "2nd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "3rd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "4th Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "Filtration", value1: "", unit1: "micron" },
   ],
 });
 
@@ -285,19 +302,19 @@ const createNewSamplePreparationLod = (
   index: number
 ): SamplePreparationLod => ({
   id: Date.now() + index,
-  label: `Sample Preparation ${index + 1} for LOD`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
-    { name: "Weighing (Empty Bottle)", value: "", unit: "g", logBookID: "" },
-    { name: "Weighing (Before Drying)", value: "", unit: "g", logBookID: "" },
+    { name: "Weighing (Empty Bottle)", value1: "", unit1: "g", logBookID: "" },
+    { name: "Weighing (Before Drying)", value1: "", unit1: "g", logBookID: "" },
     {
       name: "Drying",
-      temp: "",
-      tempUnit: "°C",
-      time: "",
-      timeUnit: "min",
+      value1: "",
+      unit1: "°C",
+      value2: "",
+      unit2: "min",
       logBookID: "",
     },
-    { name: "Weighing (After Drying)", value: "", unit: "g", logBookID: "" },
+    { name: "Weighing (After Drying)", value1: "", unit1: "g", logBookID: "" },
   ],
 });
 
@@ -305,19 +322,24 @@ const createNewSamplePreparationSulphatedAsh = (
   index: number
 ): SamplePreparationSulphatedAsh => ({
   id: Date.now() + index,
-  label: `Sample Preparation ${index + 1} for Sulphated Ash`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
-    { name: "Weighing (Empty Crucible)", value: "", unit: "g", logBookID: "" },
-    { name: "Weighing (Before Drying)", value: "", unit: "g", logBookID: "" },
     {
-      name: "Drying",
-      temp: "",
-      tempUnit: "°C",
-      time: "",
-      timeUnit: "min",
+      name: "Weighing (Empty Crucible)",
+      value1: "",
+      unit1: "g",
       logBookID: "",
     },
-    { name: "Weighing (After Drying)", value: "", unit: "g", logBookID: "" },
+    { name: "Weighing (Before Drying)", value1: "", unit1: "g", logBookID: "" },
+    {
+      name: "Drying",
+      value1: "",
+      unit1: "°C",
+      value2: "",
+      unit2: "min",
+      logBookID: "",
+    },
+    { name: "Weighing (After Drying)", value1: "", unit1: "g", logBookID: "" },
   ],
 });
 
@@ -325,19 +347,24 @@ const createNewSamplePreparationROI = (
   index: number
 ): SamplePreparationROI => ({
   id: Date.now() + index,
-  label: `Sample Preparation ${index + 1} for ROI`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
-    { name: "Weighing (Empty Crucible)", value: "", unit: "g", logBookID: "" },
-    { name: "Weighing (Before Drying)", value: "", unit: "g", logBookID: "" },
     {
-      name: "Drying",
-      temp: "",
-      tempUnit: "°C",
-      time: "",
-      timeUnit: "min",
+      name: "Weighing (Empty Crucible)",
+      value1: "",
+      unit1: "g",
       logBookID: "",
     },
-    { name: "Weighing (After Drying)", value: "", unit: "g", logBookID: "" },
+    { name: "Weighing (Before Drying)", value1: "", unit1: "g", logBookID: "" },
+    {
+      name: "Drying",
+      value1: "",
+      unit1: "°C",
+      value2: "",
+      unit2: "min",
+      logBookID: "",
+    },
+    { name: "Weighing (After Drying)", value1: "", unit1: "g", logBookID: "" },
   ],
 });
 
@@ -348,39 +375,40 @@ const createNewSamplePreparationDisso = (
   label: `Sample Preparation ${index + 1}`,
   assignedStandardId: null,
   steps: [
-    { name: "Instrument Details", id: "", rpm: "", temp: "", tempUnit: "°C" },
+    {
+      name: "Instrument Details",
+      id: "",
+      value1: "",
+      unit1: "rpm",
+      value2: "",
+      unit2: "°C",
+    },
     {
       name: "Tablet Details",
-      claim: "",
-      claimUnit: "mg",
-      mediaVol: "",
-      unit: "g",
-      time: "",
-      timeUnit: "min",
+      value1: "",
+      unit1: "mg",
+      value2: "",
+      unit2: "g",
+      value3: "",
+      unit3: "min",
     },
-    { name: "1st Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-    { name: "2nd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-    { name: "3rd Dilution", vol1: "", unit1: "ml", vol2: "", unit2: "ml" },
-    { name: "Filtration", value: "", unit: "micron" },
+    { name: "1st Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "2nd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "3rd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "Filtration", value1: "", unit1: "micron" },
   ],
 });
 
 const createNewCalculationRS = (index: number): CalculationRS => ({
   id: Date.now() + index,
-  label: `RS Calculation ${index + 1}`,
-  selectedStandardPrepId: null,
-  selectedSamplePrepId: null,
+  label: `Calculation ${index + 1}`,
+  selectedStandardPrepLabel: null,
+  selectedSamplePrepLabel: null,
   areaOfSample: "",
   areaOfStandard: "",
-  sw1: "",
-  sw2: "",
-  v1: "",
-  v2: "",
-  v3: "",
-  v4: "",
-  v5: "",
-  v6: "",
   purity: "",
+  calculationResult: null,
+  calculationResultUnit: null,
 });
 
 const PREPARATION_GROUPS = {
@@ -413,6 +441,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
   referenceDataError = null,
   employeeId,
   role,
+  onPrint,
 }) => {
   // Core state
   const [paramIdx, setParamIdx] = useState(0);
@@ -592,6 +621,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const standardRef = useRef<HTMLDivElement>(null);
   const preparationDropdownRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    reloadWorksheet();
+  }, [worksheetId]);
+
   // Click outside handler
   const handleClickOutside = useCallback((event: MouseEvent) => {
     if (
@@ -692,8 +725,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         const samples = await fetchSample(worksheetData.sample.registrationNo);
         setSamplesData(samples);
 
-        console.log("Fetching samples:", samples);
-
         restoreWorksheetToState(worksheetData);
       } catch (err: any) {
         console.error("Error loading worksheet:", err);
@@ -708,9 +739,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
   const restoreWorksheetToState = (worksheetData: WorksheetDetail) => {
     const { parameters } = worksheetData;
-
-    console.log("🔍 Starting worksheet restoration...");
-    console.log("Parameters received:", parameters);
 
     const restoredParams = parameters.map((param, index) => {
       const matchingParameter = parameters.find(
@@ -753,10 +781,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
     parameters.forEach((param, idx) => {
       const paramId = restoredParams[idx].id;
 
-      console.log(`\nProcessing parameter ${idx + 1}:`, param.parameterName);
-      console.log("Parameter data:", param);
-
-      // ========== BASIC FIELDS ==========
       if (param.columnId) {
         setColumnsPerParam((prev) => ({ ...prev, [paramId]: param.columnId! }));
       }
@@ -832,7 +856,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
             const paramInstruments = instruments.filter((inst) =>
               validInstrumentIds.includes(String(inst.id).trim())
             );
-            console.log("✅ Restored instruments:", paramInstruments);
             setAddedInstruments((prev) => ({
               ...prev,
               [paramId]: paramInstruments,
@@ -856,7 +879,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
             const paramChemicals = chemicals.filter((chem) =>
               validChemicalIds.includes(String(chem.id).trim())
             );
-            console.log("✅ Restored chemicals:", paramChemicals);
             setAddedChemicals((prev) => ({
               ...prev,
               [paramId]: paramChemicals,
@@ -880,7 +902,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
             const paramStandards = standards.filter((std) =>
               validStandardIds.includes(String(std.id).trim())
             );
-            console.log("✅ Restored standards:", paramStandards);
             setAddedStandards((prev) => ({
               ...prev,
               [paramId]: paramStandards,
@@ -895,12 +916,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         Array.isArray(param.standardPreparations) &&
         param.standardPreparations.length > 0
       ) {
-        console.log(
-          "📋 Standard Preparations (raw):",
-          param.standardPreparations
-        );
-
-        // Arrays to collect preparations by type
         const assayStdPreps: any[] = [];
         const rsStdPreps: any[] = [];
         const dissoStdPreps: any[] = [];
@@ -908,11 +923,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         param.standardPreparations.forEach((prep: any, i: number) => {
           const parsedSteps = safeJSONParse(prep.steps, []);
           const prepType = prep.preparationType || "assay";
-
-          console.log(
-            `  Standard Prep ${i + 1} type: ${prepType}, steps:`,
-            parsedSteps
-          );
 
           const newPrep = {
             id: Date.now() + i + 1000 + Math.random() * 1000,
@@ -936,12 +946,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
           }
         });
 
-        // Set state for each type
         if (assayStdPreps.length > 0) {
-          console.log(
-            "✅ Restored Assay Standard Preparations:",
-            assayStdPreps
-          );
           setStandardPreparationPerParam((prev) => ({
             ...prev,
             [paramId]: assayStdPreps,
@@ -949,7 +954,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
 
         if (rsStdPreps.length > 0) {
-          console.log("✅ Restored RS Standard Preparations:", rsStdPreps);
           setStandardPreparationRSPerParam((prev) => ({
             ...prev,
             [paramId]: rsStdPreps,
@@ -957,10 +961,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
 
         if (dissoStdPreps.length > 0) {
-          console.log(
-            "✅ Restored Dissolution Standard Preparations:",
-            dissoStdPreps
-          );
           setStandardPreparationDissoPerParam((prev) => ({
             ...prev,
             [paramId]: dissoStdPreps,
@@ -974,8 +974,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         Array.isArray(param.samplePreparations) &&
         param.samplePreparations.length > 0
       ) {
-        console.log("📋 Sample Preparations (raw):", param.samplePreparations);
-
         // Arrays to collect preparations by type
         const assaySplPreps: any[] = [];
         const lodSplPreps: any[] = [];
@@ -987,11 +985,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         param.samplePreparations.forEach((prep: any, i: number) => {
           const parsedSteps = safeJSONParse(prep.steps, []);
           const prepType = prep.preparationType || "assay";
-
-          console.log(
-            `  Sample Prep ${i + 1} type: ${prepType}, steps:`,
-            parsedSteps
-          );
 
           const newPrep = {
             id: Date.now() + i + 2000 + Math.random() * 1000,
@@ -1026,7 +1019,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
         // Set state for each type
         if (assaySplPreps.length > 0) {
-          console.log("✅ Restored Assay Sample Preparations:", assaySplPreps);
           setSamplePreparationPerParam((prev) => ({
             ...prev,
             [paramId]: assaySplPreps,
@@ -1034,7 +1026,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
 
         if (lodSplPreps.length > 0) {
-          console.log("✅ Restored LOD Sample Preparations:", lodSplPreps);
           setSamplePreparationLodPerParam((prev) => ({
             ...prev,
             [paramId]: lodSplPreps,
@@ -1042,7 +1033,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
 
         if (roiSplPreps.length > 0) {
-          console.log("✅ Restored ROI Sample Preparations:", roiSplPreps);
           setSamplePreparationROIPerParam((prev) => ({
             ...prev,
             [paramId]: roiSplPreps,
@@ -1050,10 +1040,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
 
         if (ashSplPreps.length > 0) {
-          console.log(
-            "✅ Restored Sulphated Ash Sample Preparations:",
-            ashSplPreps
-          );
           setSamplePreparationSulphatedAshPerParam((prev) => ({
             ...prev,
             [paramId]: ashSplPreps,
@@ -1061,7 +1047,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
 
         if (rsSplPreps.length > 0) {
-          console.log("✅ Restored RS Sample Preparations:", rsSplPreps);
           setSamplePreparationRSPerParam((prev) => ({
             ...prev,
             [paramId]: rsSplPreps,
@@ -1069,10 +1054,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
 
         if (dissoSplPreps.length > 0) {
-          console.log(
-            "✅ Restored Dissolution Sample Preparations:",
-            dissoSplPreps
-          );
           setSamplePreparationDissoPerParam((prev) => ({
             ...prev,
             [paramId]: dissoSplPreps,
@@ -1080,8 +1061,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
       }
 
-      // ========== BUILD PREP LABEL MAPPING FOR CALCULATIONS ==========
-      // Build label->newId mapping for restored preparations so we can resolve labels saved in calc data
       const prepLabelMapping: Record<string, number> = {};
 
       // Map standard preparations
@@ -1107,14 +1086,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         });
       }
 
-      console.log("🔗 Prep Label Mapping:", prepLabelMapping);
-
-      // ========== CALCULATIONS (UNIFIED WITH TYPES) ==========
-      // ========== CALCULATIONS (UNIFIED WITH TYPES) ==========
       if (param.calculations && Array.isArray(param.calculations)) {
-        console.log("📊 Calculations (raw):", param.calculations);
-
-        // ✅ CLEAR existing calculations first to prevent duplicates
         const restoredCalculations = {
           assay: [] as any[],
           lod: [] as any[],
@@ -1130,134 +1102,116 @@ const Worksheet: React.FC<WorksheetProps> = ({
               typeof calc.data === "string" ? JSON.parse(calc.data) : calc.data;
             const calcType = calc.calculationType || "assay";
 
-            console.log(`  Calculation ${i + 1} type: ${calcType}`);
-
             // Get preparation labels for linking
-            const stdLabel = parsedData.selectedStandardPreparationLabel;
-            const splLabel = parsedData.selectedSamplePreparationLabel;
+            const stdLabel = parsedData.selectedStandardPrepLabel;
+            const splLabel = parsedData.selectedSamplePrepLabel;
 
-            // Map labels to IDs from restored preparations
-            const stdId = stdLabel ? prepLabelMapping[stdLabel] ?? null : null;
-            const splId = splLabel ? prepLabelMapping[splLabel] ?? null : null;
-
-            // ✅ Use a deterministic ID based on parameter and index
             const baseId = Date.now() + paramId * 10000 + i;
 
             // Route based on calculationType
             switch (calcType) {
               case "assay":
                 const assayCalc = {
-                  id: baseId + 3000, // ✅ Deterministic ID
+                  id: baseId + 3000,
                   label: parsedData.label || calc.label,
-                  selectedStandardPrepId: stdId,
-                  selectedSamplePrepId: splId,
-                  calculationType: parsedData.calculationType || "",
+                  selectedStandardPrepLabel: stdLabel,
+                  selectedSamplePrepLabel: splLabel,
+                  calculationFor: parsedData.calculationFor || "",
                   areaOfSample: parsedData.areaOfSample || "",
                   areaOfStandard: parsedData.areaOfStandard || "",
-                  v1: parsedData.v1 || "",
-                  v2: parsedData.v2 || "",
-                  v3: parsedData.v3 || "",
-                  v4: parsedData.v4 || "",
-                  v5: parsedData.v5 || "",
-                  v6: parsedData.v6 || "",
-                  v7: parsedData.v7 || "",
-                  v8: parsedData.v8 || "",
-                  v9: parsedData.v9 || "",
-                  v10: parsedData.v10 || "",
-                  v11: parsedData.v11 || "",
-                  v12: parsedData.v12 || "",
-                  v13: parsedData.v13 || "",
-                  v14: parsedData.v14 || "",
-                  sw1: parsedData.sw1 || "",
-                  sw2: parsedData.sw2 || "",
-                  baseXPurity: parsedData.baseXPurity || "",
-                  avgWt: parsedData.avgWt || "",
+                  avgWeight: parsedData.avgWeight || "",
+                  avgWeightUnit: parsedData.avgWeightUnit || "",
+                  avgContent: parsedData.avgContent || "",
+                  avgContentUnit: parsedData.avgContentUnit || "",
+                  sampleVol: parsedData.sampleVol || "",
+                  sampleVolUnit: parsedData.sampleVolUnit || "",
                   mwSalt: parsedData.mwSalt || "",
                   mwBase: parsedData.mwBase || "",
-                  claimVolume:
-                    parsedData.claimVolume || parsedData.doseVolume || "",
+                  claim: parsedData.claim || "",
+                  claimUnit: parsedData.claimUnit || "",
                   labelClaim: parsedData.labelClaim || "",
+                  lodwaterType: parsedData.lodwaterType || "",
+                  lodwaterValue: parsedData.lodwaterValue || "",
+                  calculationResult: parsedData.calculationResult || "",
+                  calculationResultUnit: parsedData.calculationResultUnit || "",
+                  labelClaimPercent: parsedData.labelClaimPercent || "",
+                  lodWaterBasisResult: parsedData.lodWaterBasisResult || "",
                 };
                 restoredCalculations.assay.push(assayCalc);
-                console.log("✅ Restored Assay Calculation:", assayCalc);
                 break;
 
               case "lod":
                 const lodCalc = {
                   id: baseId + 4000,
                   label: parsedData.label || calc.label,
-                  selectedSamplePrepId: splId,
+                  selectedSamplePrepLabel: splLabel,
                   w1_emptyDish: parsedData.w1_emptyDish || "",
                   w2_dishWithSample: parsedData.w2_dishWithSample || "",
                   w3_dishAfterIgnition: parsedData.w3_dishAfterIgnition || "",
+                  calculationResult: parsedData.calculationResult || "",
+                  calculationResultUnit: parsedData.calculationResultUnit || "",
                 };
                 restoredCalculations.lod.push(lodCalc);
-                console.log("✅ Restored LOD Calculation:", lodCalc);
                 break;
 
               case "roi":
                 const roiCalc = {
                   id: baseId + 5000,
                   label: parsedData.label || calc.label,
-                  selectedSamplePrepId: splId,
+                  selectedSamplePrepLabel: splLabel,
                   w1_emptyDish: parsedData.w1_emptyDish || "",
                   w2_dishWithSample: parsedData.w2_dishWithSample || "",
                   w3_dishAfterIgnition: parsedData.w3_dishAfterIgnition || "",
+                  calculationResult: parsedData.calculationResult || "",
+                  calculationResultUnit: parsedData.calculationResultUnit || "",
                 };
                 restoredCalculations.roi.push(roiCalc);
-                console.log("✅ Restored ROI Calculation:", roiCalc);
                 break;
 
               case "sulphated_ash":
                 const ashCalc = {
                   id: baseId + 6000,
                   label: parsedData.label || calc.label,
-                  selectedSamplePrepId: splId,
+                  selectedSamplePrepLabel: splLabel,
                   w1_emptyCrucible: parsedData.w1_emptyCrucible || "",
                   w2_crucibleWithSample: parsedData.w2_crucibleWithSample || "",
                   w3_crucibleAfterAsh: parsedData.w3_crucibleAfterAsh || "",
+                  calculationResult: parsedData.calculationResult || "",
+                  calculationResultUnit: parsedData.calculationResultUnit || "",
                 };
                 restoredCalculations.sulphatedAsh.push(ashCalc);
-                console.log("✅ Restored Sulphated Ash Calculation:", ashCalc);
                 break;
 
               case "residual_solvent":
                 const rsCalc = {
                   id: baseId + 7000,
                   label: parsedData.label || calc.label,
-                  selectedStandardPrepId: stdId,
-                  selectedSamplePrepId: splId,
+                  selectedStandardPrepLabel: stdLabel,
+                  selectedSamplePrepLabel: splLabel,
                   areaOfSample: parsedData.areaOfSample || "",
                   areaOfStandard: parsedData.areaOfStandard || "",
-                  sw1: parsedData.sw1 || "",
-                  sw2: parsedData.sw2 || "",
-                  v1: parsedData.v1 || "",
-                  v2: parsedData.v2 || "",
-                  v3: parsedData.v3 || "",
-                  v4: parsedData.v4 || "",
-                  v5: parsedData.v5 || "",
-                  v6: parsedData.v6 || "",
                   purity: parsedData.purity || "",
+                  calculationResult: parsedData.calculationResult || "",
+                  calculationResultUnit: parsedData.calculationResultUnit || "",
                 };
                 restoredCalculations.residualSolvent.push(rsCalc);
-                console.log("✅ Restored RS Calculation:", rsCalc);
                 break;
 
               case "dissolution":
                 const dissoCalc = {
                   id: baseId + 8000,
                   label: parsedData.label || calc.label,
-                  selectedStandardPrepId: stdId,
-                  selectedSamplePrepDissoId: splId,
+                  selectedStandardPrepLabel: stdLabel,
+                  selectedSamplePrepLabel: splLabel,
                   areaOfSample: parsedData.areaOfSample || "",
                   areaOfStandard: parsedData.areaOfStandard || "",
                   mwBase: parsedData.mwBase || "",
                   mwSalt: parsedData.mwSalt || "",
-                  claim: parsedData.claim || "",
                   purity: parsedData.purity || "",
+                  calculationResult: parsedData.calculationResult || "",
+                  calculationResultUnit: parsedData.calculationResultUnit || "",
                 };
                 restoredCalculations.dissolution.push(dissoCalc);
-                console.log("✅ Restored Dissolution Calculation:", dissoCalc);
                 break;
             }
           } catch (e) {
@@ -1265,7 +1219,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
           }
         });
 
-        // ✅ SET STATE ONCE with all calculations (replaces existing)
         if (restoredCalculations.assay.length > 0) {
           setCalculationsAssayPerParam((prev) => ({
             ...prev,
@@ -1309,7 +1262,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
       }
 
-      // ========== SET ACTIVE PREPARATION GROUPS ==========
       const activeGroups: string[] = [];
 
       // Check for assay preparations
@@ -1376,7 +1328,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
       }
 
       if (activeGroups.length > 0) {
-        console.log("✅ Active preparation groups:", activeGroups);
         setActivePreparationGroups((prev) => ({
           ...prev,
           [paramId]: activeGroups,
@@ -1386,8 +1337,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
     // Auto-expand all parameters for viewing
     setSelectedParamsForDetail(restoredParams.map((p) => p.id));
-
-    console.log("✅ Worksheet restoration complete!");
   };
 
   // Resolve per-parameter cached ids to full objects when parent lists become available
@@ -1444,49 +1393,20 @@ const Worksheet: React.FC<WorksheetProps> = ({
   }, [standards]);
 
   const collectFormDataForAPI = (): WorksheetRequest => {
-    const getPrepLabel = (
-      paramId: number,
-      prepId: number | null | undefined
-    ) => {
-      if (prepId == null) return "";
-
-      // Search in all standard preparation types
-      const allStandardPreps = [
-        ...(standardPreparationPerParam[paramId] || []),
-        ...(standardPreparationRSPerParam[paramId] || []),
-        ...(standardPreparationDissoPerParam[paramId] || []),
-      ];
-
-      // Search in all sample preparation types
-      const allSamplePreps = [
-        ...(samplePreparationPerParam[paramId] || []),
-        ...(samplePreparationLodPerParam[paramId] || []),
-        ...(samplePreparationROIPerParam[paramId] || []),
-        ...(samplePreparationSulphatedAshPerParam[paramId] || []),
-        ...(samplePreparationRSPerParam[paramId] || []),
-        ...(samplePreparationDissoPerParam[paramId] || []),
-      ];
-
-      const foundStd = allStandardPreps.find((p: any) => p.id === prepId);
-      if (foundStd) return foundStd.label || "";
-
-      const foundSpl = allSamplePreps.find((p: any) => p.id === prepId);
-      if (foundSpl) return foundSpl.label || "";
-
-      return "";
-    };
-
     return {
+      role: role,
+      worksheetId: worksheetId,
       registrationInfo: {
         registrationNo:
-          worksheetInfo?.sample.registrationNo || registrationNo || "",
-        sampleName: worksheetInfo?.sample?.sampleName || "",
-        numberOfParameters: addedParameters.length,
-        dueDate: worksheetInfo?.sample?.dueDate || "",
+          worksheetInfo?.sample.registrationNo || registrationNo,
+        sampleName: worksheetInfo?.sample?.sampleName!,
+        numberOfParameters: addedParameters.length!,
+        dueDate: worksheetInfo?.sample?.dueDate!,
       },
       documentInfo: {
         preparedBy: employeeId,
         status: worksheetInfo?.sample.status,
+        approvedAt: worksheetInfo?.sample?.approvedAt || null,
       },
       parameters: addedParameters.map((param) => {
         const standardPreparations = [
@@ -1555,19 +1475,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
         // Collect all calculations with their types
         const calculations = [
           ...(calculationsAssayPerParam[param.id] || []).map((calc) => {
-            const stdLabel = getPrepLabel(
-              param.id,
-              (calc as any).selectedStandardPrepId
-            );
-            const splLabel = getPrepLabel(
-              param.id,
-              (calc as any).selectedSamplePrepId
-            );
             const dataObj = { ...calc } as any;
             delete dataObj.selectedStandardPrepId;
             delete dataObj.selectedSamplePrepId;
-            dataObj.selectedStandardPreparationLabel = stdLabel || "";
-            dataObj.selectedSamplePreparationLabel = splLabel || "";
             return {
               label: calc.label,
               calculationType: "assay",
@@ -1575,13 +1485,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
             };
           }),
           ...(calculationsLodPerParam[param.id] || []).map((calc) => {
-            const splLabel = getPrepLabel(
-              param.id,
-              (calc as any).selectedSamplePrepId
-            );
             const dataObj = { ...calc } as any;
             delete dataObj.selectedSamplePrepId;
-            dataObj.selectedSamplePreparationLabel = splLabel || "";
             return {
               label: calc.label,
               calculationType: "lod",
@@ -1589,13 +1494,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
             };
           }),
           ...(calculationsROIPerParam[param.id] || []).map((calc) => {
-            const splLabel = getPrepLabel(
-              param.id,
-              (calc as any).selectedSamplePrepId
-            );
             const dataObj = { ...calc } as any;
             delete dataObj.selectedSamplePrepId;
-            dataObj.selectedSamplePreparationLabel = splLabel || "";
             return {
               label: calc.label,
               calculationType: "roi",
@@ -1603,13 +1503,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
             };
           }),
           ...(calculationsSulphatedAshPerParam[param.id] || []).map((calc) => {
-            const splLabel = getPrepLabel(
-              param.id,
-              (calc as any).selectedSamplePrepId
-            );
             const dataObj = { ...calc } as any;
             delete dataObj.selectedSamplePrepId;
-            dataObj.selectedSamplePreparationLabel = splLabel || "";
             return {
               label: calc.label,
               calculationType: "sulphated_ash",
@@ -1617,19 +1512,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
             };
           }),
           ...(calculationsRSPerParam[param.id] || []).map((calc) => {
-            const stdLabel = getPrepLabel(
-              param.id,
-              (calc as any).selectedStandardPrepId
-            );
-            const splLabel = getPrepLabel(
-              param.id,
-              (calc as any).selectedSamplePrepId
-            );
             const dataObj = { ...calc } as any;
             delete dataObj.selectedStandardPrepId;
             delete dataObj.selectedSamplePrepId;
-            dataObj.selectedStandardPreparationLabel = stdLabel || "";
-            dataObj.selectedSamplePreparationLabel = splLabel || "";
             return {
               label: calc.label,
               calculationType: "residual_solvent",
@@ -1637,19 +1522,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
             };
           }),
           ...(calculationsDissoPerParam[param.id] || []).map((calc) => {
-            const stdLabel = getPrepLabel(
-              param.id,
-              (calc as any).selectedStandardPrepId
-            );
-            const splLabel = getPrepLabel(
-              param.id,
-              (calc as any).selectedSamplePrepId
-            );
             const dataObj = { ...calc } as any;
             delete dataObj.selectedStandardPrepId;
             delete dataObj.selectedSamplePrepId;
-            dataObj.selectedStandardPreparationLabel = stdLabel || "";
-            dataObj.selectedSamplePreparationLabel = splLabel || "";
             return {
               label: calc.label,
               calculationType: "dissolution",
@@ -1664,22 +1539,22 @@ const Worksheet: React.FC<WorksheetProps> = ({
           parameterName: param.parameterName,
           methodCode: param.methodCode,
           methodName: param.methodName,
-          columnId: columnsPerParam[param.id] || "",
-          diluentPreparation: diluentPerParam[param.id] || "",
-          otherInfo: otherInfoPerParam[param.id] || "",
-          analysisStartDate: analysisStartDatePerParam[param.id] || "",
+          columnId: columnsPerParam[param.id] || null,
+          diluentPreparation: diluentPerParam[param.id] || null,
+          otherInfo: otherInfoPerParam[param.id] || null,
+          analysisStartDate: analysisStartDatePerParam[param.id] || null,
           analysisCompletionDate:
-            analysisCompletionDatePerParam[param.id] || "",
-          analyzedBy: analyzedByPerParam[param.id] || "",
-          approvedBy: approvedByPerParam[param.id] || "",
-          approvedAt: approvedAtPerParam[param.id] || "",
+            analysisCompletionDatePerParam[param.id] || null,
+          analyzedBy: analyzedByPerParam[param.id] || null,
+          approvedBy: approvedByPerParam[param.id] || null,
+          approvedAt: approvedAtPerParam[param.id] || null,
           status: parameterStatusPerParam[param.id] || "Created",
 
-          instruments: (addedInstruments[param.id] || []).map(
+          instrumentIds: (addedInstruments[param.id] || []).map(
             (inst) => inst.id
           ),
-          chemicals: (addedChemicals[param.id] || []).map((chem) => chem.id),
-          standards: (addedStandards[param.id] || []).map((std) => std.id),
+          chemicalIds: (addedChemicals[param.id] || []).map((chem) => chem.id),
+          standardIds: (addedStandards[param.id] || []).map((std) => std.id),
 
           // Unified arrays with type discriminators
           standardPreparations,
@@ -1688,6 +1563,55 @@ const Worksheet: React.FC<WorksheetProps> = ({
         };
       }),
     };
+  };
+
+  const reloadWorksheet = async () => {
+    if (!worksheetId) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const requestData: FetchWorksheetRequest = { employeeId, role };
+
+      const worksheetData = await fetchWorksheetById(worksheetId, requestData);
+
+      if (!worksheetData) {
+        setError("Worksheet not found");
+        return;
+      }
+
+      setWorksheetInfo(worksheetData);
+      setRegistrationNo(worksheetData.sample.registrationNo);
+
+      const samples = await fetchSample(worksheetData.sample.registrationNo);
+      setSamplesData(samples);
+
+      // 🔥 IMPORTANT: clear previous state before restore
+      setAddedParameters([]);
+      setSelectedParamsForDetail([]);
+
+      restoreWorksheetToState(worksheetData);
+    } catch (err: any) {
+      setError(err.message || "Failed to reload worksheet");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePrintClick = () => {
+    if (onPrint && worksheetInfo && analysts) {
+      const selectedParam = addedParameters[paramIdx];
+      const paramId = selectedParam.id;
+
+      onPrint(
+        worksheetInfo,
+        analysts,
+        addedInstruments[paramId] || [],
+        addedChemicals[paramId] || [],
+        addedStandards[paramId] || []
+      );
+    }
   };
 
   const handleSaveDraft = async () => {
@@ -1699,6 +1623,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         const response = await updateWorksheet(worksheetId, worksheetData);
 
         if (response && response.worksheetId) {
+          await reloadWorksheet();
           setToastMessage(`Draft saved successfully: ${response.worksheetId}`);
           setSaveSuccess(true);
           setTimeout(() => setSaveSuccess(false), 3000);
@@ -1733,6 +1658,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       }
     } catch (err: any) {
       setToastMessage(`Failed to save draft: ${err.message}`);
+      console.error("Save draft error:", err);
       setShowToast(true);
       setTimeout(() => {
         setShowToast(false);
@@ -2402,13 +2328,31 @@ const Worksheet: React.FC<WorksheetProps> = ({
       setIsCompletingAnalysis(false);
     }
   };
+  
 
   const handleApproveWorksheet = async () => {
     setIsApprovingWorksheet(true);
 
     try {
+      // Step 1: Collect current worksheet data
       const worksheetData = collectFormDataForAPI();
 
+      // Step 2: Map to database format using WorksheetDbMapper
+      if (!worksheetInfo) {
+        throw new Error("Worksheet information is not available");
+      }
+
+      const mappedData = WorksheetDbMapper.mapAll(worksheetInfo);
+
+      const submitResponse = await submitWorksheet(mappedData);
+
+      if (!submitResponse.success) {
+        throw new Error(
+          submitResponse.message || "Failed to submit worksheet to database"
+        );
+      }
+
+      // Step 4: Only if submission succeeds, update worksheet status to "Approved"
       const updatedWorksheetData = {
         ...worksheetData,
         documentInfo: {
@@ -2436,7 +2380,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         );
 
         setToastMessage(
-          "Worksheet approved successfully! All parameters are now finalized."
+          "Worksheet submitted to database and approved successfully! All parameters are now finalized."
         );
         setShowToast(true);
         setTimeout(() => {
@@ -2445,14 +2389,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
         setShowApproveWorksheetDialog(false);
       } else {
-        setToastMessage("Failed to approve worksheet!");
-        setShowToast(true);
-        setTimeout(() => {
-          setShowToast(false);
-        }, 4000);
+        throw new Error("Failed to update worksheet status after submission");
       }
-    } catch (error) {
-      setToastMessage(`Error approving worksheet: ${error}`);
+    } catch (error: any) {
+      console.error("Error during worksheet approval:", error);
+      setToastMessage(`Error approving worksheet: ${error.message || error}`);
       setShowToast(true);
       setTimeout(() => {
         setShowToast(false);
@@ -2466,8 +2407,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
     (param) =>
       !addedParameters.find((added) => added.paraCode === param.paraCode)
   );
-
-  console.log("Available parameters to add:", availableToAdd);
 
   // Standard Preparation Handlers
   const handleAddStandardPreparation = (parameterId: number) => {
@@ -2518,8 +2457,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
     field:
       | "value"
       | "unit"
-      | "vol1"
-      | "vol2"
+      | "value1"
+      | "value2"
       | "unit1"
       | "unit2"
       | "logBookID"
@@ -2584,10 +2523,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
     samplePreparationId: number,
     stepName: SamplePreparationStep["name"],
     field:
-      | "value"
-      | "unit"
-      | "vol1"
-      | "vol2"
+      | "value1"
+      | "value2"
       | "unit1"
       | "unit2"
       | "logBookID"
@@ -2637,7 +2574,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         .filter((spl) => spl.id !== samplePreparationLodId)
         .map((spl, index) => ({
           ...spl,
-          label: `Sample Preparation ${1 + index} for LOD`,
+          label: `Sample Preparation ${1 + index}`,
         }));
       return { ...prev, [parameterId]: updatedSamples };
     });
@@ -2648,12 +2585,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
     samplePreparationLodId: number,
     stepName: SamplePreparationLodStep["name"],
     field:
-      | "value"
-      | "unit"
-      | "temp"
-      | "tempUnit"
-      | "time"
-      | "timeUnit"
+      | "value1"
+      | "value2"
+      | "value3"
+      | "unit1"
+      | "unit2"
+      | "unit3"
       | "logBookID",
     newValue: string
   ) => {
@@ -2700,7 +2637,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         .filter((spsa) => spsa.id !== samplePreparationSulphatedAshId)
         .map((spsa, index) => ({
           ...spsa,
-          label: `Sample Preparation ${1 + index} for Sulphated Ash`,
+          label: `Sample Preparation ${1 + index}`,
         }));
       return { ...prev, [parameterId]: updatedSamples };
     });
@@ -2711,12 +2648,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
     samplePreparationSulphatedAshId: number,
     stepName: SamplePreparationSulphatedAshStep["name"],
     field:
-      | "value"
-      | "unit"
-      | "temp"
-      | "tempUnit"
-      | "time"
-      | "timeUnit"
+      | "value1"
+      | "value2"
+      | "value3"
+      | "unit1"
+      | "unit2"
+      | "unit3"
       | "logBookID",
     newValue: string
   ) => {
@@ -2763,7 +2700,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         .filter((spl) => spl.id !== samplePreparationROIId)
         .map((spl, index) => ({
           ...spl,
-          label: `Sample Preparation ${1 + index} for Loss on Ignation`,
+          label: `Sample Preparation ${1 + index}`,
         }));
       return { ...prev, [parameterId]: updatedSamples };
     });
@@ -2774,12 +2711,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
     samplePreparationROIId: number,
     stepName: SamplePreparationROIStep["name"],
     field:
-      | "value"
-      | "unit"
-      | "temp"
-      | "tempUnit"
-      | "time"
-      | "timeUnit"
+      | "value1"
+      | "value2"
+      | "value3"
+      | "unit1"
+      | "unit2"
+      | "unit3"
       | "logBookID",
     newValue: string
   ) => {
@@ -2842,21 +2779,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
     samplePreparationDissoId: number,
     stepName: SamplePreparationDissoStep["name"],
     field:
-      | "value"
-      | "unit"
-      | "vol1"
-      | "vol2"
+      | "id"
+      | "value1"
+      | "value2"
+      | "value3"
       | "unit1"
       | "unit2"
-      | "temp"
-      | "tempUnit"
-      | "time"
-      | "timeUnit"
-      | "id"
-      | "rpm"
-      | "claim"
-      | "claimUnit"
-      | "mediaVol"
+      | "unit3"
       | "solventChemical",
     newValue: string
   ) => {
@@ -3025,7 +2954,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         .filter((calc) => calc.id !== calculationId)
         .map((calc, index) => ({
           ...calc,
-          label: `LOD Calculation ${index + 1}`,
+          label: `Calculation ${index + 1}`,
         }));
       return { ...prev, [parameterId]: updatedCalculations };
     });
@@ -3072,7 +3001,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         .filter((calc) => calc.id !== calculationId)
         .map((calc, index) => ({
           ...calc,
-          label: `ROI Calculation ${index + 1}`,
+          label: `Calculation ${index + 1}`,
         }));
       return { ...prev, [parameterId]: updatedCalculations };
     });
@@ -3119,7 +3048,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         .filter((calc) => calc.id !== calculationId)
         .map((calc, index) => ({
           ...calc,
-          label: `Sulphated Ash Calculation ${index + 1}`,
+          label: `Calculation ${index + 1}`,
         }));
       return { ...prev, [parameterId]: updatedCalculations };
     });
@@ -3301,12 +3230,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
     standardPreparationId: number,
     stepName: StandardPreparationStep["name"],
     field:
-      | "value"
-      | "unit"
-      | "vol1"
-      | "vol2"
+      | "value1"
+      | "value2"
       | "unit1"
       | "unit2"
+      | "value3"
+      | "unit3"
       | "logBookID"
       | "solventChemical",
     newValue: string
@@ -3371,8 +3300,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
     field:
       | "value"
       | "unit"
-      | "vol1"
-      | "vol2"
+      | "value1"
+      | "value2"
       | "unit1"
       | "unit2"
       | "logBookID"
@@ -3421,7 +3350,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         .filter((calc) => calc.id !== calculationId)
         .map((calc, index) => ({
           ...calc,
-          label: `RS Calculation ${index + 1}`,
+          label: `Calculation ${index + 1}`,
         }));
       return { ...prev, [parameterId]: updatedCalculations };
     });
@@ -3506,8 +3435,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
     field:
       | "value"
       | "unit"
-      | "vol1"
-      | "vol2"
+      | "value1"
+      | "value2"
       | "unit1"
       | "unit2"
       | "logBookID"
@@ -3542,7 +3471,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         .filter((calc) => calc.id !== calculationId)
         .map((calc, index) => ({
           ...calc,
-          label: `Dissolution Calculation ${index + 1}`,
+          label: `Calculation ${index + 1}`,
         }));
       return { ...prev, [parameterId]: updatedCalculations };
     });
@@ -5429,11 +5358,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                       {worksheetInfo.sample.preparedBy || "HOD LAB"}
                     </div>
                   </div>
-                  {worksheetInfo.sample.approvedAt && (
-                    <div className="text-xs text-emerald-100 font-medium">
-                      📅 {worksheetInfo.sample.approvedAt}
-                    </div>
-                  )}
                 </div>
               </div>
             </motion.div>
@@ -6106,116 +6030,127 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         </div>
 
                         {/* Assigned Analyst Section */}
-                        {analyzedByPerParam[selectedParam.id] && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="relative group"
-                          >
-                            <div className="relative bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:border-emerald-300">
-                              <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-1 h-5 bg-emerald-500 rounded-full" />
-                                  <h4 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">
-                                    Assigned Analyst
-                                  </h4>
-                                </div>
-                                {role === "HOD LAB" && !isLocked && (
-                                  <motion.button
-                                    onClick={() =>
-                                      handleReassignAnalyst(selectedParam.id)
-                                    }
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className="px-3 py-1.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-lg hover:bg-white hover:border-emerald-300 transition-all duration-200 flex items-center gap-1.5"
-                                  >
-                                    <svg
-                                      className="w-3.5 h-3.5"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                                      />
-                                    </svg>
-                                    Reassign
-                                  </motion.button>
-                                )}
-                              </div>
 
-                              <div className="flex items-center gap-4">
-                                {/* Avatar */}
-                                <div className="relative">
-                                  <div className="relative w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center ring-2 ring-emerald-200">
-                                    <span className="text-white text-lg font-bold">
-                                      {analysts
-                                        .find(
+                        {role === "HOD LAB" && (
+                          <>
+                            {analyzedByPerParam[selectedParam.id] && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 }}
+                                className="relative group"
+                              >
+                                <div className="relative bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:border-emerald-300">
+                                  <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-1 h-5 bg-emerald-500 rounded-full" />
+                                      <h4 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">
+                                        Assigned Analyst
+                                      </h4>
+                                    </div>
+                                    {!isLocked && (
+                                      <motion.button
+                                      onClick={() =>
+                                        handleReassignAnalyst(selectedParam.id)
+                                      }
+                                      whileHover={{ scale: 1.02 }}
+                                      whileTap={{ scale: 0.98 }}
+                                      className="px-3 py-1.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-lg hover:bg-white hover:border-emerald-300 transition-all duration-200 flex items-center gap-1.5"
+                                    >
+                                      <svg
+                                        className="w-3.5 h-3.5"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                                        />
+                                      </svg>
+                                      Reassign
+                                    </motion.button>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center gap-4">
+                                    {/* Avatar */}
+                                    <div className="relative">
+                                      <div className="relative w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center ring-2 ring-emerald-200">
+                                        <span className="text-white text-lg font-bold">
+                                          {analysts
+                                            .find(
+                                              (a) =>
+                                                a.employeeId ===
+                                                analyzedByPerParam[
+                                                  selectedParam.id
+                                                ]
+                                            )
+                                            ?.username.charAt(0) || "A"}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Analyst Info */}
+                                    <div className="flex-1">
+                                      <div className="font-semibold text-base text-slate-900 mb-1">
+                                        {analysts.find(
                                           (a) =>
                                             a.employeeId ===
                                             analyzedByPerParam[selectedParam.id]
-                                        )
-                                        ?.username.charAt(0) || "A"}
-                                    </span>
+                                        )?.username || "Unknown"}
+                                      </div>
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="inline-flex items-center px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-semibold text-emerald-700">
+                                          <svg
+                                            className="w-3 h-3 mr-1.5"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
+                                            />
+                                          </svg>
+                                          {analyzedByPerParam[selectedParam.id]}
+                                        </span>
+                                        <span className="text-slate-400">
+                                          •
+                                        </span>
+                                        <span className="inline-flex items-center px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700">
+                                          <svg
+                                            className="w-3 h-3 mr-1.5"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                            />
+                                          </svg>
+                                          {analysts.find(
+                                            (a) =>
+                                              a.employeeId ===
+                                              analyzedByPerParam[
+                                                selectedParam.id
+                                              ]
+                                          )?.role || "Analyst"}
+                                        </span>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-
-                                {/* Analyst Info */}
-                                <div className="flex-1">
-                                  <div className="font-semibold text-base text-slate-900 mb-1">
-                                    {analysts.find(
-                                      (a) =>
-                                        a.employeeId ===
-                                        analyzedByPerParam[selectedParam.id]
-                                    )?.username || "Unknown"}
-                                  </div>
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="inline-flex items-center px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-semibold text-emerald-700">
-                                      <svg
-                                        className="w-3 h-3 mr-1.5"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
-                                        />
-                                      </svg>
-                                      {analyzedByPerParam[selectedParam.id]}
-                                    </span>
-                                    <span className="text-slate-400">•</span>
-                                    <span className="inline-flex items-center px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700">
-                                      <svg
-                                        className="w-3 h-3 mr-1.5"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                                        />
-                                      </svg>
-                                      {analysts.find(
-                                        (a) =>
-                                          a.employeeId ===
-                                          analyzedByPerParam[selectedParam.id]
-                                      )?.role || "Analyst"}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </motion.div>
+                              </motion.div>
+                            )}
+                          </>
                         )}
 
                         {/* Analysis Timeline Section */}
@@ -6365,7 +6300,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     <div
                       className={
                         shouldDisableContent
-                          ? "pointer-events-none opacity-60"
+                          ? ['Analysis Completed', 'Approved'].includes(parameterStatusPerParam[selectedParam.id]) ? "pointer-events-none opacity-80" : "pointer-events-none opacity-60"
                           : ""
                       }
                     >
@@ -6377,7 +6312,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                             Instruments Details:
                           </h3>
 
-                          {/* ✅ Only show Add button for HOD LAB */}
                           {role === "HOD LAB" && (
                             <div className="relative" ref={instrumentRef}>
                               <button
@@ -9259,13 +9193,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 </motion.button>
               )}
 
-            {/* Print Button - DISABLED */}
-            <button
-              disabled
-              className="px-6 py-3 bg-gradient-to-r from-slate-300 to-slate-400 text-slate-500 font-semibold rounded-xl shadow-md cursor-not-allowed text-sm opacity-60"
-              title="Print functionality coming soon"
-            >
-              <span className="flex items-center gap-2">
+            {worksheetInfo?.sample.status === "Approved" && (
+              <motion.button
+                onClick={handlePrintClick}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-sm flex items-center gap-2"
+              >
                 <svg
                   className="w-5 h-5"
                   fill="none"
@@ -9279,9 +9213,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
                   />
                 </svg>
-                Print Preview
-              </span>
-            </button>
+                Print Report
+              </motion.button>
+            )}
           </div>
         </div>
 

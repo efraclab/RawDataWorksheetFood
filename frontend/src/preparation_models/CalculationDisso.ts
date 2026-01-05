@@ -1,12 +1,14 @@
 export interface CalculationDisso {
   id: number;
   label: string;
-  selectedStandardPrepId: number | null;
-  selectedSamplePrepDissoId: number | null;
+  selectedStandardPrepLabel: string | null;
+  selectedSamplePrepLabel: string | null;
   areaOfSample: string;
   areaOfStandard: string;
   mwBase: string;
   mwSalt: string;
-  claim: string;
   purity: string;
+
+  calculationResult: string | null;
+  calculationResultUnit: string | null;
 }

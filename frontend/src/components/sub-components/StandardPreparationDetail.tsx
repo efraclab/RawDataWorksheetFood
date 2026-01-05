@@ -31,11 +31,9 @@ interface StandardPreparationDetailProps {
     standardPreparationId: number,
     stepName: StandardPreparationStep["name"],
     field:
-      | "value"
-      | "unit"
-      | "vol1"
-      | "vol2"
+      | "value1"
       | "unit1"
+      | "value2"
       | "unit2"
       | "logBookID"
       | "solventChemical",
@@ -266,12 +264,12 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.value || ""}
+                                    value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         standardPreparation.id,
                                         step.name,
-                                        "value",
+                                        "value1",
                                         e.target.value
                                       )
                                     }
@@ -281,12 +279,12 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={weightUnitOptions}
-                                      value={step.unit}
+                                      value={step.unit1}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           standardPreparation.id,
                                           step.name,
-                                          "unit",
+                                          "unit1",
                                           newUnit
                                         )
                                       }
@@ -373,12 +371,12 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.vol1 || ""}
+                                    value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         standardPreparation.id,
                                         step.name,
-                                        "vol1",
+                                        "value1",
                                         e.target.value
                                       )
                                     }
@@ -421,12 +419,12 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.vol1 || ""}
+                                    value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         standardPreparation.id,
                                         step.name,
-                                        "vol1",
+                                        "value1",
                                         e.target.value
                                       )
                                     }
@@ -463,12 +461,12 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.vol2 || ""}
+                                    value={step.value2 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         standardPreparation.id,
                                         step.name,
-                                        "vol2",
+                                        "value2",
                                         e.target.value
                                       )
                                     }
@@ -508,12 +506,12 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                   min="0"
                                   step="0.01"
                                   inputMode="decimal"
-                                  value={step.value}
+                                  value={step.value1}
                                   onChange={(e) =>
                                     onStepChange(
                                       standardPreparation.id,
                                       step.name,
-                                      "value",
+                                      "value1",
                                       e.target.value
                                     )
                                   }
@@ -523,12 +521,12 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                 <div className="w-24">
                                   <CustomDropdown
                                     options={filtrationUnitOptions}
-                                    value={step.unit}
+                                    value={step.unit1}
                                     onChange={(newUnit) =>
                                       onStepChange(
                                         standardPreparation.id,
                                         step.name,
-                                        "unit",
+                                        "unit1",
                                         newUnit
                                       )
                                     }

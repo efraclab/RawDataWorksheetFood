@@ -2,7 +2,7 @@
 {
     public class WorksheetDetailDto
     {
-        public RawDataWorksheetDto Sample { get; set; }
-        public List<ParameterDetailDto> Parameters { get; set; }
+        public WorksheetDto Sample { get; set; }
+        public List<ParameterDto> Parameters { get; set; }
     }
 }

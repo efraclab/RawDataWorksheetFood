@@ -18,6 +18,8 @@ builder.Services.AddScoped<IWorksheetRepository, WorksheetRepository>();
 builder.Services.AddScoped<IWorksheetService, WorksheetService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped < IFinalRawDataRepository, FinalRawDataRepository>();
+builder.Services.AddScoped < IFinalRawDataService, FinalRawDataService>();
 builder.Services.AddScoped<JwtService>();
 
 builder.Services.AddCors(options =>

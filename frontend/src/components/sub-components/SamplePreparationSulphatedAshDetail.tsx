@@ -29,13 +29,11 @@ interface SamplePreparationSulphatedAshDetailProps {
     samplePreparationSulphatedAshId: number,
     stepName: SamplePreparationSulphatedAshStep["name"],
     field:
-      | "value"
-      | "logBookID"
-      | "unit"
-      | "temp"
-      | "tempUnit"
-      | "time"
-      | "timeUnit",
+      "value1"
+      | "unit1"
+      | "value2"
+      | "unit2"
+      | "logBookID",
     newValue: string
   ) => void;
   onRemove: () => void;
@@ -182,12 +180,12 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.value || ""}
+                                    value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationSulphatedAsh.id,
                                         step.name,
-                                        "value",
+                                        "value1",
                                         e.target.value
                                       )
                                     }
@@ -198,12 +196,12 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={weightUnitOptions}
-                                      value={step.unit}
+                                      value={step.unit1}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparationSulphatedAsh.id,
                                           step.name,
-                                          "unit",
+                                          "unit1",
                                           newUnit
                                         )
                                       }
@@ -247,12 +245,12 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.value || ""}
+                                    value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationSulphatedAsh.id,
                                         step.name,
-                                        "value",
+                                        "value1",
                                         e.target.value
                                       )
                                     }
@@ -263,12 +261,12 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={weightUnitOptions}
-                                      value={step.unit}
+                                      value={step.unit1}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparationSulphatedAsh.id,
                                           step.name,
-                                          "unit",
+                                          "unit1",
                                           newUnit
                                         )
                                       }
@@ -291,12 +289,12 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.temp || ""}
+                                    value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationSulphatedAsh.id,
                                         step.name,
-                                        "temp",
+                                        "value1",
                                         e.target.value
                                       )
                                     }
@@ -307,12 +305,12 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={tempUnitOptions}
-                                      value={step.tempUnit}
+                                      value={step.unit1}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparationSulphatedAsh.id,
                                           step.name,
-                                          "tempUnit",
+                                          "unit1",
                                           newUnit
                                         )
                                       }
@@ -329,12 +327,12 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     min="0"
                                     step="1"
                                     inputMode="numeric"
-                                    value={step.time || ""}
+                                    value={step.value2 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationSulphatedAsh.id,
                                         step.name,
-                                        "time",
+                                        "value2",
                                         e.target.value
                                       )
                                     }
@@ -345,12 +343,12 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={timeUnitOptions}
-                                      value={step.timeUnit}
+                                      value={step.unit2}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparationSulphatedAsh.id,
                                           step.name,
-                                          "timeUnit",
+                                          "unit2",
                                           newUnit
                                         )
                                       }
@@ -394,12 +392,12 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     step="0.01"
                                     min="0"
                                     inputMode="decimal"
-                                    value={step.value || ""}
+                                    value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationSulphatedAsh.id,
                                         step.name,
-                                        "value",
+                                        "value1",
                                         e.target.value
                                       )
                                     }
@@ -410,12 +408,12 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={weightUnitOptions}
-                                      value={step.unit}
+                                      value={step.unit1}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparationSulphatedAsh.id,
                                           step.name,
-                                          "unit",
+                                          "unit1",
                                           newUnit
                                         )
                                       }

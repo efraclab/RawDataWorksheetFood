@@ -75,7 +75,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
         registrationInfo: {
           registrationNo: firstSample.registrationNo,
           sampleName: firstSample.sampleName,
-          numberOfParameters: sampleData.length,
+          numberOfParameters: 0,
           dueDate: firstSample.tatDate,
         },
         documentInfo: {

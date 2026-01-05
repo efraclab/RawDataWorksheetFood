@@ -1,6 +1,6 @@
 ﻿namespace RawDataWorkSheet.Models.DTOs
 {
-    public class RawDataWorksheetDto
+    public class WorksheetDto
     {
         public string WorksheetId { get; set; }
         public string RegistrationNo { get; set; }
@@ -10,8 +10,9 @@
         public string PreparedBy { get; set; }
         public string RevisionDate { get; set; }
         public string Status { get; set; }
-        public DateTime? SubmittedAt { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
+        public string CreatedAt { get; set; }
+        public string? UpdatedAt { get; set; }
+        public string? ApprovedAt { get; set; }
     }
+
 }

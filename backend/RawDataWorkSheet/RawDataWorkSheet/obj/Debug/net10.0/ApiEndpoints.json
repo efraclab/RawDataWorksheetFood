@@ -46,6 +46,22 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "RawDataWorkSheet.Controllers.FinalRawDataController",
+    "Method": "Save",
+    "RelativePath": "api/raw-data/save",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.FinalRawData.SaveWorksheetRawDataRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
     "Method": "GetSampleDetailsById",
     "RelativePath": "api/sample-details",

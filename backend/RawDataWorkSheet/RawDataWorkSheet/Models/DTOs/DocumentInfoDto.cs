@@ -4,6 +4,7 @@
     {
         public string? PreparedBy { get; set; }
         public string? RevisionDate { get; set; }
+        public string? ApprovedAt { get; set; }
         public string? Status { get; set; }
     }
 }

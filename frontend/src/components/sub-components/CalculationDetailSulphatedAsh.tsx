@@ -4,9 +4,8 @@ import {
   ChevronDown,
   Calculator,
   Trash,
-  CheckCircle,
   AlertTriangle,
-  X,
+  CheckCircle2,
 } from "lucide-react";
 import type { CalculationSulphatedAsh } from "../../preparation_models/CalculationSulphatedAsh";
 import type { SamplePreparationSulphatedAsh } from "../../preparation_models/SamplePreparationSulphatedAsh";
@@ -66,31 +65,29 @@ const CalculationDetailSulphatedAsh: React.FC<
   CalculationDetailSulphatedAshProps
 > = ({ calculation, samplePreparations, onFieldChange, onRemove, role }) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [calculationResult, setCalculationResult] = useState<string | null>(
-    null
-  );
+
 
   // Conditional rounding class (Fixing header corner issue)
   const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
 
   const selectedSamplePrep = samplePreparations.find(
-    (prep) => prep.id === calculation.selectedSamplePrepId
+    (prep) => prep.label === calculation.selectedSamplePrepLabel
   );
 
   useEffect(() => {
-    if (samplePreparations.length === 1 && !calculation.selectedSamplePrepId) {
-      onFieldChange(
-        calculation.id,
-        "selectedSamplePrepId",
-        samplePreparations[0].id
+    if (calculation.selectedSamplePrepLabel) {
+      const exists = samplePreparations.some(
+        (prep) => prep.label === calculation.selectedSamplePrepLabel
       );
+
+      if (!exists) {
+        console.warn(
+          "⚠️ Selected Sample Prep label not found:",
+          calculation.selectedSamplePrepLabel
+        );
+      }
     }
-  }, [
-    samplePreparations,
-    calculation.selectedSamplePrepId,
-    calculation.id,
-    onFieldChange,
-  ]);
+  }, [calculation.selectedSamplePrepLabel, samplePreparations]);
 
   const getSampleWeights = () => {
     if (!selectedSamplePrep) {
@@ -113,16 +110,16 @@ const CalculationDetailSulphatedAsh: React.FC<
 
     return {
       w1: {
-        value: weighingEmptyCrucible?.value || "",
-        unit: weighingEmptyCrucible?.unit || "g",
+        value: weighingEmptyCrucible?.value1 || "",
+        unit: weighingEmptyCrucible?.unit1 || "g",
       },
       w2: {
-        value: weighingCrucibleWithSample?.value || "",
-        unit: weighingCrucibleWithSample?.unit || "g",
+        value: weighingCrucibleWithSample?.value1 || "",
+        unit: weighingCrucibleWithSample?.unit1 || "g",
       },
       w3: {
-        value: weighingAfterDrying?.value || "",
-        unit: weighingAfterDrying?.unit || "g",
+        value: weighingAfterDrying?.value1 || "",
+        unit: weighingAfterDrying?.unit1 || "g",
       },
     };
   };
@@ -136,7 +133,11 @@ const CalculationDetailSulphatedAsh: React.FC<
 
     if (!canCalculate) {
       console.warn("Cannot calculate: Missing sample preparation.");
-      setCalculationResult("Error: Please select a Sample Preparation.");
+      onFieldChange(
+        calculation.id,
+        "calculationResult",
+        "Error: Please select Sample preparation."
+      );
       console.groupEnd();
       return;
     }
@@ -174,7 +175,11 @@ const CalculationDetailSulphatedAsh: React.FC<
 
     if (denominator === 0) {
       console.error("Division by zero: W2 - W1 = 0");
-      setCalculationResult("Error: Cannot divide by zero (W2 equals W1)");
+      onFieldChange(
+        calculation.id,
+        "calculationResult",
+        "Error: Cannot divide by zero (W2 equals W1)"
+      );
       console.groupEnd();
       return;
     }
@@ -186,16 +191,28 @@ const CalculationDetailSulphatedAsh: React.FC<
       "color: blue; font-weight: bold"
     );
     console.log(
-      `%c Calculated Ash Content Result: ${AshContent_Percentage.toFixed(4)} %`,
+      `%c Calculated Ash Content Result: ${AshContent_Percentage.toFixedNoRound(4)} %`,
       "color: green; font-weight: bold; font-size: 14px"
     );
     console.groupEnd();
     if (isNaN(AshContent_Percentage) || !isFinite(AshContent_Percentage)) {
-      setCalculationResult(
+      onFieldChange(
+        calculation.id,
+        "calculationResult",
         "Error: Result is NaN or Infinite. Check console for details."
       );
     } else {
-      setCalculationResult(`Result: ${AshContent_Percentage.toFixed(2)} % w/w`);
+      const result = `${AshContent_Percentage.toFixedNoRound(4)}`;
+      onFieldChange(
+        calculation.id,
+        "calculationResult",
+        result
+      );
+      onFieldChange(
+        calculation.id,
+        "calculationResultUnit",
+        '%'
+      );
     }
   };
 
@@ -299,24 +316,19 @@ const CalculationDetailSulphatedAsh: React.FC<
                   </label>
                   <CustomDropdown
                     options={samplePreparations.map((prep) => ({
-                      value: String(prep.id),
+                      value: prep.label,
                       label: prep.label,
                     }))}
-                    value={
-                      calculation.selectedSamplePrepId
-                        ? String(calculation.selectedSamplePrepId)
-                        : ""
-                    }
+                    value={calculation.selectedSamplePrepLabel || ""}
                     onChange={(value) =>
                       onFieldChange(
                         calculation.id,
-                        "selectedSamplePrepId",
-                        value ? parseInt(value) : null
+                        "selectedSamplePrepLabel",
+                        value || null
                       )
                     }
                     placeholder="-- Select Sample Prep --"
-                    // Dropdown Color - Rose Theme
-                    colorScheme="rose"
+                    colorScheme="sky"
                   />
                 </div>
 
@@ -388,56 +400,6 @@ const CalculationDetailSulphatedAsh: React.FC<
                         Calculate Ash Content
                       </motion.button>
                     </div>
-
-                    {/* Result Display - Rose/Pink Theme */}
-                    {calculationResult && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        // Success/Error Color - Rose/Pink Theme
-                        className={`bg-gradient-to-br ${
-                          calculationResult.startsWith("Error")
-                            ? "from-red-100 to-red-50 border-2 border-red-300"
-                            : "from-green-50 to-emerald-50 border-2 border-green-300"
-                        } rounded-lg p-4`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2 mb-2">
-                            {/* Icon Color - Rose/Pink Theme */}
-                            <CheckCircle
-                              className={`w-5 h-5 ${
-                                calculationResult.startsWith("Error")
-                                  ? "text-red-600"
-                                  : "text-green-600"
-                              }`}
-                            />
-                            {/* Text Color - Rose/Pink Theme */}
-                            <h6
-                              className={`text-sm font-bold ${
-                                calculationResult.startsWith("Error")
-                                  ? "text-red-700"
-                                  : "text-green-700"
-                              }`}
-                            >
-                              Calculation Result
-                            </h6>
-                          </div>
-                          <motion.button
-                            onClick={() => setCalculationResult(null)}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            // Close Button Hover - Rose Theme
-                            className="p-1 -mt-1 -mr-1 text-gray-400 hover:text-rose-500 transition-colors"
-                            title="Close result"
-                          >
-                            <X className="w-4 h-4" />
-                          </motion.button>
-                        </div>
-                        <p className="text-sm text-gray-700">
-                          {calculationResult}
-                        </p>
-                      </motion.div>
-                    )}
                   </>
                 )}
 
@@ -450,6 +412,78 @@ const CalculationDetailSulphatedAsh: React.FC<
                   </div>
                 )}
               </div>
+
+              {/* FIXED BOTTOM RESULTS SECTION - NON-CLOSABLE */}
+              {calculation.calculationResult && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="border-t-4 border-rose-200"
+                >
+                  <div
+                    className={`p-6 ${
+                      calculation.calculationResult.startsWith("Error")
+                        ? "bg-gradient-to-br from-red-50 via-red-100/50 to-rose-50"
+                        : "bg-gradient-to-br from-emerald-50 via-green-100/30 to-teal-50"
+                    }`}
+                  >
+                    <div className="max-w-4xl mx-auto space-y-4">
+                      {/* Header */}
+                      <div className="flex items-center gap-3 pb-3">
+                        <CheckCircle2
+                          className={`w-6 h-6 ${
+                            calculation.calculationResult.startsWith("Error")
+                              ? "text-red-700"
+                              : "text-green-700"
+                          }`}
+                        />
+                        <div>
+                          <h6
+                            className={`text-lg font-bold ${
+                              calculation.calculationResult.startsWith("Error")
+                                ? "text-red-700"
+                                : "text-green-700"
+                            }`}
+                          >
+                            Calculation Results
+                          </h6>
+                        </div>
+                      </div>
+
+                      {/* Results Grid */}
+                      <div className="grid gap-4">
+                        <div className="bg-white rounded-lg shadow-lg border-2 border-green-300 overflow-hidden">
+                            <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2">
+                              <h6 className="text-sm font-bold text-white">
+                                Primary Result
+                              </h6>
+                            </div>
+                            <div className="p-4">
+                              <p className="text-2xl font-bold text-gray-800">
+                                {calculation.calculationResult} {" "} {!calculation.calculationResult.startsWith("Error") ? calculation.calculationResultUnit : ''}
+                              </p>
+                            </div>
+                          </div>
+                      </div>
+
+                      {/* Summary Info */}
+                      <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4">
+                        <div className="grid md:grid-cols-1 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-600 font-medium">
+                              Sample Prep
+                            </p>
+                            <p className="text-gray-900 font-semibold">
+                              {calculation.selectedSamplePrepLabel || "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

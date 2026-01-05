@@ -41,21 +41,13 @@ interface SamplePreparationDissoDetailProps {
     samplePreparationDissoId: number,
     stepName: SamplePreparationDissoStep["name"],
     field:
-      | "value"
-      | "unit"
-      | "vol1"
-      | "vol2"
+        "id"
+      | "value1"
       | "unit1"
+      | "value2"
       | "unit2"
-      | "temp"
-      | "tempUnit"
-      | "time"
-      | "timeUnit"
-      | "id"
-      | "rpm"
-      | "claim"
-      | "claimUnit"
-      | "mediaVol"
+      | "value3"
+      | "unit3"
       | "solventChemical",
     newValue: string
   ) => void;
@@ -220,14 +212,21 @@ const SamplePreparationDissoDetail: React.FC<
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.rpm || ""}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationDisso.id,
-                                        step.name,
-                                        "rpm",
-                                        e.target.value
-                                      )
+                                    value={step.value1 || ""}
+                                    onChange={(e) => {
+                                        onStepChange(
+                                          samplePreparationDisso.id,
+                                          step.name,
+                                          "value1",
+                                          e.target.value
+                                        )
+                                        onStepChange(
+                                          samplePreparationDisso.id,
+                                          step.name,
+                                          "unit1",
+                                          "rpm"
+                                        )
+                                      }
                                     }
                                     placeholder="Enter Value"
                                     className="flex-1 min-w-[120px] px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
@@ -240,12 +239,12 @@ const SamplePreparationDissoDetail: React.FC<
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.temp || ""}
+                                    value={step.value2 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationDisso.id,
                                         step.name,
-                                        "temp",
+                                        "value2",
                                         e.target.value
                                       )
                                     }
@@ -255,12 +254,12 @@ const SamplePreparationDissoDetail: React.FC<
                                   <div className="w-16">
                                     <CustomDropdown
                                       options={tempUnitOptions}
-                                      value={step.tempUnit || "°C"}
+                                      value={step.unit2 || "°C"}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparationDisso.id,
                                           step.name,
-                                          "tempUnit",
+                                          "unit2",
                                           newUnit
                                         )
                                       }
@@ -283,12 +282,12 @@ const SamplePreparationDissoDetail: React.FC<
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.claim || ""}
+                                    value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationDisso.id,
                                         step.name,
-                                        "claim",
+                                        "value1",
                                         e.target.value
                                       )
                                     }
@@ -298,12 +297,12 @@ const SamplePreparationDissoDetail: React.FC<
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={weightUnitOptions}
-                                      value={step.claimUnit || "mg"}
+                                      value={step.unit1 || "mg"}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparationDisso.id,
                                           step.name,
-                                          "claimUnit",
+                                          "unit1",
                                           newUnit
                                         )
                                       }
@@ -320,12 +319,12 @@ const SamplePreparationDissoDetail: React.FC<
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.mediaVol || ""}
+                                    value={step.value2 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationDisso.id,
                                         step.name,
-                                        "mediaVol",
+                                        "value2",
                                         e.target.value
                                       )
                                     }
@@ -335,12 +334,12 @@ const SamplePreparationDissoDetail: React.FC<
                                   <div className="w-16">
                                     <CustomDropdown
                                       options={volumeUnitOptions}
-                                      value={step.unit || "ml"}
+                                      value={step.unit2 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparationDisso.id,
                                           step.name,
-                                          "unit",
+                                          "unit2",
                                           newUnit
                                         )
                                       }
@@ -356,12 +355,12 @@ const SamplePreparationDissoDetail: React.FC<
                                     min="0"
                                     step="1"
                                     inputMode="decimal"
-                                    value={step.time || ""}
+                                    value={step.value3 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationDisso.id,
                                         step.name,
-                                        "time",
+                                        "value3",
                                         e.target.value
                                       )
                                     }
@@ -371,12 +370,12 @@ const SamplePreparationDissoDetail: React.FC<
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={timeUnitOptions}
-                                      value={step.timeUnit || "min"}
+                                      value={step.unit3 || "min"}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparationDisso.id,
                                           step.name,
-                                          "timeUnit",
+                                          "unit3",
                                           newUnit
                                         )
                                       }
@@ -401,12 +400,12 @@ const SamplePreparationDissoDetail: React.FC<
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.vol1 || ""}
+                                    value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationDisso.id,
                                         step.name,
-                                        "vol1",
+                                        "value1",
                                         e.target.value
                                       )
                                     }
@@ -446,12 +445,12 @@ const SamplePreparationDissoDetail: React.FC<
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.vol2 || ""}
+                                    value={step.value2 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationDisso.id,
                                         step.name,
-                                        "vol2",
+                                        "value2",
                                         e.target.value
                                       )
                                     }
@@ -491,12 +490,12 @@ const SamplePreparationDissoDetail: React.FC<
                                   min="0"
                                   step="0.01"
                                   inputMode="decimal"
-                                  value={step.value || ""}
+                                  value={step.value1 || ""}
                                   onChange={(e) =>
                                     onStepChange(
                                       samplePreparationDisso.id,
                                       step.name,
-                                      "value",
+                                      "value1",
                                       e.target.value
                                     )
                                   }
@@ -506,12 +505,12 @@ const SamplePreparationDissoDetail: React.FC<
                                 <div className="w-20">
                                   <CustomDropdown
                                     options={filtrationUnitOptions}
-                                    value={step.unit || "µm"}
+                                    value={step.unit1 || "µm"}
                                     onChange={(newUnit) =>
                                       onStepChange(
                                         samplePreparationDisso.id,
                                         step.name,
-                                        "unit",
+                                        "unit1",
                                         newUnit
                                       )
                                     }

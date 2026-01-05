@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Calculator, Trash, CheckCircle, AlertTriangle, X } from "lucide-react";
+import {
+  ChevronDown,
+  Calculator,
+  Trash,
+  AlertTriangle,
+  CheckCircle2,
+} from "lucide-react";
 import type { CalculationDisso } from "../../preparation_models/CalculationDisso";
 import type { StandardPreparation } from "../../preparation_models/StandardPreparation";
 import type { SamplePreparationDisso } from "../../preparation_models/SamplePreparationDisso";
@@ -26,7 +32,10 @@ const WarningIndicator: React.FC<{ value: string | number }> = ({ value }) => {
 
   if (isInvalid) {
     return (
-      <span className="text-amber-500 ml-2" title="Missing or zero value detected">
+      <span
+        className="text-amber-500 ml-2"
+        title="Missing or zero value detected"
+      >
         <AlertTriangle className="w-4 h-4 inline-block" />
       </span>
     );
@@ -37,30 +46,39 @@ const WarningIndicator: React.FC<{ value: string | number }> = ({ value }) => {
 // Unit conversion helpers
 const convertMassToMg = (value: string | number, unit: string): number => {
   const val = parseFloat(String(value));
-  if (isNaN(val)) return 0;
+  if (isNaN(val)) return 1;
 
   const lowerUnit = unit.toLowerCase().trim();
   switch (lowerUnit) {
-    case "mg": return val;
-    case "g": return val * 1000;
-    case "kg": return val * 1000000;
+    case "mg":
+      return val;
+    case "g":
+      return val * 1000;
+    case "kg":
+      return val * 1000000;
     case "mcg":
-    case "ug": return val / 1000;
-    default: return val;
+    case "ug":
+      return val / 1000;
+    default:
+      return val;
   }
 };
 
 const convertVolumeToMl = (value: string | number, unit: string): number => {
   const val = parseFloat(String(value));
-  if (isNaN(val)) return 0;
+  if (isNaN(val)) return 1;
 
   const lowerUnit = unit.toLowerCase().trim();
   switch (lowerUnit) {
-    case "ml": return val;
-    case "l": return val * 1000;
+    case "ml":
+      return val;
+    case "l":
+      return val * 1000;
     case "ul":
-    case "µl": return val / 1000;
-    default: return val;
+    case "µl":
+      return val / 1000;
+    default:
+      return val;
   }
 };
 
@@ -73,28 +91,30 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
   role,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [calculationResult, setCalculationResult] = useState<string | null>(null);
 
-  // Get selected preparations
   const selectedStandardPrep = standardPreparations.find(
-    (prep) => prep.id === calculation.selectedStandardPrepId
+    (prep) => prep.label === calculation.selectedStandardPrepLabel
   );
+
   const selectedSamplePrepDisso = samplePreparationsDisso.find(
-    (prep) => prep.id === calculation.selectedSamplePrepDissoId
+    (prep) => prep.label === calculation.selectedSamplePrepLabel
   );
 
   // Create preparation pair options
   const preparationPairs = standardPreparations
     .map((stdPrep) => {
       const matchingSamplePrep = samplePreparationsDisso.find(
-        (samplePrep) => samplePrep.label.charAt(samplePrep.label.length - 1) === stdPrep.label.charAt(stdPrep.label.length - 1)
+        (samplePrep) =>
+          samplePrep.label.charAt(samplePrep.label.length - 1) ===
+          stdPrep.label.charAt(stdPrep.label.length - 1)
       );
+
       if (matchingSamplePrep) {
         return {
           value: stdPrep.label,
-          label: `Preparation ${stdPrep.label.charAt(stdPrep.label.length - 1)}`,
-          standardId: stdPrep.id,
-          sampleDissoId: matchingSamplePrep.id,
+          label: `Preparation ${stdPrep.label.slice(-1)}`,
+          standardLabel: stdPrep.label,
+          sampleLabel: matchingSamplePrep.label,
         };
       }
       return null;
@@ -105,32 +125,40 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
   const currentPrepLabel = selectedStandardPrep?.label || "";
 
   useEffect(() => {
-    // Auto-select if there's exactly one preparation pair and nothing is selected yet
     if (
-      preparationPairs.length === 1 && 
-      !calculation.selectedStandardPrepId && 
-      !calculation.selectedSamplePrepDissoId
+      calculation.selectedStandardPrepLabel &&
+      calculation.selectedSamplePrepLabel
     ) {
-      const singlePair = preparationPairs[0];
-      if (singlePair) {
-        onFieldChange(calculation.id, "selectedStandardPrepId", singlePair.standardId);
-        onFieldChange(calculation.id, "selectedSamplePrepDissoId", singlePair.sampleDissoId);
-        
-        console.log(`✅ Auto-selected preparation pair: ${singlePair.label}`);
-      }
+      preparationPairs.find(
+        (pair) =>
+          pair?.standardLabel === calculation.selectedStandardPrepLabel &&
+          pair?.sampleLabel === calculation.selectedSamplePrepLabel
+      );
     }
-  }, [preparationPairs.length, calculation.selectedStandardPrepId, calculation.selectedSamplePrepDissoId, calculation.id, onFieldChange]);
-
+  }, [
+    calculation.selectedStandardPrepLabel,
+    calculation.selectedSamplePrepLabel,
+    preparationPairs,
+  ]);
 
   // Handle preparation pair selection
   const handlePreparationChange = (value: string) => {
     const selectedPair = preparationPairs.find((pair) => pair?.value === value);
+
     if (selectedPair) {
-      onFieldChange(calculation.id, "selectedStandardPrepId", selectedPair.standardId);
-      onFieldChange(calculation.id, "selectedSamplePrepDissoId", selectedPair.sampleDissoId);
+      onFieldChange(
+        calculation.id,
+        "selectedStandardPrepLabel",
+        selectedPair.standardLabel
+      );
+      onFieldChange(
+        calculation.id,
+        "selectedSamplePrepLabel",
+        selectedPair.sampleLabel
+      );
     } else {
-      onFieldChange(calculation.id, "selectedStandardPrepId", null);
-      onFieldChange(calculation.id, "selectedSamplePrepDissoId", null);
+      onFieldChange(calculation.id, "selectedStandardPrepLabel", null);
+      onFieldChange(calculation.id, "selectedSamplePrepLabel", null);
     }
   };
 
@@ -138,16 +166,17 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
   const getStandardDilutions = () => {
     if (!selectedStandardPrep) return [];
     return selectedStandardPrep.steps
-      .filter((step) => 
-        step.name === "1st Dilution" || 
-        step.name === "2nd Dilution" || 
-        step.name === "3rd Dilution" ||
-        step.name === "4th Dilution"
+      .filter(
+        (step) =>
+          step.name === "1st Dilution" ||
+          step.name === "2nd Dilution" ||
+          step.name === "3rd Dilution" ||
+          step.name === "4th Dilution"
       )
       .map((step) => ({
         name: step.name,
-        vol1: step.vol1 || "",
-        vol2: step.vol2 || "",
+        vol1: step.value1 || "",
+        vol2: step.value2 || "",
         unit1: step.unit1 || "ml",
         unit2: step.unit2 || "ml",
       }));
@@ -157,15 +186,16 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
   const getSampleDilutions = () => {
     if (!selectedSamplePrepDisso) return [];
     return selectedSamplePrepDisso.steps
-      .filter((step) => 
-        step.name === "1st Dilution" || 
-        step.name === "2nd Dilution" || 
-        step.name === "3rd Dilution"
+      .filter(
+        (step) =>
+          step.name === "1st Dilution" ||
+          step.name === "2nd Dilution" ||
+          step.name === "3rd Dilution"
       )
       .map((step) => ({
         name: step.name,
-        vol1: step.vol1 || "",
-        vol2: step.vol2 || "",
+        vol1: step.value1 || "",
+        vol2: step.value2 || "",
         unit1: step.unit1 || "ml",
         unit2: step.unit2 || "ml",
       }));
@@ -177,21 +207,22 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
       (step) => step.name === "Weighing"
     );
     return {
-      value: weighingStep?.value || "",
-      unit: weighingStep?.unit || "g",
+      value: weighingStep?.value1 || "",
+      unit: weighingStep?.unit1 || "g",
     };
   };
 
   const getTabletDetails = () => {
-    if (!selectedSamplePrepDisso) return { claim: "", claimUnit: "mg", mediaVol: "", unit: "ml" };
+    if (!selectedSamplePrepDisso)
+      return { claim: "", claimUnit: "mg", mediaVol: "", unit: "ml" };
     const tabletStep = selectedSamplePrepDisso.steps.find(
       (step) => step.name === "Tablet Details"
     );
     return {
-      claim: tabletStep?.claim || "",
-      claimUnit: tabletStep?.claim || "mg",
-      mediaVol: tabletStep?.mediaVol || "",
-      unit: tabletStep?.unit || "ml",
+      claim: tabletStep?.value1 || "",
+      claimUnit: tabletStep?.unit1 || "mg",
+      mediaVol: tabletStep?.value2 || "",
+      unit: tabletStep?.unit2 || "ml",
     };
   };
 
@@ -208,15 +239,23 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
 
     if (!canCalculate) {
       console.warn("Cannot calculate: Missing preparations");
-      setCalculationResult("Error: Please select both Standard and Sample preparations");
+      onFieldChange(
+        calculation.id,
+        "calculationResult",
+        null
+      );
       console.groupEnd();
       return;
     }
 
     // Parse inputs
     const AreaOfSample = parseFloat(calculation.areaOfSample as string) || 0;
-    const AreaOfStandard = parseFloat(calculation.areaOfStandard as string) || 0;
-    const SW1_Standard = convertMassToMg(standardWeight.value, standardWeight.unit);
+    const AreaOfStandard =
+      parseFloat(calculation.areaOfStandard as string) || 0;
+    const SW1_Standard = convertMassToMg(
+      standardWeight.value,
+      standardWeight.unit
+    );
     const MWBase = parseFloat(calculation.mwBase as string) || 0;
     const MWSalt = parseFloat(calculation.mwSalt as string) || 0;
     const Purity = parseFloat(calculation.purity as string) || 0;
@@ -224,37 +263,66 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     // V1: 1st Dilution final volume
     // V2: 2nd Dilution aliquot, V3: 2nd Dilution final volume
     // V4: 3rd Dilution aliquot, V5: 3rd Dilution final volume
-    const V1 = standardDilutions[0] ? convertVolumeToMl(standardDilutions[0].vol1, standardDilutions[0].unit1) : 0;
-    
-    const V2 = standardDilutions[1] ? convertVolumeToMl(standardDilutions[1].vol1, standardDilutions[1].unit1) : 0;
-    const V3 = standardDilutions[1] ? convertVolumeToMl(standardDilutions[1].vol2, standardDilutions[1].unit2) : 0;
-    
-    const V4 = standardDilutions[2] ? convertVolumeToMl(standardDilutions[2].vol1, standardDilutions[2].unit1) : 0;
-    const V5 = standardDilutions[2] ? convertVolumeToMl(standardDilutions[2].vol2, standardDilutions[2].unit2) : 0;
+    const V1 = standardDilutions[0]
+      ? convertVolumeToMl(standardDilutions[0].vol1, standardDilutions[0].unit1)
+      : 0;
 
-    const V6 = standardDilutions[3] ? convertVolumeToMl(standardDilutions[3].vol1, standardDilutions[3].unit1) : 0;
-    const V7 = standardDilutions[3] ? convertVolumeToMl(standardDilutions[3].vol2, standardDilutions[3].unit2) : 0;
+    const V2 = standardDilutions[1]
+      ? convertVolumeToMl(standardDilutions[1].vol1, standardDilutions[1].unit1)
+      : 0;
+    const V3 = standardDilutions[1]
+      ? convertVolumeToMl(standardDilutions[1].vol2, standardDilutions[1].unit2)
+      : 0;
+
+    const V4 = standardDilutions[2]
+      ? convertVolumeToMl(standardDilutions[2].vol1, standardDilutions[2].unit1)
+      : 0;
+    const V5 = standardDilutions[2]
+      ? convertVolumeToMl(standardDilutions[2].vol2, standardDilutions[2].unit2)
+      : 0;
+
+    const V6 = standardDilutions[3]
+      ? convertVolumeToMl(standardDilutions[3].vol1, standardDilutions[3].unit1)
+      : 0;
+    const V7 = standardDilutions[3]
+      ? convertVolumeToMl(standardDilutions[3].vol2, standardDilutions[3].unit2)
+      : 0;
 
     // Get Sample volumes
     // V8: Media Volume (from Tablet Details)
     // V9: 1st Dilution aliquot, V10: 1st Dilution final volume
     // V11: 2nd Dilution aliquot, V12: 2nd Dilution final volume
     // V13: 3rd Dilution aliquot, V14: 3rd Dilution final volume
-    const MediaVol = convertVolumeToMl(tabletDetails.mediaVol, tabletDetails.unit); // V8
+    const MediaVol = convertVolumeToMl(
+      tabletDetails.mediaVol,
+      tabletDetails.unit
+    ); // V8
     const Claim = convertMassToMg(tabletDetails.claim, tabletDetails.claimUnit); // Claim in mg (used separately in formula)
-    
-    const V9 = sampleDilutions[0] ? convertVolumeToMl(sampleDilutions[0].vol1, sampleDilutions[0].unit1) : 0;
-    const V10 = sampleDilutions[0] ? convertVolumeToMl(sampleDilutions[0].vol2, sampleDilutions[0].unit2) : 0;
-    
-    const V11 = sampleDilutions[1] ? convertVolumeToMl(sampleDilutions[1].vol1, sampleDilutions[1].unit1) : 0;
-    const V12 = sampleDilutions[1] ? convertVolumeToMl(sampleDilutions[1].vol2, sampleDilutions[1].unit2) : 0;
-    
-    const V13 = sampleDilutions[2] ? convertVolumeToMl(sampleDilutions[2].vol1, sampleDilutions[2].unit1) : 0;
-    const V14 = sampleDilutions[2] ? convertVolumeToMl(sampleDilutions[2].vol2, sampleDilutions[2].unit2) : 0;
 
-    console.log("2. Volumes (converted to mL):", { 
+    const V9 = sampleDilutions[0]
+      ? convertVolumeToMl(sampleDilutions[0].vol1, sampleDilutions[0].unit1)
+      : 0;
+    const V10 = sampleDilutions[0]
+      ? convertVolumeToMl(sampleDilutions[0].vol2, sampleDilutions[0].unit2)
+      : 0;
+
+    const V11 = sampleDilutions[1]
+      ? convertVolumeToMl(sampleDilutions[1].vol1, sampleDilutions[1].unit1)
+      : 0;
+    const V12 = sampleDilutions[1]
+      ? convertVolumeToMl(sampleDilutions[1].vol2, sampleDilutions[1].unit2)
+      : 0;
+
+    const V13 = sampleDilutions[2]
+      ? convertVolumeToMl(sampleDilutions[2].vol1, sampleDilutions[2].unit1)
+      : 0;
+    const V14 = sampleDilutions[2]
+      ? convertVolumeToMl(sampleDilutions[2].vol2, sampleDilutions[2].unit2)
+      : 0;
+
+    console.log("2. Volumes (converted to mL):", {
       Standard: { V1, V2, V3, V4, V5 },
-      Sample: { MediaVol_V8: MediaVol, V9, V10, V11, V12, V13, V14, Claim }
+      Sample: { MediaVol_V8: MediaVol, V9, V10, V11, V12, V13, V14, Claim },
     });
 
     // Calculate ratios
@@ -263,45 +331,77 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
 
     console.log("3. Ratios:", {
       AreaRatio,
-      MWRatio
+      MWRatio,
     });
 
     // Formula from the image (Image 2):
     // Numerator: Area/ABS of Sample × SW1 × V2 × V4 × V6 × V8 × V10 × V12 × V14 × MW Base × Purity × 100
     // Denominator: Area/ABS of Standard × V1 × V3 × V5 × V7 × Claim × V9 × V11 × V13 × MW Salt × 100
-    
+
     // Adjusted based on actual available variables (3 dilutions for standard, 3 for sample):
     // We don't have V6, V7 from standard (only 3 dilutions: V1, V2-V3, V4-V5)
     // V8 = MediaVol (from tablet details)
     // V9 = 1st Dilution aliquot, V10 = 1st Dilution final volume (from sample dilutions)
     // Claim is used separately in the denominator
     // Purity is typically 100% or taken from standard purity
-    
+
     let FinalResult = 0;
-    
+
     // Building numerator: AreaSample × SW1 × V2 × V4 × MediaVol(V8) × V10 × V12 × V14 × MWBase × 100
-    const numerator = AreaOfSample * SW1_Standard * V2 * V4 * V6 * MediaVol * V10 * V12 * V14 * MWBase * Purity * 100;
-    
+    const numerator =
+      AreaOfSample *
+      SW1_Standard *
+      V2 *
+      V4 *
+      V6 *
+      MediaVol *
+      V10 *
+      V12 *
+      V14 *
+      MWBase *
+      Purity *
+      100;
+
     // Building denominator: AreaStandard × V1 × V3 × V5 × Claim × V9 × V11 × V13 × MWSalt × 100
-    const denominator = AreaOfStandard * V1 * V3 * V5 * V7 * Claim * V9 * V11 * V13 * MWSalt * 100;
+    const denominator =
+      AreaOfStandard *
+      V1 *
+      V3 *
+      V5 *
+      V7 *
+      Claim *
+      V9 *
+      V11 *
+      V13 *
+      MWSalt *
+      100;
 
     if (denominator !== 0) {
       FinalResult = numerator / denominator;
     }
 
-    const formulaDebugString = 
+    const formulaDebugString =
       `Numerator: (${AreaOfSample} × ${SW1_Standard} × ${V2} × ${V4} x ${V6} × ${MediaVol} × ${V10} × ${V12} × ${V14} × ${MWBase} x ${Purity} × 100)\n` +
       `Denominator: (${AreaOfStandard} × ${V1} × ${V3} × ${V5} x ${V7} × ${Claim} × ${V9} × ${V11} × ${V13} × ${MWSalt} × 100)\n` +
       `Result: ${numerator} / ${denominator}`;
 
     console.log("4. Formula:", formulaDebugString);
-    console.log(`5. Result: ${FinalResult} mg/tablet (or mg/capsule)`, "color: green; font-weight: bold");
+    console.log(
+      `5. Result: ${FinalResult} mg/tablet (or mg/capsule)`,
+      "color: green; font-weight: bold"
+    );
     console.groupEnd();
 
     if (isNaN(FinalResult) || !isFinite(FinalResult)) {
-      setCalculationResult("Error: Result is NaN or Infinite. Check console for details.");
+      onFieldChange(
+        calculation.id,
+        "calculationResult",
+        null
+      );
     } else {
-      setCalculationResult(`Result: ${FinalResult.toFixed(4)} mg/tablet`);
+      const result = `${FinalResult.toFixedNoRound(4)}`;
+      onFieldChange(calculation.id, "calculationResult", result);
+      onFieldChange(calculation.id, "calculationResultUnit", 'mg/tablet');
     }
   };
 
@@ -338,7 +438,9 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                 <h4 className="text-sm font-semibold text-white tracking-wide">
                   {calculation.label}
                 </h4>
-                <p className="text-xs text-emerald-100">Dissolution Calculation</p>
+                <p className="text-xs text-emerald-100">
+                  Dissolution Calculation
+                </p>
               </div>
             </div>
 
@@ -357,7 +459,7 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                 </motion.div>
               </motion.button>
 
-              { role === "HOD LAB" && (
+              {role === "HOD LAB" && (
                 <motion.button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -424,7 +526,9 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                         <div className="space-y-2.5">
                           {/* SW1 */}
                           <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-emerald-100 to-emerald-50 p-3 rounded-lg border border-emerald-200">
-                            <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">SW1:</span>
+                            <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">
+                              SW1:
+                            </span>
                             <span className="text-gray-800 font-semibold flex items-center">
                               {standardWeight.value} {standardWeight.unit}
                               <WarningIndicator value={standardWeight.value} />
@@ -446,12 +550,26 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                               )}
                               <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-emerald-100 to-emerald-50 p-3 rounded-lg border border-emerald-200">
                                 <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">
-                                  V{dilution.name === "1st Dilution" ? "1" : idx * 2 + 1}:
+                                  V
+                                  {dilution.name === "1st Dilution"
+                                    ? "1"
+                                    : idx * 2 + 1}
+                                  :
                                 </span>
                                 <span className="text-gray-800 font-semibold flex items-center">
-                                  {dilution.name === "1st Dilution" ? dilution.vol1 : dilution.vol2}{" "}
-                                  {dilution.name === "1st Dilution" ? dilution.unit1 : dilution.unit2}
-                                  <WarningIndicator value={dilution.name === "1st Dilution" ? dilution.vol1 : dilution.vol2} />
+                                  {dilution.name === "1st Dilution"
+                                    ? dilution.vol1
+                                    : dilution.vol2}{" "}
+                                  {dilution.name === "1st Dilution"
+                                    ? dilution.unit1
+                                    : dilution.unit2}
+                                  <WarningIndicator
+                                    value={
+                                      dilution.name === "1st Dilution"
+                                        ? dilution.vol1
+                                        : dilution.vol2
+                                    }
+                                  />
                                 </span>
                               </div>
                             </div>
@@ -468,9 +586,11 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                           Sample Preparation Variables
                         </h5>
                         <div className="space-y-2.5">
-                        {/* Claim (separate, not V9) */}
+                          {/* Claim (separate, not V9) */}
                           <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-emerald-100 to-emerald-50 p-3 rounded-lg border border-emerald-200">
-                            <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">Claim:</span>
+                            <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">
+                              Claim:
+                            </span>
                             <span className="text-gray-800 font-semibold flex items-center">
                               {tabletDetails.claim} mg
                               <WarningIndicator value={tabletDetails.claim} />
@@ -478,10 +598,14 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                           </div>
                           {/* Media Volume (V8) */}
                           <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-emerald-100 to-emerald-50 p-3 rounded-lg border border-emerald-200">
-                            <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">Media Vol (V8):</span>
+                            <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">
+                              Media Vol (V8):
+                            </span>
                             <span className="text-gray-800 font-semibold flex items-center">
                               {tabletDetails.mediaVol} {tabletDetails.unit}
-                              <WarningIndicator value={tabletDetails.mediaVol} />
+                              <WarningIndicator
+                                value={tabletDetails.mediaVol}
+                              />
                             </span>
                           </div>
                           {/* V9, V10, V11, V12, V13, V14 */}
@@ -522,7 +646,7 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                         Calculation Formula Inputs
                       </h5>
                     </div>
-                    
+
                     <div className="p-4 space-y-4">
                       {/* Area/ABS Inputs */}
                       <div className="grid grid-cols-2 gap-3">
@@ -534,7 +658,11 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                             type="text"
                             value={calculation.areaOfSample}
                             onChange={(e) =>
-                              onFieldChange(calculation.id, "areaOfSample", e.target.value)
+                              onFieldChange(
+                                calculation.id,
+                                "areaOfSample",
+                                e.target.value
+                              )
                             }
                             placeholder="Enter Sample Area/ABS"
                             className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
@@ -548,7 +676,11 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                             type="text"
                             value={calculation.areaOfStandard}
                             onChange={(e) =>
-                              onFieldChange(calculation.id, "areaOfStandard", e.target.value)
+                              onFieldChange(
+                                calculation.id,
+                                "areaOfStandard",
+                                e.target.value
+                              )
                             }
                             placeholder="Enter Standard Area/ABS"
                             className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
@@ -566,7 +698,11 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                             type="text"
                             value={calculation.mwBase}
                             onChange={(e) =>
-                              onFieldChange(calculation.id, "mwBase", e.target.value)
+                              onFieldChange(
+                                calculation.id,
+                                "mwBase",
+                                e.target.value
+                              )
                             }
                             placeholder="MW Base"
                             className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
@@ -580,7 +716,11 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                             type="text"
                             value={calculation.mwSalt}
                             onChange={(e) =>
-                              onFieldChange(calculation.id, "mwSalt", e.target.value)
+                              onFieldChange(
+                                calculation.id,
+                                "mwSalt",
+                                e.target.value
+                              )
                             }
                             placeholder="MW Salt"
                             className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
@@ -594,7 +734,11 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                             type="text"
                             value={calculation.purity}
                             onChange={(e) =>
-                              onFieldChange(calculation.id, "purity", e.target.value)
+                              onFieldChange(
+                                calculation.id,
+                                "purity",
+                                e.target.value
+                              )
                             }
                             placeholder="Purity"
                             className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
@@ -614,34 +758,6 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                           Calculate Result
                         </motion.button>
                       </div>
-
-                      {/* Result Display */}
-                      {calculationResult && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className={`bg-gradient-to-br ${calculationResult.startsWith("Error") ? 'from-amber-50 to-orange-50 border-2 border-amber-300' : 'from-green-50 to-emerald-50 border-2 border-green-300'} rounded-lg p-4`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-2 mb-2">
-                              <CheckCircle className={`w-5 h-5 ${calculationResult.startsWith("Error") ? 'text-amber-600' : 'text-green-600'}`} />
-                              <h6 className={`text-sm font-bold ${calculationResult.startsWith("Error") ? 'text-amber-900' : 'text-green-900'}`}>
-                                Calculation Result
-                              </h6>
-                            </div>
-                            <motion.button
-                              onClick={() => setCalculationResult(null)}
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              className="p-1 -mt-1 -mr-1 text-gray-400 hover:text-emerald-500 transition-colors"
-                              title="Close result"
-                            >
-                              <X className="w-4 h-4" />
-                            </motion.button>
-                          </div>
-                          <p className="text-sm text-gray-700 font-semibold">{calculationResult}</p>
-                        </motion.div>
-                      )}
                     </div>
                   </div>
                 )}
@@ -655,6 +771,86 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                   </div>
                 )}
               </div>
+
+              {/* FIXED BOTTOM RESULTS SECTION - NON-CLOSABLE */}
+              {calculation.calculationResult && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="border-t-4 border-emerald-200"
+                >
+                  <div
+                    className={`p-6 ${
+                      calculation.calculationResult.startsWith("Error")
+                        ? "bg-gradient-to-br from-red-50 via-red-100/50 to-rose-50"
+                        : "bg-gradient-to-br from-emerald-50 via-green-100/30 to-teal-50"
+                    }`}
+                  >
+                    <div className="max-w-4xl mx-auto space-y-4">
+                      {/* Header */}
+                      <div className="flex items-center gap-3 pb-3">
+                        <CheckCircle2
+                          className={`w-6 h-6 ${
+                            calculation.calculationResult.startsWith("Error")
+                              ? "text-red-700"
+                              : "text-green-700"
+                          }`}
+                        />
+                        <div>
+                          <h6
+                            className={`text-lg font-bold ${
+                              calculation.calculationResult.startsWith("Error")
+                                ? "text-red-700"
+                                : "text-green-700"
+                            }`}
+                          >
+                            Calculation Results
+                          </h6>
+                        </div>
+                      </div>
+
+                      {/* Results Grid */}
+                      <div className="grid gap-4">
+                        <div className="bg-white rounded-lg shadow-lg border-2 border-green-300 overflow-hidden">
+                          <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2">
+                            <h6 className="text-sm font-bold text-white">
+                              Primary Result
+                            </h6>
+                          </div>
+                          <div className="p-4">
+                            <p className="text-2xl font-bold text-gray-800">
+                              {calculation.calculationResult} {" "} {!calculation.calculationResult.startsWith("Error") ? calculation.calculationResultUnit : ''}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Summary Info */}
+                      <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4">
+                        <div className="grid md:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-600 font-medium">
+                              Standard Prep
+                            </p>
+                            <p className="text-gray-900 font-semibold">
+                              {calculation.selectedStandardPrepLabel || "N/A"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600 font-medium">
+                              Sample Prep
+                            </p>
+                            <p className="text-gray-900 font-semibold">
+                              {calculation.selectedSamplePrepLabel || "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

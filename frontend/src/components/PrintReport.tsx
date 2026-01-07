@@ -335,19 +335,11 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
   // Helper function to group dissolution calculations by standard preparation
   const groupDissoCalculationsByPreparation = (calculations: any[]) => {
-    console.log("=== GROUPING DISSOLUTION CALCULATIONS ===");
-    console.log("Total calculations:", calculations.length);
     
     const groups: { [key: string]: any[] } = {};
     
     calculations.forEach((calc: any, index: number) => {
       const calcData = safeJSONParse(calc.data, {});
-      console.log(`Calculation ${index + 1}:`, {
-        label: calc.label,
-        selectedStandardPrepLabel: calcData.selectedStandardPrepLabel,
-        selectedSamplePrepLabel: calcData.selectedSamplePrepLabel,
-        calculationResult: calcData.calculationResult
-      });
       
       // Use selectedStandardPrepLabel as the grouping key
       const prepKey = calcData.selectedStandardPrepLabel;
@@ -363,11 +355,6 @@ const PrintReport: React.FC<PrintReportProps> = ({
       }
     });
     
-    console.log("Groups created:", Object.keys(groups));
-    Object.entries(groups).forEach(([key, calcs]) => {
-      console.log(`  ${key}: ${calcs.length} calculations`);
-    });
-    
     // Sort groups by preparation number
     const sortedGroups: { [key: string]: any[] } = {};
     Object.keys(groups)
@@ -381,14 +368,11 @@ const PrintReport: React.FC<PrintReportProps> = ({
         sortedGroups[key] = groups[key];
       });
     
-    console.log("=== END GROUPING ===");
     return sortedGroups;
   };
 
   // Helper function to calculate avg, min, max from a group of dissolution calculations
   const calculateDissoStats = (calcGroup: any[]) => {
-    console.log("=== CALCULATING STATS ===");
-    console.log("Calculation group size:", calcGroup.length);
     
     const results: number[] = [];
     let unit = "";
@@ -396,12 +380,6 @@ const PrintReport: React.FC<PrintReportProps> = ({
     calcGroup.forEach((calc, index) => {
       const result = calc.calcData.calculationResult;
       const resultUnit = calc.calcData.calculationResultUnit;
-      
-      console.log(`  Calc ${index + 1}:`, {
-        result,
-        resultUnit,
-        type: typeof result
-      });
       
       // Store unit if we find one
       if (resultUnit && !unit) {
@@ -414,28 +392,23 @@ const PrintReport: React.FC<PrintReportProps> = ({
         const cleanResult = result.replace(/[^\d.-]/g, '');
         const numericResult = parseFloat(cleanResult);
         
-        console.log(`    Cleaned: "${cleanResult}" => ${numericResult}`);
         
         if (!isNaN(numericResult) && isFinite(numericResult)) {
           results.push(numericResult);
-          console.log(`    ✓ Added to results`);
         } else {
-          console.log(`    ✗ Invalid number`);
+          console.warn(`    ✗ Invalid number`);
         }
       } else if (result && typeof result === 'number') {
         if (!isNaN(result) && isFinite(result)) {
           results.push(result);
-          console.log(`    ✓ Added number directly`);
         }
       } else {
-        console.log(`    ✗ Skipped (error or invalid)`);
+        console.warn(`    ✗ Skipped (error or invalid)`);
       }
     });
     
-    console.log("Valid results:", results);
     
     if (results.length === 0) {
-      console.log("No valid results found!");
       return null;
     }
     
@@ -453,8 +426,6 @@ const PrintReport: React.FC<PrintReportProps> = ({
       individualResults: results
     };
     
-    console.log("Stats calculated:", stats);
-    console.log("=== END STATS ===");
     
     return stats;
   };
@@ -803,14 +774,6 @@ const PrintReport: React.FC<PrintReportProps> = ({
                  calc.calculationType?.toLowerCase().includes("dissolution") ||
                  calc.calculationType?.toLowerCase().includes("disso")
                ));
-            
-            console.log("Parameter Check:", {
-              parameterName: param.parameterName,
-              paraCode: param.paraCode,
-              isDissoParameter,
-              calculationsCount: param.calculations?.length || 0,
-              firstCalcType: param.calculations?.[0]?.calculationType
-            });
 
             return (
               <div key={paramIdx} className={paramIdx > 0 ? "page-break-before" : ""}>

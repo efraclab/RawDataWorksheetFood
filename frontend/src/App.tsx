@@ -134,8 +134,10 @@ function WorksheetPreviewPage(props: {
 
   if (!worksheetId) return null;
 
-  const handlePrint = (data: WorksheetDetail, analysts: Analyst[], sampleData: SampleData) => {
-    props.onPrintRequest(data, analysts, sampleData);
+  const handlePrint = (worksheetInfo: WorksheetDetail, analysts: Analyst[], sampleData: SampleData) => {
+    props.onPrintRequest(worksheetInfo, analysts, sampleData);
+
+    console.log("sample received:", sampleData)
 
     sessionStorage.setItem("printPrevPath", location.pathname);
 
@@ -168,9 +170,9 @@ function WorksheetPreviewPage(props: {
 }
 
 function PrintReportPage(props: {
-  worksheetInfo: WorksheetDetail;
-  sampleData: SampleData,
+  worksheetInfo: WorksheetDetail | null;
   analysts: Analyst[];
+  sampleData: SampleData | null;
   instruments: Instrument[];
   chemicals: Chemical[];
   standards: Standard[];
@@ -197,8 +199,8 @@ function PrintReportPage(props: {
     >
       <PrintReport
         worksheetInfo={props.worksheetInfo}
-        sampleData={props.sampleData}
         analysts={props.analysts}
+        sampleData={props.sampleData}
         instruments={props.instruments}
         chemicals={props.chemicals}
         standards={props.standards}
@@ -221,14 +223,12 @@ function AuthenticatedApp({
   const [chemicals, setChemicals] = useState<Chemical[]>([]);
   const [standards, setStandards] = useState<Standard[]>([]);
   const [analysts, setAnalysts] = useState<Analyst[]>([]);
-  const [sampleData, setSampleData] = useState<Analyst[]>([]);
+  const [sampleData, setSampleData] = useState<SampleData | null>(null);
   const [columns, setColumns] = useState<Column[]>([]);
   const [isReferenceDataLoading, setIsReferenceDataLoading] = useState(true);
   const [referenceDataError, setReferenceDataError] = useState<string | null>(
     null
   );
-  
-  // State to hold the data emitted from Worksheet for PrintReport
   const [activeWorksheetData, setActiveWorksheetData] = useState<WorksheetDetail | null>(null);
 
   useEffect(() => {
@@ -285,7 +285,7 @@ function AuthenticatedApp({
                 referenceDataError={referenceDataError}
                 employeeId={employeeId}
                 role={role}
-                onPrintRequest={(worksheetInfo, analyst) => 
+                onPrintRequest={(worksheetInfo, analyst, sampleData) => 
                   {setActiveWorksheetData(worksheetInfo); setAnalysts(analyst); setSampleData(sampleData)}}
               />
             }

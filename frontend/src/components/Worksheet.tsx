@@ -170,10 +170,7 @@ interface WorksheetProps {
   onPrint?: (
     info: WorksheetDetail,
     analysts: Analyst[],
-    sampleData: SampleData,
-    instruments: Instrument[],
-    chemicals: Chemical[],
-    standards: Standard[]
+    sampleData: SampleData
   ) => void;
 }
 
@@ -1599,13 +1596,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const selectedParam = addedParameters[paramIdx];
       const paramId = selectedParam.id;
 
+      console.log("sample send:", samplesData[0])
+
       onPrint(
         worksheetInfo,
         analysts,
         samplesData[0],
-        addedInstruments[paramId] || [],
-        addedChemicals[paramId] || [],
-        addedStandards[paramId] || []
       );
     }
   };

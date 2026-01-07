@@ -12,6 +12,7 @@
         public string RegistrationDate { get; set; }
         public string? MailingDate { get; set; }
         public string? TatDate { get; set; }
+        public string? RecieptDate { get; set; }
         public string? AnalysisStartDate { get; set; }
         public string? AnalysisCompletionDate { get; set; }
         public decimal? DistributedRegisVal { get; set; }

@@ -1,13 +1,15 @@
 import React from "react";
 import { Printer, X, FileText } from "lucide-react";
+import type { SampleData } from "../preparation_models/SampleData";
 import type { WorksheetDetail } from "../models/WorksheetDetail";
-import type { Chemical } from "../preparation_models/Chemical";
-import type { Instrument } from "../preparation_models/Instrument";
-import type { Standard } from "../preparation_models/Standard";
 import type { Analyst } from "../models/Analyst";
+import type { Instrument } from "../preparation_models/Instrument";
+import type { Chemical } from "../preparation_models/Chemical";
+import type { Standard } from "../preparation_models/Standard";
 
 interface PrintReportProps {
   worksheetInfo: WorksheetDetail;
+  sampleData: SampleData;
   analysts: Analyst[];
   instruments: Instrument[];
   chemicals: Chemical[];
@@ -17,6 +19,7 @@ interface PrintReportProps {
 
 const PrintReport: React.FC<PrintReportProps> = ({
   worksheetInfo,
+  sampleData,
   analysts,
   instruments,
   chemicals,
@@ -26,6 +29,8 @@ const PrintReport: React.FC<PrintReportProps> = ({
   const handlePrint = () => {
     window.print();
   };
+
+  console.log('sample', sampleData)
 
   const safeJSONParse = (data: any, fallback: any = []) => {
     if (!data) return fallback;
@@ -160,6 +165,457 @@ const PrintReport: React.FC<PrintReportProps> = ({
     });
   };
 
+  const renderHeaderAndSampleSection = (param: any, paramIdx: number, totalParams: number) => {
+    return (
+      <div className="keep-together">
+        <div className="mb-5">
+          <table className="w-full">
+            <table className="w-full table-fixed border border-black">
+              <tbody>
+                <tr className="bg-gray-200">
+                  <td
+                    className="border border-black px-3 py-2 text-sm font-bold text-center"
+                    colSpan={4}
+                  >EDWARD FOOD RESEARCH & ANALYSIS CENTRE LTD</td>
+                </tr>
+
+                <tr>
+                  <td
+                    className="border border-black px-3 py-2 font-bold text-sm text-center"
+                    colSpan={4}
+                  >
+                    Raw Data Worksheet
+                  </td>
+                </tr>
+
+                <tr>
+                  <td
+                    className="border border-black px-3 py-2 text-center font-bold text-md"
+                    colSpan={4}
+                  >
+                    Annexure {paramIdx + 1} of {totalParams}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </table>
+        </div>
+        {/* Header Section End*/}
+
+        {/* Worksheet Information Table */}
+        <div className="mb-5">
+          <table className="w-full text-sm">
+            <table className="w-full table-fixed border border-black">
+              <colgroup>
+                <col style={{ width: "30%" }} />
+                <col style={{ width: "30%" }} />
+                <col style={{ width: "20%" }} />
+                <col style={{ width: "20%" }} />
+              </colgroup>
+
+              <tbody>
+                <tr>
+                  <td className="border border-black px-3 py-2" colSpan={2}>
+                    Registration No: {worksheetInfo.sample.registrationNo}
+                  </td>
+                  <td className="border border-black px-3 py-2" colSpan={2}>
+                    Date of Receipt:{" "}
+                    {sampleData.recieptDate
+                      ? new Date(sampleData.recieptDate).toLocaleDateString("en-GB")
+                      : ""}
+                  </td>
+                </tr>
+
+                <tr>
+                  <td className="border border-black px-3 py-2" colSpan={2}>
+                    Sample Name: {worksheetInfo.sample.sampleName}
+                  </td>
+                  <td className="border border-black px-3 py-2" colSpan={2}>
+                    Due Date:{" "}
+                    {worksheetInfo.sample.dueDate
+                      ? new Date(
+                          worksheetInfo.sample.dueDate
+                        ).toLocaleDateString("en-GB")
+                      : ""}
+                  </td>
+                </tr>
+
+                <tr>
+                  <td className="border border-black px-3 py-2" colSpan={2}>
+                    Analysis Started On: {sampleData.analysisStartDate
+                      ? new Date(sampleData.analysisStartDate).toLocaleDateString("en-GB")
+                      : ""}
+                  </td>
+                  <td className="border border-black px-3 py-2" colSpan={2}>
+                    Analysis Completed On: {sampleData.analysisCompletionDate
+                      ? new Date(sampleData.analysisCompletionDate).toLocaleDateString("en-GB")
+                      : ""}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </table>
+        </div>
+
+        {/* Sample Details Table */}
+        <div className="mb-5">
+          <table className="w-full border border-black text-sm">
+            <tbody>
+              <tr className="border-b border-black">
+                <td className="w-10 px-4 py-3 border-r border-black text-center">
+                  1
+                </td>
+                <td className="w-1/3 px-4 py-3 border-r border-black">
+                  Sample Particulars (All relevant information received with
+                  sample to be entered):
+                </td>
+                <td className="px-3 py-3">
+                  {worksheetInfo.sample.sampleName || "---"}
+                </td>
+              </tr>
+              <tr className="border-b border-black">
+                <td className="w-10 px-4 py-3 border-r border-black text-center">
+                  2
+                </td>
+                <td className="w-1/3 px-4 py-3 border-r border-black">
+                  Test(s) required (all tests and condition to be entered):
+                </td>
+                <td className="px-3 py-3">
+                  {param.parameterName}
+                </td>
+              </tr>
+              <tr className="border-b border-black">
+                <td className="w-10 px-4 py-3 border-r border-black text-center">
+                  3
+                </td>
+                <td className="w-1/3 px-4 py-3 border-r border-black">
+                  Method(s) of Analysis / testing
+                </td>
+                <td className="px-3 py-3 h-16">
+                  {param.methodName}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSignatureSection = () => {
+    return (
+      <div className="footer-section mt-20 mb-6">
+        <table className="signature-table w-full text-sm">
+          <thead>
+            <tr className="bg-white">
+              <th className="px-4 py-3 text-center font-bold">
+                ANALYZED BY
+                <div className="font-normal text-xs mt-0.5">
+                  (Sign & Date)
+                </div>
+              </th>
+              <th className="px-4 py-3 text-center font-bold">
+                REVIEWED BY (QC)
+                <div className="font-normal text-xs mt-0.5">
+                  (Sign & Date)
+                </div>
+              </th>
+              <th className="px-4 py-3 text-center font-bold">
+                APPROVED BY (QA)
+                <div className="font-normal text-xs mt-0.5">
+                  (Sign & Date)
+                </div>
+              </th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    );
+  };
+
+  // Helper function to group dissolution calculations by standard preparation
+  const groupDissoCalculationsByPreparation = (calculations: any[]) => {
+    console.log("=== GROUPING DISSOLUTION CALCULATIONS ===");
+    console.log("Total calculations:", calculations.length);
+    
+    const groups: { [key: string]: any[] } = {};
+    
+    calculations.forEach((calc: any, index: number) => {
+      const calcData = safeJSONParse(calc.data, {});
+      console.log(`Calculation ${index + 1}:`, {
+        label: calc.label,
+        selectedStandardPrepLabel: calcData.selectedStandardPrepLabel,
+        selectedSamplePrepLabel: calcData.selectedSamplePrepLabel,
+        calculationResult: calcData.calculationResult
+      });
+      
+      // Use selectedStandardPrepLabel as the grouping key
+      const prepKey = calcData.selectedStandardPrepLabel;
+      
+      // Only include calculations that have a valid standard prep selected
+      if (prepKey) {
+        if (!groups[prepKey]) {
+          groups[prepKey] = [];
+        }
+        groups[prepKey].push({ ...calc, calcData });
+      } else {
+        console.warn(`Calculation ${index + 1} has no selectedStandardPrepLabel`);
+      }
+    });
+    
+    console.log("Groups created:", Object.keys(groups));
+    Object.entries(groups).forEach(([key, calcs]) => {
+      console.log(`  ${key}: ${calcs.length} calculations`);
+    });
+    
+    // Sort groups by preparation number
+    const sortedGroups: { [key: string]: any[] } = {};
+    Object.keys(groups)
+      .sort((a, b) => {
+        // Extract number from "Standard Preparation X"
+        const numA = parseInt(a.match(/\d+/)?.[0] || "0");
+        const numB = parseInt(b.match(/\d+/)?.[0] || "0");
+        return numA - numB;
+      })
+      .forEach((key) => {
+        sortedGroups[key] = groups[key];
+      });
+    
+    console.log("=== END GROUPING ===");
+    return sortedGroups;
+  };
+
+  // Helper function to calculate avg, min, max from a group of dissolution calculations
+  const calculateDissoStats = (calcGroup: any[]) => {
+    console.log("=== CALCULATING STATS ===");
+    console.log("Calculation group size:", calcGroup.length);
+    
+    const results: number[] = [];
+    let unit = "";
+    
+    calcGroup.forEach((calc, index) => {
+      const result = calc.calcData.calculationResult;
+      const resultUnit = calc.calcData.calculationResultUnit;
+      
+      console.log(`  Calc ${index + 1}:`, {
+        result,
+        resultUnit,
+        type: typeof result
+      });
+      
+      // Store unit if we find one
+      if (resultUnit && !unit) {
+        unit = resultUnit;
+      }
+      
+      // Check if result exists and is not an error
+      if (result && typeof result === 'string' && !result.startsWith("Error")) {
+        // Remove any non-numeric characters except decimal point and minus sign
+        const cleanResult = result.replace(/[^\d.-]/g, '');
+        const numericResult = parseFloat(cleanResult);
+        
+        console.log(`    Cleaned: "${cleanResult}" => ${numericResult}`);
+        
+        if (!isNaN(numericResult) && isFinite(numericResult)) {
+          results.push(numericResult);
+          console.log(`    ✓ Added to results`);
+        } else {
+          console.log(`    ✗ Invalid number`);
+        }
+      } else if (result && typeof result === 'number') {
+        if (!isNaN(result) && isFinite(result)) {
+          results.push(result);
+          console.log(`    ✓ Added number directly`);
+        }
+      } else {
+        console.log(`    ✗ Skipped (error or invalid)`);
+      }
+    });
+    
+    console.log("Valid results:", results);
+    
+    if (results.length === 0) {
+      console.log("No valid results found!");
+      return null;
+    }
+    
+    const sum = results.reduce((acc, val) => acc + val, 0);
+    const avg = sum / results.length;
+    const min = Math.min(...results);
+    const max = Math.max(...results);
+    
+    const stats = {
+      average: avg.toFixed(4),
+      minimum: min.toFixed(4),
+      maximum: max.toFixed(4),
+      unit: unit,
+      count: results.length,
+      individualResults: results
+    };
+    
+    console.log("Stats calculated:", stats);
+    console.log("=== END STATS ===");
+    
+    return stats;
+  };
+
+  // Render dissolution calculations with grouping and statistics
+  const renderDissoCalculations = (calculations: any[]) => {
+    const groups = groupDissoCalculationsByPreparation(calculations);
+    
+    if (Object.keys(groups).length === 0) {
+      return (
+        <div className="mb-4">
+          <h4 className="text-sm font-bold mb-2 underline">
+            Calculations:
+          </h4>
+          <div className="border border-black px-3 py-2 bg-gray-50 text-sm">
+            No calculations with standard preparations assigned yet.
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="mb-4">
+        <h4 className="text-sm font-bold mb-2 underline">
+          Calculations:
+        </h4>
+        
+        {Object.entries(groups).map(([prepLabel, calcGroup], groupIdx) => {
+          const stats = calculateDissoStats(calcGroup);
+          
+          return (
+            <div key={groupIdx} className="mb-6 page-break-inside-avoid">              
+              {/* Individual Calculations in this group */}
+              {calcGroup.map((calc: any, idx: number) => {
+              
+                const calculationLabel = `${calc.label} for dissolution` || `Calculation ${idx + 1} for dissolution`;
+                
+                return (
+                  <div key={idx} className="section-container mb-3">
+                    <p className="font-bold mb-2 text-sm">
+                      {calculationLabel}
+                    </p>
+                    <div className="border border-black text-sm">
+                      {Object.entries(calc.calcData).map(
+                        ([key, value]: [string, any]) => {
+                          if (
+                            key === "id" ||
+                            key === "label" ||
+                            value === null ||
+                            value === "" ||
+                            key === "calculationResultUnit" // Don't show unit separately
+                          )
+                            return null;
+                          
+                          // Format the key name
+                          let displayKey = key
+                            .replace(/([A-Z])/g, " $1")
+                            .replace(/^./, (c) => c.toUpperCase())
+                            .trim();
+                          
+                          // Special formatting for calculation result
+                          let displayValue = String(value);
+                          if (key === "calculationResult") {
+                            const unit = calc.calcData.calculationResultUnit;
+                            if (unit && !displayValue.startsWith("Error")) {
+                              displayValue = `${value} ${unit}`;
+                            }
+                          }
+                          
+                          return (
+                            <div
+                              key={key}
+                              className="flex border-b border-black last:border-b-0"
+                            >
+                              <div className="w-2/5 px-3 py-2 font-bold bg-gray-100 border-r border-black">
+                                {displayKey}:
+                              </div>
+                              <div className="px-3 py-2">
+                                {displayValue}
+                              </div>
+                            </div>
+                          );
+                        }
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {/* Statistics Section for this preparation group */}
+              {stats && stats.count > 0 && (
+                <div className="section-container mt-4 mb-3 page-break-inside-avoid">
+                  <div className="border border-black overflow-hidden">
+                    <div className="bg-gray-200 px-4 py-2 border-b border-black">
+                      <p className="font-bold text-sm">
+                        {(() => {
+                          // Get preparation number
+                          const prepMatch = prepLabel.match(/Preparation\s*(\d+)/i);
+                          const prepNum = prepMatch ? prepMatch[1] : (groupIdx + 1);
+                          
+                          // Get the calculation numbers range
+                          const calcNumbers = calcGroup.map((c, i) => {
+                            const label = c.label || `Calculation ${i + 1}`;
+                            const match = label.match(/Calculation\s*(\d+)/i);
+                            return match ? parseInt(match[1]) : (i + 1);
+                          }).sort((a, b) => a - b);
+                          
+                          const minCalc = Math.min(...calcNumbers);
+                          const maxCalc = Math.max(...calcNumbers);
+                          const calcRange = minCalc === maxCalc ? `${minCalc}` : `${minCalc} - ${maxCalc}`;
+                          
+                          return `Calculation ${calcRange} for Standard Preparation ${prepNum}`;
+                        })()}
+                      </p>
+                      <p className="text-xs">
+                        Based on {stats.count} calculation{stats.count !== 1 ? 's' : ''} out of {calcGroup.length} total
+                      </p>
+                    </div>
+                    <div className="text-sm">
+                      <div className="flex border-b border-black">
+                        <div className="w-2/5 px-3 py-2.5 font-bold bg-gray-100 border-r border-black">
+                          Average:
+                        </div>
+                        <div className="px-3 py-2.5 font-bold">
+                          {stats.average} {stats.unit}
+                        </div>
+                      </div>
+                      <div className="flex border-b border-black">
+                        <div className="w-2/5 px-3 py-2.5 font-bold bg-gray-100 border-r border-black">
+                          Minimum:
+                        </div>
+                        <div className="px-3 py-2.5 font-bold">
+                          {stats.minimum} {stats.unit}
+                        </div>
+                      </div>
+                      <div className="flex">
+                        <div className="w-2/5 px-3 py-2.5 font-bold bg-gray-100 border-r border-black">
+                          Maximum:
+                        </div>
+                        <div className="px-3 py-2.5 font-bold">
+                          {stats.maximum} {stats.unit}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Warning if some calculations had no valid results */}
+              {stats && stats.count < calcGroup.length && (
+                <div className="border border-black px-3 py-2 text-xs mb-3 bg-gray-50">
+                  <strong>Note:</strong> {calcGroup.length - stats.count} calculation{calcGroup.length - stats.count !== 1 ? 's' : ''} had no valid numeric result and {calcGroup.length - stats.count !== 1 ? 'were' : 'was'} excluded from statistics.
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <>
       <style>
@@ -247,7 +703,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
             .footer-section {
               page-break-inside: avoid;
               break-inside: avoid;
-              margin-top: 40px;
+              margin-top: 60px;
             }
             
             .signature-table {
@@ -315,177 +771,16 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
         {/* Main print container */}
         <div className="print-container">
-          
-          <div className="keep-together">
 
-            {/* Header Section Start*/}
-            <div className="flex justify-between items-center text-sm mb-6 pb-4 border-b-2 border-gray-200">
-              <div></div>
-              <div className="flex flex-col items-end">
-                <img src="/ic_efrac.png" alt="EFRAC Logo" className="h-6" />
-              </div>
-            </div>
-
-            <div className="mb-5">
-              <table className="w-full">
-                <table className="w-full table-fixed border border-black">
-                  <tbody>
-                    <tr className="bg-gray-200">
-                      <td
-                        className="border border-black px-3 py-2 text-sm font-bold"
-                        colSpan={4}
-                      >
-                        EDWARD FOOD RESEARCH & ANALYSIS CENTRE LTD
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td
-                        className="border border-black px-3 py-2 font-bold text-md text-center"
-                        colSpan={4}
-                      >
-                        Raw Data Worksheet
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-3 py-2 text-sm">
-                        Revision No:
-                      </td>
-
-                      <td
-                        className="border border-black px-3 py-2 text-center font-bold text-sm"
-                        colSpan={2}
-                      >
-                        QA.3.1.0.3
-                      </td>
-
-                      <td className="border border-black px-3 py-2 text-sm">
-                        Page No:
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </table>
-            </div>
-            {/* Header Section End*/}
-
-            {/* Worksheet Information Table */}
-            <div className="mb-5">
-              <table className="w-full text-sm">
-                <table className="w-full table-fixed border border-black">
-                  <colgroup>
-                    <col style={{ width: "30%" }} />
-                    <col style={{ width: "30%" }} />
-                    <col style={{ width: "20%" }} />
-                    <col style={{ width: "20%" }} />
-                  </colgroup>
-
-                  <tbody>
-                    <tr>
-                      <td className="border border-black px-3 py-2" colSpan={2}>
-                        Registration No: {worksheetInfo.sample.registrationNo}
-                      </td>
-                      <td className="border border-black px-3 py-2" colSpan={2}>
-                        Date of Receipt:{" "}
-                        {worksheetInfo.sample.dueDate
-                          ? new Date().toLocaleDateString("en-GB")
-                          : ""}
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-3 py-2" colSpan={2}>
-                        Sample Name: {worksheetInfo.sample.sampleName}
-                      </td>
-                      <td className="border border-black px-3 py-2" colSpan={2}>
-                        Number of Samples: {worksheetInfo.parameters.length}
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-3 py-2">
-                        Due Date:{" "}
-                        {worksheetInfo.sample.dueDate
-                          ? new Date(
-                              worksheetInfo.sample.dueDate
-                            ).toLocaleDateString("en-GB")
-                          : ""}
-                      </td>
-
-                      <td className="border border-black px-3 py-2">
-                        Analysis Started On:
-                      </td>
-
-                      <td className="border border-black px-3 py-2" colSpan={2}>
-                        Analysis Completed On:
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </table>
-            </div>
-
-            {/* Sample Details Table */}
-            <div className="mb-5">
-              <table className="w-full border border-black text-sm">
-                <tbody>
-                  <tr className="border-b border-black">
-                    <td className="w-10 px-4 py-3 border-r border-black text-center">
-                      1
-                    </td>
-                    <td className="w-1/3 px-4 py-3 border-r border-black">
-                      Sample Particulars (All relevant information received with
-                      sample to be entered):
-                    </td>
-                    <td className="px-3 py-3">
-                      {worksheetInfo.sample.sampleName || "---"}
-                    </td>
-                  </tr>
-                  <tr className="border-b border-black">
-                    <td className="w-10 px-4 py-3 border-r border-black text-center">
-                      2
-                    </td>
-                    <td className="w-1/3 px-4 py-3 border-r border-black">
-                      Test(s) required (all tests and condition to be entered):
-                    </td>
-                    <td className="px-3 py-3">
-                      {worksheetInfo.parameters
-                        .map((p) => p.parameterName)
-                        .join(", ")}
-                    </td>
-                  </tr>
-                  <tr className="border-b border-black">
-                    <td className="w-10 px-4 py-3 border-r border-black text-center">
-                      3
-                    </td>
-                    <td className="w-1/3 px-4 py-3 border-r border-black">
-                      Method(s) of Analysis / testing
-                    </td>
-                    <td className="px-3 py-3 h-16">
-                      {Array.from(
-                        new Set(
-                          worksheetInfo.parameters.map((p) => p.methodName)
-                        )
-                      ).join(", ")}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="w-10 px-4 py-3 border-r border-black text-center">
-                      4
-                    </td>
-                    <td className="w-1/3 px-4 py-3 border-r border-black">
-                      Raw Data (Observations, Readings, Calculations etc):
-                    </td>
-                    <td className="px-3 py-3 h-32 align-top"></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+        <div className="flex justify-between items-center text-sm mb-6 pb-4 border-b-2 border-gray-200">
+          <div></div>
+          <div className="flex flex-col items-end">
+            <img src="/ic_efrac.png" alt="EFRAC Logo" className="h-6" />
           </div>
-
-          {/* Parameters */}
-          {worksheetInfo.parameters.map((param, paramIdx) => {
+        </div>
+          
+          {/* Parameters - Each on separate page */}
+          {worksheetInfo.parameters.map((param: any, paramIdx: number) => {
             const filteredInstruments = instruments.filter((inst) =>
               param.instrumentIds?.includes(inst.id)
             );
@@ -496,469 +791,344 @@ const PrintReport: React.FC<PrintReportProps> = ({
               param.standardIds?.includes(std.id)
             );
 
+            // Check if this is a dissolution parameter
+            // Check multiple sources: paraCode, parameterName, and calculationType
+            const isDissoParameter = 
+              param.paraCode === "DISSO" || 
+              param.paraCode === "Dissolution" ||
+              param.parameterName?.toLowerCase().includes("dissolution") ||
+              param.parameterName?.toLowerCase().includes("disso") ||
+              (param.calculations && param.calculations.length > 0 && 
+               param.calculations.some((calc: any) => 
+                 calc.calculationType?.toLowerCase().includes("dissolution") ||
+                 calc.calculationType?.toLowerCase().includes("disso")
+               ));
+            
+            console.log("Parameter Check:", {
+              parameterName: param.parameterName,
+              paraCode: param.paraCode,
+              isDissoParameter,
+              calculationsCount: param.calculations?.length || 0,
+              firstCalcType: param.calculations?.[0]?.calculationType
+            });
+
             return (
-              <div key={paramIdx} className="mb-6">
-                {paramIdx > 0 && <div className=""></div>}
+              <div key={paramIdx} className={paramIdx > 0 ? "page-break-before" : ""}>
+                {/* Render Header and Sample Section for each parameter */}
+                {renderHeaderAndSampleSection(param, paramIdx, worksheetInfo.parameters.length)}
 
-                <div className="keep-together">
-                  <h3 className="text-base font-bold mb-3 py-2.5 uppercase">
-                    PARAMETER {paramIdx + 1}: {param.parameterName} (
-                    {param.paraCode})
-                  </h3>
+                {/* Parameter Content */}
+                <div className="mb-6">
+                  <div className="keep-together">
+                    <h3 className="text-base font-bold mb-3 py-2.5 uppercase">
+                      {param.parameterName} (
+                      {param.paraCode})
+                    </h3>
+                  </div>
 
-                  {/* Parameter Details */}
-                  {/* <div className="mb-4">
-                    <h4 className="text-sm font-bold mb-2 underline">
-                      Parameter Details:
-                    </h4>
-                    <div className="border border-black text-sm">
-                      <div className="flex border-b border-black">
-                        <div className="w-1/3 px-3 py-2 font-bold bg-gray-100 border-r border-black">
-                          Method:
-                        </div>
-                        <div className="px-3 py-2">
-                          {param.methodName} ({param.methodCode})
-                        </div>
+                  {/* Instruments */}
+                  {filteredInstruments.length > 0 && (
+                    <div className="section-container mb-4">
+                      <h4 className="text-sm font-bold mb-2 underline">
+                        Instruments Used:
+                      </h4>
+                      <table className="w-full border border-black text-sm">
+                        <thead>
+                          <tr className="bg-gray-200">
+                            <th className="border border-black px-3 py-2 text-left font-bold">
+                              Instrument Tag
+                            </th>
+                            <th className="border border-black px-3 py-2 text-left font-bold">
+                              Instrument Name
+                            </th>
+                            <th className="border border-black px-3 py-2 text-left font-bold">
+                              Calibration Done
+                            </th>
+                            <th className="border border-black px-3 py-2 text-left font-bold">
+                              Calibration Due
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredInstruments.map((inst, idx) => (
+                            <tr key={idx}>
+                              <td className="border border-black px-3 py-2">
+                                {inst.tag}
+                              </td>
+                              <td className="border border-black px-3 py-2">
+                                {inst.name}
+                              </td>
+                              <td className="border border-black px-3 py-2">
+                                {inst.calibrationDoneDate
+                                  ? new Date(
+                                      inst.calibrationDoneDate
+                                    ).toLocaleDateString("en-GB")
+                                  : "N/A"}
+                              </td>
+                              <td className="border border-black px-3 py-2">
+                                {inst.calibrationDueDate
+                                  ? new Date(
+                                      inst.calibrationDueDate
+                                    ).toLocaleDateString("en-GB")
+                                  : "N/A"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Chemicals */}
+                  {filteredChemicals.length > 0 && (
+                    <div className="section-container mb-4">
+                      <h4 className="text-sm font-bold mb-2 underline">
+                        Chemicals/Reagents Used:
+                      </h4>
+                      <table className="w-full border border-black text-sm">
+                        <thead>
+                          <tr className="bg-gray-200">
+                            <th className="border border-black px-3 py-2 text-left font-bold">
+                              Chemical Name
+                            </th>
+                            <th className="border border-black px-3 py-2 text-left font-bold">
+                              Make
+                            </th>
+                            <th className="border border-black px-3 py-2 text-left font-bold">
+                              Batch No.
+                            </th>
+                            <th className="border border-black px-3 py-2 text-left font-bold">
+                              Validity
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredChemicals.map((chem, idx) => (
+                            <tr key={idx}>
+                              <td className="border border-black px-3 py-2">
+                                {chem.name}
+                              </td>
+                              <td className="border border-black px-3 py-2">
+                                {chem.make || "N/A"}
+                              </td>
+                              <td className="border border-black px-3 py-2">
+                                {chem.batchNo || "N/A"}
+                              </td>
+                              <td className="border border-black px-3 py-2">
+                                {chem.validity
+                                  ? new Date(chem.validity).toLocaleDateString(
+                                      "en-GB"
+                                    )
+                                  : "N/A"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Standards */}
+                  {filteredStandards.length > 0 && (
+                    <div className="section-container mb-4">
+                      <h4 className="text-sm font-bold mb-2 underline">
+                        Standards Used:
+                      </h4>
+                      <table className="w-full border border-black text-sm">
+                        <thead>
+                          <tr className="bg-gray-200">
+                            <th className="border border-black px-3 py-2 text-left font-bold">
+                              Standard Name
+                            </th>
+                            <th className="border border-black px-3 py-2 text-left font-bold">
+                              Purity
+                            </th>
+                            <th className="border border-black px-3 py-2 text-left font-bold">
+                              Make
+                            </th>
+                            <th className="border border-black px-3 py-2 text-left font-bold">
+                              Batch No.
+                            </th>
+                            <th className="border border-black px-3 py-2 text-left font-bold">
+                              Validity
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredStandards.map((std, idx) => (
+                            <tr key={idx}>
+                              <td className="border border-black px-3 py-2">
+                                {std.name}
+                              </td>
+                              <td className="border border-black px-3 py-2">
+                                {std.purity || "N/A"}
+                              </td>
+                              <td className="border border-black px-3 py-2">
+                                {std.make || "N/A"}
+                              </td>
+                              <td className="border border-black px-3 py-2">
+                                {std.batchNo || "N/A"}
+                              </td>
+                              <td className="border border-black px-3 py-2">
+                                {std.validity
+                                  ? new Date(std.validity).toLocaleDateString(
+                                      "en-GB"
+                                    )
+                                  : "N/A"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Diluent Preparation */}
+                  {param.diluentPreparation && (
+                    <div className="section-container mb-4">
+                      <h4 className="text-sm font-bold mb-2 underline">
+                        Diluent Preparation:
+                      </h4>
+                      <div className="border border-black px-3 py-2 bg-gray-50 text-sm">
+                        {param.diluentPreparation}
                       </div>
-                      {param.status && (
-                        <div className="flex border-b border-black">
-                          <div className="w-1/3 px-3 py-2 font-bold bg-gray-100 border-r border-black">
-                            Status:
-                          </div>
-                          <div className="px-3 py-2">{param.status}</div>
-                        </div>
-                      )}
-                      {param.analyzedBy && (
-                        <div className="flex border-b border-black">
-                          <div className="w-1/3 px-3 py-2 font-bold bg-gray-100 border-r border-black">
-                            Analyzed By:
-                          </div>
-                          <div className="px-3 py-2">
-                            {analysts.find(
-                              (a) => a.employeeId === param.analyzedBy
-                            )?.username || "Unknown"}
-                          </div>
-                        </div>
-                      )}
-                      {param.analysisStartDate && (
-                        <div className="flex border-b border-black">
-                          <div className="w-1/3 px-3 py-2 font-bold bg-gray-100 border-r border-black">
-                            Analysis Start Date:
-                          </div>
-                          <div className="px-3 py-2">
-                            {new Date(param.analysisStartDate).toLocaleString(
-                              "en-GB"
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      {param.analysisCompletionDate && (
-                        <div className="flex border-b border-black">
-                          <div className="w-1/3 px-3 py-2 font-bold bg-gray-100 border-r border-black">
-                            Analysis Completion Date:
-                          </div>
-                          <div className="px-3 py-2">
-                            {new Date(
-                              param.analysisCompletionDate
-                            ).toLocaleString("en-GB")}
-                          </div>
-                        </div>
-                      )}
-                      {param.approvedBy && (
-                        <div className="flex border-b border-black">
-                          <div className="w-1/3 px-3 py-2 font-bold bg-gray-100 border-r border-black">
-                            Approved By:
-                          </div>
-                          <div className="px-3 py-2">{param.approvedBy}</div>
-                        </div>
-                      )}
-                      {param.approvedAt && (
-                        <div className="flex">
-                          <div className="w-1/3 px-3 py-2 font-bold bg-gray-100 border-r border-black">
-                            Approved At:
-                          </div>
-                          <div className="px-3 py-2">
-                            {new Date(param.approvedAt).toLocaleString("en-GB")}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div> */}
-                </div>
-
-                {/* Instruments */}
-                {filteredInstruments.length > 0 && (
-                  <div className="section-container mb-4">
-                    <h4 className="text-sm font-bold mb-2 underline">
-                      Instruments Used:
-                    </h4>
-                    <table className="w-full border border-black text-sm">
-                      <thead>
-                        <tr className="bg-gray-200">
-                          <th className="border border-black px-3 py-2 text-left font-bold">
-                            Instrument Tag
-                          </th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">
-                            Instrument Name
-                          </th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">
-                            Calibration Done
-                          </th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">
-                            Calibration Due
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredInstruments.map((inst, idx) => (
-                          <tr key={idx}>
-                            <td className="border border-black px-3 py-2">
-                              {inst.tag}
-                            </td>
-                            <td className="border border-black px-3 py-2">
-                              {inst.name}
-                            </td>
-                            <td className="border border-black px-3 py-2">
-                              {inst.calibrationDoneDate
-                                ? new Date(
-                                    inst.calibrationDoneDate
-                                  ).toLocaleDateString("en-GB")
-                                : "N/A"}
-                            </td>
-                            <td className="border border-black px-3 py-2">
-                              {inst.calibrationDueDate
-                                ? new Date(
-                                    inst.calibrationDueDate
-                                  ).toLocaleDateString("en-GB")
-                                : "N/A"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* Chemicals */}
-                {filteredChemicals.length > 0 && (
-                  <div className="section-container mb-4">
-                    <h4 className="text-sm font-bold mb-2 underline">
-                      Chemicals/Reagents Used:
-                    </h4>
-                    <table className="w-full border border-black text-sm">
-                      <thead>
-                        <tr className="bg-gray-200">
-                          <th className="border border-black px-3 py-2 text-left font-bold">
-                            Chemical Name
-                          </th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">
-                            Make
-                          </th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">
-                            Batch No.
-                          </th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">
-                            Validity
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredChemicals.map((chem, idx) => (
-                          <tr key={idx}>
-                            <td className="border border-black px-3 py-2">
-                              {chem.name}
-                            </td>
-                            <td className="border border-black px-3 py-2">
-                              {chem.make || "N/A"}
-                            </td>
-                            <td className="border border-black px-3 py-2">
-                              {chem.batchNo || "N/A"}
-                            </td>
-                            <td className="border border-black px-3 py-2">
-                              {chem.validity
-                                ? new Date(chem.validity).toLocaleDateString(
-                                    "en-GB"
-                                  )
-                                : "N/A"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* Standards */}
-                {filteredStandards.length > 0 && (
-                  <div className="section-container mb-4">
-                    <h4 className="text-sm font-bold mb-2 underline">
-                      Standards Used:
-                    </h4>
-                    <table className="w-full border border-black text-sm">
-                      <thead>
-                        <tr className="bg-gray-200">
-                          <th className="border border-black px-3 py-2 text-left font-bold">
-                            Standard Name
-                          </th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">
-                            Purity
-                          </th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">
-                            Make
-                          </th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">
-                            Batch No.
-                          </th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">
-                            Validity
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredStandards.map((std, idx) => (
-                          <tr key={idx}>
-                            <td className="border border-black px-3 py-2">
-                              {std.name}
-                            </td>
-                            <td className="border border-black px-3 py-2">
-                              {std.purity || "N/A"}
-                            </td>
-                            <td className="border border-black px-3 py-2">
-                              {std.make || "N/A"}
-                            </td>
-                            <td className="border border-black px-3 py-2">
-                              {std.batchNo || "N/A"}
-                            </td>
-                            <td className="border border-black px-3 py-2">
-                              {std.validity
-                                ? new Date(std.validity).toLocaleDateString(
-                                    "en-GB"
-                                  )
-                                : "N/A"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* Diluent Preparation */}
-                {param.diluentPreparation && (
-                  <div className="section-container mb-4">
-                    <h4 className="text-sm font-bold mb-2 underline">
-                      Diluent Preparation:
-                    </h4>
-                    <div className="border border-black px-3 py-2 bg-gray-50 text-sm">
-                      {param.diluentPreparation}
-                    </div>
-                  </div>
-                )}
-
-                {/* Standard Preparations */}
-                {param.standardPreparations &&
-                  param.standardPreparations.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-bold mb-2 underline">
-                        Standard Preparations:
-                      </h4>
-                      {param.standardPreparations.map((prep, idx) => {
-                        const steps = safeJSONParse(prep.steps, []);
-                        const formattedSteps = formatPreparationSteps(
-                          steps,
-                          "standard"
-                        );
-
-                        if (!formattedSteps) return null;
-
-                        return (
-                          <div key={idx} className="section-container mb-3">
-                            <p className="font-bold mb-2 text-sm">
-                              {prep.label} for {prep.preparationType}:
-                            </p>
-                            <div>{formattedSteps}</div>
-                          </div>
-                        );
-                      })}
                     </div>
                   )}
 
-                {/* Sample Preparations */}
-                {param.samplePreparations &&
-                  param.samplePreparations.length > 0 && (
-                    <div className="mb-4">
+                  {/* Standard Preparations */}
+                  {param.standardPreparations &&
+                    param.standardPreparations.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-bold mb-2 underline">
+                          Standard Preparations:
+                        </h4>
+                        {param.standardPreparations.map((prep: any, idx: number) => {
+                          const steps = safeJSONParse(prep.steps, []);
+                          const formattedSteps = formatPreparationSteps(
+                            steps,
+                            "standard"
+                          );
+
+                          if (!formattedSteps) return null;
+
+                          return (
+                            <div key={idx} className="section-container mb-3">
+                              <p className="font-bold mb-2 text-sm">
+                                {prep.label} for {prep.preparationType}:
+                              </p>
+                              <div>{formattedSteps}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                  {/* Sample Preparations */}
+                  {param.samplePreparations &&
+                    param.samplePreparations.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-bold mb-2 underline">
+                          Sample Preparations:
+                        </h4>
+                        {param.samplePreparations.map((prep: any, idx: number) => {
+                          const steps = safeJSONParse(prep.steps, []);
+                          const formattedSteps = formatPreparationSteps(
+                            steps,
+                            prep.preparationType || "sample"
+                          );
+
+                          if (!formattedSteps) return null;
+
+                          return (
+                            <div key={idx} className="section-container mb-3">
+                              <p className="font-bold mb-2 text-sm">
+                                {prep.label} for {prep.preparationType}:
+                              </p>
+                              <div className="">{formattedSteps}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                  {/* Calculations - Special handling for Dissolution */}
+                  {param.calculations && param.calculations.length > 0 && (
+                    isDissoParameter ? (
+                      renderDissoCalculations(param.calculations)
+                    ) : (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-bold mb-2 underline">
+                          Calculations:
+                        </h4>
+                        {param.calculations.map((calc: any, idx: number) => {
+                          const calcData = safeJSONParse(calc.data, {});
+                          return (
+                            <div key={idx} className="section-container mb-3">
+                              <p className="font-bold mb-2 text-sm">
+                                {calc.label} for {calc.calculationType}
+                              </p>
+                              <div className="border border-black text-sm">
+                                {Object.entries(calcData).map(
+                                  ([key, value]: [string, any]) => {
+                                    if (
+                                      key === "id" ||
+                                      key === "label" ||
+                                      value === null ||
+                                      value === ""
+                                    )
+                                      return null;
+                                    return (
+                                      <div
+                                        key={key}
+                                        className="flex border-b border-black last:border-b-0"
+                                      >
+                                        <div className="w-2/5 px-3 py-2 font-bold bg-gray-100 border-r border-black">
+                                          {key.replace(/([A-Z])/g, " $1")
+                                          .replace(/^./, (c) => c.toUpperCase())
+                                          .trim()}:
+                                        </div>
+                                        <div className="px-3 py-2">
+                                          {String(value)}
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )
+                  )}
+
+                  {/* Other Information */}
+                  {param.otherInfo && (
+                    <div className="section-container mb-4">
                       <h4 className="text-sm font-bold mb-2 underline">
-                        Sample Preparations:
+                        Other Information:
                       </h4>
-                      {param.samplePreparations.map((prep, idx) => {
-                        const steps = safeJSONParse(prep.steps, []);
-                        const formattedSteps = formatPreparationSteps(
-                          steps,
-                          prep.preparationType || "sample"
-                        );
-
-                        if (!formattedSteps) return null;
-
-                        return (
-                          <div key={idx} className="section-container mb-3">
-                            <p className="font-bold mb-2 text-sm">
-                              {prep.label} for {prep.preparationType}:
-                            </p>
-                            <div className="">{formattedSteps}</div>
-                          </div>
-                        );
-                      })}
+                      <div className="border border-black px-3 py-2 bg-gray-50 text-sm">
+                        {param.otherInfo}
+                      </div>
                     </div>
                   )}
 
-                {/* Calculations */}
-                {param.calculations && param.calculations.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="text-sm font-bold mb-2 underline">
-                      Calculations:
-                    </h4>
-                    {param.calculations.map((calc, idx) => {
-                      const calcData = safeJSONParse(calc.data, {});
-                      return (
-                        <div key={idx} className="section-container mb-3">
-                          <p className="font-bold mb-2 text-sm">
-                            {calc.label} for {calc.calculationType}
-                          </p>
-                          <div className="border border-black text-sm">
-                            {Object.entries(calcData).map(
-                              ([key, value]: [string, any]) => {
-                                if (
-                                  key === "id" ||
-                                  key === "label" ||
-                                  value === null ||
-                                  value === ""
-                                )
-                                  return null;
-                                return (
-                                  <div
-                                    key={key}
-                                    className="flex border-b border-black last:border-b-0"
-                                  >
-                                    <div className="w-2/5 px-3 py-2 font-bold bg-gray-100 border-r border-black">
-                                      {key.replace(/([A-Z])/g, " $1")
-                                      .replace(/^./, (c) => c.toUpperCase())
-                                      .trim()}:
-                                    </div>
-                                    <div className="px-3 py-2">
-                                      {String(value)}
-                                    </div>
-                                  </div>
-                                );
-                              }
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="mt-6 mb-4 text-sm">
+                    <p className="text-sm leading-relaxed">
+                      Analyzed by: .............................................. Date: ............................
+                    </p>
                   </div>
-                )}
 
-                {/* Other Information */}
-                {param.otherInfo && (
-                  <div className="section-container mb-4">
-                    <h4 className="text-sm font-bold mb-2 underline">
-                      Other Information:
-                    </h4>
-                    <div className="border border-black px-3 py-2 bg-gray-50 text-sm">
-                      {param.otherInfo}
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-6 mb-4 text-sm">
-                  <p className="text-sm leading-relaxed">
-                    Analyzed by{" "}
-                    <span className="font-bold">
-                      {analysts.find((a) => a.employeeId === param.analyzedBy)?.username ||
-                        "Unknown"}
-                    </span>
-                    . Analysis started on{" "}
-                    <span className="font-bold">
-                      {param.analysisStartDate
-                      ? new Date(param.analysisStartDate).toLocaleDateString("en-GB")
-                      : "N/A"}
-                    </span>
-                    {" "}and completed on{" "}
-                    <span className="font-bold">
-                    {param.analysisCompletionDate
-                      ? new Date(param.analysisCompletionDate).toLocaleDateString("en-GB")
-                      : "N/A"}
-                    </span>
-                    .
-                  </p>
                 </div>
+
+                {/* Signature Section After Each Parameter */}
+                {renderSignatureSection()}
 
               </div>
             );
           })}
 
-          {/* Document Footer Start*/}
-          <div className="footer-section">
-            <table className="signature-table w-full border-2 border-black text-sm mt-20">
-              <thead>
-                <tr className="bg-white">
-                  <th className="border border-black px-4 py-3 text-center font-bold">
-                    REVIEWED BY (QC)
-                    <div className="font-normal text-xs mt-0.5">
-                      (Sign & Date)
-                    </div>
-                  </th>
-                  <th className="border border-black px-4 py-3 text-center font-bold">
-                    REVIEWED BY (QA)
-                    <div className="font-normal text-xs mt-0.5">
-                      (Sign & Date)
-                    </div>
-                  </th>
-                  <th className="border border-black px-4 py-3 text-center font-bold">
-                    APPROVED BY (QA)
-                    <div className="font-normal text-xs mt-0.5">
-                      (Sign & Date)
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="border border-black px-4 py-1 align-top">
-                    <div className="text-sm italic">
-                      Prepared By: QC Executive
-                    </div>
-                  </td>
-                  <td className="border border-black px-4 py-1 align-top">
-                    <div className="text-sm italic">Issued By: QA Manager</div>
-                  </td>
-                  <td className="border border-black px-4 py-1 align-top">
-                    <div className="text-sm italic">
-                      Original Issue Date:
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-black px-4 py-1 align-top">
-                    <div className="text-sm italic">
-                      Approved By: Technical Manager
-                    </div>
-                  </td>
-                  <td className="border border-black px-4 py-1 align-top">
-                    <div className="text-sm italic">
-                      Classified "Internal Use Only"
-                    </div>
-                  </td>
-                  <td className="border border-black px-4 py-1 align-top">
-                    <div className="text-sm italic">
-                      Revision Date:
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-           {/* Document Footer End*/}
         </div>
       </div>
     </>

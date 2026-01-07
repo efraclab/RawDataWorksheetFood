@@ -53,8 +53,8 @@ export const fetchSample = async (regNo: string): Promise<SampleData[]> => {
     const response = await axios.post(`${API_BASE_URL}/sample-details`, regNo,
     { headers: { "Content-Type": "application/json" } });
     const data = response.data;
+    console.log(data)
     if (Array.isArray(data)) return data as SampleData[];
-    if (data && Array.isArray(data.data)) return data.data as SampleData[];
     return [];
   } catch (error: any) {
     if (axios.isAxiosError(error)) {

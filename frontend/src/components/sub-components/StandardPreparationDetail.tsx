@@ -146,10 +146,11 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
 
       <div className={`relative bg-white/95 backdrop-blur-sm rounded-lg border ${colors.borderColor} transition-all duration-300 mb-4`}>
         {/* Elegant Header */}
-        <div className={`relative bg-gradient-to-r ${colors.headerGradient} ${headerRoundingClass}`}>
-          <div className="absolute inset-0 bg-black/5" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-
+        <div
+          className={`relative bg-gradient-to-r ${colors.headerGradient} ${headerRoundingClass} ${
+            isExpanded ? "rounded-t-lg" : "rounded-lg"
+          }`}
+        >
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"

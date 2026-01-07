@@ -100,9 +100,6 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
               : "from-red-600 via-red-500 to-rose-500"
           } ${headerRoundingClass}`}
         >
-          <div className="absolute inset-0 bg-black/5" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"

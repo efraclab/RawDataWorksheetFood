@@ -63,7 +63,9 @@ const SamplePreparationROIDetail: React.FC<SamplePreparationROIDetailProps> = ({
 
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-orange-200/50 transition-all duration-300 mb-4">
         <div
-          className={`relative bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 ${headerRoundingClass}`}
+          className={`relative bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 ${headerRoundingClass} ${
+            isExpanded ? "rounded-t-lg" : "rounded-lg"
+          }`}
         >
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
@@ -135,7 +137,6 @@ const SamplePreparationROIDetail: React.FC<SamplePreparationROIDetailProps> = ({
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              // REMOVED 'overflow-hidden' HERE to allow dropdowns to expand
             >
               <div className="p-5 space-y-3 bg-gradient-to-br from-orange-50/50 to-orange-50/30">
                 {samplePreparationROI.steps.map((step, index) => {

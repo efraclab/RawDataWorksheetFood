@@ -322,14 +322,15 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="relative group"
+      className="relative group z-20"
     >
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-indigo-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-indigo-200/50 shadow-lg hover:shadow-xl transition-all duration-300 mb-4">
         {/* Header */}
-        <div className="relative bg-gradient-to-r from-indigo-600 via-indigo-500 to-blue-500 overflow-hidden">
-          <div className="absolute inset-0 bg-black/5" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-
+        <div
+          className={`relative bg-gradient-to-r from-indigo-600 via-indigo-500 to-blue-500 ${
+            isExpanded ? "rounded-t-lg" : "rounded-lg"
+          }`}
+        >
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"
@@ -338,7 +339,7 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
               <motion.div
                 animate={{ rotate: isExpanded ? 0 : 360 }}
                 transition={{ duration: 0.5 }}
-                className="relative"
+                className="relative group"
               >
                 <div className="absolute inset-0 bg-white/30 rounded-lg blur-md" />
                 <div className="relative p-2 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
@@ -397,7 +398,6 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
             >
               <div className="p-5 space-y-4 bg-gradient-to-br from-indigo-50/50 to-blue-50/30">
                 {/* Selection Section */}

@@ -87,6 +87,7 @@ namespace RawDataWorkSheet.Repositories
                 )
                 SELECT 
                     t1.TRN1REFNO AS RegistrationNo,
+                    t1.trn1recdt AS RecieptDate,
                     t2.TRN2_METHDO_DTL AS MethodCode,
                     t2.TRN2METHOD AS MethodName,
                     CONVERT(NVARCHAR(10), t1.TRN1DATE, 103) AS RegistrationDate, 
@@ -104,7 +105,7 @@ namespace RawDataWorkSheet.Repositories
 			                FORMAT(T2.TRN2COMPLETIONDT, 'dd/MM/yyyy')
 		                ELSE
 			                ''
-	                END AS AnalysisCompletionDateTime,
+	                END AS AnalysisCompletionDate,
                     CONVERT(NVARCHAR(10), t2.TRN2MdateofReport, 103) AS MailingDate,
                     t2.TRN2HEADER AS ParaCode, 
                     p.headdesc AS Parameter, 

@@ -101,25 +101,26 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
   );
 
   // Create preparation pair options
-  const preparationPairs = standardPreparations
-    .map((stdPrep) => {
-      const matchingSamplePrep = samplePreparationsDisso.find(
-        (samplePrep) =>
-          samplePrep.label.charAt(samplePrep.label.length - 1) ===
-          stdPrep.label.charAt(stdPrep.label.length - 1)
-      );
+  const preparationPairs = standardPreparations.flatMap((stdPrep, stdIdx) => {
+    const pairs = [];
+    const startSampleIdx = stdIdx * 6;
+
+    for (let tabletNum = 1; tabletNum <= 6; tabletNum++) {
+      const sampleIdx = startSampleIdx + tabletNum - 1;
+      const matchingSamplePrep = samplePreparationsDisso[sampleIdx];
 
       if (matchingSamplePrep) {
-        return {
-          value: stdPrep.label,
-          label: `Preparation ${stdPrep.label.slice(-1)}`,
+        pairs.push({
+          value: `${stdPrep.label}-${matchingSamplePrep.label}`,
+          label: `Preparation ${stdIdx + 1} - Tablet ${tabletNum}`,
           standardLabel: stdPrep.label,
           sampleLabel: matchingSamplePrep.label,
-        };
+        });
       }
-      return null;
-    })
-    .filter(Boolean);
+    }
+
+    return pairs;
+  });
 
   // Get current selected preparation label
   const currentPrepLabel = selectedStandardPrep?.label || "";
@@ -141,9 +142,8 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     preparationPairs,
   ]);
 
-  // Handle preparation pair selection
   const handlePreparationChange = (value: string) => {
-    const selectedPair = preparationPairs.find((pair) => pair?.value === value);
+    const selectedPair = preparationPairs.find((pair) => pair.value === value);
 
     if (selectedPair) {
       onFieldChange(
@@ -233,17 +233,12 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
 
   const canCalculate = selectedStandardPrep && selectedSamplePrepDisso;
 
-  // Calculation Logic for Dissolution
   const performCalculation = () => {
     console.group("🧪 Dissolution Calculation Started");
 
     if (!canCalculate) {
       console.warn("Cannot calculate: Missing preparations");
-      onFieldChange(
-        calculation.id,
-        "calculationResult",
-        null
-      );
+      onFieldChange(calculation.id, "calculationResult", null);
       console.groupEnd();
       return;
     }
@@ -251,48 +246,41 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     // Parse inputs
     const AreaOfSample = parseFloat(calculation.areaOfSample as string) || 0;
     const AreaOfStandard =
-      parseFloat(calculation.areaOfStandard as string) || 0;
+      parseFloat(calculation.areaOfStandard as string) || 1;
     const SW1_Standard = convertMassToMg(
       standardWeight.value,
       standardWeight.unit
     );
-    const MWBase = parseFloat(calculation.mwBase as string) || 0;
-    const MWSalt = parseFloat(calculation.mwSalt as string) || 0;
-    const Purity = parseFloat(calculation.purity as string) || 0;
-    // Get Standard volumes
-    // V1: 1st Dilution final volume
-    // V2: 2nd Dilution aliquot, V3: 2nd Dilution final volume
-    // V4: 3rd Dilution aliquot, V5: 3rd Dilution final volume
+    const MWBase = parseFloat(calculation.mwBase as string) || 1;
+    const MWSalt = parseFloat(calculation.mwSalt as string) || 1;
+    const Purity = parseFloat(calculation.purity as string) || 1;
+
     const V1 = standardDilutions[0]
       ? convertVolumeToMl(standardDilutions[0].vol1, standardDilutions[0].unit1)
-      : 0;
+      : 1;
 
     const V2 = standardDilutions[1]
       ? convertVolumeToMl(standardDilutions[1].vol1, standardDilutions[1].unit1)
-      : 0;
+      : 1;
     const V3 = standardDilutions[1]
       ? convertVolumeToMl(standardDilutions[1].vol2, standardDilutions[1].unit2)
-      : 0;
+      : 1;
 
     const V4 = standardDilutions[2]
       ? convertVolumeToMl(standardDilutions[2].vol1, standardDilutions[2].unit1)
-      : 0;
+      : 1;
     const V5 = standardDilutions[2]
       ? convertVolumeToMl(standardDilutions[2].vol2, standardDilutions[2].unit2)
-      : 0;
+      : 1;
 
     const V6 = standardDilutions[3]
       ? convertVolumeToMl(standardDilutions[3].vol1, standardDilutions[3].unit1)
-      : 0;
+      : 1;
     const V7 = standardDilutions[3]
       ? convertVolumeToMl(standardDilutions[3].vol2, standardDilutions[3].unit2)
-      : 0;
+      : 1;
 
     // Get Sample volumes
-    // V8: Media Volume (from Tablet Details)
-    // V9: 1st Dilution aliquot, V10: 1st Dilution final volume
-    // V11: 2nd Dilution aliquot, V12: 2nd Dilution final volume
-    // V13: 3rd Dilution aliquot, V14: 3rd Dilution final volume
     const MediaVol = convertVolumeToMl(
       tabletDetails.mediaVol,
       tabletDetails.unit
@@ -334,16 +322,6 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
       MWRatio,
     });
 
-    // Formula from the image (Image 2):
-    // Numerator: Area/ABS of Sample × SW1 × V2 × V4 × V6 × V8 × V10 × V12 × V14 × MW Base × Purity × 100
-    // Denominator: Area/ABS of Standard × V1 × V3 × V5 × V7 × Claim × V9 × V11 × V13 × MW Salt × 100
-
-    // Adjusted based on actual available variables (3 dilutions for standard, 3 for sample):
-    // We don't have V6, V7 from standard (only 3 dilutions: V1, V2-V3, V4-V5)
-    // V8 = MediaVol (from tablet details)
-    // V9 = 1st Dilution aliquot, V10 = 1st Dilution final volume (from sample dilutions)
-    // Claim is used separately in the denominator
-    // Purity is typically 100% or taken from standard purity
 
     let FinalResult = 0;
 
@@ -393,15 +371,11 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     console.groupEnd();
 
     if (isNaN(FinalResult) || !isFinite(FinalResult)) {
-      onFieldChange(
-        calculation.id,
-        "calculationResult",
-        null
-      );
+      onFieldChange(calculation.id, "calculationResult", null);
     } else {
       const result = `${FinalResult.toFixedNoRound(4)}`;
       onFieldChange(calculation.id, "calculationResult", result);
-      onFieldChange(calculation.id, "calculationResultUnit", 'mg/tablet');
+      onFieldChange(calculation.id, "calculationResultUnit", "mg/tablet");
     }
   };
 
@@ -410,13 +384,15 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="relative group"
+      className="relative group z-20"
     >
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-emerald-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-emerald-200/50 shadow-lg hover:shadow-xl transition-all duration-300 mb-4">
         {/* Header */}
-        <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-500 overflow-hidden">
-          <div className="absolute inset-0 bg-black/5" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
+        <div
+          className={`relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-500 ${
+            isExpanded ? "rounded-t-lg" : "rounded-lg"
+          }`}
+        >
 
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
@@ -485,24 +461,28 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
             >
               <div className="p-5 space-y-4 bg-gradient-to-br from-emerald-50/50 to-green-50/30">
                 {/* Selection Section */}
                 <div className="grid grid-cols-1 gap-4">
                   {/* Single Preparation Selection */}
                   <div>
-                    <label className="block text-xs font-semibold text-emerald-900 mb-2">
-                      Select Preparation
+                    <label className="block text-xs font-semibold text-emerald-900 mb-1">
+                      Select Preparation (Standard - Tablet)
                     </label>
                     <CustomDropdown
                       options={preparationPairs.map((pair) => ({
-                        value: pair!.value,
-                        label: pair!.label,
+                        value: pair.value,
+                        label: pair.label,
                       }))}
-                      value={currentPrepLabel}
+                      value={
+                        calculation.selectedStandardPrepLabel &&
+                        calculation.selectedSamplePrepLabel
+                          ? `${calculation.selectedStandardPrepLabel}-${calculation.selectedSamplePrepLabel}`
+                          : ""
+                      }
                       onChange={handlePreparationChange}
-                      placeholder="-- Select Preparation --"
+                      placeholder="Select preparation pair (e.g., Prep 1 - Tablet 1)"
                       colorScheme="emerald"
                     />
                   </div>
@@ -820,7 +800,12 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                           </div>
                           <div className="p-4">
                             <p className="text-2xl font-bold text-gray-800">
-                              {calculation.calculationResult} {" "} {!calculation.calculationResult.startsWith("Error") ? calculation.calculationResultUnit : ''}
+                              {calculation.calculationResult}{" "}
+                              {!calculation.calculationResult.startsWith(
+                                "Error"
+                              )
+                                ? calculation.calculationResultUnit
+                                : ""}
                             </p>
                           </div>
                         </div>
@@ -828,7 +813,7 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
 
                       {/* Summary Info */}
                       <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4">
-                        <div className="grid md:grid-cols-2 gap-4 text-sm">
+                        <div className="grid md:grid-cols-3 gap-4 text-sm">
                           <div>
                             <p className="text-gray-600 font-medium">
                               Standard Prep
@@ -839,10 +824,35 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                           </div>
                           <div>
                             <p className="text-gray-600 font-medium">
-                              Sample Prep
+                              Sample Prep (Tablet)
                             </p>
                             <p className="text-gray-900 font-semibold">
-                              {calculation.selectedSamplePrepLabel || "N/A"}
+                              {calculation.selectedSamplePrepLabel
+                                ? `${calculation.selectedSamplePrepLabel}`
+                                : "N/A"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600 font-medium">
+                              Preparation Pair
+                            </p>
+                            <p className="text-gray-900 font-semibold">
+                              {(() => {
+                                if (
+                                  !calculation.selectedStandardPrepLabel ||
+                                  !calculation.selectedSamplePrepLabel
+                                ) {
+                                  return "N/A";
+                                }
+                                const pair = preparationPairs.find(
+                                  (p) =>
+                                    p.standardLabel ===
+                                      calculation.selectedStandardPrepLabel &&
+                                    p.sampleLabel ===
+                                      calculation.selectedSamplePrepLabel
+                                );
+                                return pair?.label || "N/A";
+                              })()}
                             </p>
                           </div>
                         </div>

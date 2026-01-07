@@ -1,9 +1,4 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { type SampleData } from "../preparation_models/SampleData";
 import type { Instrument } from "../preparation_models/Instrument";
@@ -173,10 +168,11 @@ interface WorksheetProps {
   employeeId: string;
   role: string;
   onPrint?: (
-    info: WorksheetDetail, 
+    info: WorksheetDetail,
     analysts: Analyst[],
-    instruments: Instrument[], 
-    chemicals: Chemical[], 
+    sampleData: SampleData,
+    instruments: Instrument[],
+    chemicals: Chemical[],
     standards: Standard[]
   ) => void;
 }
@@ -1397,8 +1393,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       role: role,
       worksheetId: worksheetId,
       registrationInfo: {
-        registrationNo:
-          worksheetInfo?.sample.registrationNo || registrationNo,
+        registrationNo: worksheetInfo?.sample.registrationNo || registrationNo,
         sampleName: worksheetInfo?.sample?.sampleName!,
         numberOfParameters: addedParameters.length!,
         dueDate: worksheetInfo?.sample?.dueDate!,
@@ -1600,13 +1595,14 @@ const Worksheet: React.FC<WorksheetProps> = ({
   };
 
   const handlePrintClick = () => {
-    if (onPrint && worksheetInfo && analysts) {
+    if (onPrint && worksheetInfo && analysts && samplesData) {
       const selectedParam = addedParameters[paramIdx];
       const paramId = selectedParam.id;
 
       onPrint(
         worksheetInfo,
         analysts,
+        samplesData[0],
         addedInstruments[paramId] || [],
         addedChemicals[paramId] || [],
         addedStandards[paramId] || []
@@ -2328,7 +2324,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
       setIsCompletingAnalysis(false);
     }
   };
-  
 
   const handleApproveWorksheet = async () => {
     setIsApprovingWorksheet(true);
@@ -3122,8 +3117,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
     } else if (isDisso) {
       const currentStandards =
         standardPreparationDissoPerParam[parameterId] || [];
-      const newIndex = currentStandards.length;
-      const newStandardPrep = createNewStandardPreparation(newIndex);
+      const newStandardIndex = currentStandards.length;
+      const newStandardPrep = createNewStandardPreparation(newStandardIndex);
 
       newStandardPrep.steps = newStandardPrep.steps.map((step) => {
         if (step.name === "Weighing") {
@@ -3140,17 +3135,29 @@ const Worksheet: React.FC<WorksheetProps> = ({
         ],
       }));
 
+      // Create 6 sample preparations (6 tablets) for each standard prep
       const currentSamples = samplePreparationDissoPerParam[parameterId] || [];
-      const newSampleIndex = currentSamples.length;
-      const newSamplePrepDisso =
-        createNewSamplePreparationDisso(newSampleIndex);
+      const baseSampleIndex = currentSamples.length;
+      const newSamplePreps: SamplePreparationDisso[] = [];
+
+      for (let i = 0; i < 6; i++) {
+        const tabletNumber = baseSampleIndex + i + 1;
+        const newSamplePrepDisso = createNewSamplePreparationDisso(
+          baseSampleIndex + i
+        );
+        // Update label to show tablet number
+        newSamplePrepDisso.label = `Sample Preparation ${tabletNumber} (Tablet ${
+          (baseSampleIndex % 6) + i + 1
+        })`;
+        newSamplePreps.push({
+          ...newSamplePrepDisso,
+          assignedStandardId: standard.id,
+        });
+      }
 
       setSamplePreparationDissoPerParam((prev) => ({
         ...prev,
-        [parameterId]: [
-          ...currentSamples,
-          { ...newSamplePrepDisso, assignedStandardId: standard.id },
-        ],
+        [parameterId]: [...currentSamples, ...newSamplePreps],
       }));
     } else {
       const currentStandards = standardPreparationPerParam[parameterId] || [];
@@ -3411,16 +3418,47 @@ const Worksheet: React.FC<WorksheetProps> = ({
           label: `Standard Preparation ${1 + index}`,
         }));
 
+      // Remove 6 sample preparations associated with this standard prep
       if (indexToRemove !== -1) {
         setSamplePreparationDissoPerParam((prevSample) => {
           const samples = prevSample[parameterId] || [];
+
+          // Calculate which 6 samples to remove (each standard prep has 6 samples)
+          const startIdx = indexToRemove * 6;
+          const endIdx = startIdx + 6;
+
+          // Filter out the 6 samples and renumber remaining samples
           const updatedSamples = samples
-            .filter((_, idx) => idx !== indexToRemove)
-            .map((sp, index) => ({
-              ...sp,
-              label: `Sample Preparation ${1 + index}`,
-            }));
+            .filter((_, idx) => idx < startIdx || idx >= endIdx)
+            .map((sp, index) => {
+              const tabletNum = (index % 6) + 1;
+              return {
+                ...sp,
+                label: `Sample Preparation ${index + 1} (Tablet ${tabletNum})`,
+              };
+            });
+
           return { ...prevSample, [parameterId]: updatedSamples };
+        });
+
+        // Also need to clean up any calculations that referenced the removed preparations
+        setCalculationsDissoPerParam((prevCalc) => {
+          const calculations = prevCalc[parameterId] || [];
+          const removedStandardLabel = standards[indexToRemove]?.label;
+
+          const updatedCalculations = calculations.map((calc) => {
+            // If calculation was using the removed standard prep, clear it
+            if (calc.selectedStandardPrepLabel === removedStandardLabel) {
+              return {
+                ...calc,
+                selectedStandardPrepLabel: null,
+                selectedSamplePrepLabel: null,
+              };
+            }
+            return calc;
+          });
+
+          return { ...prevCalc, [parameterId]: updatedCalculations };
         });
       }
 
@@ -6050,28 +6088,30 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                     </div>
                                     {!isLocked && (
                                       <motion.button
-                                      onClick={() =>
-                                        handleReassignAnalyst(selectedParam.id)
-                                      }
-                                      whileHover={{ scale: 1.02 }}
-                                      whileTap={{ scale: 0.98 }}
-                                      className="px-3 py-1.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-lg hover:bg-white hover:border-emerald-300 transition-all duration-200 flex items-center gap-1.5"
-                                    >
-                                      <svg
-                                        className="w-3.5 h-3.5"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
+                                        onClick={() =>
+                                          handleReassignAnalyst(
+                                            selectedParam.id
+                                          )
+                                        }
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className="px-3 py-1.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-lg hover:bg-white hover:border-emerald-300 transition-all duration-200 flex items-center gap-1.5"
                                       >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                                        />
-                                      </svg>
-                                      Reassign
-                                    </motion.button>
+                                        <svg
+                                          className="w-3.5 h-3.5"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                                          />
+                                        </svg>
+                                        Reassign
+                                      </motion.button>
                                     )}
                                   </div>
 
@@ -6300,7 +6340,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     <div
                       className={
                         shouldDisableContent
-                          ? ['Analysis Completed', 'Approved'].includes(parameterStatusPerParam[selectedParam.id]) ? "pointer-events-none opacity-80" : "pointer-events-none opacity-60"
+                          ? ["Analysis Completed", "Approved"].includes(
+                              parameterStatusPerParam[selectedParam.id]
+                            )
+                            ? "pointer-events-none opacity-80"
+                            : "pointer-events-none opacity-60"
                           : ""
                       }
                     >
@@ -7263,7 +7307,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-red-200/50 bg-gradient-to-br from-red-50/40 via-white/60 to-rose-50/40 backdrop-blur-sm shadow-2xl hover:shadow-red-200/50 transition-all duration-500 overflow-hidden hover:scale-[1.01]"
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-red-200/50 bg-gradient-to-br from-red-50/40 via-white/60 to-rose-50/40 backdrop-blur-sm shadow-2xl hover:shadow-red-200/50 transition-all duration-500 hover:scale-[1.01]"
                         >
                           {/* Decorative elements */}
                           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-red-400/10 to-transparent rounded-bl-full -z-10" />
@@ -7355,8 +7399,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                     key={standardPreparation.id}
                                     className="mb-6"
                                   >
-                                    <div className="overflow-hidden">
-                                      <StandardPreparationDetail
+                                    <StandardPreparationDetail
                                         standardPreparation={
                                           standardPreparation
                                         }
@@ -7385,12 +7428,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                         }
                                         role={role}
                                       />
-                                    </div>
 
                                     {correspondingSample && (
                                       <div className="mt-4">
-                                        <div className="overflow-hidden">
-                                          <SamplePreparationDetail
+                                        <SamplePreparationDetail
                                             samplePreparation={
                                               correspondingSample
                                             }
@@ -7419,7 +7460,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                             }
                                             role={role}
                                           />
-                                        </div>
                                       </div>
                                     )}
                                   </div>
@@ -7588,7 +7628,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-sky-200/50 bg-gradient-to-br from-sky-50/40 via-white/60 to-blue-50/40 backdrop-blur-sm shadow-2xl hover:shadow-sky-200/50 transition-all duration-500 overflow-hidden hover:scale-[1.01]"
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-sky-200/50 bg-gradient-to-br from-sky-50/40 via-white/60 to-blue-50/40 backdrop-blur-sm shadow-2xl hover:shadow-sky-200/50 transition-all duration-500 hover:scale-[1.01]"
                         >
                           {/* Decorative elements */}
                           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-sky-400/10 to-transparent rounded-bl-full -z-10" />
@@ -7658,7 +7698,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 ] || []
                               ).map((samplePreparationLod) => (
                                 <div
-                                  className="overflow-hidden"
                                   key={samplePreparationLod.id}
                                 >
                                   <SamplePreparationLodDetail
@@ -7841,7 +7880,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-orange-200/50 bg-gradient-to-br from-orange-50/40 via-white/60 to-amber-50/40 backdrop-blur-sm shadow-2xl hover:shadow-orange-200/50 transition-all duration-500 overflow-hidden hover:scale-[1.01]"
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-orange-200/50 bg-gradient-to-br from-orange-50/40 via-white/60 to-amber-50/40 backdrop-blur-sm shadow-2xl hover:shadow-orange-200/50 transition-all duration-500 hover:scale-[1.01]"
                         >
                           {/* Decorative elements */}
                           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-orange-400/10 to-transparent rounded-bl-full -z-10" />
@@ -8094,7 +8133,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-rose-200/50 bg-gradient-to-br from-rose-50/40 via-white/60 to-pink-50/40 backdrop-blur-sm shadow-2xl hover:shadow-rose-200/50 transition-all duration-500 overflow-hidden hover:scale-[1.01]"
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-rose-200/50 bg-gradient-to-br from-rose-50/40 via-white/60 to-pink-50/40 backdrop-blur-sm shadow-2xl hover:shadow-rose-200/50 transition-all duration-500 hover:scale-[1.01]"
                         >
                           {/* Decorative elements */}
                           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-rose-400/10 to-transparent rounded-bl-full -z-10" />
@@ -8165,7 +8204,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 ] || []
                               ).map((samplePreparationSulphatedAsh) => (
                                 <div
-                                  className="overflow-hidden"
                                   key={samplePreparationSulphatedAsh.id}
                                 >
                                   <SamplePreparationSulphatedAshDetail
@@ -8354,7 +8392,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-indigo-200/50 bg-gradient-to-br from-indigo-50/40 via-white/60 to-purple-50/40 backdrop-blur-sm shadow-2xl hover:shadow-indigo-200/50 transition-all duration-500 overflow-hidden hover:scale-[1.01]"
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-indigo-200/50 bg-gradient-to-br from-indigo-50/40 via-white/60 to-purple-50/40 backdrop-blur-sm shadow-2xl hover:shadow-indigo-200/50 transition-all duration-500 hover:scale-[1.01]"
                         >
                           {/* Decorative elements */}
                           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-400/10 to-transparent rounded-bl-full -z-10" />
@@ -8484,8 +8522,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                     {/* Corresponding Sample Preparation for RS */}
                                     {correspondingSample && (
                                       <div className="mt-4">
-                                        <div className="overflow-hidden">
-                                          <SamplePreparationDetail
+                                        <SamplePreparationDetail
                                             samplePreparation={
                                               correspondingSample
                                             }
@@ -8515,7 +8552,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                             isRS={true}
                                             role={role}
                                           />
-                                        </div>
                                       </div>
                                     )}
                                   </div>
@@ -8677,13 +8713,14 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         </motion.div>
                       )}
 
+                       {/* ============= Dissolution GROUP CARD ============= */}
                       {(
                         activePreparationGroups[selectedParam.id] || []
                       ).includes("dissolution") && (
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-green-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 overflow-hidden hover:scale-[1.01]"
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-green-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
                         >
                           {/* Decorative elements */}
                           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
@@ -8766,80 +8803,79 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                     standardPreparation.assignedStandardId
                                 );
 
-                                const correspondingSample =
-                                  (samplePreparationDissoPerParam[
+                                const allSamplePreps =
+                                  samplePreparationDissoPerParam[
                                     selectedParam.id
-                                  ] || [])[idx];
+                                  ] || [];
+                                const startIdx = idx * 6;
+                                const correspondingSamples =
+                                  allSamplePreps.slice(startIdx, startIdx + 6);
 
                                 return (
                                   <div
                                     key={standardPreparation.id}
                                     className="mb-6"
                                   >
-                                    <div className="overflow-hidden">
-                                      <StandardPreparationDetail
-                                        standardPreparation={
-                                          standardPreparation
-                                        }
-                                        assignedStandard={
-                                          assignedStandard || null
-                                        }
-                                        onStepChange={(
+                                    <StandardPreparationDetail
+                                      standardPreparation={standardPreparation}
+                                      assignedStandard={
+                                        assignedStandard || null
+                                      }
+                                      onStepChange={(
+                                        standardPreparationId,
+                                        stepName,
+                                        field,
+                                        newValue
+                                      ) =>
+                                        handleStandardPreparationDissoStepChange(
+                                          selectedParam.id,
                                           standardPreparationId,
                                           stepName,
                                           field,
                                           newValue
-                                        ) =>
-                                          handleStandardPreparationDissoStepChange(
-                                            selectedParam.id,
-                                            standardPreparationId,
-                                            stepName,
-                                            field,
-                                            newValue
-                                          )
-                                        }
-                                        onRemove={() =>
-                                          handleRemoveStandardPreparationDisso(
-                                            selectedParam.id,
-                                            standardPreparation.id
-                                          )
-                                        }
-                                        isDisso={true}
-                                        role={role}
-                                      />
-                                    </div>
+                                        )
+                                      }
+                                      onRemove={() =>
+                                        handleRemoveStandardPreparationDisso(
+                                          selectedParam.id,
+                                          standardPreparation.id
+                                        )
+                                      }
+                                      isDisso={true}
+                                      role={role}
+                                    />
 
-                                    {correspondingSample && (
-                                      <div className="mt-4">
-                                        <div className="overflow-hidden">
+                                    {correspondingSamples.map(
+                                      (correspondingSample, sampleIdx) => (
+                                        <div className="mt-4">
                                           <SamplePreparationDissoDetail
-                                            samplePreparationDisso={
-                                              correspondingSample
-                                            }
-                                            onStepChange={(
-                                              samplePreparationDissoId,
-                                              stepName,
-                                              field,
-                                              newValue
-                                            ) =>
-                                              handleSamplePreparationDissoStepChange(
-                                                selectedParam.id,
+                                              samplePreparationDisso={
+                                                correspondingSample
+                                              }
+                                              onStepChange={(
                                                 samplePreparationDissoId,
                                                 stepName,
                                                 field,
                                                 newValue
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparationDisso(
-                                                selectedParam.id,
-                                                correspondingSample.id
-                                              )
-                                            }
-                                            role={role}
-                                          />
+                                              ) =>
+                                                handleSamplePreparationDissoStepChange(
+                                                  selectedParam.id,
+                                                  samplePreparationDissoId,
+                                                  stepName,
+                                                  field,
+                                                  newValue
+                                                )
+                                              }
+                                              onRemove={() =>
+                                                handleRemoveSamplePreparationDisso(
+                                                  selectedParam.id,
+                                                  correspondingSample.id
+                                                )
+                                              }
+                                              role={role}
+                                            />
                                         </div>
-                                      </div>
+                                      )
                                     )}
                                   </div>
                                 );

@@ -64,10 +64,10 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-sky-200/50 transition-all duration-300 mb-4">
         {/* Elegant Header */}
         <div
-          className={`relative bg-gradient-to-r from-sky-600 via-sky-500 to-blue-500 ${headerRoundingClass}`}
-        >
-          <div className="absolute inset-0 bg-black/5" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
+            className={`relative bg-gradient-to-r from-sky-600 via-sky-500 to-blue-500 ${headerRoundingClass} ${
+              isExpanded ? "rounded-t-lg" : "rounded-lg"
+            }`}
+          >
 
           <div className="relative flex items-center justify-between px-4 py-3">
             <div

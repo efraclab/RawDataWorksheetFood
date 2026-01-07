@@ -31,6 +31,7 @@ import {
   fetchColumns,
 } from "./services/api";
 import type { Analyst } from "./models/Analyst";
+import type { SampleData } from "./preparation_models/SampleData";
 
 /* ------------------ Auth Helpers ------------------ */
 
@@ -126,15 +127,15 @@ function WorksheetPreviewPage(props: {
   referenceDataError: string | null;
   employeeId: string;
   role: string;
-  onPrintRequest: (data: WorksheetDetail, analysts: Analyst[]) => void;
+  onPrintRequest: (data: WorksheetDetail, analysts: Analyst[], sampleData: SampleData) => void;
 }) {
   const { worksheetId } = useParams<{ worksheetId: string }>();
   const navigate = useNavigate();
 
   if (!worksheetId) return null;
 
-  const handlePrint = (data: WorksheetDetail, analysts: Analyst[]) => {
-    props.onPrintRequest(data, analysts);
+  const handlePrint = (data: WorksheetDetail, analysts: Analyst[], sampleData: SampleData) => {
+    props.onPrintRequest(data, analysts, sampleData);
 
     sessionStorage.setItem("printPrevPath", location.pathname);
 
@@ -167,7 +168,8 @@ function WorksheetPreviewPage(props: {
 }
 
 function PrintReportPage(props: {
-  worksheetInfo: WorksheetDetail | null;
+  worksheetInfo: WorksheetDetail;
+  sampleData: SampleData,
   analysts: Analyst[];
   instruments: Instrument[];
   chemicals: Chemical[];
@@ -195,6 +197,7 @@ function PrintReportPage(props: {
     >
       <PrintReport
         worksheetInfo={props.worksheetInfo}
+        sampleData={props.sampleData}
         analysts={props.analysts}
         instruments={props.instruments}
         chemicals={props.chemicals}
@@ -218,6 +221,7 @@ function AuthenticatedApp({
   const [chemicals, setChemicals] = useState<Chemical[]>([]);
   const [standards, setStandards] = useState<Standard[]>([]);
   const [analysts, setAnalysts] = useState<Analyst[]>([]);
+  const [sampleData, setSampleData] = useState<Analyst[]>([]);
   const [columns, setColumns] = useState<Column[]>([]);
   const [isReferenceDataLoading, setIsReferenceDataLoading] = useState(true);
   const [referenceDataError, setReferenceDataError] = useState<string | null>(
@@ -281,7 +285,8 @@ function AuthenticatedApp({
                 referenceDataError={referenceDataError}
                 employeeId={employeeId}
                 role={role}
-                onPrintRequest={(data, analyst) => {setActiveWorksheetData(data); setAnalysts(analyst)}}
+                onPrintRequest={(worksheetInfo, analyst) => 
+                  {setActiveWorksheetData(worksheetInfo); setAnalysts(analyst); setSampleData(sampleData)}}
               />
             }
           />
@@ -289,8 +294,9 @@ function AuthenticatedApp({
             path="/worksheets/:worksheetId/print"
             element={
               <PrintReportPage
-              analysts={analysts}
                 worksheetInfo={activeWorksheetData}
+                analysts={analysts}
+                sampleData={sampleData}
                 instruments={instruments}
                 chemicals={chemicals}
                 standards={standards}

@@ -60,11 +60,10 @@ const SamplePreparationSulphatedAshDetail: React.FC<
 
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-rose-200/50 transition-all duration-300 mb-4">
         <div
-          className={`relative bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 ${headerRoundingClass}`}
+          className={`relative bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 ${headerRoundingClass} ${
+            isExpanded ? "rounded-t-lg" : "rounded-lg"
+          }`}
         >
-          <div className="absolute inset-0 bg-black/5" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"

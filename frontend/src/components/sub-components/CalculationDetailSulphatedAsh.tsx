@@ -224,17 +224,14 @@ const CalculationDetailSulphatedAsh: React.FC<
       className="relative group z-20"
     >
       {/* Glow effect - Rose Theme */}
-      <div className="absolute inset-0 bg-gradient-to-r from-rose-400/20 to-rose-400/20 rounded-xl blur-xl group-hover:blur-xl overflow-hidden transition-all duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-r from-rose-400/20 to-rose-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
 
-      {/* Main Card Container - Rose Theme & FIX 2: Removed overflow-hidden */}
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-rose-200/50 shadow-lg hover:shadow-xl transition-all overflow-hidden duration-300 mb-4">
-        {/* Header - Rose Theme & FIX 3: Conditional Rounding & Removed overflow-hidden */}
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-rose-200/50 shadow-lg hover:shadow-xl transition-all duration-300 mb-4">
         <div
-          className={`relative bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 ${headerRoundingClass}`}
+          className={`relative bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 ${headerRoundingClass} ${
+            isExpanded ? "rounded-t-lg" : "rounded-lg"
+          }`}
         >
-          <div className="absolute inset-0 bg-black/5" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"

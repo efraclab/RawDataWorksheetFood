@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|d:\\react-projects\\raw-data-worksheet-app\\backend\\rawdataworksheet\\rawdataworksheet\\repositories\\rawdatarepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|solutionrelative:rawdataworksheet\\repositories\\rawdatarepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|d:\\react-projects\\raw-data-worksheet-app\\backend\\rawdataworksheet\\rawdataworksheet\\models\\sampledetails.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|solutionrelative:rawdataworksheet\\models\\sampledetails.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|d:\\react-projects\\raw-data-worksheet-app\\backend\\rawdataworksheet\\rawdataworksheet\\repositories\\worksheetrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|solutionrelative:rawdataworksheet\\repositories\\worksheetrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -81,10 +89,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|d:\\react-projects\\raw-data-worksheet-app\\backend\\rawdataworksheet\\rawdataworksheet\\models\\finalrawdata\\rawdatapreparationdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|solutionrelative:rawdataworksheet\\models\\finalrawdata\\rawdatapreparationdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|d:\\react-projects\\raw-data-worksheet-app\\backend\\rawdataworksheet\\rawdataworksheet\\repositories\\rawdatarepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|solutionrelative:rawdataworksheet\\repositories\\rawdatarepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|d:\\react-projects\\raw-data-worksheet-app\\backend\\rawdataworksheet\\rawdataworksheet\\models\\dtos\\worksheetdetaildto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -187,10 +191,6 @@
       "RelativeMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|solutionrelative:rawdataworksheet\\models\\chemicals.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|d:\\react-projects\\raw-data-worksheet-app\\backend\\rawdataworksheet\\rawdataworksheet\\models\\sampledetails.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|solutionrelative:rawdataworksheet\\models\\sampledetails.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
     },
     {
@@ -217,50 +217,24 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "WorksheetRepository.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\WorksheetRepository.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Repositories\\WorksheetRepository.cs",
               "ToolTip": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\WorksheetRepository.cs",
               "RelativeToolTip": "RawDataWorkSheet\\Repositories\\WorksheetRepository.cs",
-              "ViewState": "AgIAAIsAAAAAAAAAAAAuwJsAAAAsAAAAAAAAAA==",
+              "ViewState": "AgIAAHMAAAAAAAAAAAAuwLUAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-12T05:22:01.095Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "SaveWorksheetRequest.cs",
-              "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Requests\\SaveWorksheetRequest.cs",
-              "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Requests\\SaveWorksheetRequest.cs",
-              "ToolTip": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Requests\\SaveWorksheetRequest.cs",
-              "RelativeToolTip": "RawDataWorkSheet\\Models\\Requests\\SaveWorksheetRequest.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAcAAAApAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-12T05:41:44.995Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "StandardPreparationDto.cs",
-              "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\StandardPreparationDto.cs",
-              "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\StandardPreparationDto.cs",
-              "ToolTip": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\StandardPreparationDto.cs",
-              "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\StandardPreparationDto.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAoAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-12T10:46:19.223Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "ParameterDto.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\ParameterDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\ParameterDto.cs",
@@ -268,12 +242,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\ParameterDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-01T05:55:36.547Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-01T05:55:36.547Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "FetchWorksheetsRequest.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\FetchWorksheetsRequest.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\FetchWorksheetsRequest.cs",
@@ -281,12 +254,61 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\FetchWorksheetsRequest.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T04:35:25.852Z",
+              "WhenOpened": "2025-12-23T04:35:25.852Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "RawDataRepository.cs",
+              "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\RawDataRepository.cs",
+              "RelativeDocumentMoniker": "RawDataWorkSheet\\Repositories\\RawDataRepository.cs",
+              "ToolTip": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\RawDataRepository.cs",
+              "RelativeToolTip": "RawDataWorkSheet\\Repositories\\RawDataRepository.cs",
+              "ViewState": "AgIAAFoAAAAAAAAAAAAAAGsAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-04T07:14:49.264Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 1,
+              "Title": "SampleDetails.cs",
+              "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\SampleDetails.cs",
+              "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\SampleDetails.cs",
+              "ToolTip": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\SampleDetails.cs",
+              "RelativeToolTip": "RawDataWorkSheet\\Models\\SampleDetails.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAA7AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-04T07:17:41.337Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "StandardPreparationDto.cs",
+              "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\StandardPreparationDto.cs",
+              "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\StandardPreparationDto.cs",
+              "ToolTip": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\StandardPreparationDto.cs",
+              "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\StandardPreparationDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T10:46:19.223Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "SaveWorksheetRequest.cs",
+              "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Requests\\SaveWorksheetRequest.cs",
+              "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Requests\\SaveWorksheetRequest.cs",
+              "ToolTip": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Requests\\SaveWorksheetRequest.cs",
+              "RelativeToolTip": "RawDataWorkSheet\\Models\\Requests\\SaveWorksheetRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAcAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T05:41:44.995Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "WorksheetController.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Controllers\\WorksheetController.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Controllers\\WorksheetController.cs",
@@ -294,12 +316,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Controllers\\WorksheetController.cs",
               "ViewState": "AgIAACkAAAAAAAAAAAAwwDQAAABsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-12T06:18:17.315Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-12T06:18:17.315Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 8,
               "Title": "DocumentInfoDto.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\DocumentInfoDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\DocumentInfoDto.cs",
@@ -307,12 +328,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\DocumentInfoDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAArAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-17T10:00:32.985Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-17T10:00:32.985Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 9,
               "Title": "RegistrationInfoDto.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\RegistrationInfoDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\RegistrationInfoDto.cs",
@@ -320,12 +340,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\RegistrationInfoDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAqwAgAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-12T05:37:35.06Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-12T05:37:35.06Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 10,
               "Title": "appsettings.json",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\appsettings.json",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\appsettings.json",
@@ -337,7 +356,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 11,
               "Title": "RawDataCalculationDto.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\FinalRawData\\RawDataCalculationDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\FinalRawData\\RawDataCalculationDto.cs",
@@ -349,7 +368,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 12,
               "Title": "FinalRawDataRepository.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\FinalRawDataRepository.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Repositories\\FinalRawDataRepository.cs",
@@ -361,7 +380,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 13,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Program.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Program.cs",
@@ -373,7 +392,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 14,
               "Title": "FinalRawDataController.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Controllers\\FinalRawDataController.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Controllers\\FinalRawDataController.cs",
@@ -385,7 +404,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 15,
               "Title": "FinalRawDataService.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Services\\FinalRawDataService.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Services\\FinalRawDataService.cs",
@@ -397,7 +416,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 16,
               "Title": "SaveWorksheetRawDataRequest.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\FinalRawData\\SaveWorksheetRawDataRequest.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\FinalRawData\\SaveWorksheetRawDataRequest.cs",
@@ -409,7 +428,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 17,
               "Title": "IFinalRawDataRepository.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\IFinalRawDataRepository.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Repositories\\IFinalRawDataRepository.cs",
@@ -421,7 +440,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 18,
               "Title": "RawDataReferenceDto.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\FinalRawData\\RawDataReferenceDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\FinalRawData\\RawDataReferenceDto.cs",
@@ -433,7 +452,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 19,
               "Title": "RawDataService.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Services\\RawDataService.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Services\\RawDataService.cs",
@@ -445,7 +464,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 20,
               "Title": "RawDataWorksheetDto.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\FinalRawData\\RawDataWorksheetDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\FinalRawData\\RawDataWorksheetDto.cs",
@@ -457,7 +476,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 21,
               "Title": "RawDataPreparationDto.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\FinalRawData\\RawDataPreparationDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\FinalRawData\\RawDataPreparationDto.cs",
@@ -469,19 +488,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
-              "Title": "RawDataRepository.cs",
-              "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\RawDataRepository.cs",
-              "RelativeDocumentMoniker": "RawDataWorkSheet\\Repositories\\RawDataRepository.cs",
-              "ToolTip": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\RawDataRepository.cs",
-              "RelativeToolTip": "RawDataWorkSheet\\Repositories\\RawDataRepository.cs",
-              "ViewState": "AgIAAAsAAAAAAAAAAAAQwAwAAAAvAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-04T07:14:49.264Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 22,
               "Title": "WorksheetDetailDto.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\WorksheetDetailDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\WorksheetDetailDto.cs",
@@ -493,7 +500,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 23,
               "Title": "WorksheetDto.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\WorksheetDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\WorksheetDto.cs",
@@ -505,7 +512,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 25,
               "Title": "Instruments.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Instruments.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Instruments.cs",
@@ -517,7 +524,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 26,
               "Title": "WorksheetSummaryDto.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\WorksheetSummaryDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\WorksheetSummaryDto.cs",
@@ -529,7 +536,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 24,
               "Title": "TrnRow.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\TrnRow.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\TrnRow.cs",
@@ -541,7 +548,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 28,
               "Title": "WorksheetService.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Services\\WorksheetService.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Services\\WorksheetService.cs",
@@ -553,7 +560,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 27,
               "Title": "RawDataWorkSheet.csproj",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\RawDataWorkSheet.csproj",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\RawDataWorkSheet.csproj",
@@ -577,7 +584,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 29,
               "Title": "WorksheetResponse.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Responses\\WorksheetResponse.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Responses\\WorksheetResponse.cs",
@@ -589,7 +596,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 30,
+              "DocumentIndex": 31,
               "Title": "IWorksheetService.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Services\\IWorksheetService.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Services\\IWorksheetService.cs",
@@ -601,7 +608,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 30,
               "Title": "IWorksheetRepository.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\IWorksheetRepository.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Repositories\\IWorksheetRepository.cs",
@@ -613,7 +620,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 31,
+              "DocumentIndex": 32,
               "Title": "IUserRepository.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\IUserRepository.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Repositories\\IUserRepository.cs",
@@ -625,7 +632,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 32,
+              "DocumentIndex": 33,
               "Title": "UserRepository.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\UserRepository.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Repositories\\UserRepository.cs",
@@ -637,7 +644,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 33,
+              "DocumentIndex": 34,
               "Title": "JwtService.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\utils\\JwtService.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\utils\\JwtService.cs",
@@ -649,7 +656,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 35,
+              "DocumentIndex": 36,
               "Title": "IUserService.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Services\\IUserService.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Services\\IUserService.cs",
@@ -661,7 +668,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 34,
+              "DocumentIndex": 35,
               "Title": "User.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\User.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\User.cs",
@@ -673,7 +680,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 36,
+              "DocumentIndex": 37,
               "Title": "launchSettings.json",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Properties\\launchSettings.json",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Properties\\launchSettings.json",
@@ -685,7 +692,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 37,
+              "DocumentIndex": 38,
               "Title": "AuthController.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Controllers\\AuthController.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Controllers\\AuthController.cs",
@@ -697,7 +704,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 38,
+              "DocumentIndex": 39,
               "Title": "LogInRequest.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Requests\\LogInRequest.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Requests\\LogInRequest.cs",
@@ -709,7 +716,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 39,
+              "DocumentIndex": 40,
               "Title": "RawDataController.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Controllers\\RawDataController.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Controllers\\RawDataController.cs",
@@ -721,7 +728,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 40,
+              "DocumentIndex": 41,
               "Title": "Standard.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Standard.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Standard.cs",
@@ -733,7 +740,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 41,
+              "DocumentIndex": 42,
               "Title": "IRawDataRepository.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\IRawDataRepository.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Repositories\\IRawDataRepository.cs",
@@ -745,7 +752,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 42,
+              "DocumentIndex": 43,
               "Title": "SamplePreparationDto.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\SamplePreparationDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\SamplePreparationDto.cs",
@@ -757,7 +764,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 43,
+              "DocumentIndex": 44,
               "Title": "CalculationDto.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\CalculationDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\CalculationDto.cs",
@@ -769,7 +776,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 44,
+              "DocumentIndex": 45,
               "Title": "WorksheetListResponse.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Responses\\WorksheetListResponse.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Responses\\WorksheetListResponse.cs",
@@ -782,18 +789,6 @@
             {
               "$type": "Document",
               "DocumentIndex": 46,
-              "Title": "SampleDetails.cs",
-              "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\SampleDetails.cs",
-              "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\SampleDetails.cs",
-              "ToolTip": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\SampleDetails.cs",
-              "RelativeToolTip": "RawDataWorkSheet\\Models\\SampleDetails.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAEAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-04T07:17:41.337Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 45,
               "Title": "Chemicals.cs",
               "DocumentMoniker": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Chemicals.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Chemicals.cs",

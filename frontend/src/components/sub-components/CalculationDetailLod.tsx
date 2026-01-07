@@ -72,6 +72,8 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
+  const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
+
   // Get selected sample preparation
   const selectedSamplePrep = samplePreparations.find(
     (prep) => prep.label === calculation.selectedSamplePrepLabel
@@ -227,14 +229,15 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="relative group"
+      className="relative group z-20"
     >
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-sky-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-sky-200/50 shadow-lg hover:shadow-xl transition-all duration-300 mb-4">
         {/* Header */}
-        <div className="relative bg-gradient-to-r from-sky-600 via-sky-500 to-blue-500 overflow-hidden">
-          <div className="absolute inset-0 bg-black/5" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-
+          <div
+            className={`relative bg-gradient-to-r from-sky-600 via-sky-500 to-blue-500 ${headerRoundingClass} ${
+              isExpanded ? "rounded-t-lg" : "rounded-lg"
+            }`}
+          >
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"
@@ -243,7 +246,7 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
               <motion.div
                 animate={{ rotate: isExpanded ? 0 : 360 }}
                 transition={{ duration: 0.5 }}
-                className="relative"
+                className="relative group"
               >
                 <div className="absolute inset-0 bg-white/30 rounded-lg blur-md" />
                 <div className="relative p-2 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
@@ -302,7 +305,6 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
             >
               <div className="p-5 space-y-4 bg-gradient-to-br from-sky-50/50 to-blue-50/30">
                 {/* Sample Preparation Selection */}

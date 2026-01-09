@@ -41,7 +41,7 @@ interface SamplePreparationDissoDetailProps {
     samplePreparationDissoId: number,
     stepName: SamplePreparationDissoStep["name"],
     field:
-        "id"
+      | "id"
       | "value1"
       | "unit1"
       | "value2"
@@ -77,7 +77,6 @@ const SamplePreparationDissoDetail: React.FC<
             isExpanded ? "rounded-t-lg" : "rounded-lg"
           }`}
         >
-
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"
@@ -119,20 +118,18 @@ const SamplePreparationDissoDetail: React.FC<
                 </motion.div>
               </motion.button>
 
-              {role === "HOD LAB" && (
-                <motion.button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove();
-                  }}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                  title={`Remove ${samplePreparationDisso.label}`}
-                >
-                  <Trash className="w-4 h-4 text-white" />
-                </motion.button>
-              )}
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${samplePreparationDisso.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
             </div>
           </div>
         </div>
@@ -198,6 +195,15 @@ const SamplePreparationDissoDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Id"
                                     className="w-20 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                                   />
@@ -212,20 +218,28 @@ const SamplePreparationDissoDetail: React.FC<
                                     inputMode="decimal"
                                     value={step.value1 || ""}
                                     onChange={(e) => {
-                                        onStepChange(
-                                          samplePreparationDisso.id,
-                                          step.name,
-                                          "value1",
-                                          e.target.value
-                                        )
-                                        onStepChange(
-                                          samplePreparationDisso.id,
-                                          step.name,
-                                          "unit1",
-                                          "rpm"
-                                        )
+                                      onStepChange(
+                                        samplePreparationDisso.id,
+                                        step.name,
+                                        "value1",
+                                        e.target.value
+                                      );
+                                      onStepChange(
+                                        samplePreparationDisso.id,
+                                        step.name,
+                                        "unit1",
+                                        "rpm"
+                                      );
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
                                       }
-                                    }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Value"
                                     className="flex-1 min-w-[120px] px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
@@ -246,6 +260,15 @@ const SamplePreparationDissoDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Temp"
                                     className="w-24 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
@@ -289,6 +312,15 @@ const SamplePreparationDissoDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Claim"
                                     className="w-24 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                                   />
@@ -326,6 +358,15 @@ const SamplePreparationDissoDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Volume"
                                     className="flex-1 min-w-[100px] px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
@@ -362,6 +403,15 @@ const SamplePreparationDissoDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Time"
                                     className="w-24 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
@@ -407,6 +457,15 @@ const SamplePreparationDissoDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Volume"
                                     className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
@@ -452,6 +511,15 @@ const SamplePreparationDissoDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Volume"
                                     className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
@@ -497,6 +565,15 @@ const SamplePreparationDissoDetail: React.FC<
                                       e.target.value
                                     )
                                   }
+                                  onKeyDown={(e) => {
+                                    if (
+                                      e.key === "ArrowUp" ||
+                                      e.key === "ArrowDown"
+                                    ) {
+                                      e.preventDefault();
+                                    }
+                                  }}
+                                  onWheel={(e) => e.currentTarget.blur()}
                                   placeholder="Enter Size"
                                   className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                 />

@@ -46,7 +46,7 @@ const decodeAndStoreUserData = (token: string): boolean => {
     if (decoded) {
       localStorage.setItem("EmployeeId", decoded.EmployeeId || "");
       localStorage.setItem("Username", decoded.Username || "");
-      localStorage.setItem("Designation", decoded.Designation || "");
+      localStorage.setItem("Department", decoded.Department || "");
       localStorage.setItem("Role", decoded.Role || "");
       return true;
     }

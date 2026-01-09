@@ -80,7 +80,11 @@ namespace RawDataWorkSheet.Repositories
             foreach (var p in parameters)
             {
                 var id = await tx.Connection.ExecuteScalarAsync<long>(
-                    query, p, tx);
+                    query, 
+                    new {
+                        p.WorksheetId, p.ParameterCode, p.ParameterName, p.MethodName, p.MethodCode, p.ColumnId, p.DiluentPreparation, p.OtherInfo,
+                        p.ParameterAnalyzedBy, p.ParameterApprovedBy, p.ParameterStatus, p.ParameterApprovedAt,
+                    }, tx);
 
                 map[p.ParameterCode] = id;
             }

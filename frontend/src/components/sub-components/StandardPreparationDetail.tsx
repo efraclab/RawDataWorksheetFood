@@ -59,7 +59,9 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
   const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
 
   // Ensure steps is an array and filter based on isRS flag
-  const stepsArray: StandardPreparationStep[] = Array.isArray(standardPreparation?.steps)
+  const stepsArray: StandardPreparationStep[] = Array.isArray(
+    standardPreparation?.steps
+  )
     ? standardPreparation.steps
     : [];
 
@@ -71,63 +73,63 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
   const getColorScheme = () => {
     if (isDisso) {
       return {
-        glowGradient: 'from-emerald-400/20 to-green-400/20',
-        borderColor: 'border-emerald-200/50',
-        headerGradient: 'from-emerald-600 via-emerald-500 to-green-500',
-        textColor: 'text-emerald-100',
-        bgGradient: 'from-emerald-50/50 to-green-50/30',
-        colorScheme: 'emerald' as const,
-        stepGradient: 'from-emerald-400/0 via-emerald-400/5 to-emerald-400/0',
-        stepBorder: 'border-emerald-200/60',
-        stepHoverBorder: 'hover:border-emerald-300',
-        stepText: 'text-emerald-900',
-        stepBg: 'bg-emerald-50',
-        inputBorder: 'border-emerald-300',
-        focusRing: 'focus:ring-emerald-400',
-        numberGradient: 'from-emerald-500 to-green-500',
-        lineGradient: 'from-emerald-200',
-        detailBorder: 'border-emerald-200',
-        label: '(Disso)'
+        glowGradient: "from-emerald-400/20 to-green-400/20",
+        borderColor: "border-emerald-200/50",
+        headerGradient: "from-emerald-600 via-emerald-500 to-green-500",
+        textColor: "text-emerald-100",
+        bgGradient: "from-emerald-50/50 to-green-50/30",
+        colorScheme: "emerald" as const,
+        stepGradient: "from-emerald-400/0 via-emerald-400/5 to-emerald-400/0",
+        stepBorder: "border-emerald-200/60",
+        stepHoverBorder: "hover:border-emerald-300",
+        stepText: "text-emerald-900",
+        stepBg: "bg-emerald-50",
+        inputBorder: "border-emerald-300",
+        focusRing: "focus:ring-emerald-400",
+        numberGradient: "from-emerald-500 to-green-500",
+        lineGradient: "from-emerald-200",
+        detailBorder: "border-emerald-200",
+        label: "(Disso)",
       };
     } else if (isRS) {
       return {
-        glowGradient: 'from-indigo-400/20 to-blue-400/20',
-        borderColor: 'border-indigo-200/50',
-        headerGradient: 'from-indigo-600 via-indigo-500 to-blue-500',
-        textColor: 'text-indigo-100',
-        bgGradient: 'from-indigo-50/50 to-blue-50/30',
-        colorScheme: 'indigo' as const,
-        stepGradient: 'from-indigo-400/0 via-indigo-400/5 to-indigo-400/0',
-        stepBorder: 'border-indigo-200/60',
-        stepHoverBorder: 'hover:border-indigo-300',
-        stepText: 'text-indigo-900',
-        stepBg: 'bg-indigo-50',
-        inputBorder: 'border-indigo-300',
-        focusRing: 'focus:ring-indigo-400',
-        numberGradient: 'from-indigo-500 to-blue-500',
-        lineGradient: 'from-indigo-200',
-        detailBorder: 'border-indigo-200',
-        label: '(RS)'
+        glowGradient: "from-indigo-400/20 to-blue-400/20",
+        borderColor: "border-indigo-200/50",
+        headerGradient: "from-indigo-600 via-indigo-500 to-blue-500",
+        textColor: "text-indigo-100",
+        bgGradient: "from-indigo-50/50 to-blue-50/30",
+        colorScheme: "indigo" as const,
+        stepGradient: "from-indigo-400/0 via-indigo-400/5 to-indigo-400/0",
+        stepBorder: "border-indigo-200/60",
+        stepHoverBorder: "hover:border-indigo-300",
+        stepText: "text-indigo-900",
+        stepBg: "bg-indigo-50",
+        inputBorder: "border-indigo-300",
+        focusRing: "focus:ring-indigo-400",
+        numberGradient: "from-indigo-500 to-blue-500",
+        lineGradient: "from-indigo-200",
+        detailBorder: "border-indigo-200",
+        label: "(RS)",
       };
     } else {
       return {
-        glowGradient: 'from-red-400/20 to-rose-400/20',
-        borderColor: 'border-red-200/50',
-        headerGradient: 'from-red-600 via-red-500 to-rose-500',
-        textColor: 'text-red-100',
-        bgGradient: 'from-red-50/50 to-rose-50/30',
-        colorScheme: 'red' as const,
-        stepGradient: 'from-red-400/0 via-red-400/5 to-red-400/0',
-        stepBorder: 'border-red-200/60',
-        stepHoverBorder: 'hover:border-red-300',
-        stepText: 'text-red-900',
-        stepBg: 'bg-red-50',
-        inputBorder: 'border-red-300',
-        focusRing: 'focus:ring-red-400',
-        numberGradient: 'from-red-500 to-rose-500',
-        lineGradient: 'from-red-200',
-        detailBorder: 'border-red-200',
-        label: ''
+        glowGradient: "from-red-400/20 to-rose-400/20",
+        borderColor: "border-red-200/50",
+        headerGradient: "from-red-600 via-red-500 to-rose-500",
+        textColor: "text-red-100",
+        bgGradient: "from-red-50/50 to-rose-50/30",
+        colorScheme: "red" as const,
+        stepGradient: "from-red-400/0 via-red-400/5 to-red-400/0",
+        stepBorder: "border-red-200/60",
+        stepHoverBorder: "hover:border-red-300",
+        stepText: "text-red-900",
+        stepBg: "bg-red-50",
+        inputBorder: "border-red-300",
+        focusRing: "focus:ring-red-400",
+        numberGradient: "from-red-500 to-rose-500",
+        lineGradient: "from-red-200",
+        detailBorder: "border-red-200",
+        label: "",
       };
     }
   };
@@ -142,12 +144,18 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
       className="relative group z-20"
     >
       {/* Glow effect */}
-      <div className={`absolute inset-0 bg-gradient-to-r ${colors.glowGradient} rounded-lg blur-xl group-hover:blur-xl transition-all duration-300`} />
+      <div
+        className={`absolute inset-0 bg-gradient-to-r ${colors.glowGradient} rounded-lg blur-xl group-hover:blur-xl transition-all duration-300`}
+      />
 
-      <div className={`relative bg-white/95 backdrop-blur-sm rounded-lg border ${colors.borderColor} transition-all duration-300 mb-4`}>
+      <div
+        className={`relative bg-white/95 backdrop-blur-sm rounded-lg border ${colors.borderColor} transition-all duration-300 mb-4`}
+      >
         {/* Elegant Header */}
         <div
-          className={`relative bg-gradient-to-r ${colors.headerGradient} ${headerRoundingClass} ${
+          className={`relative bg-gradient-to-r ${
+            colors.headerGradient
+          } ${headerRoundingClass} ${
             isExpanded ? "rounded-t-lg" : "rounded-lg"
           }`}
         >
@@ -169,7 +177,9 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
 
               <div>
                 <h4 className="text-sm font-semibold text-white tracking-wide">
-                  {`${standardPreparation.label} ${assignedStandard ? `(${assignedStandard.name})` : ''}`}
+                  {`${standardPreparation.label} ${
+                    assignedStandard ? `(${assignedStandard.name})` : ""
+                  }`}
                 </h4>
                 <p className={`text-xs ${colors.textColor}`}>
                   Standard Preparation Details {colors.label}
@@ -192,20 +202,18 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                 </motion.div>
               </motion.button>
 
-              {role === "HOD LAB" && (
-                <motion.button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove();
-                  }}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                  title={`Remove ${standardPreparation.label}`}
-                >
-                  <Trash className="w-4 h-4 text-white" />
-                </motion.button>
-              )}
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${standardPreparation.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
             </div>
           </div>
         </div>
@@ -219,7 +227,9 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
             >
-              <div className={`p-5 space-y-3 bg-gradient-to-br ${colors.bgGradient}`}>
+              <div
+                className={`p-5 space-y-3 bg-gradient-to-br ${colors.bgGradient}`}
+              >
                 {filteredSteps.map((step, index) => {
                   const isWeighing = step.name === "Weighing";
                   const is1stDilution = step.name === "1st Dilution";
@@ -236,11 +246,17 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                       transition={{ delay: index * 0.1 }}
                       className="group/item relative"
                     >
-                      <div className={`absolute inset-0 bg-gradient-to-r ${colors.stepGradient} rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity`} />
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-r ${colors.stepGradient} rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity`}
+                      />
 
-                      <div className={`relative bg-white rounded-xl border ${colors.stepBorder} ${colors.stepHoverBorder} transition-all duration-200 p-4`}>
+                      <div
+                        className={`relative bg-white rounded-xl border ${colors.stepBorder} ${colors.stepHoverBorder} transition-all duration-200 p-4`}
+                      >
                         <div className="flex items-start gap-3">
-                          <div className={`flex-shrink-0 w-7 h-7 bg-gradient-to-br ${colors.numberGradient} rounded-full flex items-center justify-center shadow-md`}>
+                          <div
+                            className={`flex-shrink-0 w-7 h-7 bg-gradient-to-br ${colors.numberGradient} rounded-full flex items-center justify-center shadow-md`}
+                          >
                             <span className="text-white text-xs font-bold">
                               {index + 1}
                             </span>
@@ -248,10 +264,14 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
 
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-3">
-                              <div className={`font-bold ${colors.stepText} text-sm`}>
+                              <div
+                                className={`font-bold ${colors.stepText} text-sm`}
+                              >
                                 {step.name}
                               </div>
-                              <div className={`h-px flex-1 bg-gradient-to-r ${colors.lineGradient} to-transparent`} />
+                              <div
+                                className={`h-px flex-1 bg-gradient-to-r ${colors.lineGradient} to-transparent`}
+                              />
                             </div>
 
                             {isWeighing && (
@@ -274,6 +294,15 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
                                     className={`w-30 px-2.5 py-1.5 border ${colors.inputBorder} rounded-lg text-xs focus:outline-none focus:ring-2 ${colors.focusRing} focus:border-transparent transition-all`}
                                   />
@@ -296,10 +325,12 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                   <span className="text-gray-600 font-medium">
                                     of
                                   </span>
-                                  
+
                                   {/* Display assigned standard name (read-only) */}
                                   {assignedStandard ? (
-                                    <div className={`flex-1 min-w-[150px] px-3 py-2 ${colors.stepBg} border ${colors.inputBorder} rounded-lg text-xs font-semibold ${colors.stepText}`}>
+                                    <div
+                                      className={`flex-1 min-w-[150px] px-3 py-2 ${colors.stepBg} border ${colors.inputBorder} rounded-lg text-xs font-semibold ${colors.stepText}`}
+                                    >
                                       {assignedStandard.name}
                                     </div>
                                   ) : (
@@ -326,6 +357,15 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                           e.target.value
                                         )
                                       }
+                                      onKeyDown={(e) => {
+                                        if (
+                                          e.key === "ArrowUp" ||
+                                          e.key === "ArrowDown"
+                                        ) {
+                                          e.preventDefault();
+                                        }
+                                      }}
+                                      onWheel={(e) => e.currentTarget.blur()}
                                       placeholder="Enter Log Book ID"
                                       className={`flex-1 px-2.5 py-1.5 border ${colors.inputBorder} rounded-lg text-xs focus:outline-none focus:ring-2 ${colors.focusRing} transition-all`}
                                     />
@@ -334,25 +374,37 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
 
                                 {/* Show selected standard details */}
                                 {assignedStandard && (
-                                  <div className={`${colors.stepBg} border ${colors.detailBorder} rounded-lg p-2.5 text-xs`}>
-                                    <div className={`font-semibold ${colors.stepText} mb-1.5`}>
+                                  <div
+                                    className={`${colors.stepBg} border ${colors.detailBorder} rounded-lg p-2.5 text-xs`}
+                                  >
+                                    <div
+                                      className={`font-semibold ${colors.stepText} mb-1.5`}
+                                    >
                                       Selected Standard Details:
                                     </div>
                                     <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-gray-700">
                                       <div>
-                                        <span className="font-medium">Name:</span>{" "}
+                                        <span className="font-medium">
+                                          Name:
+                                        </span>{" "}
                                         {assignedStandard.name}
                                       </div>
                                       <div>
-                                        <span className="font-medium">Purity:</span>{" "}
+                                        <span className="font-medium">
+                                          Purity:
+                                        </span>{" "}
                                         {assignedStandard.purity}
                                       </div>
                                       <div>
-                                        <span className="font-medium">Make:</span>{" "}
+                                        <span className="font-medium">
+                                          Make:
+                                        </span>{" "}
                                         {assignedStandard.make}
                                       </div>
                                       <div>
-                                        <span className="font-medium">Batch:</span>{" "}
+                                        <span className="font-medium">
+                                          Batch:
+                                        </span>{" "}
                                         {assignedStandard.batchNo}
                                       </div>
                                     </div>
@@ -381,6 +433,15 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Volume"
                                     className={`w-30 px-2.5 py-1.5 border ${colors.inputBorder} rounded-lg text-xs focus:outline-none focus:ring-2 ${colors.focusRing} transition-all`}
                                   />
@@ -429,6 +490,15 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Volume"
                                     className={`w-30 px-2.5 py-1.5 border ${colors.inputBorder} rounded-lg text-xs focus:outline-none focus:ring-2 ${colors.focusRing} transition-all`}
                                   />
@@ -471,6 +541,15 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Volume"
                                     className={`w-30 px-2.5 py-1.5 border ${colors.inputBorder} rounded-lg text-xs focus:outline-none focus:ring-2 ${colors.focusRing} transition-all`}
                                   />
@@ -491,8 +570,8 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
-                                      with diluent
-                                    </span>
+                                    with diluent
+                                  </span>
                                 </div>
                               </div>
                             )}
@@ -516,6 +595,15 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                       e.target.value
                                     )
                                   }
+                                  onKeyDown={(e) => {
+                                    if (
+                                      e.key === "ArrowUp" ||
+                                      e.key === "ArrowDown"
+                                    ) {
+                                      e.preventDefault();
+                                    }
+                                  }}
+                                  onWheel={(e) => e.currentTarget.blur()}
                                   placeholder="Enter Size"
                                   className={`w-30 px-2.5 py-1.5 border ${colors.inputBorder} rounded-lg text-xs focus:outline-none focus:ring-2 ${colors.focusRing} transition-all`}
                                 />

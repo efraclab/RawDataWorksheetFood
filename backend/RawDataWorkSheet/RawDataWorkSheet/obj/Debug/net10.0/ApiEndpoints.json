@@ -223,5 +223,26 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
+    "Method": "AddParameter",
+    "RelativePath": "api/worksheets/parameters/{worksheetId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "worksheetId",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.DTOs.ParameterDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   }
 ]

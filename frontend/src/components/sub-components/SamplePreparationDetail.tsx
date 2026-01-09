@@ -147,20 +147,18 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                 </motion.div>
               </motion.button>
 
-              {role === "HOD LAB" && (
-                <motion.button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove();
-                  }}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                  title={`Remove ${samplePreparation.label}`}
-                >
-                  <Trash className="w-4 h-4 text-white" />
-                </motion.button>
-              )}
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${samplePreparation.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
             </div>
           </div>
         </div>
@@ -258,7 +256,6 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                   <input
                                     type="number"
                                     min="0"
-                                    step="0.01"
                                     inputMode="decimal"
                                     value={step.value1 || ""}
                                     onChange={(e) =>
@@ -269,6 +266,15 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
                                     className={`w-30 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} focus:border-transparent transition-all`}
                                   />
@@ -311,6 +317,15 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                           e.target.value
                                         )
                                       }
+                                      onKeyDown={(e) => {
+                                        if (
+                                          e.key === "ArrowUp" ||
+                                          e.key === "ArrowDown"
+                                        ) {
+                                          e.preventDefault();
+                                        }
+                                      }}
+                                      onWheel={(e) => e.currentTarget.blur()}
                                       placeholder="Sample"
                                       className={`flex-1 min-w-[120px] px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
                                     />
@@ -333,6 +348,15 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Log Book ID"
                                     className={`flex-1 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
                                   />
@@ -360,6 +384,15 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Volume"
                                     className={`w-30 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
                                   />
@@ -408,6 +441,15 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Volume"
                                     className={`w-30 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
                                   />
@@ -450,6 +492,15 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Volume"
                                     className={`w-30 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
                                   />
@@ -495,6 +546,15 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                       e.target.value
                                     )
                                   }
+                                  onKeyDown={(e) => {
+                                    if (
+                                      e.key === "ArrowUp" ||
+                                      e.key === "ArrowDown"
+                                    ) {
+                                      e.preventDefault();
+                                    }
+                                  }}
+                                  onWheel={(e) => e.currentTarget.blur()}
                                   placeholder="Enter Size"
                                   className={`w-30 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
                                 />

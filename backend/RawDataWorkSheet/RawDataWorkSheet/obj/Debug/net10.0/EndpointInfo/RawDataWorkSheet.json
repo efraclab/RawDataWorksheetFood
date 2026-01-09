@@ -209,6 +209,52 @@
         }
       }
     },
+    "/api/worksheets/parameters/{worksheetId}": {
+      "post": {
+        "tags": [
+          "Worksheet"
+        ],
+        "parameters": [
+          {
+            "name": "worksheetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParameterDto"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParameterDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParameterDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParameterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/worksheets/{worksheetId}": {
       "put": {
         "tags": [
@@ -795,7 +841,6 @@
           },
           "parameterApprovedAt": {
             "type": "string",
-            "format": "date-time",
             "nullable": true
           }
         },

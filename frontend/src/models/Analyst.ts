@@ -1,6 +1,6 @@
 export interface Analyst {
   username: string;
   employeeId: string;
-  designation: string;
+  department: string;
   role: string;
 }

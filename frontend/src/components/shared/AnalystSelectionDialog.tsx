@@ -48,13 +48,13 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
   const filteredAnalysts = analysts.filter((analyst) => {
   const name = analyst.username?.toLowerCase() ?? "";
   const employeeId = analyst.employeeId?.toLowerCase() ?? "";
-  const designation = analyst.designation?.toLowerCase() ?? "";
+  const department = analyst.department?.toLowerCase() ?? "";
   const search = searchTerm.toLowerCase();
 
   return (
     name.includes(search) ||
     employeeId.includes(search) ||
-    designation.includes(search)
+    department.includes(search)
   );
 });
 
@@ -159,7 +159,7 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
                     <div className="text-left">
                       <div className="font-semibold text-gray-900 text-sm">{selectedAnalyst.username}</div>
                       <div className="text-xs text-gray-500">
-                        {selectedAnalyst.employeeId} • {selectedAnalyst.designation}
+                        {selectedAnalyst.employeeId} • {selectedAnalyst.department}
                       </div>
                     </div>
                   </div>
@@ -243,7 +243,7 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
                                   {analyst.username}
                                 </div>
                                 <div className="text-xs text-gray-500 truncate">
-                                  {analyst.employeeId} • {analyst.designation}
+                                  {analyst.employeeId} • {analyst.department}
                                 </div>
                               </div>
                               {selectedId === analyst.employeeId && (
@@ -281,7 +281,7 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
                   <div>
                     <p className="text-xs font-semibold text-emerald-900 uppercase tracking-wide mb-1">Selected</p>
                     <p className="font-bold text-gray-900">{selectedAnalyst.username}</p>
-                    <p className="text-sm text-gray-600">{selectedAnalyst.designation}</p>
+                    <p className="text-sm text-gray-600">{selectedAnalyst.department}</p>
                   </div>
                 </div>
               </motion.div>

@@ -25,6 +25,19 @@ interface CalculationDetailDissoProps {
   role: string;
 }
 
+interface TabletResult {
+  tabletNumber: number;
+  result: number | string;
+  unit: string;
+}
+
+interface SummaryResults {
+  min: number;
+  max: number;
+  avg: number;
+  unit: string;
+}
+
 // Helper component for warning indicator
 const WarningIndicator: React.FC<{ value: string | number }> = ({ value }) => {
   const strValue = String(value);
@@ -91,6 +104,10 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
   role,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [tabletResults, setTabletResults] = useState<TabletResult[]>([]);
+  const [summaryResults, setSummaryResults] = useState<SummaryResults | null>(
+    null
+  );
 
   const selectedStandardPrep = standardPreparations.find(
     (prep) => prep.label === calculation.selectedStandardPrepLabel
@@ -100,30 +117,27 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     (prep) => prep.label === calculation.selectedSamplePrepLabel
   );
 
-  // Create preparation pair options
-  const preparationPairs = standardPreparations.flatMap((stdPrep, stdIdx) => {
-    const pairs = [];
-    const startSampleIdx = stdIdx * 6;
-
-    for (let tabletNum = 1; tabletNum <= 6; tabletNum++) {
-      const sampleIdx = startSampleIdx + tabletNum - 1;
-      const matchingSamplePrep = samplePreparationsDisso[sampleIdx];
+  // Create preparation pair options - simplified to 1:1 mapping
+  const preparationPairs = standardPreparations
+    .map((stdPrep, stdIdx) => {
+      const matchingSamplePrep = samplePreparationsDisso[stdIdx];
 
       if (matchingSamplePrep) {
-        pairs.push({
+        return {
           value: `${stdPrep.label}-${matchingSamplePrep.label}`,
-          label: `Preparation ${stdIdx + 1} - Tablet ${tabletNum}`,
+          label: `Preparation ${stdIdx + 1}`,
           standardLabel: stdPrep.label,
           sampleLabel: matchingSamplePrep.label,
-        });
+        };
       }
-    }
-
-    return pairs;
-  });
-
-  // Get current selected preparation label
-  const currentPrepLabel = selectedStandardPrep?.label || "";
+      return null;
+    })
+    .filter(Boolean) as {
+    value: string;
+    label: string;
+    standardLabel: string;
+    sampleLabel: string;
+  }[];
 
   useEffect(() => {
     if (
@@ -141,6 +155,53 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     calculation.selectedSamplePrepLabel,
     preparationPairs,
   ]);
+
+  // Load existing results when component mounts or calculation changes
+  useEffect(() => {
+    const existingResults: TabletResult[] = [];
+    const resultFields = [
+      { num: 1, value: calculation.calculationResultTablet1 },
+      { num: 2, value: calculation.calculationResultTablet2 },
+      { num: 3, value: calculation.calculationResultTablet3 },
+      { num: 4, value: calculation.calculationResultTablet4 },
+      { num: 5, value: calculation.calculationResultTablet5 },
+      { num: 6, value: calculation.calculationResultTablet6 },
+    ];
+
+    resultFields.forEach(({ num, value }) => {
+      if (value && value.trim() !== "") {
+        const numericValue = parseFloat(value);
+        existingResults.push({
+          tabletNumber: num,
+          result: isNaN(numericValue) ? value : numericValue,
+          unit: calculation.calculationResultUnit || "mg/tablet",
+        });
+      }
+    });
+
+    if (existingResults.length > 0) {
+      setTabletResults(existingResults);
+
+      // Calculate summary if we have valid numeric results
+      const validResults = existingResults
+        .filter((r) => typeof r.result === "number")
+        .map((r) => r.result as number);
+
+      if (validResults.length > 0) {
+        const min = Math.min(...validResults);
+        const max = Math.max(...validResults);
+        const sum = validResults.reduce((acc, val) => acc + val, 0);
+        const avg = sum / validResults.length;
+
+        setSummaryResults({
+          min: parseFloat(min.toFixed(4)),
+          max: parseFloat(max.toFixed(4)),
+          avg: parseFloat(avg.toFixed(4)),
+          unit: calculation.calculationResultUnit || "mg/tablet",
+        });
+      }
+    }
+  }, [calculation.id]);
 
   const handlePreparationChange = (value: string) => {
     const selectedPair = preparationPairs.find((pair) => pair.value === value);
@@ -233,20 +294,19 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
 
   const canCalculate = selectedStandardPrep && selectedSamplePrepDisso;
 
-  const performCalculation = () => {
-    console.group("🧪 Dissolution Calculation Started");
-
+  const calculateSingleTablet = (sampleAreaValue: string): number | string => {
     if (!canCalculate) {
-      console.warn("Cannot calculate: Missing preparations");
-      onFieldChange(calculation.id, "calculationResult", null);
-      console.groupEnd();
-      return;
+      return "Missing preparations";
     }
 
-    // Parse inputs
-    const AreaOfSample = parseFloat(calculation.areaOfSample as string) || 0;
+    const AreaOfSample = parseFloat(sampleAreaValue);
     const AreaOfStandard =
       parseFloat(calculation.areaOfStandard as string) || 1;
+
+    if (isNaN(AreaOfSample) || isNaN(AreaOfStandard)) {
+      return "Invalid Input";
+    }
+
     const SW1_Standard = convertMassToMg(
       standardWeight.value,
       standardWeight.unit
@@ -280,12 +340,11 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
       ? convertVolumeToMl(standardDilutions[3].vol2, standardDilutions[3].unit2)
       : 1;
 
-    // Get Sample volumes
     const MediaVol = convertVolumeToMl(
       tabletDetails.mediaVol,
       tabletDetails.unit
-    ); // V8
-    const Claim = convertMassToMg(tabletDetails.claim, tabletDetails.claimUnit); // Claim in mg (used separately in formula)
+    );
+    const Claim = convertMassToMg(tabletDetails.claim, tabletDetails.claimUnit);
 
     const V9 = sampleDilutions[0]
       ? convertVolumeToMl(sampleDilutions[0].vol1, sampleDilutions[0].unit1)
@@ -308,24 +367,6 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
       ? convertVolumeToMl(sampleDilutions[2].vol2, sampleDilutions[2].unit2)
       : 0;
 
-    console.log("2. Volumes (converted to mL):", {
-      Standard: { V1, V2, V3, V4, V5 },
-      Sample: { MediaVol_V8: MediaVol, V9, V10, V11, V12, V13, V14, Claim },
-    });
-
-    // Calculate ratios
-    const AreaRatio = AreaOfStandard !== 0 ? AreaOfSample / AreaOfStandard : 0;
-    const MWRatio = MWSalt !== 0 ? MWBase / MWSalt : 0;
-
-    console.log("3. Ratios:", {
-      AreaRatio,
-      MWRatio,
-    });
-
-
-    let FinalResult = 0;
-
-    // Building numerator: AreaSample × SW1 × V2 × V4 × MediaVol(V8) × V10 × V12 × V14 × MWBase × 100
     const numerator =
       AreaOfSample *
       SW1_Standard *
@@ -340,7 +381,6 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
       Purity *
       100;
 
-    // Building denominator: AreaStandard × V1 × V3 × V5 × Claim × V9 × V11 × V13 × MWSalt × 100
     const denominator =
       AreaOfStandard *
       V1 *
@@ -354,29 +394,143 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
       MWSalt *
       100;
 
-    if (denominator !== 0) {
-      FinalResult = numerator / denominator;
+    if (denominator === 0) {
+      return "Error: Division by zero";
     }
 
-    const formulaDebugString =
-      `Numerator: (${AreaOfSample} × ${SW1_Standard} × ${V2} × ${V4} x ${V6} × ${MediaVol} × ${V10} × ${V12} × ${V14} × ${MWBase} x ${Purity} × 100)\n` +
-      `Denominator: (${AreaOfStandard} × ${V1} × ${V3} × ${V5} x ${V7} × ${Claim} × ${V9} × ${V11} × ${V13} × ${MWSalt} × 100)\n` +
-      `Result: ${numerator} / ${denominator}`;
+    const result = numerator / denominator;
 
-    console.log("4. Formula:", formulaDebugString);
-    console.log(
-      `5. Result: ${FinalResult} mg/tablet (or mg/capsule)`,
-      "color: green; font-weight: bold"
-    );
-    console.groupEnd();
+    if (isNaN(result) || !isFinite(result)) {
+      return "Error: Invalid calculation";
+    }
 
-    if (isNaN(FinalResult) || !isFinite(FinalResult)) {
-      onFieldChange(calculation.id, "calculationResult", null);
-    } else {
-      const result = `${FinalResult.toFixedNoRound(4)}`;
-      onFieldChange(calculation.id, "calculationResult", result);
+    return parseFloat(result.toFixed(4));
+  };
+
+  const performCalculation = () => {
+    console.group("🧪 Dissolution Calculation Started");
+
+    if (!canCalculate) {
+      console.warn("Cannot calculate: Missing preparations");
+      setTabletResults([]);
+      setSummaryResults(null);
+      console.groupEnd();
+      return;
+    }
+
+    const sampleAreas = [
+      calculation.areaOfSample1,
+      calculation.areaOfSample2,
+      calculation.areaOfSample3,
+      calculation.areaOfSample4,
+      calculation.areaOfSample5,
+      calculation.areaOfSample6,
+    ];
+
+    const results: TabletResult[] = [];
+    const validResults: number[] = [];
+    const resultFields: Array<keyof CalculationDisso> = [
+      "calculationResultTablet1",
+      "calculationResultTablet2",
+      "calculationResultTablet3",
+      "calculationResultTablet4",
+      "calculationResultTablet5",
+      "calculationResultTablet6",
+    ];
+
+    sampleAreas.forEach((area, index) => {
+      if (area && area.trim() !== "") {
+        const result = calculateSingleTablet(area);
+
+        if (typeof result === "number") {
+          results.push({
+            tabletNumber: index + 1,
+            result: result,
+            unit: "mg/tablet",
+          });
+          validResults.push(result);
+
+          // Store individual tablet result
+          onFieldChange(calculation.id, resultFields[index], result.toFixed(4));
+        } else {
+          results.push({
+            tabletNumber: index + 1,
+            result: result,
+            unit: "",
+          });
+
+          // Store error message
+          onFieldChange(calculation.id, resultFields[index], result);
+        }
+      } else {
+        // Clear the result if area is empty
+        onFieldChange(calculation.id, resultFields[index], null);
+      }
+    });
+
+    setTabletResults(results);
+
+    // Calculate summary statistics
+    if (validResults.length > 0) {
+      const min = Math.min(...validResults);
+      const max = Math.max(...validResults);
+      const sum = validResults.reduce((acc, val) => acc + val, 0);
+      const avg = sum / validResults.length;
+
+      const summaryData = {
+        min: parseFloat(min.toFixed(4)),
+        max: parseFloat(max.toFixed(4)),
+        avg: parseFloat(avg.toFixed(4)),
+        unit: "mg/tablet",
+      };
+
+      setSummaryResults(summaryData);
+
+      // Store summary in calculationResult field
+      const summaryText = `Min: ${summaryData.min}, Avg: ${summaryData.avg}, Max: ${summaryData.max}`;
+      onFieldChange(calculation.id, "calculationResult", summaryText);
       onFieldChange(calculation.id, "calculationResultUnit", "mg/tablet");
+
+      console.log("Calculation completed successfully");
+      console.log("Results:", { min, max, avg, count: validResults.length });
+    } else {
+      setSummaryResults(null);
+      onFieldChange(calculation.id, "calculationResult", null);
+      console.warn("No valid results calculated");
     }
+
+    console.groupEnd();
+  };
+
+  // Helper function to get sample area field name
+  const getSampleAreaField = (index: number): keyof CalculationDisso => {
+    const fields: Array<keyof CalculationDisso> = [
+      "areaOfSample1",
+      "areaOfSample2",
+      "areaOfSample3",
+      "areaOfSample4",
+      "areaOfSample5",
+      "areaOfSample6",
+    ];
+    return fields[index];
+  };
+
+  // Helper function to get sample area value
+  const getSampleAreaValue = (index: number): string => {
+    const fields = [
+      calculation.areaOfSample1,
+      calculation.areaOfSample2,
+      calculation.areaOfSample3,
+      calculation.areaOfSample4,
+      calculation.areaOfSample5,
+      calculation.areaOfSample6,
+    ];
+    return fields[index] || "";
+  };
+
+  const handleSampleAreaChange = (index: number, value: string) => {
+    const field = getSampleAreaField(index);
+    onFieldChange(calculation.id, field, value);
   };
 
   return (
@@ -393,7 +547,6 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
             isExpanded ? "rounded-t-lg" : "rounded-lg"
           }`}
         >
-
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"
@@ -435,20 +588,18 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                 </motion.div>
               </motion.button>
 
-              {role === "HOD LAB" && (
-                <motion.button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove();
-                  }}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                  title={`Remove ${calculation.label}`}
-                >
-                  <Trash className="w-4 h-4 text-white" />
-                </motion.button>
-              )}
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${calculation.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
             </div>
           </div>
         </div>
@@ -468,7 +619,7 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                   {/* Single Preparation Selection */}
                   <div>
                     <label className="block text-xs font-semibold text-emerald-900 mb-1">
-                      Select Preparation (Standard - Tablet)
+                      Select Preparation
                     </label>
                     <CustomDropdown
                       options={preparationPairs.map((pair) => ({
@@ -482,7 +633,7 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                           : ""
                       }
                       onChange={handlePreparationChange}
-                      placeholder="Select preparation pair (e.g., Prep 1 - Tablet 1)"
+                      placeholder="Select preparation"
                       colorScheme="emerald"
                     />
                   </div>
@@ -514,7 +665,7 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                               <WarningIndicator value={standardWeight.value} />
                             </span>
                           </div>
-                          {/* V1, V2, V3, V4, V5 */}
+                          {/* V1, V2, V3, V4, V5, V6, V7 */}
                           {standardDilutions.map((dilution, idx) => (
                             <div key={idx} className="space-y-2">
                               {dilution.name !== "1st Dilution" && (
@@ -566,7 +717,7 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                           Sample Preparation Variables
                         </h5>
                         <div className="space-y-2.5">
-                          {/* Claim (separate, not V9) */}
+                          {/* Claim */}
                           <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-emerald-100 to-emerald-50 p-3 rounded-lg border border-emerald-200">
                             <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">
                               Claim:
@@ -628,54 +779,77 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                     </div>
 
                     <div className="p-4 space-y-4">
-                      {/* Area/ABS Inputs */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-emerald-900 mb-1">
-                            Area/ABS of Sample
-                          </label>
-                          <input
-                            type="text"
-                            value={calculation.areaOfSample}
-                            onChange={(e) =>
-                              onFieldChange(
-                                calculation.id,
-                                "areaOfSample",
-                                e.target.value
-                              )
+                      {/* Area/ABS of Standard */}
+                      <div>
+                        <label className="block text-xs font-semibold text-emerald-900 mb-1">
+                          Area/ABS of Standard
+                        </label>
+                        <input
+                          type="number"
+                          value={calculation.areaOfStandard}
+                          onChange={(e) =>
+                            onFieldChange(
+                              calculation.id,
+                              "areaOfStandard",
+                              e.target.value
+                            )
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                              e.preventDefault();
                             }
-                            placeholder="Enter Sample Area/ABS"
-                            className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-emerald-900 mb-1">
-                            Area/ABS of Standard
-                          </label>
-                          <input
-                            type="text"
-                            value={calculation.areaOfStandard}
-                            onChange={(e) =>
-                              onFieldChange(
-                                calculation.id,
-                                "areaOfStandard",
-                                e.target.value
-                              )
-                            }
-                            placeholder="Enter Standard Area/ABS"
-                            className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                          />
+                          }}
+                          onWheel={(e) => e.currentTarget.blur()}
+                          placeholder="Enter Standard Area/ABS"
+                          className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                        />
+                      </div>
+
+                      {/* 6 Sample Area/ABS Inputs */}
+                      <div>
+                        <label className="block text-xs font-semibold text-emerald-900 mb-2">
+                          Area/ABS of Samples (6 Tablets)
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[1, 2, 3, 4, 5, 6].map((tabletNum) => (
+                            <div key={tabletNum}>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Sample {tabletNum}
+                              </label>
+                              <input
+                                type="number"
+                                value={getSampleAreaValue(tabletNum - 1)}
+                                onChange={(e) =>
+                                  handleSampleAreaChange(
+                                    tabletNum - 1,
+                                    e.target.value
+                                  )
+                                }
+                                onKeyDown={(e) => {
+                                  if (
+                                    e.key === "ArrowUp" ||
+                                    e.key === "ArrowDown"
+                                  ) {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                onWheel={(e) => e.currentTarget.blur()}
+                                placeholder={`Tablet ${tabletNum}`}
+                                className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                              />
+                            </div>
+                          ))}
                         </div>
                       </div>
 
-                      {/* MW & Claim Parameters */}
+                      {/* MW & Purity Parameters */}
                       <div className="grid grid-cols-3 gap-3">
                         <div>
                           <label className="block text-xs font-semibold text-emerald-900 mb-1">
                             MW Base
                           </label>
                           <input
-                            type="text"
+                            type="number"
                             value={calculation.mwBase}
                             onChange={(e) =>
                               onFieldChange(
@@ -684,6 +858,15 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                                 e.target.value
                               )
                             }
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "ArrowUp" ||
+                                e.key === "ArrowDown"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
                             placeholder="MW Base"
                             className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
                           />
@@ -693,7 +876,7 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                             MW Salt
                           </label>
                           <input
-                            type="text"
+                            type="number"
                             value={calculation.mwSalt}
                             onChange={(e) =>
                               onFieldChange(
@@ -702,6 +885,15 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                                 e.target.value
                               )
                             }
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "ArrowUp" ||
+                                e.key === "ArrowDown"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
                             placeholder="MW Salt"
                             className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
                           />
@@ -711,7 +903,7 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                             Purity
                           </label>
                           <input
-                            type="text"
+                            type="number"
                             value={calculation.purity}
                             onChange={(e) =>
                               onFieldChange(
@@ -720,6 +912,15 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                                 e.target.value
                               )
                             }
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "ArrowUp" ||
+                                e.key === "ArrowDown"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
                             placeholder="Purity"
                             className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
                           />
@@ -735,7 +936,7 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                           className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-green-700 transition-all shadow-md hover:shadow-lg text-sm"
                         >
                           <Calculator className="w-4 h-4" />
-                          Calculate Result
+                          Calculate Results
                         </motion.button>
                       </div>
                     </div>
@@ -752,109 +953,145 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
                 )}
               </div>
 
-              {/* FIXED BOTTOM RESULTS SECTION - NON-CLOSABLE */}
-              {calculation.calculationResult && (
+              {/* RESULTS SECTION - Tablet Results & Summary Tables */}
+              {tabletResults.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4 }}
-                  className="border-t-4 border-emerald-200"
+                  className="border-t-4 border-emerald-200 p-6 bg-gradient-to-br from-emerald-50 via-green-100/30 to-teal-50"
                 >
-                  <div
-                    className={`p-6 ${
-                      calculation.calculationResult.startsWith("Error")
-                        ? "bg-gradient-to-br from-red-50 via-red-100/50 to-rose-50"
-                        : "bg-gradient-to-br from-emerald-50 via-green-100/30 to-teal-50"
-                    }`}
-                  >
-                    <div className="max-w-4xl mx-auto space-y-4">
-                      {/* Header */}
-                      <div className="flex items-center gap-3 pb-3">
-                        <CheckCircle2
-                          className={`w-6 h-6 ${
-                            calculation.calculationResult.startsWith("Error")
-                              ? "text-red-700"
-                              : "text-green-700"
-                          }`}
-                        />
-                        <div>
-                          <h6
-                            className={`text-lg font-bold ${
-                              calculation.calculationResult.startsWith("Error")
-                                ? "text-red-700"
-                                : "text-green-700"
-                            }`}
-                          >
-                            Calculation Results
+                  <div className="max-w-full mx-auto space-y-6">
+                    {/* Header */}
+                    <div className="flex items-center gap-3 pb-3">
+                      <CheckCircle2 className="w-6 h-6 text-green-700" />
+                      <div>
+                        <h6 className="text-lg font-bold text-green-700">
+                          Calculation Results
+                        </h6>
+                      </div>
+                    </div>
+
+                    {/* Tablet Results Table */}
+                    <div className="bg-white rounded-lg shadow-lg border-2 border-green-300 overflow-hidden">
+                      <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2">
+                        <h6 className="text-sm font-bold text-white">
+                          Individual Tablet Results
+                        </h6>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="bg-emerald-100">
+                              {tabletResults.map((result) => (
+                                <th
+                                  key={result.tabletNumber}
+                                  className="px-4 py-3 text-center text-sm font-bold text-emerald-900 border-r border-emerald-200 last:border-r-0"
+                                >
+                                  Tablet {result.tabletNumber}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="bg-white">
+                              {tabletResults.map((result) => (
+                                <td
+                                  key={result.tabletNumber}
+                                  className="px-4 py-4 text-center border-r border-gray-200 last:border-r-0"
+                                >
+                                  <div className="text-lg font-bold text-gray-800">
+                                    {typeof result.result === "number"
+                                      ? result.result.toFixed(4)
+                                      : result.result}
+                                  </div>
+                                  {typeof result.result === "number" && (
+                                    <div className="text-xs text-gray-600 mt-1">
+                                      {result.unit}
+                                    </div>
+                                  )}
+                                </td>
+                              ))}
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Summary Statistics Table */}
+                    {summaryResults && (
+                      <div className="bg-white rounded-lg shadow-lg border-2 border-blue-300 overflow-hidden">
+                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2">
+                          <h6 className="text-sm font-bold text-white">
+                            Summary Statistics
                           </h6>
                         </div>
-                      </div>
-
-                      {/* Results Grid */}
-                      <div className="grid gap-4">
-                        <div className="bg-white rounded-lg shadow-lg border-2 border-green-300 overflow-hidden">
-                          <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2">
-                            <h6 className="text-sm font-bold text-white">
-                              Primary Result
-                            </h6>
-                          </div>
-                          <div className="p-4">
-                            <p className="text-2xl font-bold text-gray-800">
-                              {calculation.calculationResult}{" "}
-                              {!calculation.calculationResult.startsWith(
-                                "Error"
-                              )
-                                ? calculation.calculationResultUnit
-                                : ""}
-                            </p>
-                          </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="bg-blue-100">
+                                <th className="px-6 py-3 text-center text-sm font-bold text-blue-900 border-r border-blue-200">
+                                  Minimum
+                                </th>
+                                <th className="px-6 py-3 text-center text-sm font-bold text-blue-900 border-r border-blue-200">
+                                  Average
+                                </th>
+                                <th className="px-6 py-3 text-center text-sm font-bold text-blue-900">
+                                  Maximum
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="bg-white">
+                                <td className="px-6 py-4 text-center border-r border-gray-200">
+                                  <div className="text-xl font-bold text-gray-800">
+                                    {summaryResults.min.toFixed(4)}
+                                  </div>
+                                  <div className="text-xs text-gray-600 mt-1">
+                                    {summaryResults.unit}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 text-center border-r border-gray-200">
+                                  <div className="text-xl font-bold text-blue-800">
+                                    {summaryResults.avg.toFixed(4)}
+                                  </div>
+                                  <div className="text-xs text-gray-600 mt-1">
+                                    {summaryResults.unit}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 text-center">
+                                  <div className="text-xl font-bold text-gray-800">
+                                    {summaryResults.max.toFixed(4)}
+                                  </div>
+                                  <div className="text-xs text-gray-600 mt-1">
+                                    {summaryResults.unit}
+                                  </div>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
                         </div>
                       </div>
+                    )}
 
-                      {/* Summary Info */}
-                      <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4">
-                        <div className="grid md:grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <p className="text-gray-600 font-medium">
-                              Standard Prep
-                            </p>
-                            <p className="text-gray-900 font-semibold">
-                              {calculation.selectedStandardPrepLabel || "N/A"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-600 font-medium">
-                              Sample Prep (Tablet)
-                            </p>
-                            <p className="text-gray-900 font-semibold">
-                              {calculation.selectedSamplePrepLabel
-                                ? `${calculation.selectedSamplePrepLabel}`
-                                : "N/A"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-600 font-medium">
-                              Preparation Pair
-                            </p>
-                            <p className="text-gray-900 font-semibold">
-                              {(() => {
-                                if (
-                                  !calculation.selectedStandardPrepLabel ||
-                                  !calculation.selectedSamplePrepLabel
-                                ) {
-                                  return "N/A";
-                                }
-                                const pair = preparationPairs.find(
-                                  (p) =>
-                                    p.standardLabel ===
-                                      calculation.selectedStandardPrepLabel &&
-                                    p.sampleLabel ===
-                                      calculation.selectedSamplePrepLabel
-                                );
-                                return pair?.label || "N/A";
-                              })()}
-                            </p>
-                          </div>
+                    {/* Preparation Info */}
+                    <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4">
+                      <div className="grid md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-600 font-medium">
+                            Standard Preparation
+                          </p>
+                          <p className="text-gray-900 font-semibold">
+                            {calculation.selectedStandardPrepLabel || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 font-medium">
+                            Sample Preparation
+                          </p>
+                          <p className="text-gray-900 font-semibold">
+                            {calculation.selectedSamplePrepLabel || "N/A"}
+                          </p>
                         </div>
                       </div>
                     </div>

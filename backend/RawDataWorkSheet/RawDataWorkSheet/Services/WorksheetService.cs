@@ -24,6 +24,14 @@ namespace RawDataWorkSheet.Services
             return request.WorksheetId;
         }
 
+        public async Task<int> AddParameterAsync(string worksheetId, ParameterDto request)
+        {
+            if (!await _repo.ExistsWorksheetAsync(worksheetId))
+                throw new InvalidOperationException("Worksheet not exists.");
+
+            return await _repo.AddParameterAsync(worksheetId, request);
+        }
+
         public async Task<string> UpdateWorksheetAsync(SaveWorksheetRequest request)
         {
             if (!await _repo.ExistsWorksheetAsync(request.WorksheetId))

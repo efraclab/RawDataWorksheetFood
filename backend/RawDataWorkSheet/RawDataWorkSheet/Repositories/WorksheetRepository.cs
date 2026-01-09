@@ -10,23 +10,16 @@ namespace RawDataWorkSheet.Repositories
 {
     public class WorksheetRepository : IWorksheetRepository
     {
-        private readonly string _connectionString1;
-        private readonly string _connectionString2;
+        private readonly string _connectionString;
 
         public WorksheetRepository(IConfiguration configuration)
         {
-            _connectionString1 = configuration["Connnectionstrings:Connection1"];
-            _connectionString2 = configuration["Connnectionstrings:Connection2"];
+            _connectionString = configuration["Connnectionstrings:Connection2"];
         }
 
-        private IDbConnection CreateConnection1()
+        private IDbConnection Createconnection()
         {
-            return new SqlConnection(_connectionString1);
-        }
-
-        private IDbConnection CreateConnection2()
-        {
-            return new SqlConnection(_connectionString2);
+            return new SqlConnection(_connectionString);
         }
 
         public async Task<bool> ExistsWorksheetAsync(string worksheetId)
@@ -37,7 +30,7 @@ namespace RawDataWorkSheet.Repositories
                 WHERE worksheet_id = @WorksheetId
             """;
 
-            using var conn = CreateConnection2();
+            using var conn = Createconnection();
             return await conn.ExecuteScalarAsync<int?>(query, new { WorksheetId = worksheetId }) != null;
         }
 
@@ -49,7 +42,7 @@ namespace RawDataWorkSheet.Repositories
                 WHERE id = @ParameterId
             """;
 
-            using var conn = CreateConnection2();
+            using var conn = Createconnection();
             return await conn.ExecuteScalarAsync<int?>(query, new { ParameterId = parameterId }) != null;
         }
 
@@ -78,7 +71,7 @@ namespace RawDataWorkSheet.Repositories
                 )
             """;
 
-            using var conn = CreateConnection2();
+            using var conn = Createconnection();
             await conn.ExecuteAsync(query, new
             {
                 request.WorksheetId,
@@ -92,7 +85,7 @@ namespace RawDataWorkSheet.Repositories
 
         public async Task UpdateWorksheetAsync(SaveWorksheetRequest request)
         {
-            using var connection = CreateConnection2();
+            using var connection = Createconnection();
             connection.Open();
             using var transaction = connection.BeginTransaction();
 
@@ -149,7 +142,7 @@ namespace RawDataWorkSheet.Repositories
                 var idsToDelete = existingParamDict
                     .Where(p =>
                         !requestParamCodes.Contains(p.Key) &&
-                        !(request.Role == "HOD LAB" &&
+                        !(request.Role == "Reviewer"  &&
                           (p.Value.Status == "Analysis Started" ||
                            p.Value.Status == "Analysis Revision"))
                     )
@@ -169,7 +162,7 @@ namespace RawDataWorkSheet.Repositories
                 {
                     if (existingParamDict.TryGetValue(param.ParaCode, out var existing))
                     {
-                        if (request.Role == "HOD LAB" &&
+                        if (request.Role == "Reviewer" &&
                             (existing.Status == "Analysis Started" ||
                              existing.Status == "Analysis Revision"))
                         {
@@ -223,7 +216,7 @@ namespace RawDataWorkSheet.Repositories
 
         public async Task UpdateParameterAsync(int parameterId, ParameterDto request)
         {
-            using var connection = CreateConnection2();
+            using var connection = Createconnection();
             connection.Open();
             using var transaction = connection.BeginTransaction();
 
@@ -260,7 +253,7 @@ namespace RawDataWorkSheet.Repositories
 
         public async Task DeleteParameterAsync(int parameterId)
         {
-            using var connection = CreateConnection2();
+            using var connection = Createconnection();
             connection.Open();
             using var transaction = connection.BeginTransaction();
 
@@ -317,10 +310,68 @@ namespace RawDataWorkSheet.Repositories
             }
         }
 
+        public async Task<int> AddParameterAsync(string worksheetId, ParameterDto parameter)
+        {
+            using var connection = Createconnection();
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+
+                var existingParamId = await connection.ExecuteScalarAsync<int?>(
+                    @"SELECT id FROM worksheet_parameters 
+              WHERE worksheet_id = @WorksheetId AND para_code = @ParaCode",
+                    new { WorksheetId = worksheetId, ParaCode = parameter.ParaCode },
+                    transaction
+                );
+
+                if (existingParamId != null)
+                {
+                    throw new InvalidOperationException(
+                        $"Parameter with code {parameter.ParaCode} already exists in worksheet {worksheetId}"
+                    );
+                }
+
+                var parameterId = await InsertParameter(
+                    connection,
+                    transaction,
+                    worksheetId,
+                    parameter
+                );
+
+                await UpsertInstruments(connection, transaction, parameterId, parameter.InstrumentIds);
+                await UpsertChemicals(connection, transaction, parameterId, parameter.ChemicalIds);
+                await UpsertStandards(connection, transaction, parameterId, parameter.StandardIds);
+                await UpsertStandardPreparations(connection, transaction, parameterId, parameter.StandardPreparations);
+                await UpsertSamplePreparations(connection, transaction, parameterId, parameter.SamplePreparations);
+                await UpsertCalculations(connection, transaction, parameterId, parameter.Calculations);
+
+                await connection.ExecuteAsync(
+                    @"UPDATE raw_data_worksheets 
+              SET number_of_parameters = number_of_parameters + 1,
+                  updated_at = SYSDATETIME()
+              WHERE worksheet_id = @WorksheetId",
+                    new { WorksheetId = worksheetId },
+                    transaction
+                );
+
+                transaction.Commit();
+
+                return parameterId;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+
 
         public async Task DeleteWorksheetAsync(string worksheetId)
         {
-            using var connection = CreateConnection2();
+            using var connection = Createconnection();
 
             var query = "DELETE FROM raw_data_worksheets WHERE worksheet_id = @WorksheetId";
             await connection.ExecuteAsync(query, new { WorksheetId = worksheetId });
@@ -328,8 +379,7 @@ namespace RawDataWorkSheet.Repositories
 
         public async Task<WorksheetDetailDto> GetWorksheetByIdAsync(string worksheetId, FetchWorksheetsRequest request)
         {
-            using var connection1 = CreateConnection1();
-            using var connection2 = CreateConnection2();
+            using var connection = Createconnection();
 
             var query1 = @"
                 SELECT
@@ -347,7 +397,7 @@ namespace RawDataWorkSheet.Repositories
                 FROM raw_data_worksheets
                 WHERE worksheet_id = @WorksheetId";
 
-            var worksheet = await connection2.QueryFirstOrDefaultAsync<Worksheet>(
+            var worksheet = await connection.QueryFirstOrDefaultAsync<Worksheet>(
                 query1,
                 new { WorksheetId = worksheetId });
 
@@ -357,69 +407,64 @@ namespace RawDataWorkSheet.Repositories
 
             var query2 = """
                     SELECT 
-                        U.USERNAME AS [Username]
-                    FROM USERFILE U
-                    LEFT JOIN OCODEMST BD
-                        ON BD.CODEDESC = U.USERNAME
-                        AND BD.CODETYPE = 'SP'
-                    WHERE U.USERLOGINID = @EmployeeId
+                        emp_name AS [Username]
+                    FROM participants_rawdata
+                    WHERE emp_id = @EmployeeId
                 """;
-            worksheet.PreparedBy = await connection1.QueryFirstAsync<string>(
+            worksheet.PreparedBy = await connection.QueryFirstAsync<string>(
                 query2,
                 new { EmployeeId = worksheet.PreparedBy });
 
-            return await LoadWorksheetDetails(connection2, worksheet, request);
+            return await LoadWorksheetDetails(connection, worksheet, request);
         }
 
         public async Task<List<WorksheetSummaryDto>> GetAllWorksheetsAsync(FetchWorksheetsRequest request)
         {
-            using var connection = CreateConnection2();
-
+            using var connection = Createconnection();
             string sql;
 
-            if (request.Role == "HOD LAB")
+            if (request.Role == "Reviewer")
             {
                 sql = @"
-                    SELECT 
-                        worksheet_id as WorksheetId,
-                        registration_no as RegistrationNo,
-                        sample_name as SampleName,
-                        number_of_parameters as NumberOfParameters,
-                        status as Status,
-                        created_at as CreatedAt
-                    FROM raw_data_worksheets
-                    WHERE (prepared_by = @EmployeeId)
-                    ORDER BY created_at DESC";
+            SELECT 
+                worksheet_id as WorksheetId,
+                registration_no as RegistrationNo,
+                sample_name as SampleName,
+                number_of_parameters as NumberOfParameters,
+                status as Status,
+                created_at as CreatedAt
+            FROM raw_data_worksheets
+            WHERE (prepared_by = @EmployeeId)
+            ORDER BY created_at DESC";
             }
             else
             {
                 sql = @"
-                    WITH cte AS (
-                        SELECT 
-                            w.worksheet_id        AS WorksheetId,
-                            p.id                  AS ParameterId,
-                            p.parameter_name      AS ParameterName,
-                            w.registration_no     AS RegistrationNo,
-                            w.sample_name         AS SampleName,
-                            w.number_of_parameters AS NumberOfParameters,
-                            w.status              AS Status,
-                            w.created_at          AS CreatedAt,
-                            ROW_NUMBER() OVER (
-                                PARTITION BY w.worksheet_id
-                                ORDER BY p.id        -- choose rule here
-                            ) AS rn
-                        FROM raw_data_worksheets w
-                        JOIN worksheet_parameters p
-                            ON w.worksheet_id = p.worksheet_id
-                        WHERE p.analyzed_by = @EmployeeId
-                          AND w.status <> 'Draft'
-                    )
-
-                    SELECT *
-                    FROM cte
-                    WHERE rn = 1
-                    ORDER BY CreatedAt DESC;
-                ";
+                WITH cte AS (
+                    SELECT 
+                        w.worksheet_id        AS WorksheetId,
+                        p.id                  AS ParameterId,
+                        p.parameter_name      AS ParameterName,
+                        w.registration_no     AS RegistrationNo,
+                        w.sample_name         AS SampleName,
+                        w.number_of_parameters AS NumberOfParameters,
+                        w.status              AS Status,
+                        w.created_at          AS CreatedAt,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY w.worksheet_id
+                            ORDER BY p.id
+                        ) AS rn
+                    FROM raw_data_worksheets w
+                    JOIN worksheet_parameters p
+                        ON w.worksheet_id = p.worksheet_id
+                    WHERE p.analyzed_by = @EmployeeId
+                      AND w.status <> 'Draft'
+                )
+                SELECT *
+                FROM cte
+                WHERE rn = 1
+                ORDER BY CreatedAt DESC;
+            ";
             }
 
             var worksheets = await connection.QueryAsync<WorksheetSummaryDto>(
@@ -427,7 +472,34 @@ namespace RawDataWorkSheet.Repositories
                 new { request.EmployeeId }
             );
 
-            return worksheets.ToList();
+            var worksheetList = worksheets.ToList();
+
+            foreach (var worksheet in worksheetList)
+            {
+                if (worksheet.Status == "Submitted For Analysis")
+                {
+                    var parameterStatusSql = @"
+                SELECT status
+                FROM worksheet_parameters
+                WHERE worksheet_id = @WorksheetId";
+
+                    var parameterStatuses = await connection.QueryAsync<string>(
+                        parameterStatusSql,
+                        new { WorksheetId = worksheet.WorksheetId }
+                    );
+
+                    var statusList = parameterStatuses.ToList();
+
+                    if (statusList.Any() &&
+                        statusList.All(status =>
+                            status == "Analysis Completed" || status == "Approved"))
+                    {
+                        worksheet.Status = "Pending For Review";
+                    }
+                }
+            }
+
+            return worksheetList;
         }
 
         private async Task<int> InsertParameter(
@@ -867,7 +939,7 @@ namespace RawDataWorkSheet.Repositories
 
             string parametersSql;
 
-            if (request.Role == "HOD LAB")
+            if (request.Role.Contains("Reviewer"))
             {
                 parametersSql = @"
                     SELECT
@@ -936,18 +1008,14 @@ namespace RawDataWorkSheet.Repositories
 
                 if(param.ApprovedBy != null)
                 {
-                    var connection1 = CreateConnection1();
                     var query = """
                         SELECT 
-                            U.USERNAME AS [Username]
-                        FROM USERFILE U
-                        LEFT JOIN OCODEMST BD
-                            ON BD.CODEDESC = U.USERNAME
-                            AND BD.CODETYPE = 'SP'
-                        WHERE U.USERLOGINID = @EmployeeId
+                            emp_name AS [Username]
+                        FROM participants_rawdata
+                        WHERE emp_id = @EmployeeId
                     """;
 
-                    paramDetail.ApprovedBy = await connection1.QueryFirstAsync<string>(
+                    paramDetail.ApprovedBy = await connection.QueryFirstAsync<string>(
                         query,
                         new { EmployeeId = paramDetail.ApprovedBy });
                 }

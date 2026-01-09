@@ -9,10 +9,7 @@ import type { WorksheetDbPayload } from "./WorksheetDbPayload";
 const nv = (v: any): string | null =>
   v === undefined || v === null || String(v).trim() === "" ? null : String(v);
 
-
 export class WorksheetDbMapper {
-
-
   static mapWorksheet(detail: WorksheetDetail): TblWorksheetRow {
     const s = detail.sample;
     return {
@@ -28,8 +25,6 @@ export class WorksheetDbMapper {
       WorksheetApprovedAt: nv(s.approvedAt),
     };
   }
-
-
 
   static mapParameters(detail: WorksheetDetail): TblParameterRow[] {
     return detail.parameters.map((p) => ({
@@ -47,8 +42,6 @@ export class WorksheetDbMapper {
       ParameterApprovedAt: nv(p.approvedAt),
     }));
   }
-
-
 
   static mapReferences(detail: WorksheetDetail): TblReferenceRow[] {
     const rows: TblReferenceRow[] = [];
@@ -91,8 +84,6 @@ export class WorksheetDbMapper {
 
     return rows;
   }
-
-
 
   static mapPreparations(detail: WorksheetDetail): TblPreparationRow[] {
     const rows: TblPreparationRow[] = [];
@@ -137,68 +128,154 @@ export class WorksheetDbMapper {
     return rows;
   }
 
-
-
   static mapCalculations(detail: WorksheetDetail): TblCalculationRow[] {
     const rows: TblCalculationRow[] = [];
 
     detail.parameters.forEach((p) => {
       p.calculations?.forEach((calc) => {
         const d = JSON.parse(calc.data || "{}");
+        const calculationType = nv(calc.calculationType);
 
-        let resultValue = nv(d.calculationResult);
-        let resultUnit = nv(d.calculationResultUnit);
+        const isDissolution = calculationType?.toLowerCase() === "dissolution";
 
-        rows.push({
-          WorksheetId: detail.sample.worksheetId,
-          ParameterCode: p.paraCode,
-          CalculationLabel: nv(calc.label),
-          CalculationType: nv(calc.calculationType),
+        if (isDissolution) {
+          
+          const tabletData = [
+            {
+              num: 1,
+              area: d.areaOfSample1,
+              result: d.calculationResultTablet1,
+            },
+            {
+              num: 2,
+              area: d.areaOfSample2,
+              result: d.calculationResultTablet2,
+            },
+            {
+              num: 3,
+              area: d.areaOfSample3,
+              result: d.calculationResultTablet3,
+            },
+            {
+              num: 4,
+              area: d.areaOfSample4,
+              result: d.calculationResultTablet4,
+            },
+            {
+              num: 5,
+              area: d.areaOfSample5,
+              result: d.calculationResultTablet5,
+            },
+            {
+              num: 6,
+              area: d.areaOfSample6,
+              result: d.calculationResultTablet6,
+            },
+          ];
 
-          AreaOfSample: nv(d.areaOfSample),
-          AreaOfStandard: nv(d.areaOfStandard),
+          tabletData.forEach((tablet) => {
+            // Only create a row if there's an area value (tablet was used)
+            const areaValue = nv(tablet.area);
+            if (areaValue) {
+              rows.push({
+                WorksheetId: detail.sample.worksheetId,
+                ParameterCode: p.paraCode,
+                CalculationLabel: nv(calc.label),
+                CalculationType: calculationType,
 
-          CalculationFor: nv(d.calculationFor),
-          Purity: nv(d.purity),
-          AvgWeight: nv(d.avgWeight),
-          AvgWeightUnit: nv(d.avgWeight) ? nv(d.avgWeightUnit) : null,
-          AvgContent: nv(d.avgContent),
-          AvgContentUnit: nv(d.avgContent) ? nv(d.avgContentUnit) : null,
-          SampleVol: nv(d.sampleVol),
-          SampleVolUnit: nv(d.sampleVol) ? nv(d.sampleVolUnit) : null,
-          Claim: nv(d.claim),
-          ClaimUnit: nv(d.claim) ? nv(d.claimUnit) : null,
+                // Tablet-specific values
+                AreaOfSample: areaValue,
+                CalculationFor: `Tablet${tablet.num}`,
+                CalculationResult: nv(tablet.result),
 
-          MwSalt: nv(d.mwSalt),
-          MwBase: nv(d.mwBase),
-          LabelClaim: nv(d.labelClaim),
-          LabelClaimUnit: nv(d.labelClaim) ? nv(d.labelClaimUnit) : null,
+                // Common values for all tablets
+                AreaOfStandard: nv(d.areaOfStandard),
+                Purity: nv(d.purity),
+                MwSalt: nv(d.mwSalt),
+                MwBase: nv(d.mwBase),
+                CalculationResultUnit: nv(d.calculationResultUnit),
+                SelectedStandardPrepLabel: nv(d.selectedStandardPrepLabel),
+                SelectedSamplePrepLabel: nv(d.selectedSamplePrepLabel),
 
-          LodWaterType: nv(d.lodwaterType),
-          LodWaterValue: nv(d.lodwaterValue),
+                // Set other fields to null for dissolution
+                AvgWeight: null,
+                AvgWeightUnit: null,
+                AvgContent: null,
+                AvgContentUnit: null,
+                SampleVol: null,
+                SampleVolUnit: null,
+                Claim: null,
+                ClaimUnit: null,
+                LabelClaim: null,
+                LabelClaimUnit: null,
+                LodWaterType: null,
+                LodWaterValue: null,
+                W1_EmptyDish: null,
+                W2_DishWithSample: null,
+                W3_DishAfterIgnition: null,
+                W1_EmptyCrucible: null,
+                W2_CrucibleWithSample: null,
+                W3_CrucibleAfterAsh: null,
+                LabelClaimPercentResult: null,
+                LodWaterBasisResult: null,
+              });
+            }
+          });
+        } else {
+          // For non-dissolution calculations, use the original logic
+          let resultValue = nv(d.calculationResult);
+          let resultUnit = nv(d.calculationResultUnit);
 
-          W1_EmptyDish: nv(d.w1_emptyDish),
-          W2_DishWithSample: nv(d.w2_dishWithSample),
-          W3_DishAfterIgnition: nv(d.w3_dishAfterIgnition),
+          rows.push({
+            WorksheetId: detail.sample.worksheetId,
+            ParameterCode: p.paraCode,
+            CalculationLabel: nv(calc.label),
+            CalculationType: calculationType,
 
-          W1_EmptyCrucible: nv(d.w1_emptyCrucible),
-          W2_CrucibleWithSample: nv(d.w2_crucibleWithSample),
-          W3_CrucibleAfterAsh: nv(d.w3_crucibleAfterAsh),
+            AreaOfSample: nv(d.areaOfSample),
+            AreaOfStandard: nv(d.areaOfStandard),
 
-          CalculationResult: resultValue,
-          CalculationResultUnit: resultUnit,
-          LabelClaimPercentResult: nv(d.labelClaimPercent),
-          LodWaterBasisResult: nv(d.lodWaterBasisResult),
+            CalculationFor: nv(d.calculationFor),
+            Purity: nv(d.purity),
+            AvgWeight: nv(d.avgWeight),
+            AvgWeightUnit: nv(d.avgWeight) ? nv(d.avgWeightUnit) : null,
+            AvgContent: nv(d.avgContent),
+            AvgContentUnit: nv(d.avgContent) ? nv(d.avgContentUnit) : null,
+            SampleVol: nv(d.sampleVol),
+            SampleVolUnit: nv(d.sampleVol) ? nv(d.sampleVolUnit) : null,
+            Claim: nv(d.claim),
+            ClaimUnit: nv(d.claim) ? nv(d.claimUnit) : null,
 
-          SelectedStandardPrepLabel: nv(d.selectedStandardPrepLabel),
-          SelectedSamplePrepLabel: nv(d.selectedSamplePrepLabel),
-        });
+            MwSalt: nv(d.mwSalt),
+            MwBase: nv(d.mwBase),
+            LabelClaim: nv(d.labelClaim),
+            LabelClaimUnit: nv(d.labelClaim) ? nv(d.labelClaimUnit) : null,
+
+            LodWaterType: nv(d.lodwaterType),
+            LodWaterValue: nv(d.lodwaterValue),
+
+            W1_EmptyDish: nv(d.w1_emptyDish),
+            W2_DishWithSample: nv(d.w2_dishWithSample),
+            W3_DishAfterIgnition: nv(d.w3_dishAfterIgnition),
+
+            W1_EmptyCrucible: nv(d.w1_emptyCrucible),
+            W2_CrucibleWithSample: nv(d.w2_crucibleWithSample),
+            W3_CrucibleAfterAsh: nv(d.w3_crucibleAfterAsh),
+
+            CalculationResult: resultValue,
+            CalculationResultUnit: resultUnit,
+            LabelClaimPercentResult: nv(d.labelClaimPercent),
+            LodWaterBasisResult: nv(d.lodWaterBasisResult),
+
+            SelectedStandardPrepLabel: nv(d.selectedStandardPrepLabel),
+            SelectedSamplePrepLabel: nv(d.selectedSamplePrepLabel),
+          });
+        }
       });
     });
 
     return rows;
   }
-
 
   static mapAll(detail: WorksheetDetail): WorksheetDbPayload {
     return {

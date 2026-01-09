@@ -279,7 +279,6 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
                 </motion.div>
               </motion.button>
 
-              {role === "HOD LAB" && (
                 <motion.button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -292,7 +291,6 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
                 >
                   <Trash className="w-4 h-4 text-white" />
                 </motion.button>
-              )}
             </div>
           </div>
         </div>

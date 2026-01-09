@@ -16,7 +16,7 @@
         public string? ParameterAnalyzedBy { get; set; }
         public string? ParameterApprovedBy { get; set; }
         public string? ParameterStatus { get; set; }
-        public DateTime? ParameterApprovedAt { get; set; }
+        public string? ParameterApprovedAt { get; set; }
     }
 
 }

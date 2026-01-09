@@ -25,8 +25,7 @@ namespace RawDataWorkSheet.Utils
                 new Claim("EmployeeId", user.EmployeeId.ToString()),
                 new Claim("Username", user.Username),
                 new Claim("Role", user.Role),
-                new Claim("Designation", user.Designation),
-                new Claim("BdCode", user.BdCode ?? "")
+                new Claim("Department", user.Department)
             };
 
             var token = new JwtSecurityToken(

@@ -281,7 +281,6 @@ const CalculationDetailROI: React.FC<CalculationDetailROIProps> = ({
                   <ChevronDown className="w-5 h-5 text-white" />
                 </motion.div>
               </motion.button>
-              {role === "HOD LAB" && (
                 <motion.button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -294,7 +293,6 @@ const CalculationDetailROI: React.FC<CalculationDetailROIProps> = ({
                 >
                   <Trash className="w-4 h-4 text-white" />
                 </motion.button>
-              )}
             </div>
           </div>
         </div>

@@ -28,12 +28,7 @@ interface SamplePreparationSulphatedAshDetailProps {
   onStepChange: (
     samplePreparationSulphatedAshId: number,
     stepName: SamplePreparationSulphatedAshStep["name"],
-    field:
-      "value1"
-      | "unit1"
-      | "value2"
-      | "unit2"
-      | "logBookID",
+    field: "value1" | "unit1" | "value2" | "unit2" | "logBookID",
     newValue: string
   ) => void;
   onRemove: () => void;
@@ -105,20 +100,18 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                 </motion.div>
               </motion.button>
 
-              {role === "HOD LAB" && (
-                <motion.button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove();
-                  }}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                  title={`Remove ${samplePreparationSulphatedAsh.label}`}
-                >
-                  <Trash className="w-4 h-4 text-white" />
-                </motion.button>
-              )}
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${samplePreparationSulphatedAsh.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
             </div>
           </div>
         </div>
@@ -188,6 +181,15 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
                                     className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
                                   />
@@ -223,6 +225,15 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter ID"
                                     className="w-24 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
                                   />
@@ -253,6 +264,15 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
                                     className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
                                   />
@@ -297,6 +317,15 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Temp"
                                     className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
                                   />
@@ -335,6 +364,15 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Time"
                                     className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
                                   />
@@ -370,6 +408,15 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter ID"
                                     className="w-24 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
                                   />
@@ -400,6 +447,15 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
                                     className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
                                   />

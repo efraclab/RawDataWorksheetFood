@@ -409,9 +409,9 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
           FinalResult = (commonPart * SW1_Standard * AvgWt) / SW2_Sample;
         }
 
-        formulaDebugString = `(${AreaRatio.toFixedNoRound(4)} * ${V_factor.toFixedNoRound(
+        formulaDebugString = `(${AreaRatio.toFixedNoRound(
           4
-        )} * ${MWRatio.toFixedNoRound(
+        )} * ${V_factor.toFixedNoRound(4)} * ${MWRatio.toFixedNoRound(
           4
         )} * ${PurityFactor} * ${SW1_Standard} * ${AvgWt}) / ${SW2_Sample}`;
 
@@ -434,9 +434,9 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
             (commonPart * SW1_Standard * WtPerML * claim) / SW2_Sample;
         }
 
-        formulaDebugString = `(${AreaRatio.toFixedNoRound(4)} * ${V_factor.toFixedNoRound(
+        formulaDebugString = `(${AreaRatio.toFixedNoRound(
           4
-        )} * ${MWRatio.toFixedNoRound(
+        )} * ${V_factor.toFixedNoRound(4)} * ${MWRatio.toFixedNoRound(
           4
         )} * ${PurityFactor} * ${SW1_Standard} * ${WtPerML} * ${claim}) / ${SW2_Sample}`;
         unit = "mg/ml";
@@ -451,9 +451,9 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
           FinalResult = (commonPart * SW1_Standard * claim) / SampleVolume;
         }
 
-        formulaDebugString = `(${AreaRatio.toFixedNoRound(4)} * ${V_factor.toFixedNoRound(
+        formulaDebugString = `(${AreaRatio.toFixedNoRound(
           4
-        )} * ${MWRatio.toFixedNoRound(
+        )} * ${V_factor.toFixedNoRound(4)} * ${MWRatio.toFixedNoRound(
           4
         )} * ${PurityFactor} * ${SW1_Standard} * ${claim}) / ${SampleVolume}`;
         unit = "mg/ml";
@@ -466,9 +466,9 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
           FinalResult = commonPart * weightRatio * 100;
         }
 
-        formulaDebugString = `( ${AreaRatio.toFixedNoRound(4)} * ${V_factor.toFixedNoRound(
+        formulaDebugString = `( ${AreaRatio.toFixedNoRound(
           4
-        )} * ${MWRatio.toFixedNoRound(
+        )} * ${V_factor.toFixedNoRound(4)} * ${MWRatio.toFixedNoRound(
           4
         )} * ${PurityFactor} * (${SW1_Standard} / ${SW2_Sample}) ) * 100`;
         unit = "%";
@@ -540,7 +540,6 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
             isExpanded ? "rounded-t-lg" : "rounded-lg"
           }`}
         >
-
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"
@@ -582,20 +581,18 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                 </motion.div>
               </motion.button>
 
-              {role === "HOD LAB" && (
-                <motion.button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove();
-                  }}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                  title={`Remove ${calculation.label}`}
-                >
-                  <Trash className="w-4 h-4 text-white" />
-                </motion.button>
-              )}
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${calculation.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
             </div>
           </div>
         </div>
@@ -793,7 +790,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                             Area/ABS of Sample
                           </label>
                           <input
-                            type="text"
+                            type="number"
                             value={calculation.areaOfSample}
                             onChange={(e) =>
                               onFieldChange(
@@ -802,6 +799,15 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                 e.target.value
                               )
                             }
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "ArrowUp" ||
+                                e.key === "ArrowDown"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
                             placeholder="Enter Sample Area/ABS"
                             className="w-full px-3 py-2 border border-red-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-400"
                           />
@@ -811,7 +817,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                             Area/ABS of Standard
                           </label>
                           <input
-                            type="text"
+                            type="number"
                             value={calculation.areaOfStandard}
                             onChange={(e) =>
                               onFieldChange(
@@ -820,6 +826,15 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                 e.target.value
                               )
                             }
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "ArrowUp" ||
+                                e.key === "ArrowDown"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
                             placeholder="Enter Standard Area/ABS"
                             className="w-full px-3 py-2 border border-red-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-400"
                           />
@@ -833,7 +848,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                             Purity %
                           </label>
                           <input
-                            type="text"
+                            type="number"
                             value={calculation.purity}
                             onChange={(e) =>
                               onFieldChange(
@@ -842,6 +857,15 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                 e.target.value
                               )
                             }
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "ArrowUp" ||
+                                e.key === "ArrowDown"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
                             placeholder="Purity"
                             className="w-full px-3 py-2 border border-red-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-400"
                           />
@@ -851,7 +875,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                             MW Base
                           </label>
                           <input
-                            type="text"
+                            type="number"
                             value={calculation.mwBase}
                             onChange={(e) =>
                               onFieldChange(
@@ -860,6 +884,15 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                 e.target.value
                               )
                             }
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "ArrowUp" ||
+                                e.key === "ArrowDown"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
                             placeholder="MW Base"
                             className="w-full px-3 py-2 border border-red-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-400"
                           />
@@ -869,7 +902,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                             MW Salt
                           </label>
                           <input
-                            type="text"
+                            type="number"
                             value={calculation.mwSalt}
                             onChange={(e) =>
                               onFieldChange(
@@ -878,6 +911,15 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                 e.target.value
                               )
                             }
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "ArrowUp" ||
+                                e.key === "ArrowDown"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
                             placeholder="MW Salt"
                             className="w-full px-3 py-2 border border-red-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-400"
                           />
@@ -917,7 +959,6 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                             </label>
                             <input
                               type="number"
-                              step="0.01"
                               value={calculation.lodWaterValue || ""}
                               onChange={(e) =>
                                 onFieldChange(
@@ -926,6 +967,15 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                   e.target.value
                                 )
                               }
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === "ArrowUp" ||
+                                  e.key === "ArrowDown"
+                                ) {
+                                  e.preventDefault();
+                                }
+                              }}
+                              onWheel={(e) => e.currentTarget.blur()}
                               placeholder={`Enter ${
                                 calculation.lodWaterType === "lod"
                                   ? "LOD"
@@ -940,12 +990,10 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                           <div className="grid grid-cols-3 gap-3">
                             {(calculation.calculationFor === "Tablets" ||
                               calculation.calculationFor === "Capsule" ||
-                              calculation.calculationFor ===
-                                "Injection Vial" ||
+                              calculation.calculationFor === "Injection Vial" ||
                               calculation.calculationFor ===
                                 "Oral Suspension" ||
-                              calculation.calculationFor ===
-                                "Oral Liquid") && (
+                              calculation.calculationFor === "Oral Liquid") && (
                               <div>
                                 <label className="block text-xs font-semibold text-red-900 mb-1">
                                   {calculation.calculationFor ===
@@ -961,10 +1009,9 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                 </label>
 
                                 <input
-                                  type="text"
+                                  type="number"
                                   value={
-                                    calculation.calculationFor ===
-                                    "Oral Liquid"
+                                    calculation.calculationFor === "Oral Liquid"
                                       ? calculation.sampleVol
                                       : calculation.calculationFor ===
                                         "Injection Vial"
@@ -1029,6 +1076,15 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                       );
                                     }
                                   }}
+                                  onKeyDown={(e) => {
+                                    if (
+                                      e.key === "ArrowUp" ||
+                                      e.key === "ArrowDown"
+                                    ) {
+                                      e.preventDefault();
+                                    }
+                                  }}
+                                  onWheel={(e) => e.currentTarget.blur}
                                   placeholder={
                                     calculation.calculationFor ===
                                     "Oral Suspension"
@@ -1048,14 +1104,13 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
 
                             {(calculation.calculationFor ===
                               "Oral Suspension" ||
-                              calculation.calculationFor ===
-                                "Oral Liquid") && (
+                              calculation.calculationFor === "Oral Liquid") && (
                               <div>
                                 <label className="block text-xs font-semibold text-red-900 mb-1">
                                   Claim (ml)
                                 </label>
                                 <input
-                                  type="text"
+                                  type="number"
                                   value={calculation.claim}
                                   onChange={(e) => {
                                     onFieldChange(
@@ -1069,6 +1124,15 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                       "ml"
                                     );
                                   }}
+                                  onKeyDown={(e) => {
+                                    if (
+                                      e.key === "ArrowUp" ||
+                                      e.key === "ArrowDown"
+                                    ) {
+                                      e.preventDefault();
+                                    }
+                                  }}
+                                  onWheel={(e) => e.currentTarget.blur}
                                   placeholder="Claim Vol"
                                   className="w-full px-3 py-2 border border-red-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-400"
                                 />
@@ -1080,8 +1144,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                 Label Claim (mg)
                               </label>
                               <input
-                                type="text"
-                                step="0.01"
+                                type="number"
                                 value={calculation.labelClaim ?? ""}
                                 onChange={(e) =>
                                   onFieldChange(
@@ -1090,6 +1153,15 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                     e.target.value
                                   )
                                 }
+                                onKeyDown={(e) => {
+                                  if (
+                                    e.key === "ArrowUp" ||
+                                    e.key === "ArrowDown"
+                                  ) {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                onWheel={(e) => e.currentTarget.blur}
                                 placeholder="Label Claim"
                                 className="w-full px-3 py-2 border border-red-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-400"
                               />

@@ -158,6 +158,12 @@ const SamplePreparationTitrationDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                                          e.preventDefault();
+                                        }
+                                      }}
+                                      onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
                                     className="w-30 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all"
                                   />
@@ -193,6 +199,12 @@ const SamplePreparationTitrationDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                                          e.preventDefault();
+                                        }
+                                      }}
+                                      onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Sample"
                                     className="flex-1 min-w-[120px] px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
                                   />
@@ -210,6 +222,12 @@ const SamplePreparationTitrationDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                                          e.preventDefault();
+                                        }
+                                      }}
+                                      onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter ID"
                                     className="w-24 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
                                   />
@@ -240,6 +258,12 @@ const SamplePreparationTitrationDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                                          e.preventDefault();
+                                        }
+                                      }}
+                                      onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Volume"
                                     className="w-30 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
                                   />
@@ -288,6 +312,12 @@ const SamplePreparationTitrationDetail: React.FC<
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                                          e.preventDefault();
+                                        }
+                                      }}
+                                      onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Value"
                                     className="w-30 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
                                   />

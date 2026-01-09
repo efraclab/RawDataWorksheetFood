@@ -311,9 +311,9 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
         "Error: Result is NaN or Infinite. Check console for details."
       );
     } else {
-      const result= `${FinalResult.toFixedNoRound(4)}`;
+      const result = `${FinalResult.toFixedNoRound(4)}`;
       onFieldChange(calculation.id, "calculationResult", result);
-      onFieldChange(calculation.id, "calculationResultUnit", 'ppm');
+      onFieldChange(calculation.id, "calculationResultUnit", "ppm");
     }
   };
 
@@ -372,20 +372,18 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                 </motion.div>
               </motion.button>
 
-              {role === "HOD LAB" && (
-                <motion.button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove();
-                  }}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                  title={`Remove ${calculation.label}`}
-                >
-                  <Trash className="w-4 h-4 text-white" />
-                </motion.button>
-              )}
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${calculation.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
             </div>
           </div>
         </div>
@@ -542,7 +540,7 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                             Area/ABS of Sample
                           </label>
                           <input
-                            type="text"
+                            type="number"
                             value={calculation.areaOfSample}
                             onChange={(e) =>
                               onFieldChange(
@@ -551,6 +549,15 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                                 e.target.value
                               )
                             }
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "ArrowUp" ||
+                                e.key === "ArrowDown"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
                             placeholder="Enter Sample Area/ABS"
                             className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400"
                           />
@@ -560,7 +567,7 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                             Area/ABS of Standard
                           </label>
                           <input
-                            type="text"
+                            type="number"
                             value={calculation.areaOfStandard}
                             onChange={(e) =>
                               onFieldChange(
@@ -569,6 +576,15 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                                 e.target.value
                               )
                             }
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "ArrowUp" ||
+                                e.key === "ArrowDown"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
                             placeholder="Enter Standard Area/ABS"
                             className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400"
                           />
@@ -581,7 +597,7 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                           Purity %
                         </label>
                         <input
-                          type="text"
+                          type="number"
                           value={calculation.purity}
                           onChange={(e) =>
                             onFieldChange(
@@ -590,6 +606,12 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                               e.target.value
                             )
                           }
+                          onKeyDown={(e) => {
+                            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                              e.preventDefault();
+                            }
+                          }}
+                          onWheel={(e) => e.currentTarget.blur()}
                           placeholder="Enter Purity"
                           className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         />
@@ -607,7 +629,6 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                           Calculate Result
                         </motion.button>
                       </div>
-
                     </div>
                   </div>
                 )}
@@ -663,17 +684,22 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                       {/* Results Grid */}
                       <div className="grid gap-4">
                         <div className="bg-white rounded-lg shadow-lg border-2 border-green-300 overflow-hidden">
-                            <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2">
-                              <h6 className="text-sm font-bold text-white">
-                                Primary Result
-                              </h6>
-                            </div>
-                            <div className="p-4">
-                              <p className="text-2xl font-bold text-gray-800">
-                                {calculation.calculationResult} {" "} {!calculation.calculationResult.startsWith("Error") ? calculation.calculationResultUnit : ''}
-                              </p>
-                            </div>
+                          <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2">
+                            <h6 className="text-sm font-bold text-white">
+                              Primary Result
+                            </h6>
                           </div>
+                          <div className="p-4">
+                            <p className="text-2xl font-bold text-gray-800">
+                              {calculation.calculationResult}{" "}
+                              {!calculation.calculationResult.startsWith(
+                                "Error"
+                              )
+                                ? calculation.calculationResultUnit
+                                : ""}
+                            </p>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Summary Info */}

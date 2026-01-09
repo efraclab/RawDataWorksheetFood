@@ -13,5 +13,6 @@ namespace RawDataWorkSheet.Services
         Task<WorksheetDetailDto> GetWorksheetByIdAsync(string worksheetId, FetchWorksheetsRequest request);
         Task<int> UpdateParameterAsync(int parameterId, ParameterDto request);
         Task<string> UpdateWorksheetAsync(SaveWorksheetRequest request);
+        Task<int> AddParameterAsync(string worksheetId, ParameterDto request);
     }
 }

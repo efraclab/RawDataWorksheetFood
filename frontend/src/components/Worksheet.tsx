@@ -48,6 +48,7 @@ import {
   fetchAnalysts,
   deleteParameter,
   submitWorksheet,
+  addParameter,
 } from "../services/api";
 import type { WorksheetDetail } from "../models/WorksheetDetail";
 import type { WorksheetRequest } from "../models/WorksheetRequest";
@@ -67,7 +68,6 @@ import ApproveWorksheetDialog from "./shared/ApproveWorksheetDialog";
 import Toast from "./shared/Toast";
 import { WorksheetDbMapper } from "../helpers/WorksheetDbMapper";
 import { MdDone } from "react-icons/md";
-import { useNavigate } from "react-router-dom";
 
 // SVG Icons
 const Target: React.FC<{ className: string }> = ({ className }) => (
@@ -180,13 +180,24 @@ const createNewCalculationDisso = (index: number): CalculationDisso => ({
   label: `Calculation ${index + 1}`,
   selectedStandardPrepLabel: null,
   selectedSamplePrepLabel: null,
-  areaOfSample: "",
+  areaOfSample1: "",
+  areaOfSample2: "",
+  areaOfSample3: "",
+  areaOfSample4: "",
+  areaOfSample5: "",
+  areaOfSample6: "",
   areaOfStandard: "",
   mwBase: "",
   mwSalt: "",
   purity: "",
   calculationResult: null,
   calculationResultUnit: null,
+  calculationResultTablet1: null,
+  calculationResultTablet2: null,
+  calculationResultTablet3: null,
+  calculationResultTablet4: null,
+  calculationResultTablet5: null,
+  calculationResultTablet6: null,
 });
 
 const createNewCalculationAssay = (index: number): CalculationAssay => ({
@@ -260,7 +271,7 @@ const createNewStandardPreparation = (index: number): StandardPreparation => ({
     {
       name: "Weighing",
       value1: "",
-      unit1: "g",
+      unit1: "mg",
       logBookID: "",
       solventChemical: "",
     },
@@ -279,7 +290,7 @@ const createNewSamplePreparation = (index: number): SamplePreparation => ({
     {
       name: "Weighing",
       value1: "",
-      unit1: "g",
+      unit1: "mg",
       logBookID: "",
       solventChemical: "",
     },
@@ -320,7 +331,7 @@ const createNewSamplePreparationSulphatedAsh = (
     {
       name: "Weighing (Empty Crucible)",
       value1: "",
-      unit1: "g",
+      unit1: "mg",
       logBookID: "",
     },
     { name: "Weighing (Before Drying)", value1: "", unit1: "g", logBookID: "" },
@@ -345,7 +356,7 @@ const createNewSamplePreparationROI = (
     {
       name: "Weighing (Empty Crucible)",
       value1: "",
-      unit1: "g",
+      unit1: "mg",
       logBookID: "",
     },
     { name: "Weighing (Before Drying)", value1: "", unit1: "g", logBookID: "" },
@@ -381,7 +392,7 @@ const createNewSamplePreparationDisso = (
       value1: "",
       unit1: "mg",
       value2: "",
-      unit2: "g",
+      unit2: "mg",
       value3: "",
       unit3: "min",
     },
@@ -453,6 +464,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [displayStatus, setDisplayStatus] = useState<string>("");
 
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -618,6 +630,33 @@ const Worksheet: React.FC<WorksheetProps> = ({
     reloadWorksheet();
   }, [worksheetId]);
 
+  const computeDisplayStatus = useCallback(() => {
+    if (!worksheetInfo) return;
+
+    const currentStatus = worksheetInfo.sample.status;
+
+    if (currentStatus === "Submitted For Analysis") {
+      const allStatuses = Object.values(parameterStatusPerParam);
+
+      if (allStatuses.length > 0) {
+        const allCompleted = allStatuses.every(
+          (status) => status === "Analysis Completed" || status === "Approved"
+        );
+
+        if (allCompleted) {
+          setDisplayStatus("Pending For Review");
+          return;
+        }
+      }
+    }
+
+    setDisplayStatus(currentStatus);
+  }, [worksheetInfo, parameterStatusPerParam]);
+
+  useEffect(() => {
+    computeDisplayStatus();
+  }, [computeDisplayStatus]);
+
   // Click outside handler
   const handleClickOutside = useCallback((event: MouseEvent) => {
     if (
@@ -714,6 +753,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
         setWorksheetInfo(worksheetData);
         setRegistrationNo(worksheetData.sample.registrationNo);
+
+        console.log(WorksheetDbMapper.mapAll(worksheetData))
 
         const samples = await fetchSample(worksheetData.sample.registrationNo);
         setSamplesData(samples);
@@ -1196,12 +1237,29 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   label: parsedData.label || calc.label,
                   selectedStandardPrepLabel: stdLabel,
                   selectedSamplePrepLabel: splLabel,
-                  areaOfSample: parsedData.areaOfSample || "",
+                  areaOfSample1: parsedData.areaOfSample1 || "",
+                  areaOfSample2: parsedData.areaOfSample2 || "",
+                  areaOfSample3: parsedData.areaOfSample3 || "",
+                  areaOfSample4: parsedData.areaOfSample4 || "",
+                  areaOfSample5: parsedData.areaOfSample5 || "",
+                  areaOfSample6: parsedData.areaOfSample6 || "",
                   areaOfStandard: parsedData.areaOfStandard || "",
                   mwBase: parsedData.mwBase || "",
                   mwSalt: parsedData.mwSalt || "",
                   purity: parsedData.purity || "",
                   calculationResult: parsedData.calculationResult || "",
+                  calculationResultTablet1:
+                    parsedData.calculationResultTablet1 || "",
+                  calculationResultTablet2:
+                    parsedData.calculationResultTablet2 || "",
+                  calculationResultTablet3:
+                    parsedData.calculationResultTablet3 || "",
+                  calculationResultTablet4:
+                    parsedData.calculationResultTablet5 || "",
+                  calculationResultTablet5:
+                    parsedData.calculationResultTablet5 || "",
+                  calculationResultTablet6:
+                    parsedData.calculationResultTablet6 || "",
                   calculationResultUnit: parsedData.calculationResultUnit || "",
                 };
                 restoredCalculations.dissolution.push(dissoCalc);
@@ -1560,7 +1618,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const reloadWorksheet = async () => {
     if (!worksheetId) return;
 
-    setIsLoading(true);
     setError(null);
 
     try {
@@ -1573,13 +1630,14 @@ const Worksheet: React.FC<WorksheetProps> = ({
         return;
       }
 
+      //console.log(WorksheetDbMapper.mapAll(worksheetData));
+
       setWorksheetInfo(worksheetData);
       setRegistrationNo(worksheetData.sample.registrationNo);
 
       const samples = await fetchSample(worksheetData.sample.registrationNo);
       setSamplesData(samples);
 
-      // 🔥 IMPORTANT: clear previous state before restore
       setAddedParameters([]);
       setSelectedParamsForDetail([]);
 
@@ -1593,16 +1651,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
   const handlePrintClick = () => {
     if (onPrint && worksheetInfo && analysts && samplesData) {
-      const selectedParam = addedParameters[paramIdx];
-      const paramId = selectedParam.id;
 
-      console.log("sample send:", samplesData[0])
-
-      onPrint(
-        worksheetInfo,
-        analysts,
-        samplesData[0],
-      );
+      onPrint(worksheetInfo, analysts, samplesData[0]);
     }
   };
 
@@ -1611,20 +1661,16 @@ const Worksheet: React.FC<WorksheetProps> = ({
     const worksheetData = collectFormDataForAPI();
 
     try {
-      if (role === "HOD LAB") {
+      if (role === "Reviewer") {
         const response = await updateWorksheet(worksheetId, worksheetData);
 
         if (response && response.worksheetId) {
-          await reloadWorksheet();
           setToastMessage(`Draft saved successfully: ${response.worksheetId}`);
+          setShowToast(true);
           setSaveSuccess(true);
           setTimeout(() => setSaveSuccess(false), 3000);
-          setShowToast(true);
-          setTimeout(() => {
-            setShowToast(false);
-          }, 4000);
+          await reloadWorksheet();
         } else {
-          setTimeout(() => setSaveSuccess(false), 3000);
           setToastMessage("Failed to save draft");
           setShowToast(true);
           setTimeout(() => {
@@ -1636,7 +1682,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
           const response = await updateParameter(param.id, param);
 
           if (response && response.parameterId) {
+            setToastMessage(`Draft saved successfully: ${worksheetId}`);
+            setShowToast(true);
+            setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
+            await reloadWorksheet();
           } else {
             setToastMessage("Failed to save draft");
             setShowToast(true);
@@ -1812,9 +1862,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
     setShowAnalystDialog(true);
   };
 
-  const handleAnalystSelected = (employeeId: string) => {
-    if (!pendingParameter) return;
+const handleAnalystSelected = async (employeeId: string) => {
+  if (!pendingParameter) return;
 
+  try {
     if (analystMode === "add") {
       const newId = paramIdx + 1;
       setParamIdx(newId);
@@ -1826,6 +1877,386 @@ const Worksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [newId]: employeeId,
       }));
+
+      setParameterStatusPerParam((prev) => ({
+        ...prev,
+        [newId]: "Created",
+      }));
+
+      setToastMessage(`Adding parameter "${newParameter.parameterName}"...`);
+      setShowToast(true);
+
+      try {
+        const parameterData = {
+          paraCode: newParameter.paraCode,
+          parameterName: newParameter.parameterName,
+          methodCode: newParameter.methodCode,
+          methodName: newParameter.methodName,
+          columnId: columnsPerParam[newId] || null,
+          diluentPreparation: diluentPerParam[newId] || null,
+          otherInfo: otherInfoPerParam[newId] || null,
+          analyzedBy: employeeId,
+          approvedBy: null,
+          analysisStartDate: null,
+          analysisCompletionDate: null,
+          approvedAt: null,
+          status: "Created",
+          instrumentIds: (addedInstruments[newId] || []).map(inst => inst.id),
+          chemicalIds: (addedChemicals[newId] || []).map(chem => chem.id),
+          standardIds: (addedStandards[newId] || []).map(std => std.id),
+          standardPreparations: [
+            ...(standardPreparationPerParam[newId] || []).map(sp => ({
+              label: sp.label,
+              preparationType: "assay",
+              assignedStandardId: sp.assignedStandardId || "",
+              steps: JSON.stringify(sp.steps),
+            })),
+            ...(standardPreparationRSPerParam[newId] || []).map(sp => ({
+              label: sp.label,
+              preparationType: "residual_solvent",
+              assignedStandardId: (sp as any).assignedStandardId || "",
+              steps: JSON.stringify(sp.steps),
+            })),
+            ...(standardPreparationDissoPerParam[newId] || []).map(sp => ({
+              label: sp.label,
+              preparationType: "dissolution",
+              assignedStandardId: (sp as any).assignedStandardId || "",
+              steps: JSON.stringify(sp.steps),
+            })),
+          ],
+          samplePreparations: [
+            ...(samplePreparationPerParam[newId] || []).map(sp => ({
+              label: sp.label,
+              preparationType: "assay",
+              assignedStandardId: "",
+              steps: JSON.stringify(sp.steps),
+            })),
+            ...(samplePreparationROIPerParam[newId] || []).map(sp => ({
+              label: sp.label,
+              preparationType: "roi",
+              assignedStandardId: "",
+              steps: JSON.stringify(sp.steps),
+            })),
+            ...(samplePreparationLodPerParam[newId] || []).map(sp => ({
+              label: sp.label,
+              preparationType: "lod",
+              assignedStandardId: "",
+              steps: JSON.stringify(sp.steps),
+            })),
+            ...(samplePreparationSulphatedAshPerParam[newId] || []).map(sp => ({
+              label: sp.label,
+              preparationType: "sulphated_ash",
+              assignedStandardId: "",
+              steps: JSON.stringify(sp.steps),
+            })),
+            ...(samplePreparationRSPerParam[newId] || []).map(sp => ({
+              label: sp.label,
+              preparationType: "residual_solvent",
+              assignedStandardId: (sp as any).assignedStandardId || "",
+              steps: JSON.stringify(sp.steps),
+            })),
+            ...(samplePreparationDissoPerParam[newId] || []).map(sp => ({
+              label: sp.label,
+              preparationType: "dissolution",
+              assignedStandardId: (sp as any).assignedStandardId || "",
+              steps: JSON.stringify(sp.steps),
+            })),
+          ],
+          calculations: [
+            ...(calculationsAssayPerParam[newId] || []).map(calc => {
+              const dataObj = { ...calc } as any;
+              delete dataObj.selectedStandardPrepId;
+              delete dataObj.selectedSamplePrepId;
+              return {
+                label: calc.label,
+                calculationType: "assay",
+                data: JSON.stringify(dataObj),
+              };
+            }),
+            ...(calculationsLodPerParam[newId] || []).map(calc => {
+              const dataObj = { ...calc } as any;
+              delete dataObj.selectedSamplePrepId;
+              return {
+                label: calc.label,
+                calculationType: "lod",
+                data: JSON.stringify(dataObj),
+              };
+            }),
+            ...(calculationsROIPerParam[newId] || []).map(calc => {
+              const dataObj = { ...calc } as any;
+              delete dataObj.selectedSamplePrepId;
+              return {
+                label: calc.label,
+                calculationType: "roi",
+                data: JSON.stringify(dataObj),
+              };
+            }),
+            ...(calculationsSulphatedAshPerParam[newId] || []).map(calc => {
+              const dataObj = { ...calc } as any;
+              delete dataObj.selectedSamplePrepId;
+              return {
+                label: calc.label,
+                calculationType: "sulphated_ash",
+                data: JSON.stringify(dataObj),
+              };
+            }),
+            ...(calculationsRSPerParam[newId] || []).map(calc => {
+              const dataObj = { ...calc } as any;
+              delete dataObj.selectedStandardPrepId;
+              delete dataObj.selectedSamplePrepId;
+              return {
+                label: calc.label,
+                calculationType: "residual_solvent",
+                data: JSON.stringify(dataObj),
+              };
+            }),
+            ...(calculationsDissoPerParam[newId] || []).map(calc => {
+              const dataObj = { ...calc } as any;
+              delete dataObj.selectedStandardPrepId;
+              delete dataObj.selectedSamplePrepId;
+              return {
+                label: calc.label,
+                calculationType: "dissolution",
+                data: JSON.stringify(dataObj),
+              };
+            }),
+          ],
+        };
+
+        const response = await addParameter(worksheetId, parameterData);
+
+        setAddedParameters((prev) => 
+          prev.map(p => 
+            p.id === newId 
+              ? { ...p, id: response.parameterId } 
+              : p
+          )
+        );
+
+        const serverParameterId = response.parameterId;
+
+        setAnalyzedByPerParam((prev) => {
+          const { [newId]: analyzedBy, ...rest } = prev;
+          return { ...rest, [serverParameterId]: analyzedBy };
+        });
+
+        setParameterStatusPerParam((prev) => {
+          const { [newId]: status, ...rest } = prev;
+          return { ...rest, [serverParameterId]: status };
+        });
+
+        if (columnsPerParam[newId]) {
+          setColumnsPerParam((prev) => {
+            const { [newId]: column, ...rest } = prev;
+            return { ...rest, [serverParameterId]: column };
+          });
+        }
+
+        if (diluentPerParam[newId]) {
+          setDiluentPerParam((prev) => {
+            const { [newId]: diluent, ...rest } = prev;
+            return { ...rest, [serverParameterId]: diluent };
+          });
+        }
+
+        if (otherInfoPerParam[newId]) {
+          setOtherInfoPerParam((prev) => {
+            const { [newId]: info, ...rest } = prev;
+            return { ...rest, [serverParameterId]: info };
+          });
+        }
+
+        if (addedInstruments[newId]) {
+          setAddedInstruments((prev) => {
+            const { [newId]: instruments, ...rest } = prev;
+            return { ...rest, [serverParameterId]: instruments };
+          });
+          setAddedInstrumentIdsPerParam((prev) => {
+            const { [newId]: ids, ...rest } = prev;
+            return { ...rest, [serverParameterId]: ids };
+          });
+        }
+
+        if (addedChemicals[newId]) {
+          setAddedChemicals((prev) => {
+            const { [newId]: chemicals, ...rest } = prev;
+            return { ...rest, [serverParameterId]: chemicals };
+          });
+          setAddedChemicalIdsPerParam((prev) => {
+            const { [newId]: ids, ...rest } = prev;
+            return { ...rest, [serverParameterId]: ids };
+          });
+        }
+
+        if (addedStandards[newId]) {
+          setAddedStandards((prev) => {
+            const { [newId]: standards, ...rest } = prev;
+            return { ...rest, [serverParameterId]: standards };
+          });
+          setAddedStandardIdsPerParam((prev) => {
+            const { [newId]: ids, ...rest } = prev;
+            return { ...rest, [serverParameterId]: ids };
+          });
+        }
+
+        if (standardPreparationPerParam[newId]) {
+          setStandardPreparationPerParam((prev) => {
+            const { [newId]: preps, ...rest } = prev;
+            return { ...rest, [serverParameterId]: preps };
+          });
+        }
+
+        if (samplePreparationPerParam[newId]) {
+          setSamplePreparationPerParam((prev) => {
+            const { [newId]: preps, ...rest } = prev;
+            return { ...rest, [serverParameterId]: preps };
+          });
+        }
+
+        if (standardPreparationRSPerParam[newId]) {
+          setStandardPreparationRSPerParam((prev) => {
+            const { [newId]: preps, ...rest } = prev;
+            return { ...rest, [serverParameterId]: preps };
+          });
+        }
+
+        if (samplePreparationRSPerParam[newId]) {
+          setSamplePreparationRSPerParam((prev) => {
+            const { [newId]: preps, ...rest } = prev;
+            return { ...rest, [serverParameterId]: preps };
+          });
+        }
+
+        if (standardPreparationDissoPerParam[newId]) {
+          setStandardPreparationDissoPerParam((prev) => {
+            const { [newId]: preps, ...rest } = prev;
+            return { ...rest, [serverParameterId]: preps };
+          });
+        }
+
+        if (samplePreparationDissoPerParam[newId]) {
+          setSamplePreparationDissoPerParam((prev) => {
+            const { [newId]: preps, ...rest } = prev;
+            return { ...rest, [serverParameterId]: preps };
+          });
+        }
+
+        if (samplePreparationLodPerParam[newId]) {
+          setSamplePreparationLodPerParam((prev) => {
+            const { [newId]: preps, ...rest } = prev;
+            return { ...rest, [serverParameterId]: preps };
+          });
+        }
+
+        if (samplePreparationROIPerParam[newId]) {
+          setSamplePreparationROIPerParam((prev) => {
+            const { [newId]: preps, ...rest } = prev;
+            return { ...rest, [serverParameterId]: preps };
+          });
+        }
+
+        if (samplePreparationSulphatedAshPerParam[newId]) {
+          setSamplePreparationSulphatedAshPerParam((prev) => {
+            const { [newId]: preps, ...rest } = prev;
+            return { ...rest, [serverParameterId]: preps };
+          });
+        }
+
+        if (calculationsAssayPerParam[newId]) {
+          setCalculationsAssayPerParam((prev) => {
+            const { [newId]: calcs, ...rest } = prev;
+            return { ...rest, [serverParameterId]: calcs };
+          });
+        }
+
+        if (calculationsLodPerParam[newId]) {
+          setCalculationsLodPerParam((prev) => {
+            const { [newId]: calcs, ...rest } = prev;
+            return { ...rest, [serverParameterId]: calcs };
+          });
+        }
+
+        if (calculationsROIPerParam[newId]) {
+          setCalculationsROIPerParam((prev) => {
+            const { [newId]: calcs, ...rest } = prev;
+            return { ...rest, [serverParameterId]: calcs };
+          });
+        }
+
+        if (calculationsSulphatedAshPerParam[newId]) {
+          setCalculationsSulphatedAshPerParam((prev) => {
+            const { [newId]: calcs, ...rest } = prev;
+            return { ...rest, [serverParameterId]: calcs };
+          });
+        }
+
+        if (calculationsRSPerParam[newId]) {
+          setCalculationsRSPerParam((prev) => {
+            const { [newId]: calcs, ...rest } = prev;
+            return { ...rest, [serverParameterId]: calcs };
+          });
+        }
+
+        if (calculationsDissoPerParam[newId]) {
+          setCalculationsDissoPerParam((prev) => {
+            const { [newId]: calcs, ...rest } = prev;
+            return { ...rest, [serverParameterId]: calcs };
+          });
+        }
+
+        setToastMessage(`Parameter "${newParameter.parameterName}" added successfully!`);
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+      } catch (error) {
+        console.error("❌ Error adding parameter:");
+        console.error("Error type:", error instanceof Error ? error.constructor.name : typeof error);
+        console.error("Error message:", error instanceof Error ? error.message : String(error));
+        console.error("Full error object:", error);
+
+        setAddedParameters((prev) => prev.filter(p => p.id !== newId));
+        
+        const cleanupState = (setter: Function) => {
+          setter((prev: any) => {
+            const { [newId]: _, ...rest } = prev;
+            return rest;
+          });
+        };
+
+        cleanupState(setAnalyzedByPerParam);
+        cleanupState(setParameterStatusPerParam);
+        cleanupState(setColumnsPerParam);
+        cleanupState(setDiluentPerParam);
+        cleanupState(setOtherInfoPerParam);
+        cleanupState(setAddedInstruments);
+        cleanupState(setAddedInstrumentIdsPerParam);
+        cleanupState(setAddedChemicals);
+        cleanupState(setAddedChemicalIdsPerParam);
+        cleanupState(setAddedStandards);
+        cleanupState(setAddedStandardIdsPerParam);
+        cleanupState(setStandardPreparationPerParam);
+        cleanupState(setSamplePreparationPerParam);
+        cleanupState(setStandardPreparationRSPerParam);
+        cleanupState(setSamplePreparationRSPerParam);
+        cleanupState(setStandardPreparationDissoPerParam);
+        cleanupState(setSamplePreparationDissoPerParam);
+        cleanupState(setSamplePreparationLodPerParam);
+        cleanupState(setSamplePreparationROIPerParam);
+        cleanupState(setSamplePreparationSulphatedAshPerParam);
+        cleanupState(setCalculationsAssayPerParam);
+        cleanupState(setCalculationsLodPerParam);
+        cleanupState(setCalculationsROIPerParam);
+        cleanupState(setCalculationsSulphatedAshPerParam);
+        cleanupState(setCalculationsRSPerParam);
+        cleanupState(setCalculationsDissoPerParam);
+
+        setToastMessage(
+          error instanceof Error 
+            ? `Failed to add parameter: ${error.message}` 
+            : "Failed to add parameter. Please try again."
+        );
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 4000);
+      }
     }
 
     if (analystMode === "reassign") {
@@ -1835,13 +2266,85 @@ const Worksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [paramId]: employeeId,
       }));
+
+      setToastMessage("Reassigning analyst...");
+      setShowToast(true);
+
+      const param = addedParameters.find((p) => p.id === paramId);
+      if (param) {
+        try {
+          const paramData = {
+            id: paramId,
+            paraCode: param.paraCode,
+            parameterName: param.parameterName,
+            methodCode: param.methodCode,
+            methodName: param.methodName,
+            columnId: columnsPerParam[paramId] || null,
+            diluentPreparation: diluentPerParam[paramId] || null,
+            otherInfo: otherInfoPerParam[paramId] || null,
+            analyzedBy: employeeId, // ✅ Updated analyst
+            approvedBy: approvedByPerParam[paramId] || null,
+            analysisStartDate: analysisStartDatePerParam[paramId] || null,
+            analysisCompletionDate: analysisCompletionDatePerParam[paramId] || null,
+            approvedAt: approvedAtPerParam[paramId] || null,
+            status: parameterStatusPerParam[paramId] || "Created",
+            instrumentIds: (addedInstruments[paramId] || []).map(inst => inst.id),
+            chemicalIds: (addedChemicals[paramId] || []).map(chem => chem.id),
+            standardIds: (addedStandards[paramId] || []).map(std => std.id),
+            standardPreparations: [], // Add if needed
+            samplePreparations: [], // Add if needed
+            calculations: [], // Add if needed
+          };
+
+          const response = await updateParameter(paramId, paramData);
+
+          if (response && response.parameterId) {
+            
+            setToastMessage("Analyst reassigned successfully!");
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 3000);
+          } else {
+            console.error("❌ Update failed: Invalid response from server");
+            console.error("Response received:", response);
+
+            setToastMessage("Analyst reassigned but failed to save. Please save manually.");
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 4000);
+          }
+        } catch (error) {
+          console.error("❌ Error updating parameter:");
+          console.error("Error type:", error instanceof Error ? error.constructor.name : typeof error);
+          console.error("Error message:", error instanceof Error ? error.message : String(error));
+          console.error("Full error object:", error);
+
+          setToastMessage("Failed to reassign analyst. Please try again.");
+          setShowToast(true);
+          setTimeout(() => setShowToast(false), 4000);
+        }
+      } else {
+        console.error("❌ Parameter not found for reassignment");
+        console.error("Parameter ID:", paramId);
+        console.error("Available parameters:", addedParameters.map(p => ({ id: p.id, name: p.parameterName })));
+      }
     }
 
     setPendingParameter(null);
     setAnalystMode("add");
     setShowAnalystDialog(false);
     setShowParameterDropdown(false);
-  };
+  } catch (error) {
+    console.error("❌ Error in handleAnalystSelected:");
+    console.error("Error type:", error instanceof Error ? error.constructor.name : typeof error);
+    console.error("Error message:", error instanceof Error ? error.message : String(error));
+    console.error("Full error object:", error);
+    console.error("Analyst Mode:", analystMode);
+    console.error("Pending Parameter:", pendingParameter);
+
+    setToastMessage("Failed to process parameter. Please try again.");
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  }
+};
 
   const handleRemoveParameter = (id: number) => {
     setAddedParameters(addedParameters.filter((p) => p.id !== id));
@@ -1885,10 +2388,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
     cleanupState(setSamplePreparationLodPerParam);
     cleanupState(setSamplePreparationROIPerParam);
     cleanupState(setSamplePreparationSulphatedAshPerParam);
-    cleanupState(setActivePreparationGroups); // ✅ Also clean up active prep groups
-    cleanupState(setAddedInstrumentIdsPerParam); // ✅ Clean up cached IDs
-    cleanupState(setAddedChemicalIdsPerParam); // ✅ Clean up cached IDs
-    cleanupState(setAddedStandardIdsPerParam); // ✅ Clean up cached IDs
+    cleanupState(setActivePreparationGroups);
+    cleanupState(setAddedInstrumentIdsPerParam);
+    cleanupState(setAddedChemicalIdsPerParam);
+    cleanupState(setAddedStandardIdsPerParam);
   };
 
   const toggleParameterDetail = (id: number) => {
@@ -1998,10 +2501,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
     }
   };
 
-  // Check if parameter is editable for scientist
-  const isParameterEditableForScientist = useCallback(
+  // Check if parameter is editable for Analyst
+  const isParameterEditableForAnalyst = useCallback(
     (parameterId: number): boolean => {
-      if (role !== "Scientist") return false;
+      if (role !== "Analyst") return false;
       const status = (
         parameterStatusPerParam[parameterId] || "created"
       ).toLowerCase();
@@ -2256,7 +2759,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
   // Handle complete analysis button click
   const handleCompleteAnalysis = (param: ParameterDetail) => {
-    setParameterForAnalysis(param);
+    const currentWorksheetData = collectFormDataForAPI();
+
+    const curParam = currentWorksheetData.parameters?.filter(
+      parameter => parameter.id === param.id
+    )[0];
+
+    setParameterForAnalysis(curParam ?? param);
     setShowCompleteAnalysisDialog(true);
   };
 
@@ -2266,14 +2775,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
     setIsCompletingAnalysis(true);
     try {
-      // Save current data first
-      // await handleSaveDraft();
-
-      // Update parameter status to "Completed"
       const updatedParam = {
         ...parameterForAnalysis,
         status: "Analysis Completed",
-        analysisCompletionDate: new Date().toISOString().split("T")[0], // Current date
+        analysisCompletionDate: new Date().toISOString().split("T")[0],
       };
 
       const response = await updateParameter(
@@ -2294,7 +2799,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }));
 
         setToastMessage(
-          "Analysis completed successfully! Submitted for HOD approval."
+          "Analysis completed successfully! Submitted for Reviewer approval."
         );
         setShowToast(true);
         setTimeout(() => {
@@ -2333,15 +2838,15 @@ const Worksheet: React.FC<WorksheetProps> = ({
         throw new Error("Worksheet information is not available");
       }
 
-      const mappedData = WorksheetDbMapper.mapAll(worksheetInfo);
+      // const mappedData = WorksheetDbMapper.mapAll(worksheetInfo);
 
-      const submitResponse = await submitWorksheet(mappedData);
+      // const submitResponse = await submitWorksheet(mappedData);
 
-      if (!submitResponse.success) {
-        throw new Error(
-          submitResponse.message || "Failed to submit worksheet to database"
-        );
-      }
+      // if (!submitResponse.success) {
+      //   throw new Error(
+      //     submitResponse.message || "Failed to submit worksheet to database"
+      //   );
+      // }
 
       // Step 4: Only if submission succeeds, update worksheet status to "Approved"
       const updatedWorksheetData = {
@@ -3113,8 +3618,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
     } else if (isDisso) {
       const currentStandards =
         standardPreparationDissoPerParam[parameterId] || [];
-      const newStandardIndex = currentStandards.length;
-      const newStandardPrep = createNewStandardPreparation(newStandardIndex);
+      const newIndex = currentStandards.length;
+      const newStandardPrep = createNewStandardPreparation(newIndex);
 
       newStandardPrep.steps = newStandardPrep.steps.map((step) => {
         if (step.name === "Weighing") {
@@ -3131,29 +3636,17 @@ const Worksheet: React.FC<WorksheetProps> = ({
         ],
       }));
 
-      // Create 6 sample preparations (6 tablets) for each standard prep
       const currentSamples = samplePreparationDissoPerParam[parameterId] || [];
-      const baseSampleIndex = currentSamples.length;
-      const newSamplePreps: SamplePreparationDisso[] = [];
-
-      for (let i = 0; i < 6; i++) {
-        const tabletNumber = baseSampleIndex + i + 1;
-        const newSamplePrepDisso = createNewSamplePreparationDisso(
-          baseSampleIndex + i
-        );
-        // Update label to show tablet number
-        newSamplePrepDisso.label = `Sample Preparation ${tabletNumber} (Tablet ${
-          (baseSampleIndex % 6) + i + 1
-        })`;
-        newSamplePreps.push({
-          ...newSamplePrepDisso,
-          assignedStandardId: standard.id,
-        });
-      }
+      const newSampleIndex = currentSamples.length;
+      const newSamplePrepDisso =
+        createNewSamplePreparationDisso(newSampleIndex);
 
       setSamplePreparationDissoPerParam((prev) => ({
         ...prev,
-        [parameterId]: [...currentSamples, ...newSamplePreps],
+        [parameterId]: [
+          ...currentSamples,
+          { ...newSamplePrepDisso, assignedStandardId: standard.id },
+        ],
       }));
     } else {
       const currentStandards = standardPreparationPerParam[parameterId] || [];
@@ -3414,47 +3907,16 @@ const Worksheet: React.FC<WorksheetProps> = ({
           label: `Standard Preparation ${1 + index}`,
         }));
 
-      // Remove 6 sample preparations associated with this standard prep
       if (indexToRemove !== -1) {
         setSamplePreparationDissoPerParam((prevSample) => {
           const samples = prevSample[parameterId] || [];
-
-          // Calculate which 6 samples to remove (each standard prep has 6 samples)
-          const startIdx = indexToRemove * 6;
-          const endIdx = startIdx + 6;
-
-          // Filter out the 6 samples and renumber remaining samples
           const updatedSamples = samples
-            .filter((_, idx) => idx < startIdx || idx >= endIdx)
-            .map((sp, index) => {
-              const tabletNum = (index % 6) + 1;
-              return {
-                ...sp,
-                label: `Sample Preparation ${index + 1} (Tablet ${tabletNum})`,
-              };
-            });
-
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Sample Preparation ${1 + index}`,
+            }));
           return { ...prevSample, [parameterId]: updatedSamples };
-        });
-
-        // Also need to clean up any calculations that referenced the removed preparations
-        setCalculationsDissoPerParam((prevCalc) => {
-          const calculations = prevCalc[parameterId] || [];
-          const removedStandardLabel = standards[indexToRemove]?.label;
-
-          const updatedCalculations = calculations.map((calc) => {
-            // If calculation was using the removed standard prep, clear it
-            if (calc.selectedStandardPrepLabel === removedStandardLabel) {
-              return {
-                ...calc,
-                selectedStandardPrepLabel: null,
-                selectedSamplePrepLabel: null,
-              };
-            }
-            return calc;
-          });
-
-          return { ...prevCalc, [parameterId]: updatedCalculations };
         });
       }
 
@@ -3467,11 +3929,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
     standardPreparationId: number,
     stepName: StandardPreparationStep["name"],
     field:
-      | "value"
-      | "unit"
       | "value1"
-      | "value2"
       | "unit1"
+      | "value2"
+      | "value3"
+      | "unit3"
       | "unit2"
       | "logBookID"
       | "solventChemical",
@@ -3505,7 +3967,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         .filter((calc) => calc.id !== calculationId)
         .map((calc, index) => ({
           ...calc,
-          label: `Calculation ${index + 1}`,
+          label: `Dissolution Calculation ${index + 1}`,
         }));
       return { ...prev, [parameterId]: updatedCalculations };
     });
@@ -3712,13 +4174,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const isCreated = status === "created";
       const param = addedParameters.find((p) => p.id === parameterId);
 
-      // ========== SCIENTIST VIEW - CREATED (NO OVERLAY - FULLY EDITABLE) ==========
-      if (role.toLowerCase() === "scientist" && isCreated) {
+      // ========== ANALYST VIEW - CREATED (NO OVERLAY - FULLY EDITABLE) ==========
+      if (role.toLowerCase() === "analyst" && isCreated) {
         return null; // No overlay needed, fully editable
       }
 
-      // ========== SCIENTIST VIEW - ANALYSIS PENDING ==========
-      if (role.toLowerCase() === "scientist" && isAnalysisPending && param) {
+      // ========== ANALYST VIEW - ANALYSIS PENDING ==========
+      if (role.toLowerCase() === "analyst" && isAnalysisPending && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
             <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-6 py-5 border-b border-slate-200">
@@ -3845,8 +4307,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
         );
       }
 
-      // ========== SCIENTIST VIEW - ANALYSIS STARTED (ACTIVE EDITING) ==========
-      if (role.toLowerCase() === "scientist" && isAnalysisStarted && param) {
+      // ========== ANALYST VIEW - ANALYSIS STARTED (ACTIVE EDITING) ==========
+      if (role.toLowerCase() === "analyst" && isAnalysisStarted && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
             <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 px-6 py-5 border-b border-slate-200">
@@ -3976,7 +4438,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     <p className="text-sm text-blue-800">
                       <strong>Before Completing:</strong> Verify all
                       preparations, calculations, and data are accurate. This
-                      will submit your work to HOD for approval.
+                      will submit your work to Reviewer for approval.
                     </p>
                   </div>
                 </div>
@@ -3986,8 +4448,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
         );
       }
 
-      // ========== SCIENTIST VIEW - ANALYSIS COMPLETED (AWAITING HOD REVIEW) ==========
-      if (role.toLowerCase() === "scientist" && isAnalysisCompleted && param) {
+      // ========== ANALYST VIEW - ANALYSIS COMPLETED (AWAITING REVIEWER REVIEW) ==========
+      if (role.toLowerCase() === "analyst" && isAnalysisCompleted && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
             <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-6 py-5 border-b border-slate-200">
@@ -4047,7 +4509,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         <li className="flex items-start gap-2">
                           <span className="text-blue-500 mt-1">•</span>
                           <span>
-                            HOD Lab is currently reviewing your analysis
+                            Reviewer is currently reviewing your analysis
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
@@ -4092,7 +4554,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     </svg>
                     <p className="text-sm text-slate-700">
                       <strong>Status:</strong> Your analysis is locked for
-                      review. No edits can be made until HOD provides feedback.
+                      review. No edits can be made until Reviewer provides feedback.
                     </p>
                   </div>
                 </div>
@@ -4102,8 +4564,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
         );
       }
 
-      // ========== SCIENTIST VIEW - ANALYSIS REVISION REQUESTED ==========
-      if (role.toLowerCase() === "scientist" && isAnalysisRevision && param) {
+      // ========== ANALYST VIEW - ANALYSIS REVISION REQUESTED ==========
+      if (role.toLowerCase() === "analyst" && isAnalysisRevision && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
             <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 px-6 py-5 border-b border-slate-200">
@@ -4129,7 +4591,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                       Revision Requested
                     </h3>
                     <p className="text-sm text-slate-600 mt-0.5">
-                      HOD has requested revisions. Review feedback and update
+                      Reviewer has requested revisions. Review feedback and update
                       your work
                     </p>
                   </div>
@@ -4186,7 +4648,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         <li className="flex items-start gap-2">
                           <span className="text-amber-500 mt-1">•</span>
                           <span>
-                            Review HOD's feedback and make necessary corrections
+                            Review Reviewer's feedback and make necessary corrections
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
@@ -4233,7 +4695,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     <p className="text-sm text-yellow-800">
                       <strong>Tip:</strong> Carefully review all sections to
                       ensure accuracy before resubmitting. Your work will be
-                      sent back to HOD for re-approval.
+                      sent back to Reviewer for re-approval.
                     </p>
                   </div>
                 </div>
@@ -4243,8 +4705,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
         );
       }
 
-      // ========== SCIENTIST VIEW - APPROVED ==========
-      if (role.toLowerCase() === "scientist" && isApproved && param) {
+      // ========== ANALYST VIEW - APPROVED ==========
+      if (role.toLowerCase() === "analyst" && isApproved && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
             <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 px-6 py-5 border-b border-slate-200">
@@ -4270,7 +4732,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                       Parameter Approved - Well Done!
                     </h3>
                     <p className="text-sm text-slate-600 mt-0.5">
-                      Your analysis has been reviewed and approved by HOD
+                      Your analysis has been reviewed and approved by Reviewer
                     </p>
                   </div>
                 </div>
@@ -4379,8 +4841,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
         );
       }
 
-      // ========== HOD LAB VIEW - CREATED ==========
-      if (role.toLowerCase() === "hod lab" && isCreated && param) {
+      // ========== Reviewer VIEW - CREATED ==========
+      if (role.toLowerCase() === "reviewer" && isCreated && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
             <div className="bg-gradient-to-r from-slate-50 via-gray-50 to-slate-50 px-6 py-5 border-b border-slate-200">
@@ -4512,9 +4974,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
         );
       }
 
-      // ========== HOD LAB VIEW - ANALYSIS PENDING OR STARTED ==========
+      // ========== Reviewer VIEW - ANALYSIS PENDING OR STARTED ==========
       if (
-        role.toLowerCase() === "hod lab" &&
+        role.toLowerCase() === "reviewer" &&
         (isAnalysisPending || isAnalysisStarted) &&
         param
       ) {
@@ -4733,8 +5195,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
         );
       }
 
-      // ========== HOD LAB VIEW - ANALYSIS COMPLETED (AWAITING APPROVAL) ==========
-      if (role.toLowerCase() === "hod lab" && isAnalysisCompleted && param) {
+      // ========== REVIEWER VIEW - ANALYSIS COMPLETED (AWAITING APPROVAL) ==========
+      if (role.toLowerCase() === "reviewer" && isAnalysisCompleted && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
             <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-6 py-5 border-b border-slate-200">
@@ -4900,8 +5362,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
         );
       }
 
-      // ========== HOD LAB VIEW - ANALYSIS REVISION ==========
-      if (role.toLowerCase() === "hod lab" && isAnalysisRevision && param) {
+      // ========== REVIEWER VIEW - ANALYSIS REVISION ==========
+      if (role.toLowerCase() === "reviewer" && isAnalysisRevision && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
             <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 px-6 py-5 border-b border-slate-200">
@@ -5019,8 +5481,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
         );
       }
 
-      // ========== HOD LAB VIEW - APPROVED ==========
-      if (role.toLowerCase() === "hod lab" && isApproved && param) {
+      // ========== Reviewer VIEW - APPROVED ==========
+      if (role.toLowerCase() === "reviewer" && isApproved && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
             <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 px-6 py-5 border-b border-slate-200">
@@ -5165,6 +5627,590 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
   LockedParameterOverlay.displayName = "LockedParameterOverlay";
 
+  const BottomParameterActionBar: React.FC<{ parameterId: number }> = React.memo(
+    ({ parameterId }) => {
+      const status = (
+        parameterStatusPerParam[parameterId] || "Created"
+      ).toLowerCase();
+      const canUnlock = status === "analysis pending";
+      const isAnalysisStarted = status === "analysis started";
+      const isAnalysisPending = status === "analysis pending";
+      const isAnalysisCompleted = status === "analysis completed";
+      const isAnalysisRevision = status === "analysis revision";
+      const isApproved = status === "approved";
+      const isCreated = status === "created";
+      const param = addedParameters.find((p) => p.id === parameterId);
+
+      // ========== ANALYST VIEW - CREATED (NO BAR) ==========
+      if (role.toLowerCase() === "analyst" && isCreated) {
+        return null; // No action bar needed for created status
+      }
+
+      // ========== ANALYST VIEW - ANALYSIS PENDING ==========
+      if (role.toLowerCase() === "analyst" && isAnalysisPending && param) {
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+          >
+            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-6 py-4 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-blue-600 animate-pulse"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      Analysis Pending - Ready to Start
+                    </h4>
+                    <p className="text-xs text-slate-600">
+                      Click "Start Analysis" to begin working on this parameter
+                    </p>
+                  </div>
+                </div>
+
+                <motion.button
+                  onClick={() => handleStartAnalysis(param)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-blue-200 text-blue-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-blue-300 transition-all flex items-center gap-2 shadow-sm"
+                >
+                  <BsPlayFill className="w-5 h-5" />
+                  Start Analysis
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        );
+      }
+
+      // ========== ANALYST VIEW - ANALYSIS STARTED ==========
+      if (role.toLowerCase() === "analyst" && isAnalysisStarted && param) {
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+          >
+            <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 px-6 py-4 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-emerald-600 animate-pulse"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      Analysis In Progress
+                    </h4>
+                    <p className="text-xs text-slate-600">
+                      Complete your analysis and click on Complete button
+                    </p>
+                  </div>
+                </div>
+
+                <motion.button
+                  onClick={() => handleCompleteAnalysis(param)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Complete Analysis
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        );
+      }
+
+      // ========== ANALYST VIEW - ANALYSIS COMPLETED ==========
+      if (role.toLowerCase() === "analyst" && isAnalysisCompleted && param) {
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+          >
+            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-6 py-4 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-blue-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      Analysis Completed
+                    </h4>
+                    <p className="text-xs text-slate-600">
+                      Your work has been submitted and is under review
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+      }
+
+      // ========== ANALYST VIEW - ANALYSIS REVISION ==========
+      if (role.toLowerCase() === "analyst" && isAnalysisRevision && param) {
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+          >
+            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 px-6 py-4 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-amber-600 animate-pulse"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      Revision Requested
+                    </h4>
+                    <p className="text-xs text-slate-600">
+                      HOD has requested revisions. Review feedback and update your work
+                    </p>
+                  </div>
+                </div>
+
+                <motion.button
+                  onClick={() => handleCompleteAnalysis(param)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Complete Revision
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        );
+      }
+
+      // ========== ANALYST VIEW - APPROVED ==========
+      if (role.toLowerCase() === "analyst" && isApproved && param) {
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+          >
+            <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 px-6 py-4 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-emerald-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      Parameter Approved - Well Done!
+                    </h4>
+                    <p className="text-xs text-slate-600">
+                      Your analysis has been reviewed and approved by HOD
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+      }
+
+      // ========== reviewer VIEW - CREATED ==========
+      if (role.toLowerCase() === "reviewer" && isCreated && param) {
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+          >
+            <div className="bg-gradient-to-r from-slate-50 via-gray-50 to-slate-50 px-6 py-4 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-slate-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      Parameter in Draft Mode
+                    </h4>
+                    <p className="text-xs text-slate-600">
+                      This parameter is being prepared and has not been submitted yet
+                    </p>
+                  </div>
+                </div>
+
+                <motion.button
+                  onClick={() => handleInitiateDelete(param)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-red-200 text-red-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-red-300 transition-all flex items-center gap-2 shadow-sm"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                  Delete
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        );
+      }
+
+      // ========== reviewer VIEW - ANALYSIS PENDING OR STARTED ==========
+      if (
+        role.toLowerCase() === "reviewer" &&
+        (isAnalysisPending || isAnalysisStarted) &&
+        param
+      ) {
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+          >
+            <div className="bg-gradient-to-r from-slate-50 via-gray-50 to-slate-50 px-6 py-4 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-slate-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      {isAnalysisStarted ? "Analysis In Progress" : "Awaiting Analysis"}
+                    </h4>
+                    <p className="text-xs text-slate-600">
+                      Status: <span className="uppercase font-semibold">{status}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  {canUnlock && (
+                    <motion.button
+                      onClick={() => handleInitiateUnlock(param)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                        />
+                      </svg>
+                      Unlock
+                    </motion.button>
+                  )}
+
+                  <motion.button
+                    onClick={() => handleInitiateDelete(param)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-red-200 text-red-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-red-300 transition-all flex items-center gap-2 shadow-sm"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                    Delete
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+      }
+
+      // ========== reviewer VIEW - ANALYSIS COMPLETED ==========
+      if (role.toLowerCase() === "reviewer" && isAnalysisCompleted && param) {
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+          >
+            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-6 py-4 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-blue-600 animate-pulse"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      Analysis Completed
+                    </h4>
+                    <p className="text-xs text-slate-600">
+                      Review the analysis and approve or request revisions
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <motion.button
+                    onClick={() => handleApprove(param)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+                  >
+                    <MdDone className="w-4 h-4" />
+                    Approve
+                  </motion.button>
+
+                  <motion.button
+                    onClick={() => handleRequestRevision(param)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    Request Revision
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+      }
+
+      // ========== reviewer VIEW - ANALYSIS REVISION ==========
+      if (role.toLowerCase() === "reviewer" && isAnalysisRevision && param) {
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+          >
+            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 px-6 py-4 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-amber-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      Revision In Progress
+                    </h4>
+                    <p className="text-xs text-slate-600">
+                      Analyst is working on the requested revisions
+                    </p>
+                  </div>
+                </div>
+
+                <div className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 rounded-lg">
+                  <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">
+                    Awaiting Revision
+                  </span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+      }
+
+      // ========== reviewer VIEW - APPROVED ==========
+      if (role.toLowerCase() === "reviewer" && isApproved && param) {
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+          >
+            <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 px-6 py-4 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-emerald-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      Parameter Approved & Finalized
+                    </h4>
+                    <p className="text-xs text-slate-600">
+                      This parameter has been reviewed and approved
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+      }
+
+      // If none of the conditions match, return null (no action bar)
+      return null;
+    },
+    (prevProps, nextProps) => {
+      return prevProps.parameterId === nextProps.parameterId;
+    }
+  );
   // Loading/Error states
   if (isLoading) {
     return (
@@ -5389,7 +6435,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                       Approved By
                     </div>
                     <div className="text-white font-bold">
-                      {worksheetInfo.sample.preparedBy || "HOD LAB"}
+                      {worksheetInfo.sample.preparedBy ||"Reviewer"}
                     </div>
                   </div>
                 </div>
@@ -5405,15 +6451,14 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 <span className="text-2xl font-extrabold">{worksheetId}</span>
               </h1>
 
-              {/* Dynamic Status Badge */}
-              {worksheetInfo?.sample.status && (
+              {displayStatus && (
                 <motion.div
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: "spring", duration: 0.6 }}
                   className="ml-4"
                 >
-                  {worksheetInfo.sample.status.toLowerCase() === "approved" ? (
+                  {displayStatus.toLowerCase() === "approved" ? (
                     <div className="relative">
                       <div className="relative px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30 flex items-center gap-2">
                         <motion.div
@@ -5441,7 +6486,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         </span>
                       </div>
                     </div>
-                  ) : worksheetInfo.sample.status.toLowerCase() ===
+                  ) : displayStatus.toLowerCase() ===
                     "submitted for analysis" ? (
                     <div className="relative px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30 flex items-center gap-2">
                       <motion.div
@@ -5457,11 +6502,42 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         In Analysis
                       </span>
                     </div>
+                  ) : displayStatus.toLowerCase() === "pending for review" ? (
+                    <div className="relative px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30 flex items-center gap-2">
+                      <motion.div
+                        animate={{
+                          scale: [1, 1.2, 1],
+                          opacity: [1, 0.8, 1],
+                        }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      >
+                        <svg
+                          className="w-4 h-4 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                          />
+                        </svg>
+                      </motion.div>
+                      <span className="text-xs font-bold text-white uppercase tracking-wide">
+                        Pending For Review
+                      </span>
+                    </div>
                   ) : (
                     <div className="relative px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30 flex items-center gap-2">
                       <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
                       <span className="text-xs font-bold text-white uppercase tracking-wide">
-                        {worksheetInfo.sample.status}
+                        {displayStatus}
                       </span>
                     </div>
                   )}
@@ -5538,7 +6614,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     {testsRequiredDisplay || "No parameters added"}
                   </td>
                 </tr>
-                <tr className="border-b-2 border-emerald-400 hover:bg-emerald-50 transition-colors">
+                <tr className="hover:bg-emerald-50 transition-colors">
                   <td className="w-10 px-4 py-4 border-r-2 border-emerald-400 font-bold text-center bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-900">
                     3
                   </td>
@@ -5548,15 +6624,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   <td className="px-3 py-3 h-16 font-medium">
                     {methodsRequiredDisplay || "No methods"}
                   </td>
-                </tr>
-                <tr className="hover:bg-emerald-50 transition-colors">
-                  <td className="w-10 px-4 py-4 border-r-2 border-emerald-400 font-bold text-center bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-900">
-                    4
-                  </td>
-                  <td className="w-1/3 px-4 py-4 border-r-2 border-emerald-400 font-bold bg-gradient-to-r from-emerald-50 to-white text-emerald-900">
-                    Raw Data (Observations, Readings, Calculations etc):
-                  </td>
-                  <td className="px-3 py-3 h-32 align-top"></td>
                 </tr>
               </tbody>
             </table>
@@ -5573,8 +6640,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 Parameters Management
               </h3>
 
-              {/* ✅ Only show Add Parameter button for HOD LAB */}
-              {role === "HOD LAB" &&
+              {/* ✅ Only show Add Parameter button for reviewer */}
+              {role === "Reviewer" &&
                 worksheetInfo?.sample.status !== "Approved" && (
                   <div className="relative">
                     <button
@@ -5605,6 +6672,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                   methodName: param.methodName,
                                   methodCode: param.methodCode,
                                   parameterName: param.parameter,
+                                  id: 0,
+                                  instrumentIds: [],
+                                  chemicalIds: [],
+                                  standardIds: [],
+                                  standardPreparations: [],
+                                  samplePreparations: [],
+                                  calculations: []
                                 })
                               }
                               className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
@@ -5888,9 +6962,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
                             </svg>
                           </button>
 
-                          {role === "HOD LAB" && !isLocked && (
+                          {role === "Reviewer" && !isLocked && (
                             <motion.button
-                              onClick={() => handleRemoveParameter(param.id)}
+                              onClick={() => {
+                                setShowDeleteDialog(true)
+                                setParameterToDelete(param)
+                              }}
                               whileHover={{ scale: 1.1, rotate: 10 }}
                               whileTap={{ scale: 0.9 }}
                               className="mx-2"
@@ -5922,9 +6999,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   No parameters added yet
                 </p>
                 <p className="text-sm text-gray-600 max-w-md mx-auto">
-                  {role === "HOD LAB"
+                  {role === "Reviewer"
                     ? 'Click the "Add Parameters" button above to add parameters'
-                    : "HOD LAB will add parameters for analysis"}
+                    : "Reviewer will add parameters for analysis"}
                 </p>
               </motion.div>
             )}
@@ -5954,13 +7031,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
             .filter((param) => selectedParamsForDetail.includes(param.id))
             .map((selectedParam) => {
               const isLocked = isParameterLocked(selectedParam?.id);
-              const isEditableForScientist = isParameterEditableForScientist(
+              const isEditableForAnalyst = isParameterEditableForAnalyst(
                 selectedParam?.id
               );
 
               const shouldDisableContent =
-                (role === "HOD LAB" && isLocked) ||
-                (role === "Scientist" && !isEditableForScientist);
+                (role === "Reviewer" && isLocked) ||
+                (role === "Analyst" && !isEditableForAnalyst);
 
               return (
                 <AnimatePresence key={selectedParam.id}>
@@ -6065,7 +7142,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
                         {/* Assigned Analyst Section */}
 
-                        {role === "HOD LAB" && (
+                        {role === "Reviewer" && (
                           <>
                             {analyzedByPerParam[selectedParam.id] && (
                               <motion.div
@@ -6352,96 +7429,92 @@ const Worksheet: React.FC<WorksheetProps> = ({
                             Instruments Details:
                           </h3>
 
-                          {role === "HOD LAB" && (
-                            <div className="relative" ref={instrumentRef}>
-                              <button
-                                onClick={() =>
-                                  setShowInstrumentDropdown(
-                                    !showInstrumentDropdown
-                                  )
-                                }
-                                disabled={
-                                  isReferenceDataLoading ||
-                                  !!referenceDataError ||
-                                  instruments.length === 0
-                                }
-                                className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
-                              >
-                                <Plus className="w-4 h-4" />
-                              </button>
+                          <div className="relative" ref={instrumentRef}>
+                            <button
+                              onClick={() =>
+                                setShowInstrumentDropdown(
+                                  !showInstrumentDropdown
+                                )
+                              }
+                              disabled={
+                                isReferenceDataLoading ||
+                                !!referenceDataError ||
+                                instruments.length === 0
+                              }
+                              className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
 
-                              <AnimatePresence>
-                                {showInstrumentDropdown && (
-                                  <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    onMouseDown={(e) => e.stopPropagation()}
-                                    className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
-                                  >
-                                    <div className="p-2 border-b border-emerald-200">
-                                      <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                        <input
-                                          type="text"
-                                          placeholder="Search instruments..."
-                                          value={instrumentSearch}
-                                          onChange={(e) =>
-                                            setInstrumentSearch(e.target.value)
-                                          }
-                                          className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        />
-                                      </div>
+                            <AnimatePresence>
+                              {showInstrumentDropdown && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -10 }}
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
+                                >
+                                  <div className="p-2 border-b border-emerald-200">
+                                    <div className="relative">
+                                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                      <input
+                                        type="text"
+                                        placeholder="Search instruments..."
+                                        value={instrumentSearch}
+                                        onChange={(e) =>
+                                          setInstrumentSearch(e.target.value)
+                                        }
+                                        className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                      />
                                     </div>
-                                    <div className="max-h-64 overflow-y-auto">
-                                      {searchFilteredInstruments
-                                        .filter(
-                                          (inst) =>
-                                            !addedInstruments[
-                                              selectedParam.id
-                                            ]?.find(
-                                              (added) => added.id === inst.id
-                                            )
-                                        )
-                                        .map((inst) => (
-                                          <button
-                                            key={inst.id}
-                                            onClick={() =>
-                                              handleAddInstrument(
-                                                selectedParam.id,
-                                                inst
-                                              )
-                                            }
-                                            className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
-                                          >
-                                            <div className="font-semibold text-gray-900">
-                                              {inst.name}
-                                            </div>
-                                            <div className="text-xs text-gray-600">
-                                              {inst.tag}
-                                            </div>
-                                          </button>
-                                        ))}
-                                      {searchFilteredInstruments.filter(
+                                  </div>
+                                  <div className="max-h-64 overflow-y-auto">
+                                    {searchFilteredInstruments
+                                      .filter(
                                         (inst) =>
                                           !addedInstruments[
                                             selectedParam.id
                                           ]?.find(
                                             (added) => added.id === inst.id
                                           )
-                                      ).length === 0 && (
-                                        <div className="px-3 py-4 text-center text-gray-500 text-sm">
-                                          {instrumentSearch
-                                            ? "No matching instruments"
-                                            : "All available instruments added"}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </div>
-                          )}
+                                      )
+                                      .map((inst) => (
+                                        <button
+                                          key={inst.id}
+                                          onClick={() =>
+                                            handleAddInstrument(
+                                              selectedParam.id,
+                                              inst
+                                            )
+                                          }
+                                          className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
+                                        >
+                                          <div className="font-semibold text-gray-900">
+                                            {inst.name}
+                                          </div>
+                                          <div className="text-xs text-gray-600">
+                                            {inst.tag}
+                                          </div>
+                                        </button>
+                                      ))}
+                                    {searchFilteredInstruments.filter(
+                                      (inst) =>
+                                        !addedInstruments[
+                                          selectedParam.id
+                                        ]?.find((added) => added.id === inst.id)
+                                    ).length === 0 && (
+                                      <div className="px-3 py-4 text-center text-gray-500 text-sm">
+                                        {instrumentSearch
+                                          ? "No matching instruments"
+                                          : "All available instruments added"}
+                                      </div>
+                                    )}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </div>
 
                         {isReferenceDataLoading && <ReferenceLoading />}
@@ -6465,7 +7538,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                                   Calibration Due On
                                 </th>
-                                {role === "HOD LAB" && (
+                                {role === "Reviewer" && (
                                   <th className="px-3 py-2 text-center font-bold w-20">
                                     Action
                                   </th>
@@ -6499,40 +7572,37 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                           {instrument.calibrationDueDate ||
                                             "---"}
                                         </td>
-                                        {/* ✅ Only show remove button for HOD LAB */}
-                                        {role === "HOD LAB" && (
-                                          <td className="px-3 py-2 text-center">
-                                            <motion.button
-                                              onClick={() =>
-                                                handleRemoveInstrument(
-                                                  selectedParam.id,
-                                                  instrument.id
-                                                )
-                                              }
-                                              whileHover={{
-                                                scale: 1.1,
-                                                rotate: 10,
-                                              }}
-                                              whileTap={{ scale: 0.9 }}
-                                              className="mx-2"
-                                            >
-                                              <CgTrash className="w-5 h-5 text-red-500" />
-                                            </motion.button>
-                                          </td>
-                                        )}
+                                        <td className="px-3 py-2 text-center">
+                                          <motion.button
+                                            onClick={() =>
+                                              handleRemoveInstrument(
+                                                selectedParam.id,
+                                                instrument.id
+                                              )
+                                            }
+                                            whileHover={{
+                                              scale: 1.1,
+                                              rotate: 10,
+                                            }}
+                                            whileTap={{ scale: 0.9 }}
+                                            className="mx-2"
+                                          >
+                                            <CgTrash className="w-5 h-5 text-red-500" />
+                                          </motion.button>
+                                        </td>
                                       </motion.tr>
                                     )
                                   )
                                 ) : (
                                   <tr className="border-2 border-emerald-500">
                                     <td
-                                      colSpan={role === "HOD LAB" ? 5 : 4}
+                                      colSpan={role === "Reviewer" ? 5 : 4}
                                       className="px-3 py-4 text-center text-gray-500"
                                     >
                                       <div className="flex flex-col items-center gap-2">
                                         <Target className="w-8 h-8 opacity-30" />
                                         <span>
-                                          {role === "HOD LAB"
+                                          {role === "Reviewer"
                                             ? 'No instruments added. Click "Add Instrument" to add.'
                                             : "No instruments added yet."}
                                         </span>
@@ -6554,96 +7624,90 @@ const Worksheet: React.FC<WorksheetProps> = ({
                             Reagents and Chemicals Details:
                           </h3>
 
-                          {/* ✅ Only show Add button for HOD LAB */}
-                          {role === "HOD LAB" && (
-                            <div className="relative" ref={chemicalRef}>
-                              <button
-                                onClick={() =>
-                                  setShowChemicalDropdown(!showChemicalDropdown)
-                                }
-                                disabled={
-                                  isReferenceDataLoading ||
-                                  !!referenceDataError ||
-                                  chemicals.length === 0
-                                }
-                                className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
-                              >
-                                <Plus className="w-4 h-4" />
-                              </button>
+                          <div className="relative" ref={chemicalRef}>
+                            <button
+                              onClick={() =>
+                                setShowChemicalDropdown(!showChemicalDropdown)
+                              }
+                              disabled={
+                                isReferenceDataLoading ||
+                                !!referenceDataError ||
+                                chemicals.length === 0
+                              }
+                              className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
 
-                              <AnimatePresence>
-                                {showChemicalDropdown && (
-                                  <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    onMouseDown={(e) => e.stopPropagation()}
-                                    className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
-                                  >
-                                    <div className="p-2 border-b border-emerald-200">
-                                      <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                        <input
-                                          type="text"
-                                          placeholder="Search chemicals..."
-                                          value={chemicalSearch}
-                                          onChange={(e) =>
-                                            setChemicalSearch(e.target.value)
-                                          }
-                                          className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        />
-                                      </div>
+                            <AnimatePresence>
+                              {showChemicalDropdown && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -10 }}
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
+                                >
+                                  <div className="p-2 border-b border-emerald-200">
+                                    <div className="relative">
+                                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                      <input
+                                        type="text"
+                                        placeholder="Search chemicals..."
+                                        value={chemicalSearch}
+                                        onChange={(e) =>
+                                          setChemicalSearch(e.target.value)
+                                        }
+                                        className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                      />
                                     </div>
-                                    <div className="max-h-64 overflow-y-auto">
-                                      {searchFilteredChemicals
-                                        .filter(
-                                          (chem) =>
-                                            !addedChemicals[
-                                              selectedParam.id
-                                            ]?.find(
-                                              (added) => added.id === chem.id
-                                            )
-                                        )
-                                        .map((chem) => (
-                                          <button
-                                            key={chem.id}
-                                            onClick={() =>
-                                              handleAddChemical(
-                                                selectedParam.id,
-                                                chem
-                                              )
-                                            }
-                                            className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
-                                          >
-                                            <div className="font-semibold text-gray-900">
-                                              {chem.name}
-                                            </div>
-                                            <div className="text-xs text-gray-600">
-                                              {chem.make} • Batch:{" "}
-                                              {chem.batchNo}
-                                            </div>
-                                          </button>
-                                        ))}
-                                      {searchFilteredChemicals.filter(
+                                  </div>
+                                  <div className="max-h-64 overflow-y-auto">
+                                    {searchFilteredChemicals
+                                      .filter(
                                         (chem) =>
                                           !addedChemicals[
                                             selectedParam.id
                                           ]?.find(
                                             (added) => added.id === chem.id
                                           )
-                                      ).length === 0 && (
-                                        <div className="px-3 py-4 text-center text-gray-500 text-sm">
-                                          {chemicalSearch
-                                            ? "No matching chemicals"
-                                            : "All available chemicals added"}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </div>
-                          )}
+                                      )
+                                      .map((chem) => (
+                                        <button
+                                          key={chem.id}
+                                          onClick={() =>
+                                            handleAddChemical(
+                                              selectedParam.id,
+                                              chem
+                                            )
+                                          }
+                                          className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
+                                        >
+                                          <div className="font-semibold text-gray-900">
+                                            {chem.name}
+                                          </div>
+                                          <div className="text-xs text-gray-600">
+                                            {chem.make} • Batch: {chem.batchNo}
+                                          </div>
+                                        </button>
+                                      ))}
+                                    {searchFilteredChemicals.filter(
+                                      (chem) =>
+                                        !addedChemicals[selectedParam.id]?.find(
+                                          (added) => added.id === chem.id
+                                        )
+                                    ).length === 0 && (
+                                      <div className="px-3 py-4 text-center text-gray-500 text-sm">
+                                        {chemicalSearch
+                                          ? "No matching chemicals"
+                                          : "All available chemicals added"}
+                                      </div>
+                                    )}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </div>
 
                         {isReferenceDataLoading && <ReferenceLoading />}
@@ -6667,7 +7731,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                                   Validity
                                 </th>
-                                {role === "HOD LAB" && (
+                                {role === "Reviewer" && (
                                   <th className="px-3 py-2 text-center font-bold w-20">
                                     Action
                                   </th>
@@ -6699,40 +7763,37 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
                                           {chemical.validity || "---"}
                                         </td>
-                                        {/* ✅ Only show remove button for HOD LAB */}
-                                        {role === "HOD LAB" && (
-                                          <td className="px-3 py-2 text-center">
-                                            <motion.button
-                                              onClick={() =>
-                                                handleRemoveChemical(
-                                                  selectedParam.id,
-                                                  chemical.id
-                                                )
-                                              }
-                                              whileHover={{
-                                                scale: 1.1,
-                                                rotate: 10,
-                                              }}
-                                              whileTap={{ scale: 0.9 }}
-                                              className="mx-2"
-                                            >
-                                              <CgTrash className="w-5 h-5 text-red-500" />
-                                            </motion.button>
-                                          </td>
-                                        )}
+                                        <td className="px-3 py-2 text-center">
+                                          <motion.button
+                                            onClick={() =>
+                                              handleRemoveChemical(
+                                                selectedParam.id,
+                                                chemical.id
+                                              )
+                                            }
+                                            whileHover={{
+                                              scale: 1.1,
+                                              rotate: 10,
+                                            }}
+                                            whileTap={{ scale: 0.9 }}
+                                            className="mx-2"
+                                          >
+                                            <CgTrash className="w-5 h-5 text-red-500" />
+                                          </motion.button>
+                                        </td>
                                       </motion.tr>
                                     )
                                   )
                                 ) : (
                                   <tr className="border-2 border-emerald-500">
                                     <td
-                                      colSpan={role === "HOD LAB" ? 5 : 4}
+                                      colSpan={role === "Reviewer" ? 5 : 4}
                                       className="px-3 py-4 text-center text-gray-500"
                                     >
                                       <div className="flex flex-col items-center gap-2">
                                         <Target className="w-8 h-8 opacity-30" />
                                         <span>
-                                          {role === "HOD LAB"
+                                          {role === "Reviewer"
                                             ? 'No chemicals added. Click "Add Chemical" to add.'
                                             : "No chemicals added yet."}
                                         </span>
@@ -6754,95 +7815,90 @@ const Worksheet: React.FC<WorksheetProps> = ({
                             Standards Details:
                           </h3>
 
-                          {/* ✅ Only show Add button for HOD LAB */}
-                          {role === "HOD LAB" && (
-                            <div className="relative" ref={standardRef}>
-                              <button
-                                onClick={() =>
-                                  setShowStandardDropdown(!showStandardDropdown)
-                                }
-                                disabled={
-                                  isReferenceDataLoading ||
-                                  !!referenceDataError ||
-                                  standards.length === 0
-                                }
-                                className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
-                              >
-                                <Plus className="w-4 h-4" />
-                              </button>
+                          <div className="relative" ref={standardRef}>
+                            <button
+                              onClick={() =>
+                                setShowStandardDropdown(!showStandardDropdown)
+                              }
+                              disabled={
+                                isReferenceDataLoading ||
+                                !!referenceDataError ||
+                                standards.length === 0
+                              }
+                              className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
 
-                              <AnimatePresence>
-                                {showStandardDropdown && (
-                                  <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    onMouseDown={(e) => e.stopPropagation()}
-                                    className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
-                                  >
-                                    <div className="p-2 border-b border-emerald-200">
-                                      <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                        <input
-                                          type="text"
-                                          placeholder="Search standards..."
-                                          value={standardSearch}
-                                          onChange={(e) =>
-                                            setStandardSearch(e.target.value)
-                                          }
-                                          className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                        />
-                                      </div>
+                            <AnimatePresence>
+                              {showStandardDropdown && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -10 }}
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
+                                >
+                                  <div className="p-2 border-b border-emerald-200">
+                                    <div className="relative">
+                                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                      <input
+                                        type="text"
+                                        placeholder="Search standards..."
+                                        value={standardSearch}
+                                        onChange={(e) =>
+                                          setStandardSearch(e.target.value)
+                                        }
+                                        className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                      />
                                     </div>
-                                    <div className="max-h-64 overflow-y-auto">
-                                      {searchFilteredStandards
-                                        .filter(
-                                          (std) =>
-                                            !addedStandards[
-                                              selectedParam.id
-                                            ]?.find(
-                                              (added) => added.id === std.id
-                                            )
-                                        )
-                                        .map((std) => (
-                                          <button
-                                            key={std.id}
-                                            onClick={() =>
-                                              handleAddStandard(
-                                                selectedParam.id,
-                                                std
-                                              )
-                                            }
-                                            className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
-                                          >
-                                            <div className="font-semibold text-gray-900">
-                                              {std.name}
-                                            </div>
-                                            <div className="text-xs text-gray-600">
-                                              {std.make} • Purity: {std.purity}
-                                            </div>
-                                          </button>
-                                        ))}
-                                      {searchFilteredStandards.filter(
+                                  </div>
+                                  <div className="max-h-64 overflow-y-auto">
+                                    {searchFilteredStandards
+                                      .filter(
                                         (std) =>
                                           !addedStandards[
                                             selectedParam.id
                                           ]?.find(
                                             (added) => added.id === std.id
                                           )
-                                      ).length === 0 && (
-                                        <div className="px-3 py-4 text-center text-gray-500 text-sm">
-                                          {standardSearch
-                                            ? "No matching standards"
-                                            : "All available standards added"}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </div>
-                          )}
+                                      )
+                                      .map((std) => (
+                                        <button
+                                          key={std.id}
+                                          onClick={() =>
+                                            handleAddStandard(
+                                              selectedParam.id,
+                                              std
+                                            )
+                                          }
+                                          className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
+                                        >
+                                          <div className="font-semibold text-gray-900">
+                                            {std.name}
+                                          </div>
+                                          <div className="text-xs text-gray-600">
+                                            {std.make} • Purity: {std.purity}
+                                          </div>
+                                        </button>
+                                      ))}
+                                    {searchFilteredStandards.filter(
+                                      (std) =>
+                                        !addedStandards[selectedParam.id]?.find(
+                                          (added) => added.id === std.id
+                                        )
+                                    ).length === 0 && (
+                                      <div className="px-3 py-4 text-center text-gray-500 text-sm">
+                                        {standardSearch
+                                          ? "No matching standards"
+                                          : "All available standards added"}
+                                      </div>
+                                    )}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </div>
 
                         {isReferenceDataLoading && <ReferenceLoading />}
@@ -6869,7 +7925,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                                   Validity
                                 </th>
-                                {role === "HOD LAB" && (
+                                {role === "Reviewer" && (
                                   <th className="px-3 py-2 text-center font-bold w-20">
                                     Action
                                   </th>
@@ -6904,40 +7960,37 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
                                           {standard.validity || "---"}
                                         </td>
-                                        {/* ✅ Only show remove button for HOD LAB */}
-                                        {role === "HOD LAB" && (
-                                          <td className="px-3 py-2 text-center">
-                                            <motion.button
-                                              onClick={() =>
-                                                handleRemoveStandard(
-                                                  selectedParam.id,
-                                                  standard.id
-                                                )
-                                              }
-                                              whileHover={{
-                                                scale: 1.1,
-                                                rotate: 10,
-                                              }}
-                                              whileTap={{ scale: 0.9 }}
-                                              className="mx-2"
-                                            >
-                                              <CgTrash className="w-5 h-5 text-red-500" />
-                                            </motion.button>
-                                          </td>
-                                        )}
+                                        <td className="px-3 py-2 text-center">
+                                          <motion.button
+                                            onClick={() =>
+                                              handleRemoveStandard(
+                                                selectedParam.id,
+                                                standard.id
+                                              )
+                                            }
+                                            whileHover={{
+                                              scale: 1.1,
+                                              rotate: 10,
+                                            }}
+                                            whileTap={{ scale: 0.9 }}
+                                            className="mx-2"
+                                          >
+                                            <CgTrash className="w-5 h-5 text-red-500" />
+                                          </motion.button>
+                                        </td>
                                       </motion.tr>
                                     )
                                   )
                                 ) : (
                                   <tr className="border-2 border-emerald-500">
                                     <td
-                                      colSpan={role === "HOD LAB" ? 6 : 5}
+                                      colSpan={role === "Reviewer" ? 6 : 5}
                                       className="px-3 py-4 text-center text-gray-500"
                                     >
                                       <div className="flex flex-col items-center gap-2">
                                         <Target className="w-8 h-8 opacity-30" />
                                         <span>
-                                          {role === "HOD LAB"
+                                          {role === "Reviewer"
                                             ? 'No standards added. Click "Add Standard" to add.'
                                             : "No standards added yet."}
                                         </span>
@@ -6967,7 +8020,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                           }
                           placeholder="Enter diluent preparation details..."
                           className="w-full min-h-[100px] border border-emerald-300 rounded-lg p-3 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          readOnly={role !== "HOD LAB"}
+                          readOnly={role !== "Reviewer"}
                         />
                       </div>
 
@@ -6991,71 +8044,68 @@ const Worksheet: React.FC<WorksheetProps> = ({
                             </div>
                           </div>
 
-                          {/* ✅ Only show Add Preparations button for HOD LAB */}
-                          {role === "HOD LAB" && (
-                            <div
-                              className="relative"
-                              ref={preparationDropdownRef}
+                          <div
+                            className="relative"
+                            ref={preparationDropdownRef}
+                          >
+                            <button
+                              onClick={() =>
+                                setShowPreparationDropdown((prev) => ({
+                                  ...prev,
+                                  [selectedParam.id]: !prev[selectedParam.id],
+                                }))
+                              }
+                              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                             >
-                              <button
-                                onClick={() =>
-                                  setShowPreparationDropdown((prev) => ({
-                                    ...prev,
-                                    [selectedParam.id]: !prev[selectedParam.id],
-                                  }))
-                                }
-                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                              >
-                                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                                <Plus className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
-                                <span className="relative z-10">
-                                  Add Preparations
-                                </span>
-                              </button>
-                              {/* Dropdown Menu */}
-                              <AnimatePresence>
-                                {showPreparationDropdown[selectedParam.id] && (
-                                  <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className="absolute right-0 mt-2 w-72 bg-white border border-emerald-300 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto"
-                                  >
-                                    {getAvailablePreparationGroups().map(
-                                      (group) => {
-                                        const isActive = (
-                                          activePreparationGroups[
-                                            selectedParam.id
-                                          ] || []
-                                        ).includes(group.id);
-                                        return (
-                                          <button
-                                            key={group.id}
-                                            onClick={() =>
-                                              handleTogglePreparationGroup(
-                                                selectedParam.id,
-                                                group.id
-                                              )
-                                            }
-                                            className="w-full text-left px-3 py-3 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
-                                          >
-                                            <div className="flex items-center justify-between">
-                                              <span className="font-semibold text-gray-900">
-                                                {group.label}
-                                              </span>
-                                              {isActive && (
-                                                <Check className="w-4 h-4 text-emerald-600" />
-                                              )}
-                                            </div>
-                                          </button>
-                                        );
-                                      }
-                                    )}
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </div>
-                          )}
+                              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                              <Plus className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
+                              <span className="relative z-10">
+                                Add Preparations
+                              </span>
+                            </button>
+                            {/* Dropdown Menu */}
+                            <AnimatePresence>
+                              {showPreparationDropdown[selectedParam.id] && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -10 }}
+                                  className="absolute right-0 mt-2 w-72 bg-white border border-emerald-300 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto"
+                                >
+                                  {getAvailablePreparationGroups().map(
+                                    (group) => {
+                                      const isActive = (
+                                        activePreparationGroups[
+                                          selectedParam.id
+                                        ] || []
+                                      ).includes(group.id);
+                                      return (
+                                        <button
+                                          key={group.id}
+                                          onClick={() =>
+                                            handleTogglePreparationGroup(
+                                              selectedParam.id,
+                                              group.id
+                                            )
+                                          }
+                                          className="w-full text-left px-3 py-3 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
+                                        >
+                                          <div className="flex items-center justify-between">
+                                            <span className="font-semibold text-gray-900">
+                                              {group.label}
+                                            </span>
+                                            {isActive && (
+                                              <Check className="w-4 h-4 text-emerald-600" />
+                                            )}
+                                          </div>
+                                        </button>
+                                      );
+                                    }
+                                  )}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </div>
 
                         <AnimatePresence>
@@ -7195,14 +8245,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                                 <span className="font-bold text-sm">
                                                   {info.label}
                                                 </span>
-
-                                                {/* {info.count > 0 && (
-                                            <span
-                                              className={`flex items-center justify-center min-w-[1.75rem] h-7 px-2 ${colors.bg}/50 backdrop-blur-sm rounded-md text-xs font-bold`}
-                                            >
-                                              {info.count}
-                                            </span>
-                                          )} */}
                                               </div>
 
                                               <motion.button
@@ -7357,19 +8399,15 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 <span className="w-1.5 h-6 bg-gradient-to-b from-red-500 to-rose-700 rounded-full"></span>
                                 Standard & Sample Preparations
                               </h3>
-                              {role === "HOD LAB" && (
-                                <button
-                                  onClick={() =>
-                                    handleAddStandardPreparation(
-                                      selectedParam.id
-                                    )
-                                  }
-                                  className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-700 text-white font-semibold rounded-xl hover:from-red-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                  Add Preparation
-                                </button>
-                              )}
+                              <button
+                                onClick={() =>
+                                  handleAddStandardPreparation(selectedParam.id)
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-700 text-white font-semibold rounded-xl hover:from-red-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Preparation
+                              </button>
                             </div>
 
                             <AnimatePresence>
@@ -7396,66 +8434,64 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                     className="mb-6"
                                   >
                                     <StandardPreparationDetail
-                                        standardPreparation={
-                                          standardPreparation
-                                        }
-                                        assignedStandard={
-                                          assignedStandard || null
-                                        }
-                                        onStepChange={(
+                                      standardPreparation={standardPreparation}
+                                      assignedStandard={
+                                        assignedStandard || null
+                                      }
+                                      onStepChange={(
+                                        standardPreparationId,
+                                        stepName,
+                                        field,
+                                        newValue
+                                      ) =>
+                                        handleStandardPreparationStepChange(
+                                          selectedParam.id,
                                           standardPreparationId,
                                           stepName,
                                           field,
                                           newValue
-                                        ) =>
-                                          handleStandardPreparationStepChange(
-                                            selectedParam.id,
-                                            standardPreparationId,
-                                            stepName,
-                                            field,
-                                            newValue
-                                          )
-                                        }
-                                        onRemove={() =>
-                                          handleRemoveStandardPreparation(
-                                            selectedParam.id,
-                                            standardPreparation.id
-                                          )
-                                        }
-                                        role={role}
-                                      />
+                                        )
+                                      }
+                                      onRemove={() =>
+                                        handleRemoveStandardPreparation(
+                                          selectedParam.id,
+                                          standardPreparation.id
+                                        )
+                                      }
+                                      role={role}
+                                    />
 
                                     {correspondingSample && (
                                       <div className="mt-4">
                                         <SamplePreparationDetail
-                                            samplePreparation={
-                                              correspondingSample
-                                            }
-                                            assignedStandard={
-                                              assignedStandard || null
-                                            }
-                                            onStepChange={(
+                                          samplePreparation={
+                                            correspondingSample
+                                          }
+                                          assignedStandard={
+                                            assignedStandard || null
+                                          }
+                                          onStepChange={(
+                                            samplePreparationId,
+                                            stepName,
+                                            field,
+                                            newValue
+                                          ) =>
+                                            handleSamplePreparationStepChange(
+                                              selectedParam.id,
                                               samplePreparationId,
                                               stepName,
                                               field,
                                               newValue
-                                            ) =>
-                                              handleSamplePreparationStepChange(
-                                                selectedParam.id,
-                                                samplePreparationId,
-                                                stepName,
-                                                field,
-                                                newValue
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparation(
-                                                selectedParam.id,
-                                                correspondingSample.id
-                                              )
-                                            }
-                                            role={role}
-                                          />
+                                            )
+                                          }
+                                          onRemove={() =>
+                                            handleRemoveSamplePreparation(
+                                              selectedParam.id,
+                                              correspondingSample.id
+                                            )
+                                          }
+                                          role={role}
+                                        />
                                       </div>
                                     )}
                                   </div>
@@ -7525,21 +8561,19 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                         Calculations for Assay
                                       </span>
                                     </h3>
-                                    {role === "HOD LAB" && (
-                                      <motion.button
-                                        onClick={() =>
-                                          handleAddCalculationAssay(
-                                            selectedParam.id
-                                          )
-                                        }
-                                        whileHover={{ scale: 1 }}
-                                        whileTap={{ scale: 1 }}
-                                        className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-red-600 to-rose-600 text-white font-semibold rounded-xl hover:from-red-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
-                                      >
-                                        <Plus className="w-4 h-4" />
-                                        Add Assay Calculation
-                                      </motion.button>
-                                    )}
+                                    <motion.button
+                                      onClick={() =>
+                                        handleAddCalculationAssay(
+                                          selectedParam.id
+                                        )
+                                      }
+                                      whileHover={{ scale: 1 }}
+                                      whileTap={{ scale: 1 }}
+                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-red-600 to-rose-600 text-white font-semibold rounded-xl hover:from-red-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                      Add Assay Calculation
+                                    </motion.button>
                                   </div>
 
                                   <AnimatePresence>
@@ -7672,19 +8706,17 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 <span className="w-1.5 h-6 bg-gradient-to-b from-sky-500 to-blue-700 rounded-full"></span>
                                 Sample Preparations for LOD
                               </h3>
-                              {role === "HOD LAB" && (
-                                <button
-                                  onClick={() =>
-                                    handleAddSamplePreparationLod(
-                                      selectedParam.id
-                                    )
-                                  }
-                                  className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-700 text-white font-semibold rounded-xl hover:from-sky-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg transform text-sm"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                  Add Preparation
-                                </button>
-                              )}
+                              <button
+                                onClick={() =>
+                                  handleAddSamplePreparationLod(
+                                    selectedParam.id
+                                  )
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-700 text-white font-semibold rounded-xl hover:from-sky-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg transform text-sm"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Preparation
+                              </button>
                             </div>
 
                             <AnimatePresence>
@@ -7693,9 +8725,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                   selectedParam.id
                                 ] || []
                               ).map((samplePreparationLod) => (
-                                <div
-                                  key={samplePreparationLod.id}
-                                >
+                                <div key={samplePreparationLod.id}>
                                   <SamplePreparationLodDetail
                                     samplePreparationLod={samplePreparationLod}
                                     onStepChange={(
@@ -7784,21 +8814,17 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                       LOD Calculations
                                     </span>
                                   </h3>
-                                  {role === "HOD LAB" && (
-                                    <motion.button
-                                      onClick={() =>
-                                        handleAddCalculationLod(
-                                          selectedParam.id
-                                        )
-                                      }
-                                      whileHover={{ scale: 1 }}
-                                      whileTap={{ scale: 1 }}
-                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white font-semibold rounded-xl hover:from-sky-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
-                                    >
-                                      <Plus className="w-4 h-4" />
-                                      Add LOD Calculation
-                                    </motion.button>
-                                  )}
+                                  <motion.button
+                                    onClick={() =>
+                                      handleAddCalculationLod(selectedParam.id)
+                                    }
+                                    whileHover={{ scale: 1 }}
+                                    whileTap={{ scale: 1 }}
+                                    className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white font-semibold rounded-xl hover:from-sky-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add LOD Calculation
+                                  </motion.button>
                                 </div>
 
                                 <AnimatePresence>
@@ -7924,19 +8950,17 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 <span className="w-1.5 h-6 bg-gradient-to-b from-orange-500 to-amber-700 rounded-full"></span>
                                 Sample Preparations for ROI
                               </h3>
-                              {role === "HOD LAB" && (
-                                <button
-                                  onClick={() =>
-                                    handleAddSamplePreparationROI(
-                                      selectedParam.id
-                                    )
-                                  }
-                                  className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-orange-600 to-amber-700 text-sm text-white font-semibold rounded-xl hover:from-orange-700 hover:to-amber-800 transition-all duration-200 shadow-md hover:shadow-lg transform"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                  Add Preparation
-                                </button>
-                              )}
+                              <button
+                                onClick={() =>
+                                  handleAddSamplePreparationROI(
+                                    selectedParam.id
+                                  )
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-orange-600 to-amber-700 text-sm text-white font-semibold rounded-xl hover:from-orange-700 hover:to-amber-800 transition-all duration-200 shadow-md hover:shadow-lg transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Preparation
+                              </button>
                             </div>
 
                             <AnimatePresence>
@@ -8037,21 +9061,17 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                       ROI Calculations
                                     </span>
                                   </h3>
-                                  {role === "HOD LAB" && (
-                                    <motion.button
-                                      onClick={() =>
-                                        handleAddCalculationROI(
-                                          selectedParam.id
-                                        )
-                                      }
-                                      whileHover={{ scale: 1 }}
-                                      whileTap={{ scale: 1 }}
-                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold rounded-xl hover:from-amber-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
-                                    >
-                                      <Plus className="w-4 h-4" />
-                                      Add ROI Calculation
-                                    </motion.button>
-                                  )}
+                                  <motion.button
+                                    onClick={() =>
+                                      handleAddCalculationROI(selectedParam.id)
+                                    }
+                                    whileHover={{ scale: 1 }}
+                                    whileTap={{ scale: 1 }}
+                                    className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold rounded-xl hover:from-amber-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add ROI Calculation
+                                  </motion.button>
                                 </div>
 
                                 <AnimatePresence>
@@ -8178,19 +9198,17 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 <span className="w-1.5 h-6 bg-gradient-to-b from-rose-500 to-rose-700 rounded-full"></span>
                                 Sample Preparations for Sulphated Ash
                               </h3>
-                              {role === "HOD LAB" && (
-                                <button
-                                  onClick={() =>
-                                    handleAddSamplePreparationSulphatedAsh(
-                                      selectedParam.id
-                                    )
-                                  }
-                                  className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-rose-600 to-rose-700 text-white font-semibold rounded-xl hover:from-rose-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg transform text-sm"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                  Add Preparation
-                                </button>
-                              )}
+                              <button
+                                onClick={() =>
+                                  handleAddSamplePreparationSulphatedAsh(
+                                    selectedParam.id
+                                  )
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-rose-600 to-rose-700 text-white font-semibold rounded-xl hover:from-rose-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg transform text-sm"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Preparation
+                              </button>
                             </div>
 
                             <AnimatePresence>
@@ -8199,9 +9217,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                   selectedParam.id
                                 ] || []
                               ).map((samplePreparationSulphatedAsh) => (
-                                <div
-                                  key={samplePreparationSulphatedAsh.id}
-                                >
+                                <div key={samplePreparationSulphatedAsh.id}>
                                   <SamplePreparationSulphatedAshDetail
                                     samplePreparationSulphatedAsh={
                                       samplePreparationSulphatedAsh
@@ -8294,21 +9310,19 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                       Sulphated Ash Calculations
                                     </span>
                                   </h3>
-                                  {role === "HOD LAB" && (
-                                    <motion.button
-                                      onClick={() =>
-                                        handleAddCalculationSulphatedAsh(
-                                          selectedParam.id
-                                        )
-                                      }
-                                      whileHover={{ scale: 1 }}
-                                      whileTap={{ scale: 1 }}
-                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-semibold rounded-xl hover:from-pink-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
-                                    >
-                                      <Plus className="w-4 h-4" />
-                                      Add Ash Calculation
-                                    </motion.button>
-                                  )}
+                                  <motion.button
+                                    onClick={() =>
+                                      handleAddCalculationSulphatedAsh(
+                                        selectedParam.id
+                                      )
+                                    }
+                                    whileHover={{ scale: 1 }}
+                                    whileTap={{ scale: 1 }}
+                                    className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-semibold rounded-xl hover:from-pink-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Ash Calculation
+                                  </motion.button>
                                 </div>
 
                                 <AnimatePresence>
@@ -8442,19 +9456,17 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 Standard & Sample Preparations for Residual
                                 Solvent
                               </h3>
-                              {role === "HOD LAB" && (
-                                <button
-                                  onClick={() =>
-                                    handleAddStandardPreparationRS(
-                                      selectedParam.id
-                                    )
-                                  }
-                                  className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                  Add Preparation
-                                </button>
-                              )}
+                              <button
+                                onClick={() =>
+                                  handleAddStandardPreparationRS(
+                                    selectedParam.id
+                                  )
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Preparation
+                              </button>
                             </div>
 
                             {/* Preparations List */}
@@ -8519,35 +9531,35 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                     {correspondingSample && (
                                       <div className="mt-4">
                                         <SamplePreparationDetail
-                                            samplePreparation={
-                                              correspondingSample
-                                            }
-                                            assignedStandard={
-                                              assignedStandard || null
-                                            }
-                                            onStepChange={(
+                                          samplePreparation={
+                                            correspondingSample
+                                          }
+                                          assignedStandard={
+                                            assignedStandard || null
+                                          }
+                                          onStepChange={(
+                                            samplePreparationId,
+                                            stepName,
+                                            field,
+                                            newValue
+                                          ) =>
+                                            handleSamplePreparationRSStepChange(
+                                              selectedParam.id,
                                               samplePreparationId,
                                               stepName,
                                               field,
                                               newValue
-                                            ) =>
-                                              handleSamplePreparationRSStepChange(
-                                                selectedParam.id,
-                                                samplePreparationId,
-                                                stepName,
-                                                field,
-                                                newValue
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparationRS(
-                                                selectedParam.id,
-                                                correspondingSample.id
-                                              )
-                                            }
-                                            isRS={true}
-                                            role={role}
-                                          />
+                                            )
+                                          }
+                                          onRemove={() =>
+                                            handleRemoveSamplePreparationRS(
+                                              selectedParam.id,
+                                              correspondingSample.id
+                                            )
+                                          }
+                                          isRS={true}
+                                          role={role}
+                                        />
                                       </div>
                                     )}
                                   </div>
@@ -8618,21 +9630,17 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                         Residual Solvent Calculations
                                       </span>
                                     </h3>
-                                    {role === "HOD LAB" && (
-                                      <motion.button
-                                        onClick={() =>
-                                          handleAddCalculationRS(
-                                            selectedParam.id
-                                          )
-                                        }
-                                        whileHover={{ scale: 1 }}
-                                        whileTap={{ scale: 1 }}
-                                        className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
-                                      >
-                                        <Plus className="w-4 h-4" />
-                                        Add RS Calculation
-                                      </motion.button>
-                                    )}
+                                    <motion.button
+                                      onClick={() =>
+                                        handleAddCalculationRS(selectedParam.id)
+                                      }
+                                      whileHover={{ scale: 1 }}
+                                      whileTap={{ scale: 1 }}
+                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                      Add RS Calculation
+                                    </motion.button>
                                   </div>
 
                                   <AnimatePresence>
@@ -8709,7 +9717,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         </motion.div>
                       )}
 
-                       {/* ============= Dissolution GROUP CARD ============= */}
+                      {/* ============= Dissolution GROUP CARD ============= */}
                       {(
                         activePreparationGroups[selectedParam.id] || []
                       ).includes("dissolution") && (
@@ -8770,19 +9778,17 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-green-700 rounded-full"></span>
                                 Standard & Sample Preparations for Dissolution
                               </h3>
-                              {role === "HOD LAB" && (
-                                <button
-                                  onClick={() =>
-                                    handleAddStandardPreparationDisso(
-                                      selectedParam.id
-                                    )
-                                  }
-                                  className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-green-700 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-green-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                  Add Preparation
-                                </button>
-                              )}
+                              <button
+                                onClick={() =>
+                                  handleAddStandardPreparationDisso(
+                                    selectedParam.id
+                                  )
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-green-700 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-green-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Preparation
+                              </button>
                             </div>
 
                             <AnimatePresence>
@@ -8799,13 +9805,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                     standardPreparation.assignedStandardId
                                 );
 
-                                const allSamplePreps =
-                                  samplePreparationDissoPerParam[
+                                const correspondingSample =
+                                  (samplePreparationDissoPerParam[
                                     selectedParam.id
-                                  ] || [];
-                                const startIdx = idx * 6;
-                                const correspondingSamples =
-                                  allSamplePreps.slice(startIdx, startIdx + 6);
+                                  ] || [])[idx];
 
                                 return (
                                   <div
@@ -8841,37 +9844,37 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                       role={role}
                                     />
 
-                                    {correspondingSamples.map(
-                                      (correspondingSample, sampleIdx) => (
-                                        <div className="mt-4">
+                                    {correspondingSample && (
+                                      <div className="mt-4">
+                                        <div className="overflow-hidden">
                                           <SamplePreparationDissoDetail
-                                              samplePreparationDisso={
-                                                correspondingSample
-                                              }
-                                              onStepChange={(
+                                            samplePreparationDisso={
+                                              correspondingSample
+                                            }
+                                            onStepChange={(
+                                              samplePreparationDissoId,
+                                              stepName,
+                                              field,
+                                              newValue
+                                            ) =>
+                                              handleSamplePreparationDissoStepChange(
+                                                selectedParam.id,
                                                 samplePreparationDissoId,
                                                 stepName,
                                                 field,
                                                 newValue
-                                              ) =>
-                                                handleSamplePreparationDissoStepChange(
-                                                  selectedParam.id,
-                                                  samplePreparationDissoId,
-                                                  stepName,
-                                                  field,
-                                                  newValue
-                                                )
-                                              }
-                                              onRemove={() =>
-                                                handleRemoveSamplePreparationDisso(
-                                                  selectedParam.id,
-                                                  correspondingSample.id
-                                                )
-                                              }
-                                              role={role}
-                                            />
+                                              )
+                                            }
+                                            onRemove={() =>
+                                              handleRemoveSamplePreparationDisso(
+                                                selectedParam.id,
+                                                correspondingSample.id
+                                              )
+                                            }
+                                            role={role}
+                                          />
                                         </div>
-                                      )
+                                      </div>
                                     )}
                                   </div>
                                 );
@@ -8942,21 +9945,19 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                         Dissolution Calculations
                                       </span>
                                     </h3>
-                                    {role === "HOD LAB" && (
-                                      <motion.button
-                                        onClick={() =>
-                                          handleAddCalculationDisso(
-                                            selectedParam.id
-                                          )
-                                        }
-                                        whileHover={{ scale: 1 }}
-                                        whileTap={{ scale: 1 }}
-                                        className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
-                                      >
-                                        <Plus className="w-4 h-4" />
-                                        Add Dissolution Calculation
-                                      </motion.button>
-                                    )}
+                                    <motion.button
+                                      onClick={() =>
+                                        handleAddCalculationDisso(
+                                          selectedParam.id
+                                        )
+                                      }
+                                      whileHover={{ scale: 1 }}
+                                      whileTap={{ scale: 1 }}
+                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                      Add Dissolution Calculation
+                                    </motion.button>
                                   </div>
 
                                   <AnimatePresence>
@@ -9052,6 +10053,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         />
                       </div>
                     </div>
+
+                    {isLocked && (
+                      <BottomParameterActionBar parameterId={selectedParam.id} />
+                    )}
                   </motion.div>
                 </AnimatePresence>
               );
@@ -9120,8 +10125,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 </motion.button>
               </>
             )}
-            {/* Submit for Analysis Button - Only for HOD LAB with created parameters */}
-            {role === "HOD LAB" &&
+            {/* Submit for Analysis Button - Only for Reviewer with created parameters */}
+            {role === "Reviewer" &&
               (worksheetInfo?.sample.status === "Draft" ||
                 worksheetInfo?.sample.status === "Submitted For Analysis") &&
               addedParameters.some(
@@ -9175,8 +10180,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 </motion.button>
               )}
 
-            {/* Approve Worksheet Button - Only for HOD LAB when all parameters are approved */}
-            {role === "HOD LAB" &&
+            {/* Approve Worksheet Button - Only for Reviewer when all parameters are approved */}
+            {role === "Reviewer" &&
               addedParameters.length > 0 &&
               areAllParametersApproved() &&
               worksheetInfo?.sample.status !== "Approved" && (

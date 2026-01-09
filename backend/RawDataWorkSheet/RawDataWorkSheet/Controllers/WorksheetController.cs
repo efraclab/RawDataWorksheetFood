@@ -49,6 +49,24 @@ namespace RawDataWorkSheet.Controllers
             }
         }
 
+        [HttpPost("parameters/{worksheetId}")]
+        public async Task<IActionResult> AddParameter(string worksheetId, [FromBody] ParameterDto request)
+        {
+            try
+            {
+                var id = await _worksheetService.AddParameterAsync(worksheetId, request);
+                return Ok(new { ParameterId = id });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpPut("{worksheetId}")]
         public async Task<IActionResult> UpdateWorksheet(string worksheetId, [FromBody] SaveWorksheetRequest request)
         {

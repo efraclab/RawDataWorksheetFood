@@ -29,12 +29,7 @@ interface SamplePreparationLodDetailProps {
   onStepChange: (
     samplePreparationLodId: number,
     stepName: SamplePreparationLodStep["name"],
-    field:
-      "value1"
-      | "unit1"
-      | "value2"
-      | "unit2"
-      | "logBookID",
+    field: "value1" | "unit1" | "value2" | "unit2" | "logBookID",
     newValue: string
   ) => void;
   onRemove: () => void;
@@ -64,11 +59,10 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-sky-200/50 transition-all duration-300 mb-4">
         {/* Elegant Header */}
         <div
-            className={`relative bg-gradient-to-r from-sky-600 via-sky-500 to-blue-500 ${headerRoundingClass} ${
-              isExpanded ? "rounded-t-lg" : "rounded-lg"
-            }`}
-          >
-
+          className={`relative bg-gradient-to-r from-sky-600 via-sky-500 to-blue-500 ${headerRoundingClass} ${
+            isExpanded ? "rounded-t-lg" : "rounded-lg"
+          }`}
+        >
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"
@@ -110,20 +104,18 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                 </motion.div>
               </motion.button>
 
-              {role === "HOD LAB" && (
-                <motion.button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove();
-                  }}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                  title={`Remove ${samplePreparationLod.label}`}
-                >
-                  <Trash className="w-4 h-4 text-white" />
-                </motion.button>
-              )}
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${samplePreparationLod.label}`}
+              >
+                <Trash className="w-4 h-4 text-white" />
+              </motion.button>
             </div>
           </div>
         </div>
@@ -193,6 +185,15 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
                                     className="w-30 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all"
                                   />
@@ -227,6 +228,15 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter ID"
                                     className="w-24 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 transition-all"
                                   />
@@ -257,6 +267,15 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
                                     className="w-30 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all"
                                   />
@@ -300,6 +319,15 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Temp"
                                     className="w-30 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all"
                                   />
@@ -337,6 +365,15 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Time"
                                     className="w-30 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all"
                                   />
@@ -371,6 +408,15 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter ID"
                                     className="w-24 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 transition-all"
                                   />
@@ -401,6 +447,15 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                         e.target.value
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
                                     className="w-30 px-2.5 py-1.5 border border-sky-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all"
                                   />

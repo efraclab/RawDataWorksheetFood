@@ -67,7 +67,7 @@ interface AuthenticatedAppProps {
   employeeId: string;
   role: string;
   username: string;
-  designation: string;
+  department: string;
   onLogout: () => void;
 }
 
@@ -77,7 +77,7 @@ function DashboardPage({
   employeeId,
   role,
   username,
-  designation,
+  department,
   onLogout,
 }: AuthenticatedAppProps) {
   const navigate = useNavigate();
@@ -95,7 +95,7 @@ function DashboardPage({
       <WorksheetDashboard
         onNavigate={handleNavigation}
         username={username}
-        designation={designation}
+        department={department}
         employeeId={employeeId}
         role={role}
         onLogout={onLogout}
@@ -151,8 +151,31 @@ function WorksheetPreviewPage(props: {
       variants={pageVariants}
       initial="initial"
       animate="animate"
+      exit="exit"
       className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30"
     >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <button
+          onClick={() => navigate("/")}
+          className="group relative inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+          
+          <svg 
+            className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-300" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          
+          <span className="relative z-10">Back to Dashboard</span>
+          
+          <div className="absolute inset-0 rounded-xl bg-emerald-400/20 blur-xl group-hover:bg-emerald-400/30 transition-all duration-300" />
+        </button>
+      </div>
+
       <Worksheet
         worksheetId={worksheetId}
         instruments={props.instruments}
@@ -172,7 +195,7 @@ function WorksheetPreviewPage(props: {
 function PrintReportPage(props: {
   worksheetInfo: WorksheetDetail | null;
   analysts: Analyst[];
-  sampleData: SampleData | null;
+  sampleData: SampleData;
   instruments: Instrument[];
   chemicals: Chemical[];
   standards: Standard[];
@@ -216,14 +239,14 @@ function AuthenticatedApp({
   employeeId,
   role,
   username,
-  designation,
+  department,
   onLogout,
 }: AuthenticatedAppProps) {
   const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [chemicals, setChemicals] = useState<Chemical[]>([]);
   const [standards, setStandards] = useState<Standard[]>([]);
   const [analysts, setAnalysts] = useState<Analyst[]>([]);
-  const [sampleData, setSampleData] = useState<SampleData | null>(null);
+  const [sampleData, setSampleData] = useState<SampleData>();
   const [columns, setColumns] = useState<Column[]>([]);
   const [isReferenceDataLoading, setIsReferenceDataLoading] = useState(true);
   const [referenceDataError, setReferenceDataError] = useState<string | null>(
@@ -264,7 +287,7 @@ function AuthenticatedApp({
                 employeeId={employeeId}
                 role={role}
                 username={username}
-                designation={designation}
+                department={department}
                 onLogout={onLogout}
               />
             }
@@ -296,7 +319,7 @@ function AuthenticatedApp({
               <PrintReportPage
                 worksheetInfo={activeWorksheetData}
                 analysts={analysts}
-                sampleData={sampleData}
+                sampleData={sampleData!}
                 instruments={instruments}
                 chemicals={chemicals}
                 standards={standards}
@@ -351,7 +374,7 @@ export default function App() {
   }
 
   const username = localStorage.getItem("Username") || "Unknown";
-  const designation = localStorage.getItem("Designation") || "Unknown";
+  const department = localStorage.getItem("Department") || "Unknown";
   const employeeId = localStorage.getItem("EmployeeId") || "Unknown";
   const role = localStorage.getItem("Role") || "Unknown";
 
@@ -361,7 +384,7 @@ export default function App() {
       employeeId={employeeId}
       role={role}
       username={username}
-      designation={designation}
+      department={department}
       onLogout={handleLogout}
     />
   ) : (

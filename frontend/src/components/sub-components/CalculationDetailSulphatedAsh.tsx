@@ -274,7 +274,6 @@ const CalculationDetailSulphatedAsh: React.FC<
                 </motion.div>
               </motion.button>
 
-              {role === "HOD LAB" && (
                 <motion.button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -287,7 +286,6 @@ const CalculationDetailSulphatedAsh: React.FC<
                 >
                   <Trash className="w-4 h-4 text-white" />
                 </motion.button>
-              )}
             </div>
           </div>
         </div>

@@ -333,258 +333,60 @@ const PrintReport: React.FC<PrintReportProps> = ({
     );
   };
 
-  // Helper function to group dissolution calculations by standard preparation
-  const groupDissoCalculationsByPreparation = (calculations: any[]) => {
+  // Helper function to calculate avg, min, max for a single dissolution calculation
+  const calculateDissoStats = (calcData: any) => {
+    const result1 = calcData.calculationResultTablet1;
+    const result2 = calcData.calculationResultTablet2;
+    const result3 = calcData.calculationResultTablet3;
+    const result4 = calcData.calculationResultTablet4;
+    const result5 = calcData.calculationResultTablet5;
+    const result6 = calcData.calculationResultTablet6;
+    const resultUnit = calcData.calculationResultUnit || "";
     
-    const groups: { [key: string]: any[] } = {};
-    
-    calculations.forEach((calc: any, index: number) => {
-      const calcData = safeJSONParse(calc.data, {});
+    if (result1 && result2 && result3 && result4 && result5 && result6) {
+      const nr1 = parseFloat(result1);
+      const nr2 = parseFloat(result2);
+      const nr3 = parseFloat(result3);
+      const nr4 = parseFloat(result4);
+      const nr5 = parseFloat(result5);
+      const nr6 = parseFloat(result6);
       
-      // Use selectedStandardPrepLabel as the grouping key
-      const prepKey = calcData.selectedStandardPrepLabel;
-      
-      // Only include calculations that have a valid standard prep selected
-      if (prepKey) {
-        if (!groups[prepKey]) {
-          groups[prepKey] = [];
-        }
-        groups[prepKey].push({ ...calc, calcData });
-      } else {
-        console.warn(`Calculation ${index + 1} has no selectedStandardPrepLabel`);
+      if (
+        !isNaN(nr1) && isFinite(nr1)
+        && !isNaN(nr2) && isFinite(nr2)
+        && !isNaN(nr3) && isFinite(nr3)
+        && !isNaN(nr4) && isFinite(nr4)
+        && !isNaN(nr5) && isFinite(nr5)
+        && !isNaN(nr6) && isFinite(nr6)
+      ) {
+        return {
+          average: ((nr1 + nr2 + nr3 + nr4 + nr5 + nr6) / 6).toFixed(4),
+          minimum: Math.min(nr1, nr2, nr3, nr4, nr5, nr6).toFixed(4),
+          maximum: Math.max(nr1, nr2, nr3, nr4, nr5, nr6).toFixed(4),
+          unit: resultUnit
+        };
       }
-    });
-    
-    // Sort groups by preparation number
-    const sortedGroups: { [key: string]: any[] } = {};
-    Object.keys(groups)
-      .sort((a, b) => {
-        // Extract number from "Standard Preparation X"
-        const numA = parseInt(a.match(/\d+/)?.[0] || "0");
-        const numB = parseInt(b.match(/\d+/)?.[0] || "0");
-        return numA - numB;
-      })
-      .forEach((key) => {
-        sortedGroups[key] = groups[key];
-      });
-    
-    return sortedGroups;
-  };
-
-  // Helper function to calculate avg, min, max from a group of dissolution calculations
-  const calculateDissoStats = (calcGroup: any[]) => {
-    
-    const results: number[] = [];
-    let unit = "";
-    
-    calcGroup.forEach((calc, index) => {
-      const result = calc.calcData.calculationResult;
-      const resultUnit = calc.calcData.calculationResultUnit;
-      
-      // Store unit if we find one
-      if (resultUnit && !unit) {
-        unit = resultUnit;
-      }
-      
-      // Check if result exists and is not an error
-      if (result && typeof result === 'string' && !result.startsWith("Error")) {
-        // Remove any non-numeric characters except decimal point and minus sign
-        const cleanResult = result.replace(/[^\d.-]/g, '');
-        const numericResult = parseFloat(cleanResult);
-        
-        
-        if (!isNaN(numericResult) && isFinite(numericResult)) {
-          results.push(numericResult);
-        } else {
-          console.warn(`    ✗ Invalid number`);
-        }
-      } else if (result && typeof result === 'number') {
-        if (!isNaN(result) && isFinite(result)) {
-          results.push(result);
-        }
-      } else {
-        console.warn(`    ✗ Skipped (error or invalid)`);
-      }
-    });
-    
-    
-    if (results.length === 0) {
-      return null;
     }
     
-    const sum = results.reduce((acc, val) => acc + val, 0);
-    const avg = sum / results.length;
-    const min = Math.min(...results);
-    const max = Math.max(...results);
-    
-    const stats = {
-      average: avg.toFixed(4),
-      minimum: min.toFixed(4),
-      maximum: max.toFixed(4),
-      unit: unit,
-      count: results.length,
-      individualResults: results
-    };
-    
-    
-    return stats;
+    return null;
   };
 
-  // Render dissolution calculations with grouping and statistics
-  const renderDissoCalculations = (calculations: any[]) => {
-    const groups = groupDissoCalculationsByPreparation(calculations);
+  // Helper function to find unit for a given key
+  const findUnitForKey = (calcData: any, key: string): string => {
+
+    if(['calculationResultTablet1', 'calculationResultTablet2',
+      'calculationResultTablet3', 'calculationResultTablet4',
+      'calculationResultTablet5', 'calculationResultTablet6'
+    ].includes(key))
+      key = 'calculationResult'
+      
+    const unitKey = `${key}Unit`;
+    const unitKeyAlt = `${key.replace(/([A-Z])/g, '_$1').toLowerCase()}_unit`;
     
-    if (Object.keys(groups).length === 0) {
-      return (
-        <div className="mb-4">
-          <h4 className="text-sm font-bold mb-2 underline">
-            Calculations:
-          </h4>
-          <div className="border border-black px-3 py-2 bg-gray-50 text-sm">
-            No calculations with standard preparations assigned yet.
-          </div>
-        </div>
-      );
-    }
+    if (calcData[unitKey]) return calcData[unitKey];
+    if (calcData[unitKeyAlt]) return calcData[unitKeyAlt];
     
-    return (
-      <div className="mb-4">
-        <h4 className="text-sm font-bold mb-2 underline">
-          Calculations:
-        </h4>
-        
-        {Object.entries(groups).map(([prepLabel, calcGroup], groupIdx) => {
-          const stats = calculateDissoStats(calcGroup);
-          
-          return (
-            <div key={groupIdx} className="mb-6 page-break-inside-avoid">              
-              {/* Individual Calculations in this group */}
-              {calcGroup.map((calc: any, idx: number) => {
-              
-                const calculationLabel = `${calc.label} for dissolution` || `Calculation ${idx + 1} for dissolution`;
-                
-                return (
-                  <div key={idx} className="section-container mb-3">
-                    <p className="font-bold mb-2 text-sm">
-                      {calculationLabel}
-                    </p>
-                    <div className="border border-black text-sm">
-                      {Object.entries(calc.calcData).map(
-                        ([key, value]: [string, any]) => {
-                          if (
-                            key === "id" ||
-                            key === "label" ||
-                            value === null ||
-                            value === "" ||
-                            key === "calculationResultUnit" // Don't show unit separately
-                          )
-                            return null;
-                          
-                          // Format the key name
-                          let displayKey = key
-                            .replace(/([A-Z])/g, " $1")
-                            .replace(/^./, (c) => c.toUpperCase())
-                            .trim();
-                          
-                          // Special formatting for calculation result
-                          let displayValue = String(value);
-                          if (key === "calculationResult") {
-                            const unit = calc.calcData.calculationResultUnit;
-                            if (unit && !displayValue.startsWith("Error")) {
-                              displayValue = `${value} ${unit}`;
-                            }
-                          }
-                          
-                          return (
-                            <div
-                              key={key}
-                              className="flex border-b border-black last:border-b-0"
-                            >
-                              <div className="w-2/5 px-3 py-2 font-bold bg-gray-100 border-r border-black">
-                                {displayKey}:
-                              </div>
-                              <div className="px-3 py-2">
-                                {displayValue}
-                              </div>
-                            </div>
-                          );
-                        }
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-              
-              {/* Statistics Section for this preparation group */}
-              {stats && stats.count > 0 && (
-                <div className="section-container mt-4 mb-3 page-break-inside-avoid">
-                  <div className="border border-black overflow-hidden">
-                    <div className="bg-gray-200 px-4 py-2 border-b border-black">
-                      <p className="font-bold text-sm">
-                        {(() => {
-                          // Get preparation number
-                          const prepMatch = prepLabel.match(/Preparation\s*(\d+)/i);
-                          const prepNum = prepMatch ? prepMatch[1] : (groupIdx + 1);
-                          
-                          // Get the calculation numbers range
-                          const calcNumbers = calcGroup.map((c, i) => {
-                            const label = c.label || `Calculation ${i + 1}`;
-                            const match = label.match(/Calculation\s*(\d+)/i);
-                            return match ? parseInt(match[1]) : (i + 1);
-                          }).sort((a, b) => a - b);
-                          
-                          const minCalc = Math.min(...calcNumbers);
-                          const maxCalc = Math.max(...calcNumbers);
-                          const calcRange = minCalc === maxCalc ? `${minCalc}` : `${minCalc} - ${maxCalc}`;
-                          
-                          return `Calculation ${calcRange} for Standard Preparation ${prepNum}`;
-                        })()}
-                      </p>
-                      <p className="text-xs">
-                        Based on {stats.count} calculation{stats.count !== 1 ? 's' : ''} out of {calcGroup.length} total
-                      </p>
-                    </div>
-                    <div className="text-sm">
-                      <div className="flex border-b border-black">
-                        <div className="w-2/5 px-3 py-2.5 font-bold bg-gray-100 border-r border-black">
-                          Average:
-                        </div>
-                        <div className="px-3 py-2.5 font-bold">
-                          {stats.average} {stats.unit}
-                        </div>
-                      </div>
-                      <div className="flex border-b border-black">
-                        <div className="w-2/5 px-3 py-2.5 font-bold bg-gray-100 border-r border-black">
-                          Minimum:
-                        </div>
-                        <div className="px-3 py-2.5 font-bold">
-                          {stats.minimum} {stats.unit}
-                        </div>
-                      </div>
-                      <div className="flex">
-                        <div className="w-2/5 px-3 py-2.5 font-bold bg-gray-100 border-r border-black">
-                          Maximum:
-                        </div>
-                        <div className="px-3 py-2.5 font-bold">
-                          {stats.maximum} {stats.unit}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Warning if some calculations had no valid results */}
-              {stats && stats.count < calcGroup.length && (
-                <div className="border border-black px-3 py-2 text-xs mb-3 bg-gray-50">
-                  <strong>Note:</strong> {calcGroup.length - stats.count} calculation{calcGroup.length - stats.count !== 1 ? 's' : ''} had no valid numeric result and {calcGroup.length - stats.count !== 1 ? 'were' : 'was'} excluded from statistics.
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
+    return "";
   };
 
   return (
@@ -740,15 +542,15 @@ const PrintReport: React.FC<PrintReportProps> = ({
           </div>
         </div>
 
-        {/* Main print container */}
-        <div className="print-container">
-
-        <div className="flex justify-between items-center text-sm mb-6 pb-4 border-b-2 border-gray-200">
+        {/* <div className="no-print flex justify-between items-center text-sm mb-6 pb-4 border-b-2 border-gray-200">
           <div></div>
           <div className="flex flex-col items-end">
             <img src="/ic_efrac.png" alt="EFRAC Logo" className="h-6" />
           </div>
-        </div>
+        </div> */}
+
+        {/* Main print container */}
+        <div className="print-container">
           
           {/* Parameters - Each on separate page */}
           {worksheetInfo.parameters.map((param: any, paramIdx: number) => {
@@ -762,18 +564,6 @@ const PrintReport: React.FC<PrintReportProps> = ({
               param.standardIds?.includes(std.id)
             );
 
-            // Check if this is a dissolution parameter
-            // Check multiple sources: paraCode, parameterName, and calculationType
-            const isDissoParameter = 
-              param.paraCode === "DISSO" || 
-              param.paraCode === "Dissolution" ||
-              param.parameterName?.toLowerCase().includes("dissolution") ||
-              param.parameterName?.toLowerCase().includes("disso") ||
-              (param.calculations && param.calculations.length > 0 && 
-               param.calculations.some((calc: any) => 
-                 calc.calculationType?.toLowerCase().includes("dissolution") ||
-                 calc.calculationType?.toLowerCase().includes("disso")
-               ));
 
             return (
               <div key={paramIdx} className={paramIdx > 0 ? "page-break-before" : ""}>
@@ -1014,55 +804,102 @@ const PrintReport: React.FC<PrintReportProps> = ({
                       </div>
                     )}
 
-                  {/* Calculations - Special handling for Dissolution */}
+                  {/* Calculations */}
                   {param.calculations && param.calculations.length > 0 && (
-                    isDissoParameter ? (
-                      renderDissoCalculations(param.calculations)
-                    ) : (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-bold mb-2 underline">
-                          Calculations:
-                        </h4>
-                        {param.calculations.map((calc: any, idx: number) => {
-                          const calcData = safeJSONParse(calc.data, {});
-                          return (
-                            <div key={idx} className="section-container mb-3">
-                              <p className="font-bold mb-2 text-sm">
-                                {calc.label} for {calc.calculationType}
-                              </p>
-                              <div className="border border-black text-sm">
-                                {Object.entries(calcData).map(
-                                  ([key, value]: [string, any]) => {
-                                    if (
-                                      key === "id" ||
-                                      key === "label" ||
-                                      value === null ||
-                                      value === ""
-                                    )
-                                      return null;
-                                    return (
-                                      <div
-                                        key={key}
-                                        className="flex border-b border-black last:border-b-0"
-                                      >
-                                        <div className="w-2/5 px-3 py-2 font-bold bg-gray-100 border-r border-black">
-                                          {key.replace(/([A-Z])/g, " $1")
-                                          .replace(/^./, (c) => c.toUpperCase())
-                                          .trim()}:
-                                        </div>
-                                        <div className="px-3 py-2">
-                                          {String(value)}
-                                        </div>
-                                      </div>
-                                    );
+                    <div className="mb-4">
+                      <h4 className="text-sm font-bold mb-2 underline">
+                        Calculations:
+                      </h4>
+                      {param.calculations.map((calc: any, idx: number) => {
+                        const calcData = safeJSONParse(calc.data, {});
+                        
+                        // Check if this is a dissolution calculation
+                        const isDissoCalc = calc.calculationType?.toLowerCase().includes("disso");
+                        
+                        // Calculate stats for dissolution
+                        const stats = isDissoCalc ? calculateDissoStats(calcData) : null;
+                        
+                        return (
+                          <div key={idx} className="section-container mb-3">
+                            <p className="font-bold mb-2 text-sm">
+                              {calc.label} for {calc.calculationType}
+                            </p>
+                            <div className="border border-black text-sm">
+                              {Object.entries(calcData).map(
+                                ([key, value]: [string, any]) => {
+                                  if (
+                                    key === "id" ||
+                                    key === "label" ||
+                                    value === null ||
+                                    value === "" ||
+                                    key.toLowerCase().includes("unit") || // Skip all unit keys
+                                    (isDissoCalc && key === "calculationResult") // Skip result for dissolution
+                                  )
+                                    return null;
+                                  
+                                  // Format the key name
+                                  let displayKey = key
+                                    .replace(/([A-Z])/g, " $1")
+                                    .replace(/^./, (c) => c.toUpperCase())
+                                    .trim();
+                                  
+                                  // Find and append unit if exists
+                                  const unit = findUnitForKey(calcData, key);
+                                  let displayValue = String(value);
+                                  if (unit) {
+                                    displayValue = `${value} ${unit}`;
                                   }
-                                )}
-                              </div>
+                                  
+                                  return (
+                                    <div
+                                      key={key}
+                                      className="flex border-b border-black last:border-b-0"
+                                    >
+                                      <div className="w-2/5 px-3 py-2 font-bold bg-gray-100 border-r border-black">
+                                        {displayKey}:
+                                      </div>
+                                      <div className="px-3 py-2">
+                                        {displayValue}
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                              )}
+                              
+                              {/* Add statistics rows ONLY for dissolution calculations */}
+                              {isDissoCalc && stats && (
+                                <>
+                                  <div className="flex border-b border-black">
+                                    <div className="w-2/5 px-3 py-2 font-bold bg-gray-100 border-r border-black">
+                                      Average:
+                                    </div>
+                                    <div className="px-3 py-2 font-bold">
+                                      {stats.average} {stats.unit}
+                                    </div>
+                                  </div>
+                                  <div className="flex border-b border-black">
+                                    <div className="w-2/5 px-3 py-2 font-bold bg-gray-100 border-r border-black">
+                                      Minimum:
+                                    </div>
+                                    <div className="px-3 py-2 font-bold">
+                                      {stats.minimum} {stats.unit}
+                                    </div>
+                                  </div>
+                                  <div className="flex">
+                                    <div className="w-2/5 px-3 py-2 font-bold bg-gray-100 border-r border-black">
+                                      Maximum:
+                                    </div>
+                                    <div className="px-3 py-2 font-bold">
+                                      {stats.maximum} {stats.unit}
+                                    </div>
+                                  </div>
+                                </>
+                              )}
                             </div>
-                          );
-                        })}
-                      </div>
-                    )
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
 
                   {/* Other Information */}
@@ -1077,11 +914,11 @@ const PrintReport: React.FC<PrintReportProps> = ({
                     </div>
                   )}
 
-                  <div className="mt-6 mb-4 text-sm">
+                  {/* <div className="mt-6 mb-4 text-sm">
                     <p className="text-sm leading-relaxed">
                       Analyzed by: .............................................. Date: ............................
                     </p>
-                  </div>
+                  </div> */}
 
                 </div>
 

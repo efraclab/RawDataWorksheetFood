@@ -147,7 +147,6 @@ export const createWorksheet = async (
   }
 };
 
-
 export const updateWorksheet = async (
   worksheetId: string,
   worksheetData: WorksheetRequest
@@ -155,8 +154,6 @@ export const updateWorksheet = async (
   if (!worksheetId) {
     throw new Error("Worksheet ID is required.");
   }
-
-  console.log(worksheetData)
 
   try {
     const response = await axios.put<{ worksheetId: string }>(
@@ -170,6 +167,33 @@ export const updateWorksheet = async (
       throw new Error(
         error.response?.data?.message ||
         `Failed to update worksheet: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+
+export const addParameter = async (
+  worksheetId: string,
+  parameterDetail: ParameterDetail
+): Promise<{ parameterId: number }> => {
+  if (!worksheetId) {
+    throw new Error("Worksheet ID is required.");
+  }
+
+  try {
+    const response = await axios.post<{ worksheetId: string }>(
+      `${API_BASE_URL}/worksheets/parameters/${worksheetId}`,
+      parameterDetail,
+      { headers: { "Content-Type": "application/json" } }
+    );
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to add parameter: ${error.message}`
       );
     }
     throw new Error(`Unexpected error: ${error.message}`);

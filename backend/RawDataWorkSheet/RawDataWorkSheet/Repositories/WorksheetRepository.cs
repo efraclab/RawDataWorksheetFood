@@ -411,7 +411,7 @@ namespace RawDataWorkSheet.Repositories
                     FROM participants_rawdata
                     WHERE emp_id = @EmployeeId
                 """;
-            worksheet.PreparedBy = await connection.QueryFirstAsync<string>(
+            worksheet.PreparedByName = await connection.QueryFirstAsync<string>(
                 query2,
                 new { EmployeeId = worksheet.PreparedBy });
 
@@ -1015,9 +1015,23 @@ namespace RawDataWorkSheet.Repositories
                         WHERE emp_id = @EmployeeId
                     """;
 
-                    paramDetail.ApprovedBy = await connection.QueryFirstAsync<string>(
+                    paramDetail.ApprovedByName = await connection.QueryFirstAsync<string>(
                         query,
                         new { EmployeeId = paramDetail.ApprovedBy });
+                }
+
+                if (param.AnalyzedBy != null)
+                {
+                    var query = """
+                        SELECT 
+                            emp_name AS [Username]
+                        FROM participants_rawdata
+                        WHERE emp_id = @EmployeeId
+                    """;
+
+                    paramDetail.AnalyzedByName = await connection.QueryFirstAsync<string>(
+                        query,
+                        new { EmployeeId = paramDetail.AnalyzedBy });
                 }
 
                 var instruments = await connection.QueryAsync<WorksheetInstrument>(
@@ -1093,6 +1107,7 @@ namespace RawDataWorkSheet.Repositories
                 NumberOfParameters = worksheet.NumberOfParameters,
                 DueDate = worksheet.DueDate?.ToString("dd/MM/yyyy"),
                 PreparedBy = worksheet.PreparedBy,
+                PreparedByName = worksheet.PreparedByName,
                 RevisionDate = worksheet.RevisionDate?.ToString("dd/MM/yyyy"),
                 Status = worksheet.Status,
                 ApprovedAt = worksheet.ApprovedAt?.ToString("dd/MM/yyyy"),

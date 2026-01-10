@@ -13,6 +13,8 @@ export interface ParameterDetail {
     otherInfo?: string;
     analyzedBy?: string;
     approvedBy?: string;
+    analyzedByName?: string;
+    approvedByName?: string;
     analysisStartDate?: string;
     analysisCompletionDate?: string;
     approvedAt?: string;

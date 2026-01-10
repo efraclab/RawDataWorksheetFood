@@ -585,7 +585,15 @@
             "type": "string",
             "nullable": true
           },
+          "analyzedByName": {
+            "type": "string",
+            "nullable": true
+          },
           "approvedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "approvedByName": {
             "type": "string",
             "nullable": true
           },
@@ -842,6 +850,14 @@
           "parameterApprovedAt": {
             "type": "string",
             "nullable": true
+          },
+          "analysisStartedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "analysisCompletedAt": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -952,7 +968,6 @@
           },
           "dueDate": {
             "type": "string",
-            "format": "date-time",
             "nullable": true
           },
           "worksheetPreparedBy": {
@@ -965,17 +980,14 @@
           },
           "worksheetCreatedAt": {
             "type": "string",
-            "format": "date-time",
             "nullable": true
           },
           "worksheetUpdatedAt": {
             "type": "string",
-            "format": "date-time",
             "nullable": true
           },
           "worksheetApprovedAt": {
             "type": "string",
-            "format": "date-time",
             "nullable": true
           }
         },

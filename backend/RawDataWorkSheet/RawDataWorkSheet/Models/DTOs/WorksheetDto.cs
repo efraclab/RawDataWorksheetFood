@@ -8,6 +8,7 @@
         public int NumberOfParameters { get; set; }
         public string DueDate { get; set; }
         public string PreparedBy { get; set; }
+        public string? PreparedByName { get; set; }
         public string RevisionDate { get; set; }
         public string Status { get; set; }
         public string CreatedAt { get; set; }

@@ -12,7 +12,9 @@
         public string? OtherInfo { get; set; }
 
         public string? AnalyzedBy { get; set; }
+        public string? AnalyzedByName { get; set; }
         public string? ApprovedBy { get; set; }
+        public string? ApprovedByName { get; set; }
         public string? AnalysisStartDate { get; set; }
         public string? AnalysisCompletionDate { get; set; }
         public string? ApprovedAt { get; set; }

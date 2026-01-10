@@ -13,4 +13,6 @@ export interface TblParameterRow {
   ParameterApprovedBy: string | null;
   ParameterStatus: string;
   ParameterApprovedAt?: string | null;
+  AnalysisStartedAt?: string | null;
+  AnalysisCompletedAt?: string | null;
 }

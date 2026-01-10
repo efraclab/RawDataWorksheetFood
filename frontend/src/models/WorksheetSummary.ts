@@ -7,6 +7,7 @@ export interface WorksheetSummary {
     numberOfParameters: number;
     dueDate: string;
     preparedBy: string;
+    preparedByName: string;
     revisionDate: string;
     status: string;
     approvedAt: string | null;

@@ -87,22 +87,46 @@ namespace RawDataWorkSheet.Repositories
                 )
                 SELECT 
                     t1.TRN1REFNO AS RegistrationNo,
-                    t1.trn1recdt AS RecieptDate,
+                    CASE
+                        WHEN t1.trn1recdt IS NOT NULL THEN
+                            FORMAT(t1.trn1recdt, 'dd/MM/yyyy') 
+                        ELSE
+                            ''
+                    END
+                    AS RecieptDate,
                     t2.TRN2_METHDO_DTL AS MethodCode,
                     t2.TRN2METHOD AS MethodName,
-                    CONVERT(NVARCHAR(10), t1.TRN1DATE, 103) AS RegistrationDate, 
-                    CONVERT(NVARCHAR(10), t2.Trn2Pardate, 103) AS TatDate, 
-                    CONVERT(NVARCHAR(10), t2.TRN2REPODT, 103) AS ReportIssueDate, 
+                    CASE
+                        WHEN t1.TRN1DATE IS NOT NULL THEN
+                            FORMAT(t1.TRN1DATE, 'dd/MM/yyyy')
+                        ELSE
+                            ''
+                    END
+                    AS RegistrationDate,
+                    CASE
+                        WHEN t2.Trn2Pardate IS NOT NULL THEN
+                            FORMAT(t2.Trn2Pardate, 'dd/MM/yyyy') 
+                        ELSE
+                            ''
+                    END
+                    AS TatDate, 
+                        CASE
+                        WHEN t1.TRN1DATE IS NOT NULL THEN
+                            FORMAT(t1.TRN1DATE, 'dd/MM/yyyy')
+                        ELSE
+                            ''
+                    END
+                    AS ReportIssueDate, 
                     t2.TRN2PRODALIAS AS SampleName,
 	                CASE
-                        WHEN T2.TRN2_ANA_STARTDT IS NOT NULL THEN
+                        WHEN t2.TRN2_ANA_STARTDT IS NOT NULL THEN
                             FORMAT(T2.TRN2_ANA_STARTDT, 'dd/MM/yyyy')
                         ELSE
                             ''
                     END AS AnalysisStartDate,
                     CASE
-		                WHEN T2.TRN2COMPLETIONDT IS NOT NULL THEN
-			                FORMAT(T2.TRN2COMPLETIONDT, 'dd/MM/yyyy')
+		                WHEN t2.TRN2COMPLETIONDT IS NOT NULL THEN
+			                FORMAT(t2.TRN2COMPLETIONDT, 'dd/MM/yyyy')
 		                ELSE
 			                ''
 	                END AS AnalysisCompletionDate,

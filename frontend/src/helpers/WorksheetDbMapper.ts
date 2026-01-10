@@ -40,6 +40,8 @@ export class WorksheetDbMapper {
       ParameterApprovedBy: nv(p.approvedBy),
       ParameterStatus: p.status!,
       ParameterApprovedAt: nv(p.approvedAt),
+      AnalysisStartedAt: nv(p.analysisStartDate),
+      AnalysisCompletedAt: nv(p.analysisCompletionDate)
     }));
   }
 

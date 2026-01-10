@@ -562,7 +562,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const [analyzedByPerParam, setAnalyzedByPerParam] = useState<
     Record<number, string>
   >({});
+  const [analyzedByNamePerParam, setAnalyzedByNamePerParam] = useState<
+    Record<number, string>
+  >({});
   const [approvedByPerParam, setApprovedByPerParam] = useState<
+    Record<number, string>
+  >({});
+  const [approvedByNamePerParam, setApprovedByNamePerParam] = useState<
     Record<number, string>
   >({});
   const [approvedAtPerParam, setApprovedAtPerParam] = useState<
@@ -840,6 +846,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }));
       }
 
+      if (param.analyzedByName) {
+        setAnalyzedByNamePerParam((prev) => ({
+          ...prev,
+          [paramId]: param.analyzedByName!,
+        }));
+      }
+
       if (param.analysisStartDate) {
         setAnalysisStartDatePerParam((prev) => ({
           ...prev,
@@ -865,6 +878,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
         setApprovedByPerParam((prev) => ({
           ...prev,
           [paramId]: param.approvedBy!,
+        }));
+      }
+
+      if (param.approvedByName) {
+        setApprovedByNamePerParam((prev) => ({
+          ...prev,
+          [paramId]: param.approvedByName!,
         }));
       }
 
@@ -1630,7 +1650,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         return;
       }
 
-      //console.log(WorksheetDbMapper.mapAll(worksheetData));
+      console.log(WorksheetDbMapper.mapAll(worksheetData));
 
       setWorksheetInfo(worksheetData);
       setRegistrationNo(worksheetData.sample.registrationNo);
@@ -2363,6 +2383,8 @@ const handleAnalystSelected = async (employeeId: string) => {
     // Clean up all parameter-related states
     cleanupState(setAnalyzedByPerParam);
     cleanupState(setApprovedByPerParam);
+    cleanupState(setAnalyzedByNamePerParam);
+    cleanupState(setApprovedByNamePerParam);
     cleanupState(setAnalysisStartDatePerParam);
     cleanupState(setAnalysisCompletionDatePerParam);
     cleanupState(setApprovedAtPerParam);
@@ -2830,25 +2852,22 @@ const handleAnalystSelected = async (employeeId: string) => {
     setIsApprovingWorksheet(true);
 
     try {
-      // Step 1: Collect current worksheet data
       const worksheetData = collectFormDataForAPI();
 
-      // Step 2: Map to database format using WorksheetDbMapper
       if (!worksheetInfo) {
         throw new Error("Worksheet information is not available");
       }
 
-      // const mappedData = WorksheetDbMapper.mapAll(worksheetInfo);
+      const mappedData = WorksheetDbMapper.mapAll(worksheetInfo);
 
-      // const submitResponse = await submitWorksheet(mappedData);
+      const submitResponse = await submitWorksheet(mappedData);
 
-      // if (!submitResponse.success) {
-      //   throw new Error(
-      //     submitResponse.message || "Failed to submit worksheet to database"
-      //   );
-      // }
+      if (!submitResponse.success) {
+        throw new Error(
+          submitResponse.message || "Failed to submit worksheet to database"
+        );
+      }
 
-      // Step 4: Only if submission succeeds, update worksheet status to "Approved"
       const updatedWorksheetData = {
         ...worksheetData,
         documentInfo: {
@@ -2862,7 +2881,6 @@ const handleAnalystSelected = async (employeeId: string) => {
       const response = await updateWorksheet(worksheetId, updatedWorksheetData);
 
       if (response && response.worksheetId) {
-        // Update local state
         setWorksheetInfo((prev) =>
           prev
             ? {
@@ -4827,7 +4845,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-emerald-800">
-                          Approved By: {approvedByPerParam[parameterId]}
+                          Approved By: {approvedByNamePerParam[parameterId]}
                         </p>
                         <p className="text-sm text-emerald-700 mt-1">
                           Approval Date: {approvedAtPerParam[parameterId]}
@@ -5603,7 +5621,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-emerald-800">
-                          Approved By: {approvedByPerParam[parameterId]}
+                          Approved By: {approvedByNamePerParam[parameterId]}
                         </p>
                         <p className="text-sm text-emerald-700 mt-1">
                           Approval Date: {approvedAtPerParam[parameterId]}
@@ -6878,10 +6896,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                               }`}
                             >
                               Assigned to:{" "}
-                              {analysts.find(
-                                (a) =>
-                                  a.employeeId === analyzedByPerParam[param.id]
-                              )?.username || "Unknown"}
+                              {analyzedByNamePerParam[param.id]}
                             </div>
                           )}
 
@@ -7193,15 +7208,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                     <div className="relative">
                                       <div className="relative w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center ring-2 ring-emerald-200">
                                         <span className="text-white text-lg font-bold">
-                                          {analysts
-                                            .find(
-                                              (a) =>
-                                                a.employeeId ===
-                                                analyzedByPerParam[
-                                                  selectedParam.id
-                                                ]
-                                            )
-                                            ?.username.charAt(0) || "A"}
+                                          {analyzedByNamePerParam[selectedParam.id].charAt(0) || "A"}
                                         </span>
                                       </div>
                                     </div>
@@ -7209,11 +7216,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                     {/* Analyst Info */}
                                     <div className="flex-1">
                                       <div className="font-semibold text-base text-slate-900 mb-1">
-                                        {analysts.find(
-                                          (a) =>
-                                            a.employeeId ===
-                                            analyzedByPerParam[selectedParam.id]
-                                        )?.username || "Unknown"}
+                                        {analyzedByNamePerParam[selectedParam.id]|| "Unknown"}
                                       </div>
                                       <div className="flex items-center gap-2 flex-wrap">
                                         <span className="inline-flex items-center px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-semibold text-emerald-700">
@@ -7249,13 +7252,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                               d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                                             />
                                           </svg>
-                                          {analysts.find(
-                                            (a) =>
-                                              a.employeeId ===
-                                              analyzedByPerParam[
-                                                selectedParam.id
-                                              ]
-                                          )?.role || "Analyst"}
+                                          {analyzedByNamePerParam[selectedParam.id] || "Analyst"}
                                         </span>
                                       </div>
                                     </div>
@@ -7395,7 +7392,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                       </span>
                                     </div>
                                     <p className="text-sm font-semibold text-slate-900">
-                                      {approvedByPerParam[selectedParam.id]}
+                                      {approvedByNamePerParam[selectedParam.id]}
                                     </p>
                                   </div>
                                 )}

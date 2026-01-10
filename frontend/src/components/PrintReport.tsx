@@ -233,9 +233,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   <td className="border border-black px-3 py-2" colSpan={2}>
                     Due Date:{" "}
                     {worksheetInfo.sample.dueDate
-                      ? new Date(
-                          worksheetInfo.sample.dueDate
-                        ).toLocaleDateString("en-GB")
+                      ? worksheetInfo.sample.dueDate
                       : ""}
                   </td>
                 </tr>
@@ -243,12 +241,12 @@ const PrintReport: React.FC<PrintReportProps> = ({
                 <tr>
                   <td className="border border-black px-3 py-2" colSpan={2}>
                     Analysis Started On: {sampleData.analysisStartDate
-                      ? new Date(sampleData.analysisStartDate).toLocaleDateString("en-GB")
+                      ? sampleData.analysisStartDate
                       : ""}
                   </td>
                   <td className="border border-black px-3 py-2" colSpan={2}>
                     Analysis Completed On: {sampleData.analysisCompletionDate
-                      ? new Date(sampleData.analysisCompletionDate).toLocaleDateString("en-GB")
+                      ? sampleData.analysisCompletionDate
                       : ""}
                   </td>
                 </tr>
@@ -620,9 +618,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                               </td>
                               <td className="border border-black px-3 py-2">
                                 {inst.calibrationDueDate
-                                  ? new Date(
-                                      inst.calibrationDueDate
-                                    ).toLocaleDateString("en-GB")
+                                  ? inst.calibrationDueDate
                                   : "N/A"}
                               </td>
                             </tr>
@@ -669,9 +665,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                               </td>
                               <td className="border border-black px-3 py-2">
                                 {chem.validity
-                                  ? new Date(chem.validity).toLocaleDateString(
-                                      "en-GB"
-                                    )
+                                  ? chem.validity
                                   : "N/A"}
                               </td>
                             </tr>
@@ -724,9 +718,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                               </td>
                               <td className="border border-black px-3 py-2">
                                 {std.validity
-                                  ? new Date(std.validity).toLocaleDateString(
-                                      "en-GB"
-                                    )
+                                  ? std.validity
                                   : "N/A"}
                               </td>
                             </tr>
@@ -767,7 +759,13 @@ const PrintReport: React.FC<PrintReportProps> = ({
                           return (
                             <div key={idx} className="section-container mb-3">
                               <p className="font-bold mb-2 text-sm">
-                                {prep.label} for {prep.preparationType}:
+                                {prep.label} ({
+                                prep.preparationType
+                                .split("_")
+                                .filter(Boolean)
+                                .map((word: string | any[]) => word[0].toUpperCase() + word.slice(1))
+                                .join(" ")
+                                }):
                               </p>
                               <div>{formattedSteps}</div>
                             </div>
@@ -795,7 +793,13 @@ const PrintReport: React.FC<PrintReportProps> = ({
                           return (
                             <div key={idx} className="section-container mb-3">
                               <p className="font-bold mb-2 text-sm">
-                                {prep.label} for {prep.preparationType}:
+                                {prep.label} ({
+                                prep.preparationType
+                                .split("_")
+                                .filter(Boolean)
+                                .map((word: string | any[]) => word[0].toUpperCase() + word.slice(1))
+                                .join(" ")
+                                }):
                               </p>
                               <div className="">{formattedSteps}</div>
                             </div>
@@ -822,7 +826,13 @@ const PrintReport: React.FC<PrintReportProps> = ({
                         return (
                           <div key={idx} className="section-container mb-3">
                             <p className="font-bold mb-2 text-sm">
-                              {calc.label} for {calc.calculationType}
+                              {calc.label} ({
+                                calc.calculationType
+                                .split("_")
+                                .filter(Boolean)
+                                .map((word: string | any[]) => word[0].toUpperCase() + word.slice(1))
+                                .join(" ")
+                                })
                             </p>
                             <div className="border border-black text-sm">
                               {Object.entries(calcData).map(

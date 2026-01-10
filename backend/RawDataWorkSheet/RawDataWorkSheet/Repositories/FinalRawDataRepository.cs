@@ -2,7 +2,9 @@
 using Microsoft.Data.SqlClient;
 using RawDataWorkSheet.Models.DTOs;
 using RawDataWorkSheet.Models.FinalRawData;
+using RawDataWorkSheet.Models.Worksheets;
 using System.Data;
+using System.Globalization;
 
 namespace RawDataWorkSheet.Repositories
 {
@@ -32,11 +34,11 @@ namespace RawDataWorkSheet.Repositories
             const string query = """
                 INSERT INTO tblWorksheets (
                     WorksheetId, RegistrationNo, SampleName,
-                    NumberOfParameters, DueDate, WorksheetPreparedBy
+                    NumberOfParameters, DueDate, WorksheetCreatedAt, WorksheetPreparedBy
                 )
                 VALUES (
                     @WorksheetId, @RegistrationNo, @SampleName,
-                    @NumberOfParameters, @DueDate, @WorksheetPreparedBy
+                    @NumberOfParameters, @DueDate, @WorksheetCreatedAt, @WorksheetPreparedBy
                 )
             """;
 
@@ -47,7 +49,8 @@ namespace RawDataWorkSheet.Repositories
                     worksheet.RegistrationNo,
                     worksheet.SampleName,
                     worksheet.NumberOfParameters,
-                    worksheet.DueDate,
+                    DueDate = ParseDate(worksheet.DueDate),
+                    WorksheetCreatedAt = ParseDate(worksheet.WorksheetCreatedAt),
                     worksheet.WorksheetPreparedBy
                 }, tx);
         }
@@ -65,7 +68,7 @@ namespace RawDataWorkSheet.Repositories
                     MethodCode, MethodName, ColumnId,
                     DiluentPreparation, OtherInfo,
                     ParameterAnalyzedBy, ParameterApprovedBy,
-                    ParameterStatus, ParameterApprovedAt
+                    ParameterStatus, ParameterApprovedAt, AnalysisStartedAt, AnalysisCompletedAt
                 )
                 OUTPUT INSERTED.ParameterId
                 VALUES (
@@ -73,7 +76,7 @@ namespace RawDataWorkSheet.Repositories
                     @MethodCode, @MethodName, @ColumnId,
                     @DiluentPreparation, @OtherInfo,
                     @ParameterAnalyzedBy, @ParameterApprovedBy,
-                    @ParameterStatus, @ParameterApprovedAt
+                    @ParameterStatus, @ParameterApprovedAt, @AnalysisStartedAt, @AnalysisCompletedAt
                 )
             """;
 
@@ -83,7 +86,10 @@ namespace RawDataWorkSheet.Repositories
                     query, 
                     new {
                         p.WorksheetId, p.ParameterCode, p.ParameterName, p.MethodName, p.MethodCode, p.ColumnId, p.DiluentPreparation, p.OtherInfo,
-                        p.ParameterAnalyzedBy, p.ParameterApprovedBy, p.ParameterStatus, p.ParameterApprovedAt,
+                        p.ParameterAnalyzedBy, p.ParameterApprovedBy, p.ParameterStatus,
+                        ParameterApprovedAt = ParseDate(p.ParameterApprovedAt),
+                        AnalysisStartedAt = ParseDate(p.AnalysisStartedAt),
+                        AnalysisCompletedAt = ParseDate(p.AnalysisCompletedAt)
                     }, tx);
 
                 map[p.ParameterCode] = id;
@@ -349,6 +355,29 @@ namespace RawDataWorkSheet.Repositories
             }
         }
 
+        private DateTime? ParseDate(string dateString)
+        {
+            if (string.IsNullOrWhiteSpace(dateString))
+                return null;
+
+            string[] formats = { "dd/MM/yyyy", "yyyy-MM-dd", "MM/dd/yyyy" };
+
+            foreach (var format in formats)
+            {
+                if (DateTime.TryParseExact(dateString, format, null,
+                    System.Globalization.DateTimeStyles.None, out DateTime result))
+                {
+                    return result;
+                }
+            }
+
+            if (DateTime.TryParse(dateString, out DateTime generalResult))
+            {
+                return generalResult;
+            }
+
+            return null;
+        }
 
 
     }

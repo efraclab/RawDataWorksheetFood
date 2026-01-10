@@ -6453,7 +6453,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                       Approved By
                     </div>
                     <div className="text-white font-bold">
-                      {worksheetInfo.sample.preparedBy ||"Reviewer"}
+                      {worksheetInfo.sample.preparedByName ||"Reviewer"}
                     </div>
                   </div>
                 </div>
@@ -6952,8 +6952,8 @@ const handleAnalystSelected = async (employeeId: string) => {
 
                             <span>
                               {selectedParamsForDetail.includes(param.id)
-                                ? "HIDE DETAILS"
-                                : "VIEW DETAILS"}
+                                ? "CLICK TO HIDE"
+                                : "CLICK TO VIEW"}
                             </span>
 
                             {/* Subtle chevron icon for a classic feel */}

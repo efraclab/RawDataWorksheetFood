@@ -16,39 +16,31 @@ const SubmitDialog: React.FC<SubmitDialogProps> = ({
   onConfirm,
   createdParametersCount,
 }) => {
-
-
   return (
-    <>
-      <AnimatePresence>
+    <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          transition={{ duration: 0.15 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => !isSubmitting && onClose()}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 30 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 30 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", damping: 30, stiffness: 400 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden max-h-[90vh] flex flex-col"
+            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden max-h-[90vh] flex flex-col"
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-700 px-6 py-5 flex-shrink-0">
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5">
               <div className="flex items-center gap-4">
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center"
-                >
+                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                   <svg
-                    className="w-7 h-7 text-white"
+                    className="w-6 h-6 text-white"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -60,9 +52,9 @@ const SubmitDialog: React.FC<SubmitDialogProps> = ({
                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                </motion.div>
+                </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-white">
+                  <h3 className="text-xl font-semibold text-white">
                     Submit for Analysis
                   </h3>
                   <p className="text-sm text-emerald-100 mt-0.5">
@@ -84,87 +76,78 @@ const SubmitDialog: React.FC<SubmitDialogProps> = ({
 
             {/* Content - Scrollable */}
             <div className="p-6 space-y-5 overflow-y-auto flex-1">
-              {/* Warning and Parameters Count in Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Warning Box */}
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 rounded-xl p-4">
-                  <div className="flex items-center gap-3 mb-1.5">
-                    <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <svg
-                        className="w-4 h-4 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-bold text-md text-amber-900 flex items-center gap-1.5">
-                        Important Warning
-                      </h4>
-                    </div>
-                  </div>
-                    <p className="text-xs text-gray-800 leading-relaxed">
-                      Once you submit parameters for analysis, they will be{" "}
-                      <span className="font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
-                        permanently locked
-                      </span>{" "}
-                      and you will{" "}
-                      <span className="font-bold text-red-600">
-                        NOT be able to make any changes
-                      </span>
-                      . This action cannot be undone.
-                    </p>
-                </div>
-
-                {/* Parameters Count Box */}
-                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-xl p-4">
-                  <div className="flex items-center mb-1.5 gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <span className="text-md font-bold text-white">
-                        {createdParametersCount}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-sm font-bold text-emerald-900 uppercase tracking-wide">
-                        Parameters to Submit
-                      </h4>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-700 leading-relaxed">
-                    All parameters with{" "}
-                    <span className="inline-flex items-center mx-0.5 px-1 py-0.3 bg-green-100 border border-green-300 rounded text-[10px] font-bold text-green-700">
-                      CREATED
-                    </span>{" "}
-                    status will be changed to{" "}
-                    <span className="inline-flex items-center mx-0.5 px-1 py-0.3 bg-orange-100 border border-orange-300 rounded text-[10px] font-bold text-orange-700">
-                      ANALYSIS PENDING
+              {/* Parameters Count */}
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg font-bold text-white">
+                      {createdParametersCount}
                     </span>
-                  </p>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-emerald-900">
+                      Parameter{createdParametersCount !== 1 ? "s" : ""} to Submit
+                    </h4>
+                    <p className="text-xs text-emerald-700 mt-0.5">
+                      Status will change from{" "}
+                      <span className="inline-flex items-center mx-0.5 px-1.5 py-0.5 bg-green-100 border border-green-300 rounded text-[10px] font-semibold text-green-700">
+                        CREATED
+                      </span>{" "}
+                      to{" "}
+                      <span className="inline-flex items-center mx-0.5 px-1.5 py-0.5 bg-orange-100 border border-orange-300 rounded text-[10px] font-semibold text-orange-700">
+                        ANALYSIS PENDING
+                      </span>
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Status Change Visualization */}
-              <div className="bg-white border-2 border-gray-200 rounded-xl p-5">
-                <div className="flex items-center gap-2 mb-4">
+              {/* Warning Box */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg
+                      className="w-4 h-4 text-amber-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-amber-900 mb-1.5">
+                      Important Warning
+                    </h4>
+                    <p className="text-sm text-amber-800 leading-relaxed">
+                      Once submitted, parameters will be{" "}
+                      <strong className="text-red-700">permanently locked</strong> and you will{" "}
+                      <strong className="text-red-700">not be able to make any changes</strong>. This action cannot be undone.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* What Happens Next */}
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
                   <svg className="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
-                    What Happens Next?
+                  <h4 className="text-sm font-semibold text-gray-900">
+                    What Happens Next
                   </h4>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="flex flex-col items-start gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                <div className="space-y-2.5">
+                  <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                    <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-4 h-4 text-green-600"
+                        className="w-4 h-4 text-emerald-600"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -175,14 +158,13 @@ const SubmitDialog: React.FC<SubmitDialogProps> = ({
                         />
                       </svg>
                     </div>
-                    <p className="text-xs text-gray-700 leading-relaxed">
-                      Parameters will be marked as{" "}
-                      <span className="font-semibold">Analysis Pending</span>
+                    <p className="text-sm text-gray-700 leading-relaxed flex-1">
+                      Parameters marked as <strong>Analysis Pending</strong>
                     </p>
                   </div>
 
-                  <div className="flex flex-col items-start gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg
                         className="w-4 h-4 text-blue-600"
                         fill="currentColor"
@@ -195,14 +177,13 @@ const SubmitDialog: React.FC<SubmitDialogProps> = ({
                         />
                       </svg>
                     </div>
-                    <p className="text-xs text-gray-700 leading-relaxed">
-                      All parameter details will be{" "}
-                      <span className="font-semibold">locked for editing</span>
+                    <p className="text-sm text-gray-700 leading-relaxed flex-1">
+                      All parameter details <strong>locked for editing</strong>
                     </p>
                   </div>
 
-                  <div className="flex flex-col items-start gap-2 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg
                         className="w-4 h-4 text-purple-600"
                         fill="currentColor"
@@ -216,39 +197,37 @@ const SubmitDialog: React.FC<SubmitDialogProps> = ({
                         />
                       </svg>
                     </div>
-                    <p className="text-xs text-gray-700 leading-relaxed">
-                      Assigned analysts can{" "}
-                      <span className="font-semibold">begin analysis</span>
+                    <p className="text-sm text-gray-700 leading-relaxed flex-1">
+                      Assigned analysts can <strong>begin analysis</strong>
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* Confirmation Question */}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200 text-center">
-                <p className="text-base font-bold text-gray-900">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200 text-center">
+                <p className="text-base font-semibold text-gray-900">
                   Are you sure you want to proceed?
                 </p>
                 <p className="text-sm text-gray-600 mt-1">
-                  This action will submit <span className="font-semibold text-emerald-600">{createdParametersCount}</span> parameter
-                  {createdParametersCount !== 1 ? "s" : ""} for analysis
+                  This will submit <strong className="text-emerald-600">{createdParametersCount}</strong> parameter{createdParametersCount !== 1 ? "s" : ""} for analysis
                 </p>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 flex gap-3 border-t border-gray-200 flex-shrink-0">
+            <div className="bg-gray-50 px-6 py-4 flex gap-3 border-t border-gray-200">
               <button
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="flex-1 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow"
+                className="flex-1 px-6 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={onConfirm}
                 disabled={isSubmitting}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98]"
+                className="flex-1 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-medium rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -259,14 +238,14 @@ const SubmitDialog: React.FC<SubmitDialogProps> = ({
                         repeat: Infinity,
                         ease: "linear",
                       }}
-                      className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
                     />
                     <span>Submitting...</span>
                   </>
                 ) : (
                   <>
                     <svg
-                      className="w-5 h-5"
+                      className="w-4 h-4"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -287,7 +266,6 @@ const SubmitDialog: React.FC<SubmitDialogProps> = ({
         </motion.div>
       )}
     </AnimatePresence>
-    </>
   );
 };
 

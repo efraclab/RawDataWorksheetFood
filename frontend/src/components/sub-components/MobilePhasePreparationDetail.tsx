@@ -1,48 +1,66 @@
 import { useState } from "react";
-import type { DissoMedia } from "../../preparation_models/DissoMedia";
-import type { DissoMediaStep } from "../../preparation_models/DissoMediaStep";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Droplets, Trash } from "lucide-react";
+import type { MobilePhasePreparation } from "../../preparation_models/MobilePhasePreparation";
+import type { MobilePhasePreparationStep } from "../../preparation_models/MobilePhasePreparationStep";
+import CustomDropdown from "../shared/CustomDropdown";
 
-const weightUnitOptions = ["g", "mg", "kg"];
-const filtrationUnitOptions = ["micron", "µm", "mm"];
-const timeUnitOptions = ["min", "hr", "sec"];
+const weightUnitOptions = [
+  { value: "mg", label: "mg" },
+  { value: "g", label: "g" },
+  { value: "kg", label: "kg" },
+];
 
+const filtrationUnitOptions = [
+  { value: "micron", label: "micron" },
+  { value: "µm", label: "µm" },
+  { value: "mm", label: "mm" },
+];
 
-interface DissoMediaDetailProps {
-  dissoMedia: DissoMedia;
+const timeUnitOptions = [
+  { value: "min", label: "min" },
+  { value: "hr", label: "hr" },
+  { value: "sec", label: "sec" },
+];
+
+interface MobilePhasePreparationDetailProps {
+  mobilePhase: MobilePhasePreparation;
   onStepChange: (
-    dissoMediaId: number,
-    stepName: DissoMediaStep["name"],
-    field: "value" | "logBookID" | "unit" | "solventChemical",
-    newValue: string
+    mobilePhaseId: number,
+    stepName: MobilePhasePreparationStep["name"],
+    field:
+      | "value1"
+      | "logBookID"
+      | "mobilePhaseID"
+      | "unit1"
+      | "solventChemical",
+    newValue: string,
   ) => void;
   onRemove: () => void;
 }
 
-const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
-  dissoMedia,
-  onStepChange,
-  onRemove,
-}) => {
+const MobilePhasePreparationDetail: React.FC<
+  MobilePhasePreparationDetailProps
+> = ({ mobilePhase, onStepChange, onRemove }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+
+  const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="relative group"
+      className="relative group z-20"
     >
       {/* Glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-yellow-400/20 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-emerald-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
 
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-amber-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-emerald-200/50 transition-all duration-300 mb-4">
         {/* Elegant Header */}
-        <div className="relative bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 overflow-hidden">
-          <div className="absolute inset-0 bg-black/5" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-
+        <div
+          className={`relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-500 ${headerRoundingClass}`}
+        >
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"
@@ -61,10 +79,10 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
 
               <div>
                 <h4 className="text-sm font-semibold text-white tracking-wide">
-                  {dissoMedia.label}
+                  {mobilePhase.label}
                 </h4>
-                <p className="text-xs text-yellow-100">
-                  Dissolution Media Preparation Details
+                <p className="text-xs text-emerald-100">
+                  Mobile Phase Preparation Details
                 </p>
               </div>
             </div>
@@ -92,7 +110,7 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 whileTap={{ scale: 0.9 }}
                 className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${dissoMedia.label}`}
+                title={`Remove ${mobilePhase.label}`}
               >
                 <Trash className="w-4 h-4 text-white" />
               </motion.button>
@@ -108,10 +126,9 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
             >
-              <div className="p-5 space-y-3 bg-gradient-to-br from-amber-50/50 to-yellow-50/30">
-                {dissoMedia.steps.map((step, index) => {
+              <div className="p-5 space-y-3 bg-gradient-to-br from-emerald-50/50 to-emerald-50/30">
+                {mobilePhase.steps.map((step, index) => {
                   const isWeighing = step.name === "Weighing";
                   const isPH = step.name === "PH";
                   const isSonication = step.name === "Sonication";
@@ -125,11 +142,11 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                       transition={{ delay: index * 0.1 }}
                       className="group/item relative"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-amber-400/0 via-amber-400/5 to-amber-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/0 via-emerald-400/5 to-emerald-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
 
-                      <div className="relative bg-white rounded-xl border border-amber-200/60 shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-200 p-4">
+                      <div className="relative bg-white rounded-xl border border-emerald-200/60 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all duration-200 p-4">
                         <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-full flex items-center justify-center shadow-md">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-emerald-500 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
                             <span className="text-white text-xs font-bold">
                               {index + 1}
                             </span>
@@ -137,10 +154,10 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
 
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-3">
-                              <div className="font-bold text-amber-900 text-sm">
+                              <div className="font-bold text-emerald-900 text-sm">
                                 {step.name}
                               </div>
-                              <div className="h-px flex-1 bg-gradient-to-r from-amber-200 to-transparent" />
+                              <div className="h-px flex-1 bg-gradient-to-r from-emerald-200 to-transparent" />
                             </div>
 
                             {isWeighing && (
@@ -154,36 +171,41 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.value}
+                                    value={step.value1}
                                     onChange={(e) =>
                                       onStepChange(
-                                        dissoMedia.id,
+                                        mobilePhase.id,
                                         step.name,
-                                        "value",
-                                        e.target.value
+                                        "value1",
+                                        e.target.value,
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
-                                    className="w-30 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
+                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                                   />
-                                  <select
-                                    value={step.unit}
-                                    onChange={(e) =>
+                                  <CustomDropdown
+                                    options={weightUnitOptions}
+                                    value={step.unit1}
+                                    onChange={(newValue) =>
                                       onStepChange(
-                                        dissoMedia.id,
+                                        mobilePhase.id,
                                         step.name,
-                                        "unit",
-                                        e.target.value
+                                        "unit1",
+                                        newValue,
                                       )
                                     }
-                                    className="w-16 px-2 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
-                                  >
-                                    {weightUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
+                                    placeholder="Unit"
+                                    colorScheme="emerald"
+                                  />
                                   <span className="text-gray-600 font-medium">
                                     of
                                   </span>
@@ -192,14 +214,14 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                     value={step.solventChemical || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        dissoMedia.id,
+                                        mobilePhase.id,
                                         step.name,
                                         "solventChemical",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     placeholder="Solvent/Chemical"
-                                    className="flex-1 min-w-[110px] px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                    className="flex-1 min-w-[110px] px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
                                   <span className="text-gray-500 text-xs">
                                     (Log ID:
@@ -209,14 +231,14 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                     value={step.logBookID}
                                     onChange={(e) =>
                                       onStepChange(
-                                        dissoMedia.id,
+                                        mobilePhase.id,
                                         step.name,
                                         "logBookID",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     placeholder="Enter ID"
-                                    className="w-28 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                    className="w-28 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
                                   <span className="text-gray-500 text-xs">
                                     )
@@ -236,17 +258,26 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.value}
+                                    value={step.value1}
                                     onChange={(e) =>
                                       onStepChange(
-                                        dissoMedia.id,
+                                        mobilePhase.id,
                                         step.name,
-                                        "value",
-                                        e.target.value
+                                        "value1",
+                                        e.target.value,
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter pH value"
-                                    className="w-40 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                    className="w-40 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
                                   <span className="text-gray-500 text-xs">
                                     (Log ID:
@@ -256,14 +287,14 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                     value={step.logBookID}
                                     onChange={(e) =>
                                       onStepChange(
-                                        dissoMedia.id,
+                                        mobilePhase.id,
                                         step.name,
                                         "logBookID",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     placeholder="Enter ID"
-                                    className="flex-1 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                    className="flex-1 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
                                   <span className="text-gray-500 text-xs">
                                     )
@@ -280,38 +311,42 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                 <input
                                   type="number"
                                   min="0"
-                                  step="0.01"
                                   inputMode="decimal"
-                                  value={step.value}
+                                  value={step.value1}
                                   onChange={(e) =>
                                     onStepChange(
-                                      dissoMedia.id,
+                                      mobilePhase.id,
                                       step.name,
-                                      "value",
-                                      e.target.value
+                                      "value1",
+                                      e.target.value,
                                     )
                                   }
+                                  onKeyDown={(e) => {
+                                    if (
+                                      e.key === "ArrowUp" ||
+                                      e.key === "ArrowDown"
+                                    ) {
+                                      e.preventDefault();
+                                    }
+                                  }}
+                                  onWheel={(e) => e.currentTarget.blur()}
                                   placeholder="Enter Size"
-                                  className="w-30 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                  className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                 />
-                                <select
-                                  value={step.unit}
-                                  onChange={(e) =>
+                                <CustomDropdown
+                                  options={filtrationUnitOptions}
+                                  value={step.unit1}
+                                  onChange={(newValue) =>
                                     onStepChange(
-                                      dissoMedia.id,
+                                      mobilePhase.id,
                                       step.name,
-                                      "unit",
-                                      e.target.value
+                                      "unit1",
+                                      newValue,
                                     )
                                   }
-                                  className="w-20 px-2 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
-                                >
-                                  {filtrationUnitOptions.map((unit) => (
-                                    <option key={unit} value={unit}>
-                                      {unit}
-                                    </option>
-                                  ))}
-                                </select>
+                                  placeholder="Unit"
+                                  colorScheme="emerald"
+                                />
                                 <span className="text-gray-600 font-medium">
                                   filter
                                 </span>
@@ -329,36 +364,59 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
                                     min="0"
                                     step="1"
                                     inputMode="numeric"
-                                    value={step.value}
+                                    value={step.value1}
                                     onChange={(e) =>
                                       onStepChange(
-                                        dissoMedia.id,
+                                        mobilePhase.id,
                                         step.name,
-                                        "value",
-                                        e.target.value
+                                        "value1",
+                                        e.target.value,
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Time"
-                                    className="w-30 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
-                                  <select
-                                    value={step.unit}
-                                    onChange={(e) =>
+                                  <CustomDropdown
+                                    options={timeUnitOptions}
+                                    value={step.unit1}
+                                    onChange={(newValue) =>
                                       onStepChange(
-                                        dissoMedia.id,
+                                        mobilePhase.id,
                                         step.name,
-                                        "unit",
-                                        e.target.value
+                                        "unit1",
+                                        newValue,
                                       )
                                     }
-                                    className="w-20 px-2 py-1.5 border border-amber-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
-                                  >
-                                    {timeUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
+                                    placeholder="Unit"
+                                    colorScheme="emerald"
+                                  />
+                                  <span className="text-gray-600">
+                                    (Mobile Phase ID:
+                                  </span>
+                                  <input
+                                    type="text"
+                                    value={step.mobilePhaseID}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        mobilePhase.id,
+                                        step.name,
+                                        "mobilePhaseID",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="Enter ID"
+                                    className="flex-1 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                                  />
+                                  <span className="text-gray-600">)</span>
                                 </div>
                               </div>
                             )}
@@ -377,4 +435,4 @@ const DissoMediaDetail: React.FC<DissoMediaDetailProps> = ({
   );
 };
 
-export default DissoMediaDetail
+export default MobilePhasePreparationDetail;

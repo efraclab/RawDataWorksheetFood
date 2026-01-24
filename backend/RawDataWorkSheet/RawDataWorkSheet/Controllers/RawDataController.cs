@@ -28,47 +28,47 @@ namespace RawDataWorkSheet.Controllers
             }
         }
 
-        [HttpGet("instruments")]
-        public async Task<IActionResult> GetInstruments()
-        {
-            try
-            {
-                var response = await _rawDataService.GetInstrumentsAsync();
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
+        //[HttpGet("instruments")]
+        //public async Task<IActionResult> GetInstruments()
+        //{
+        //    try
+        //    {
+        //        var response = await _rawDataService.GetInstrumentsAsync();
+        //        return Ok(response);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, ex.Message);
+        //    }
+        //}
 
-        [HttpGet("chemicals")]
-        public async Task<IActionResult> GetChemicals()
-        {
-            try
-            {
-                var response = await _rawDataService.GetChemicalsAsync();
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
+        //[HttpGet("chemicals")]
+        //public async Task<IActionResult> GetChemicals()
+        //{
+        //    try
+        //    {
+        //        var response = await _rawDataService.GetChemicalsAsync();
+        //        return Ok(response);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, ex.Message);
+        //    }
+        //}
 
-        [HttpGet("standards")]
-        public async Task<IActionResult> GetStandards()
-        {
-            try
-            {
-                var response = await _rawDataService.GetStandardsAsync();
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
+        //[HttpGet("standards")]
+        //public async Task<IActionResult> GetStandards()
+        //{
+        //    try
+        //    {
+        //        var response = await _rawDataService.GetStandardsAsync();
+        //        return Ok(response);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, ex.Message);
+        //    }
+        //}
 
         [HttpGet("columns")]
         public async Task<IActionResult> GetColumns()

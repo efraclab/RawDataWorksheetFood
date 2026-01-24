@@ -97,7 +97,7 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
                   <div className="space-y-2">
                     {availableStandards.map((standard, index) => (
                       <motion.button
-                        key={standard.id}
+                        key={standard.serialNo}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
@@ -105,7 +105,7 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
                         className={`
                           w-full text-left p-4 rounded-xl border-2 transition-all duration-200
                           ${
-                            selectedStandard?.id === standard.id
+                            selectedStandard?.serialNo === standard.serialNo
                               ? "border-emerald-500 bg-emerald-50 shadow-md"
                               : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50"
                           }
@@ -114,7 +114,7 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
                         <div className="flex items-start gap-3">
                           {/* Radio/Check indicator */}
                           <div className="flex-shrink-0 mt-0.5">
-                            {selectedStandard?.id === standard.id ? (
+                            {selectedStandard?.serialNo === standard.serialNo ? (
                               <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}

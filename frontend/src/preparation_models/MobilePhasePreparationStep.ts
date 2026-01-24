@@ -1,7 +1,8 @@
-export interface DissoMediaStep {
+export interface MobilePhasePreparationStep {
   name: "Weighing" | "PH" | "Filtration" | "Sonication";
-  value: string;
-  unit?: string;
+  value1: string;
+  unit1?: string;
   logBookID?: string;
+  mobilePhaseID?: string;
   solventChemical?: string;
 }

@@ -73,11 +73,11 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
   const getColorScheme = () => {
     if (isDisso) {
       return {
-        glowGradient: "from-emerald-400/20 to-green-400/20",
+        glowGradient: "from-emerald-400/20 to-emerald-400/20",
         borderColor: "border-emerald-200/50",
-        headerGradient: "from-emerald-600 via-emerald-500 to-green-500",
+        headerGradient: "from-emerald-600 via-emerald-500 to-emerald-500",
         textColor: "text-emerald-100",
-        bgGradient: "from-emerald-50/50 to-green-50/30",
+        bgGradient: "from-emerald-50/50 to-emerald-50/30",
         colorScheme: "emerald" as const,
         stepGradient: "from-emerald-400/0 via-emerald-400/5 to-emerald-400/0",
         stepBorder: "border-emerald-200/60",
@@ -86,49 +86,49 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
         stepBg: "bg-emerald-50",
         inputBorder: "border-emerald-300",
         focusRing: "focus:ring-emerald-400",
-        numberGradient: "from-emerald-500 to-green-500",
+        numberGradient: "from-emerald-500 to-emerald-500",
         lineGradient: "from-emerald-200",
         detailBorder: "border-emerald-200",
         label: "(Disso)",
       };
     } else if (isRS) {
       return {
-        glowGradient: "from-indigo-400/20 to-blue-400/20",
-        borderColor: "border-indigo-200/50",
-        headerGradient: "from-indigo-600 via-indigo-500 to-blue-500",
-        textColor: "text-indigo-100",
-        bgGradient: "from-indigo-50/50 to-blue-50/30",
+        glowGradient: "from-emerald-400/20 to-emerald-400/20",
+        borderColor: "border-emerald-200/50",
+        headerGradient: "from-emerald-600 via-emerald-500 to-emerald-500",
+        textColor: "text-emerald-100",
+        bgGradient: "from-emerald-50/50 to-emerald-50/30",
         colorScheme: "indigo" as const,
-        stepGradient: "from-indigo-400/0 via-indigo-400/5 to-indigo-400/0",
-        stepBorder: "border-indigo-200/60",
-        stepHoverBorder: "hover:border-indigo-300",
-        stepText: "text-indigo-900",
-        stepBg: "bg-indigo-50",
-        inputBorder: "border-indigo-300",
-        focusRing: "focus:ring-indigo-400",
-        numberGradient: "from-indigo-500 to-blue-500",
-        lineGradient: "from-indigo-200",
-        detailBorder: "border-indigo-200",
+        stepGradient: "from-emerald-400/0 via-emerald-400/5 to-emerald-400/0",
+        stepBorder: "border-emerald-200/60",
+        stepHoverBorder: "hover:border-emerald-300",
+        stepText: "text-emerald-900",
+        stepBg: "bg-emerald-50",
+        inputBorder: "border-emerald-300",
+        focusRing: "focus:ring-emerald-400",
+        numberGradient: "from-emerald-500 to-emerald-500",
+        lineGradient: "from-emerald-200",
+        detailBorder: "border-emerald-200",
         label: "(RS)",
       };
     } else {
       return {
-        glowGradient: "from-red-400/20 to-rose-400/20",
-        borderColor: "border-red-200/50",
-        headerGradient: "from-red-600 via-red-500 to-rose-500",
-        textColor: "text-red-100",
-        bgGradient: "from-red-50/50 to-rose-50/30",
+        glowGradient: "from-emerald-400/20 to-emerald-400/20",
+        borderColor: "border-emerald-200/50",
+        headerGradient: "from-emerald-600 via-emerald-500 to-emerald-500",
+        textColor: "text-emerald-100",
+        bgGradient: "from-emerald-50/50 to-emerald-50/30",
         colorScheme: "red" as const,
-        stepGradient: "from-red-400/0 via-red-400/5 to-red-400/0",
-        stepBorder: "border-red-200/60",
-        stepHoverBorder: "hover:border-red-300",
-        stepText: "text-red-900",
-        stepBg: "bg-red-50",
-        inputBorder: "border-red-300",
-        focusRing: "focus:ring-red-400",
-        numberGradient: "from-red-500 to-rose-500",
-        lineGradient: "from-red-200",
-        detailBorder: "border-red-200",
+        stepGradient: "from-emerald-400/0 via-emerald-400/5 to-emerald-400/0",
+        stepBorder: "border-emerald-200/60",
+        stepHoverBorder: "hover:border-emerald-300",
+        stepText: "text-emerald-900",
+        stepBg: "bg-emerald-50",
+        inputBorder: "border-emerald-300",
+        focusRing: "focus:ring-emerald-400",
+        numberGradient: "from-emerald-500 to-emerald-500",
+        lineGradient: "from-emerald-200",
+        detailBorder: "border-emerald-200",
         label: "",
       };
     }
@@ -177,9 +177,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
 
               <div>
                 <h4 className="text-sm font-semibold text-white tracking-wide">
-                  {`${standardPreparation.label} ${
-                    assignedStandard ? `(${assignedStandard.name})` : ""
-                  }`}
+                  {`${standardPreparation.label}`}
                 </h4>
                 <p className={`text-xs ${colors.textColor}`}>
                   Standard Preparation Details {colors.label}
@@ -319,11 +317,11 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         )
                                       }
                                       placeholder="Unit"
-                                      colorScheme={colors.colorScheme}
+                                      colorScheme={"emerald"}
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
-                                    of
+                                    (SW1) of
                                   </span>
 
                                   {/* Display assigned standard name (read-only) */}
@@ -334,8 +332,8 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                       {assignedStandard.name}
                                     </div>
                                   ) : (
-                                    <div className="flex-1 min-w-[150px] px-3 py-2 bg-red-50 border border-red-300 rounded-lg text-xs font-medium text-red-600">
-                                      No standard assigned
+                                    <div className="flex-1 min-w-[150px] px-3 py-2 bg-emerald-50 border border-emerald-300 rounded-lg text-xs font-medium text-emerald-600">
+                                      No Standard assigned
                                     </div>
                                   )}
                                 </div>
@@ -458,11 +456,11 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         )
                                       }
                                       placeholder="Unit"
-                                      colorScheme={colors.colorScheme}
+                                      colorScheme={'emerald'}
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
-                                    with diluent
+                                    (V1) with diluent
                                   </span>
                                 </div>
                               </div>
@@ -515,10 +513,15 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         )
                                       }
                                       placeholder="Unit"
-                                      colorScheme={colors.colorScheme}
+                                      colorScheme={'emerald'}
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
+                                    {is2ndDilution
+                                      ? "(V2)"
+                                      : is3rdDilution
+                                      ? "(V4)"
+                                      : "(V6)"}{" "}
                                     of{" "}
                                     {is2ndDilution
                                       ? "1st"
@@ -566,11 +569,16 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                         )
                                       }
                                       placeholder="Unit"
-                                      colorScheme={colors.colorScheme}
+                                      colorScheme={'emerald'}
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
-                                    with diluent
+                                    {is2ndDilution
+                                      ? "(V3)"
+                                      : is3rdDilution
+                                      ? "(V5)"
+                                      : "(V7)"}{" "}
+                                      with diluent
                                   </span>
                                 </div>
                               </div>
@@ -620,7 +628,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                                       )
                                     }
                                     placeholder="Unit"
-                                    colorScheme={colors.colorScheme}
+                                    colorScheme={'emerald'}
                                   />
                                 </div>
                                 <span className="text-gray-600 font-medium">

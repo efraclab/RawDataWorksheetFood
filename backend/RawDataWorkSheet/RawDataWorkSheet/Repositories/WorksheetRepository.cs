@@ -91,16 +91,15 @@ namespace RawDataWorkSheet.Repositories
 
             try
             {
-
                 var query = """
-            UPDATE raw_data_worksheets 
-            SET
-                number_of_parameters = @NumberOfParameters,
-                updated_at = SYSDATETIME(),
-                approved_at = @ApprovedAt,
-                status = @Status
-            WHERE worksheet_id = @WorksheetId
-        """;
+                    UPDATE raw_data_worksheets 
+                    SET
+                        number_of_parameters = @NumberOfParameters,
+                        updated_at = SYSDATETIME(),
+                        approved_at = @ApprovedAt,
+                        status = @Status
+                    WHERE worksheet_id = @WorksheetId
+                """;
 
                 await connection.ExecuteAsync(
                     query,
@@ -142,7 +141,7 @@ namespace RawDataWorkSheet.Repositories
                 var idsToDelete = existingParamDict
                     .Where(p =>
                         !requestParamCodes.Contains(p.Key) &&
-                        !(request.Role == "Reviewer"  &&
+                        !(request.Role == "Reviewer" &&
                           (p.Value.Status == "Analysis Started" ||
                            p.Value.Status == "Analysis Revision"))
                     )
@@ -182,8 +181,7 @@ namespace RawDataWorkSheet.Repositories
                         await UpsertInstruments(connection, transaction, parameterId, param.InstrumentIds);
                         await UpsertChemicals(connection, transaction, parameterId, param.ChemicalIds);
                         await UpsertStandards(connection, transaction, parameterId, param.StandardIds);
-                        await UpsertStandardPreparations(connection, transaction, parameterId, param.StandardPreparations);
-                        await UpsertSamplePreparations(connection, transaction, parameterId, param.SamplePreparations);
+                        await UpsertPreparations(connection, transaction, parameterId, param.Preparations);
                         await UpsertCalculations(connection, transaction, parameterId, param.Calculations);
                     }
                     else
@@ -198,8 +196,7 @@ namespace RawDataWorkSheet.Repositories
                         await UpsertInstruments(connection, transaction, parameterId, param.InstrumentIds);
                         await UpsertChemicals(connection, transaction, parameterId, param.ChemicalIds);
                         await UpsertStandards(connection, transaction, parameterId, param.StandardIds);
-                        await UpsertStandardPreparations(connection, transaction, parameterId, param.StandardPreparations);
-                        await UpsertSamplePreparations(connection, transaction, parameterId, param.SamplePreparations);
+                        await UpsertPreparations(connection, transaction, parameterId, param.Preparations);
                         await UpsertCalculations(connection, transaction, parameterId, param.Calculations);
                     }
                 }
@@ -212,7 +209,6 @@ namespace RawDataWorkSheet.Repositories
                 throw;
             }
         }
-
 
         public async Task UpdateParameterAsync(int parameterId, ParameterDto request)
         {
@@ -238,8 +234,7 @@ namespace RawDataWorkSheet.Repositories
                 await UpsertInstruments(connection, transaction, parameterId, request.InstrumentIds);
                 await UpsertChemicals(connection, transaction, parameterId, request.ChemicalIds);
                 await UpsertStandards(connection, transaction, parameterId, request.StandardIds);
-                await UpsertStandardPreparations(connection, transaction, parameterId, request.StandardPreparations);
-                await UpsertSamplePreparations(connection, transaction, parameterId, request.SamplePreparations);
+                await UpsertPreparations(connection, transaction, parameterId, request.Preparations);
                 await UpsertCalculations(connection, transaction, parameterId, request.Calculations);
 
                 transaction.Commit();
@@ -276,12 +271,7 @@ namespace RawDataWorkSheet.Repositories
                     transaction);
 
                 await connection.ExecuteAsync(
-                    "DELETE FROM worksheet_standard_preparations WHERE parameter_id = @ParameterId",
-                    new { ParameterId = parameterId },
-                    transaction);
-
-                await connection.ExecuteAsync(
-                    "DELETE FROM worksheet_sample_preparations WHERE parameter_id = @ParameterId",
+                    "DELETE FROM worksheet_preparations WHERE parameter_id = @ParameterId",
                     new { ParameterId = parameterId },
                     transaction);
 
@@ -318,10 +308,9 @@ namespace RawDataWorkSheet.Repositories
 
             try
             {
-
                 var existingParamId = await connection.ExecuteScalarAsync<int?>(
                     @"SELECT id FROM worksheet_parameters 
-              WHERE worksheet_id = @WorksheetId AND para_code = @ParaCode",
+                      WHERE worksheet_id = @WorksheetId AND para_code = @ParaCode",
                     new { WorksheetId = worksheetId, ParaCode = parameter.ParaCode },
                     transaction
                 );
@@ -343,15 +332,14 @@ namespace RawDataWorkSheet.Repositories
                 await UpsertInstruments(connection, transaction, parameterId, parameter.InstrumentIds);
                 await UpsertChemicals(connection, transaction, parameterId, parameter.ChemicalIds);
                 await UpsertStandards(connection, transaction, parameterId, parameter.StandardIds);
-                await UpsertStandardPreparations(connection, transaction, parameterId, parameter.StandardPreparations);
-                await UpsertSamplePreparations(connection, transaction, parameterId, parameter.SamplePreparations);
+                await UpsertPreparations(connection, transaction, parameterId, parameter.Preparations);
                 await UpsertCalculations(connection, transaction, parameterId, parameter.Calculations);
 
                 await connection.ExecuteAsync(
                     @"UPDATE raw_data_worksheets 
-              SET number_of_parameters = number_of_parameters + 1,
-                  updated_at = SYSDATETIME()
-              WHERE worksheet_id = @WorksheetId",
+                      SET number_of_parameters = number_of_parameters + 1,
+                          updated_at = SYSDATETIME()
+                      WHERE worksheet_id = @WorksheetId",
                     new { WorksheetId = worksheetId },
                     transaction
                 );
@@ -366,8 +354,6 @@ namespace RawDataWorkSheet.Repositories
                 throw;
             }
         }
-
-
 
         public async Task DeleteWorksheetAsync(string worksheetId)
         {
@@ -401,7 +387,6 @@ namespace RawDataWorkSheet.Repositories
                 query1,
                 new { WorksheetId = worksheetId });
 
-
             if (worksheet == null)
                 return null;
 
@@ -426,45 +411,45 @@ namespace RawDataWorkSheet.Repositories
             if (request.Role == "Reviewer")
             {
                 sql = @"
-            SELECT 
-                worksheet_id as WorksheetId,
-                registration_no as RegistrationNo,
-                sample_name as SampleName,
-                number_of_parameters as NumberOfParameters,
-                status as Status,
-                created_at as CreatedAt
-            FROM raw_data_worksheets
-            WHERE (prepared_by = @EmployeeId)
-            ORDER BY created_at DESC";
+                    SELECT 
+                        worksheet_id as WorksheetId,
+                        registration_no as RegistrationNo,
+                        sample_name as SampleName,
+                        number_of_parameters as NumberOfParameters,
+                        status as Status,
+                        created_at as CreatedAt
+                    FROM raw_data_worksheets
+                    WHERE (prepared_by = @EmployeeId)
+                    ORDER BY created_at DESC";
             }
             else
             {
                 sql = @"
-                WITH cte AS (
-                    SELECT 
-                        w.worksheet_id        AS WorksheetId,
-                        p.id                  AS ParameterId,
-                        p.parameter_name      AS ParameterName,
-                        w.registration_no     AS RegistrationNo,
-                        w.sample_name         AS SampleName,
-                        w.number_of_parameters AS NumberOfParameters,
-                        w.status              AS Status,
-                        w.created_at          AS CreatedAt,
-                        ROW_NUMBER() OVER (
-                            PARTITION BY w.worksheet_id
-                            ORDER BY p.id
-                        ) AS rn
-                    FROM raw_data_worksheets w
-                    JOIN worksheet_parameters p
-                        ON w.worksheet_id = p.worksheet_id
-                    WHERE p.analyzed_by = @EmployeeId
-                      AND w.status <> 'Draft'
-                )
-                SELECT *
-                FROM cte
-                WHERE rn = 1
-                ORDER BY CreatedAt DESC;
-            ";
+                    WITH cte AS (
+                        SELECT 
+                            w.worksheet_id        AS WorksheetId,
+                            p.id                  AS ParameterId,
+                            p.parameter_name      AS ParameterName,
+                            w.registration_no     AS RegistrationNo,
+                            w.sample_name         AS SampleName,
+                            w.number_of_parameters AS NumberOfParameters,
+                            w.status              AS Status,
+                            w.created_at          AS CreatedAt,
+                            ROW_NUMBER() OVER (
+                                PARTITION BY w.worksheet_id
+                                ORDER BY p.id
+                            ) AS rn
+                        FROM raw_data_worksheets w
+                        JOIN worksheet_parameters p
+                            ON w.worksheet_id = p.worksheet_id
+                        WHERE p.analyzed_by = @EmployeeId
+                          AND w.status <> 'Draft'
+                    )
+                    SELECT *
+                    FROM cte
+                    WHERE rn = 1
+                    ORDER BY CreatedAt DESC;
+                ";
             }
 
             var worksheets = await connection.QueryAsync<WorksheetSummaryDto>(
@@ -479,9 +464,9 @@ namespace RawDataWorkSheet.Repositories
                 if (worksheet.Status == "Submitted For Analysis")
                 {
                     var parameterStatusSql = @"
-                SELECT status
-                FROM worksheet_parameters
-                WHERE worksheet_id = @WorksheetId";
+                        SELECT status
+                        FROM worksheet_parameters
+                        WHERE worksheet_id = @WorksheetId";
 
                     var parameterStatuses = await connection.QueryAsync<string>(
                         parameterStatusSql,
@@ -695,30 +680,32 @@ namespace RawDataWorkSheet.Repositories
             }
         }
 
-        private async Task UpsertStandardPreparations(
+        private async Task UpsertPreparations(
             IDbConnection connection,
             IDbTransaction transaction,
             int parameterId,
-            List<StandardPreparationDto> preparations)
+            List<PreparationDto> preparations)
         {
             if (preparations == null)
-                preparations = new List<StandardPreparationDto>();
+                preparations = new List<PreparationDto>();
 
-            // Get existing standard preparations with their IDs
-            var existing = await connection.QueryAsync<(int Id, string Label, string PreparationType)>(
-                @"SELECT id, label, preparation_type 
-                  FROM worksheet_standard_preparations 
+            // Get existing preparations with their IDs
+            var existing = await connection.QueryAsync<(int Id, string Label, string PreparationType, string PreparationCategory)>(
+                @"SELECT id, label, preparation_type, preparation_category 
+                  FROM worksheet_preparations 
                   WHERE parameter_id = @ParameterId",
                 new { ParameterId = parameterId },
                 transaction);
 
-            // Create lookup by composite key (Label + PreparationType)
+            // Create lookup by composite key (Label + PreparationType + PreparationCategory)
             var existingDict = existing.ToDictionary(
-                x => $"{x.Label}_{x.PreparationType}",
+                x => $"{x.Label}_{x.PreparationType ?? ""}_{x.PreparationCategory}",
                 x => x.Id
             );
 
-            var newKeys = preparations.Select(p => $"{p.Label}_{p.PreparationType}").ToHashSet();
+            var newKeys = preparations
+                .Select(p => $"{p.Label}_{p.PreparationType ?? ""}_{p.PreparationCategory}")
+                .ToHashSet();
             var existingKeys = existingDict.Keys.ToHashSet();
 
             // Delete preparations that no longer exist
@@ -727,7 +714,7 @@ namespace RawDataWorkSheet.Repositories
             {
                 var idsToDelete = toDelete.Select(key => existingDict[key]).ToList();
                 await connection.ExecuteAsync(
-                    "DELETE FROM worksheet_standard_preparations WHERE id IN @Ids",
+                    "DELETE FROM worksheet_preparations WHERE id IN @Ids",
                     new { Ids = idsToDelete },
                     transaction);
             }
@@ -735,99 +722,25 @@ namespace RawDataWorkSheet.Repositories
             // Update existing or insert new
             foreach (var prep in preparations)
             {
-                var key = $"{prep.Label}_{prep.PreparationType}";
+                var key = $"{prep.Label}_{prep.PreparationType ?? ""}_{prep.PreparationCategory}";
 
                 if (existingDict.TryGetValue(key, out var existingId))
                 {
                     // Update existing
                     await connection.ExecuteAsync(
-                        @"UPDATE worksheet_standard_preparations 
+                        @"UPDATE worksheet_preparations 
                           SET assigned_standard_id = @AssignedStandardId,
-                              steps = @Steps
+                              steps = @Steps,
+                              preparation_type = @PreparationType,
+                              preparation_category = @PreparationCategory
                           WHERE id = @Id",
                         new
                         {
                             Id = existingId,
                             prep.AssignedStandardId,
-                            prep.Steps
-                        },
-                        transaction);
-                }
-                else
-                {
-                    // Insert new
-                    await connection.ExecuteAsync(
-                        @"INSERT INTO worksheet_standard_preparations 
-                          (parameter_id, preparation_type, label, assigned_standard_id, steps)
-                          VALUES (@ParameterId, @PreparationType, @Label, @AssignedStandardId, @Steps)",
-                        new
-                        {
-                            ParameterId = parameterId,
+                            prep.Steps,
                             prep.PreparationType,
-                            prep.Label,
-                            prep.AssignedStandardId,
-                            prep.Steps
-                        },
-                        transaction);
-                }
-            }
-        }
-
-        private async Task UpsertSamplePreparations(
-            IDbConnection connection,
-            IDbTransaction transaction,
-            int parameterId,
-            List<SamplePreparationDto> preparations)
-        {
-            if (preparations == null)
-                preparations = new List<SamplePreparationDto>();
-
-            // Get existing sample preparations with their IDs
-            var existing = await connection.QueryAsync<(int Id, string Label, string PreparationType)>(
-                @"SELECT id, label, preparation_type 
-                  FROM worksheet_sample_preparations 
-                  WHERE parameter_id = @ParameterId",
-                new { ParameterId = parameterId },
-                transaction);
-
-            // Create lookup by composite key (Label + PreparationType)
-            var existingDict = existing.ToDictionary(
-                x => $"{x.Label}_{x.PreparationType}",
-                x => x.Id
-            );
-
-            var newKeys = preparations.Select(p => $"{p.Label}_{p.PreparationType}").ToHashSet();
-            var existingKeys = existingDict.Keys.ToHashSet();
-
-            // Delete preparations that no longer exist
-            var toDelete = existingKeys.Except(newKeys).ToList();
-            if (toDelete.Any())
-            {
-                var idsToDelete = toDelete.Select(key => existingDict[key]).ToList();
-                await connection.ExecuteAsync(
-                    "DELETE FROM worksheet_sample_preparations WHERE id IN @Ids",
-                    new { Ids = idsToDelete },
-                    transaction);
-            }
-
-            // Update existing or insert new
-            foreach (var prep in preparations)
-            {
-                var key = $"{prep.Label}_{prep.PreparationType}";
-
-                if (existingDict.TryGetValue(key, out var existingId))
-                {
-                    // Update existing
-                    await connection.ExecuteAsync(
-                        @"UPDATE worksheet_sample_preparations 
-                          SET assigned_standard_id = @AssignedStandardId,
-                              steps = @Steps
-                          WHERE id = @Id",
-                        new
-                        {
-                            Id = existingId,
-                            prep.AssignedStandardId,
-                            prep.Steps
+                            prep.PreparationCategory
                         },
                         transaction);
                 }
@@ -835,12 +748,13 @@ namespace RawDataWorkSheet.Repositories
                 {
                     // Insert new
                     await connection.ExecuteAsync(
-                        @"INSERT INTO worksheet_sample_preparations 
-                          (parameter_id, preparation_type, label, assigned_standard_id, steps)
-                          VALUES (@ParameterId, @PreparationType, @Label, @AssignedStandardId, @Steps)",
+                        @"INSERT INTO worksheet_preparations 
+                          (parameter_id, preparation_category, preparation_type, label, assigned_standard_id, steps)
+                          VALUES (@ParameterId, @PreparationCategory, @PreparationType, @Label, @AssignedStandardId, @Steps)",
                         new
                         {
                             ParameterId = parameterId,
+                            prep.PreparationCategory,
                             prep.PreparationType,
                             prep.Label,
                             prep.AssignedStandardId,
@@ -979,7 +893,7 @@ namespace RawDataWorkSheet.Repositories
                         other_info    AS OtherInfo,
                         status        AS Status
                     FROM worksheet_parameters
-                    WHERE worksheet_id = @WorksheetId AND analyzed_by = @EmployeeId AND status != 'Created'";
+                    WHERE worksheet_id = @WorksheetId AND analyzed_by = @EmployeeId";
             }
 
             var parameters = await connection.QueryAsync<WorksheetParameter>(
@@ -1005,15 +919,14 @@ namespace RawDataWorkSheet.Repositories
                     ApprovedAt = param.ApprovedAt?.ToString("dd/MM/yyyy"),
                     Status = param.Status,
                 };
-
-                if(param.ApprovedBy != null)
+                if (param.ApprovedBy != null)
                 {
                     var query = """
-                        SELECT 
-                            emp_name AS [Username]
-                        FROM participants_rawdata
-                        WHERE emp_id = @EmployeeId
-                    """;
+                    SELECT 
+                        emp_name AS [Username]
+                    FROM participants_rawdata
+                    WHERE emp_id = @EmployeeId
+                """;
 
                     paramDetail.ApprovedByName = await connection.QueryFirstAsync<string>(
                         query,
@@ -1023,11 +936,11 @@ namespace RawDataWorkSheet.Repositories
                 if (param.AnalyzedBy != null)
                 {
                     var query = """
-                        SELECT 
-                            emp_name AS [Username]
-                        FROM participants_rawdata
-                        WHERE emp_id = @EmployeeId
-                    """;
+                    SELECT 
+                        emp_name AS [Username]
+                    FROM participants_rawdata
+                    WHERE emp_id = @EmployeeId
+                """;
 
                     paramDetail.AnalyzedByName = await connection.QueryFirstAsync<string>(
                         query,
@@ -1049,36 +962,24 @@ namespace RawDataWorkSheet.Repositories
                     new { ParameterId = param.Id });
                 paramDetail.StandardIds = standards.Select(s => s.StandardId).ToList();
 
-                var standardPreps = await connection.QueryAsync<WorksheetStandardPreparation>(
+                // Fetch all preparations from unified table
+                var preparations = await connection.QueryAsync<WorksheetPreparation>(
                     @"SELECT 
-                        label AS Label,
-                        steps AS Steps,
-                        assigned_standard_id AS AssignedStandardId,
-                        preparation_type AS PreparationType
-                    FROM worksheet_standard_preparations WHERE parameter_id = @ParameterId",
+                    label AS Label,
+                    steps AS Steps,
+                    assigned_standard_id AS AssignedStandardId,
+                    preparation_type AS PreparationType,
+                    preparation_category AS PreparationCategory
+                FROM worksheet_preparations WHERE parameter_id = @ParameterId",
                     new { ParameterId = param.Id });
-                paramDetail.StandardPreparations = standardPreps.Select(sp => new StandardPreparationDto
-                {
-                    Label = sp.Label,
-                    AssignedStandardId = sp.AssignedStandardId,
-                    Steps = sp.Steps,
-                    PreparationType = sp.PreparationType
-                }).ToList();
 
-                var samplePreps = await connection.QueryAsync<WorksheetSamplePreparation>(
-                    @"SELECT
-                        label AS Label,
-                        steps AS Steps,
-                        assigned_standard_id AS AssignedStandardId,
-                        preparation_type AS PreparationType
-                    FROM worksheet_sample_preparations WHERE parameter_id = @ParameterId",
-                    new { ParameterId = param.Id });
-                paramDetail.SamplePreparations = samplePreps.Select(sp => new SamplePreparationDto
+                paramDetail.Preparations = preparations.Select(p => new PreparationDto
                 {
-                    Label = sp.Label,
-                    AssignedStandardId = sp.AssignedStandardId,
-                    Steps = sp.Steps,
-                    PreparationType = sp.PreparationType
+                    Label = p.Label,
+                    AssignedStandardId = p.AssignedStandardId,
+                    Steps = p.Steps,
+                    PreparationType = p.PreparationType,
+                    PreparationCategory = p.PreparationCategory
                 }).ToList();
 
                 var calculations = await connection.QueryAsync<WorksheetCalculation>(

@@ -4,8 +4,8 @@ import {
   ChevronDown,
   Calculator,
   Trash,
-  AlertTriangle,
   CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import type { CalculationRS } from "../../preparation_models/CalculationRS";
 import type { StandardPreparation } from "../../preparation_models/StandardPreparation";
@@ -25,25 +25,12 @@ interface CalculationDetailRSProps {
   role: string;
 }
 
-// Helper component for warning indicator
-const WarningIndicator: React.FC<{ value: string | number }> = ({ value }) => {
-  const strValue = String(value);
-  const isInvalid = strValue.trim() === "" || parseFloat(strValue) === 0;
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
 
-  if (isInvalid) {
-    return (
-      <span
-        className="text-amber-500 ml-2"
-        title="Missing or zero value detected"
-      >
-        <AlertTriangle className="w-4 h-4 inline-block" />
-      </span>
-    );
-  }
-  return null;
-};
-
-// Unit conversion helpers
 const convertMassToMg = (value: string | number, unit: string): number => {
   const val = parseFloat(String(value));
   if (isNaN(val)) return 0;
@@ -58,6 +45,7 @@ const convertMassToMg = (value: string | number, unit: string): number => {
       return val * 1000000;
     case "mcg":
     case "ug":
+    case "microgram":
       return val / 1000;
     default:
       return val;
@@ -71,11 +59,14 @@ const convertVolumeToMl = (value: string | number, unit: string): number => {
   const lowerUnit = unit.toLowerCase().trim();
   switch (lowerUnit) {
     case "ml":
+    case "milliliter":
       return val;
     case "l":
+    case "liter":
       return val * 1000;
     case "ul":
-    case "µl":
+    case "Âµl":
+    case "microliter":
       return val / 1000;
     default:
       return val;
@@ -91,6 +82,11 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
   role,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [validationResult, setValidationResult] = useState<ValidationResult>({
+    isValid: false,
+    errors: [],
+    warnings: [],
+  });
 
   // Get selected preparations
   const selectedStandardPrep = standardPreparations.find(
@@ -122,7 +118,6 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
     })
     .filter(Boolean);
 
-  // Get current selected preparation label
   const currentPrepLabel = selectedStandardPrep?.label || "";
 
   useEffect(() => {
@@ -142,7 +137,6 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
     preparationPairs,
   ]);
 
-  // Handle preparation pair selection
   const handlePreparationChange = (value: string) => {
     const selectedPair = preparationPairs.find((pair) => pair?.value === value);
 
@@ -163,10 +157,12 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
     }
   };
 
-  // Extract dilution values from preparations
   const getStandardDilutions = () => {
     if (!selectedStandardPrep) return [];
-    return selectedStandardPrep.steps
+    const stepsArr = Array.isArray(selectedStandardPrep.steps)
+      ? selectedStandardPrep.steps
+      : [];
+    return stepsArr
       .filter(
         (step) =>
           step.name === "1st Dilution" ||
@@ -184,7 +180,10 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
 
   const getSampleDilutions = () => {
     if (!selectedSamplePrep) return [];
-    return selectedSamplePrep.steps
+    const stepsArr = Array.isArray(selectedSamplePrep.steps)
+      ? selectedSamplePrep.steps
+      : [];
+    return stepsArr
       .filter((step) => step.name === "1st Dilution")
       .map((step) => ({
         name: step.name,
@@ -197,9 +196,10 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
 
   const getStandardWeight = () => {
     if (!selectedStandardPrep) return { value: "", unit: "g" };
-    const weighingStep = selectedStandardPrep.steps.find(
-      (step) => step.name === "Weighing"
-    );
+    const stepsArr = Array.isArray(selectedStandardPrep.steps)
+      ? selectedStandardPrep.steps
+      : [];
+    const weighingStep = stepsArr.find((step) => step.name === "Weighing");
     return {
       value: weighingStep?.value1 || "",
       unit: weighingStep?.unit1 || "g",
@@ -208,9 +208,10 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
 
   const getSampleWeight = () => {
     if (!selectedSamplePrep) return { value: "", unit: "g" };
-    const weighingStep = selectedSamplePrep.steps.find(
-      (step) => step.name === "Weighing"
-    );
+    const stepsArr = Array.isArray(selectedSamplePrep.steps)
+      ? selectedSamplePrep.steps
+      : [];
+    const weighingStep = stepsArr.find((step) => step.name === "Weighing");
     return {
       value: weighingStep?.value1 || "",
       unit: weighingStep?.unit1 || "g",
@@ -222,24 +223,233 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
   const standardWeight = getStandardWeight();
   const sampleWeight = getSampleWeight();
 
+  const validatePreparations = (): ValidationResult => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    if (!selectedStandardPrep || !selectedSamplePrep) {
+      errors.push("Please select both Standard and Sample preparations");
+      return { isValid: false, errors, warnings };
+    }
+
+    const isValueValid = (value: any): boolean => {
+      if (value === null || value === undefined) return false;
+      const strValue = String(value).trim();
+      return (
+        strValue !== "" &&
+        !isNaN(parseFloat(strValue)) &&
+        parseFloat(strValue) !== 0
+      );
+    };
+
+    const stdSteps = Array.isArray(selectedStandardPrep.steps)
+      ? selectedStandardPrep.steps
+      : [];
+
+    const stdWeighing = stdSteps.find((s) => s.name === "Weighing");
+    if (!stdWeighing) {
+      errors.push("Standard Preparation: Weighing step is missing");
+    } else {
+      if (!isValueValid(stdWeighing.value1)) {
+        errors.push(
+          "Standard Preparation - Weighing: Weight value is required"
+        );
+      }
+      if (!stdWeighing.logBookID || stdWeighing.logBookID.trim() === "") {
+        errors.push("Standard Preparation - Weighing: Logbook ID is required");
+      }
+    }
+
+    standardDilutions.forEach((dilution) => {
+      if (dilution.name !== "1st Dilution") {
+        if (!isValueValid(dilution.vol1)) {
+          errors.push(
+            `Standard Preparation - ${dilution.name}: Volume 1 is required`
+          );
+        }
+        if (!isValueValid(dilution.vol2)) {
+          errors.push(
+            `Standard Preparation - ${dilution.name}: Volume 2 is required`
+          );
+        }
+      }
+    });
+
+    const smpSteps = Array.isArray(selectedSamplePrep.steps)
+      ? selectedSamplePrep.steps
+      : [];
+
+    const smpWeighing = smpSteps.find((s) => s.name === "Weighing");
+    if (!smpWeighing) {
+      errors.push("Sample Preparation: Weighing step is missing");
+    } else {
+      if (!isValueValid(smpWeighing.value1)) {
+        errors.push("Sample Preparation - Weighing: Weight value is required");
+      }
+      if (!smpWeighing.logBookID || smpWeighing.logBookID.trim() === "") {
+        errors.push("Sample Preparation - Weighing: Logbook ID is required");
+      }
+    }
+
+    sampleDilutions.forEach((dilution) => {
+      if (!isValueValid(dilution.vol1)) {
+        errors.push(
+          `Sample Preparation - ${dilution.name}: Volume is required`
+        );
+      }
+    });
+
+    if (!isValueValid(calculation.areaOfSample)) {
+      errors.push("Area/ABS of Sample is required");
+    }
+
+    if (!isValueValid(calculation.areaOfStandard)) {
+      errors.push("Area/ABS of Standard is required");
+    }
+
+    if (!isValueValid(calculation.purity)) {
+      errors.push("Purity is required");
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    };
+  };
+
+  useEffect(() => {
+    const result = validatePreparations();
+    setValidationResult(result);
+  }, [selectedStandardPrep, selectedSamplePrep]);
+
+  // Formula Display Component
+  const FormulaDisplay: React.FC = () => {
+    if (!selectedStandardPrep || !selectedSamplePrep) return null;
+
+    const areaSmp = calculation.areaOfSample || "1";
+    const areaStd = calculation.areaOfStandard || "1";
+    const purity = calculation.purity || "100";
+
+    const sw1Value = standardWeight.value || "1";
+    const sw2Value = sampleWeight.value || "1";
+
+    const V1 = standardDilutions[0]
+      ? convertVolumeToMl(standardDilutions[0].vol1, standardDilutions[0].unit1).toString()
+      : "1";
+    const V2 = standardDilutions[1]
+      ? convertVolumeToMl(standardDilutions[1].vol1, standardDilutions[1].unit1).toString()
+      : "1";
+    const V3 = standardDilutions[1]
+      ? convertVolumeToMl(standardDilutions[1].vol2, standardDilutions[1].unit2).toString()
+      : "1";
+    const V4 = standardDilutions[2]
+      ? convertVolumeToMl(standardDilutions[2].vol1, standardDilutions[2].unit1).toString()
+      : "1";
+    const V5 = standardDilutions[2]
+      ? convertVolumeToMl(standardDilutions[2].vol2, standardDilutions[2].unit2).toString()
+      : "1";
+    const V6 = sampleDilutions[0]
+      ? convertVolumeToMl(sampleDilutions[0].vol1, sampleDilutions[0].unit1).toString()
+      : "1";
+
+    const numeratorSymbolic = [
+      "Area/ABS of Sample",
+      "X SW1",
+      "X V2",
+      "X V4",
+      "X V6",
+      "X Purity",
+      "X 1000000",
+    ];
+
+    const denominatorSymbolic = [
+      "Area/ABS of Standard",
+      "X V1",
+      "X V3",
+      "X V5",
+      "X SW2",
+      "X 100",
+    ];
+
+    const numeratorValues = [areaSmp, sw1Value, V2, V4, V6, purity, "1000000"];
+    const denominatorValues = [areaStd, V1, V3, V5, sw2Value, "100"];
+
+    return (
+      <div className="bg-white rounded-lg p-4 border-2 border-emerald-200 shadow-sm mt-4">
+        <h4 className="text-sm font-bold text-gray-900 mb-3">
+          Formula for Residual Solvent
+        </h4>
+
+        {/* Symbolic Formula */}
+        <div className="bg-gray-50 rounded p-3 mb-3">
+          <div className="flex flex-col items-center">
+            <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
+              <p className="text-xs font-mono text-black break-words">
+                {numeratorSymbolic.join(" ")}
+              </p>
+            </div>
+            <div className="text-center px-2 w-full">
+              <p className="text-xs font-mono text-black break-words">
+                {denominatorSymbolic.join(" ")}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Values Formula with = sign */}
+        <div className="bg-emerald-50 rounded p-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold text-black">=</span>
+            <div className="flex-1 flex flex-col items-center">
+              <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
+                <p className="text-xs font-mono text-black break-words">
+                  {numeratorValues.join(" X ")}
+                </p>
+              </div>
+              <div className="text-center px-2 w-full">
+                <p className="text-xs font-mono text-black break-words">
+                  {denominatorValues.join(" X ")}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-xs text-right text-gray-600 mt-2 font-semibold">
+          = ppm
+        </p>
+      </div>
+    );
+  };
+
   const canCalculate = selectedStandardPrep && selectedSamplePrep;
 
-  // Calculation Logic for Residual Solvent
   const performCalculation = () => {
-    console.group("🧪 Residual Solvent Calculation Started");
+    const result = validatePreparations();
+    setValidationResult(result);
 
-    if (!canCalculate) {
-      console.warn("Cannot calculate: Missing preparations");
+    if (!result.isValid) {
       onFieldChange(
         calculation.id,
         "calculationResult",
-        "Error: Please select both Standard and Sample preparations and a calculation type."
+        `Error: Cannot calculate - ${result.errors.length} validation error(s). Please check the validation messages above.`
+      );
+      return;
+    }
+
+    console.group("🧪 Residual Solvent Calculation Started");
+
+    if (!canCalculate) {
+      onFieldChange(
+        calculation.id,
+        "calculationResult",
+        "Error: Please select both Standard and Sample preparations."
       );
       console.groupEnd();
       return;
     }
 
-    // Parse inputs
     const AreaOfSample = parseFloat(calculation.areaOfSample as string) || 1;
     const AreaOfStandard =
       parseFloat(calculation.areaOfStandard as string) || 1;
@@ -258,7 +468,6 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
       Purity: Purity,
     });
 
-    // Get volumes
     const V1 = standardDilutions[0]
       ? convertVolumeToMl(standardDilutions[0].vol1, standardDilutions[0].unit1)
       : 1;
@@ -280,16 +489,11 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
 
     console.log("2. Volumes (converted to mL):", { V1, V2, V3, V4, V5, V6 });
 
-    // Calculate ratios
     const AreaRatio = AreaOfStandard !== 0 ? AreaOfSample / AreaOfStandard : 0;
     const PurityFactor = Purity / 100;
 
-    console.log("3. Ratios:", {
-      AreaRatio,
-      PurityFactor,
-    });
+    console.log("3. Ratios:", { AreaRatio, PurityFactor });
 
-    // Formula: (Area/ABS of Sample × SW1 × V2 × V4 × V6 × Purity) / (Area/ABS of Standard × V1 × V3 × V5 × SW2 × 100)
     let FinalResult = 0;
     const numerator = AreaOfSample * SW1_Standard * V2 * V4 * V6 * Purity;
     const denominator = AreaOfStandard * V1 * V3 * V5 * SW2_Sample * 100;
@@ -315,6 +519,15 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
       onFieldChange(calculation.id, "calculationResult", result);
       onFieldChange(calculation.id, "calculationResultUnit", "ppm");
     }
+
+    onFieldChange(calculation.id, "sw1", SW1_Standard.toString());
+    onFieldChange(calculation.id, "sw2", SW2_Sample.toString());
+    onFieldChange(calculation.id, "v1", V1.toString());
+    onFieldChange(calculation.id, "v2", V2.toString());
+    onFieldChange(calculation.id, "v3", V3.toString());
+    onFieldChange(calculation.id, "v4", V4.toString());
+    onFieldChange(calculation.id, "v5", V5.toString());
+    onFieldChange(calculation.id, "v6", V6.toString());
   };
 
   return (
@@ -322,253 +535,161 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="relative group z-20"
+      className="bg-white rounded-xl shadow-lg border-2 border-emerald-200 overflow-hidden mb-6"
     >
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-indigo-200/50 shadow-lg hover:shadow-xl transition-all duration-300 mb-4">
-        {/* Header */}
-        <div
-          className={`relative bg-gradient-to-r from-indigo-600 via-indigo-500 to-blue-500 ${
-            isExpanded ? "rounded-t-lg" : "rounded-lg"
-          }`}
-        >
-          <div className="relative flex items-center justify-between px-4 py-3">
-            <div
-              className="flex items-center gap-4 flex-1 cursor-pointer select-none"
-              onClick={() => setIsExpanded(!isExpanded)}
+      <div
+        className={`relative bg-gradient-to-r from-emerald-600 to-emerald-600 ${
+          isExpanded ? "rounded-t-lg" : "rounded-lg"
+        }`}
+      >
+        <div className="relative flex items-center justify-between px-4 py-3">
+          <div
+            className="flex items-center gap-4 flex-1 cursor-pointer select-none"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <motion.div
+              animate={{ rotate: isExpanded ? 0 : 360 }}
+              transition={{ duration: 0.5 }}
+              className="relative"
             >
-              <motion.div
-                animate={{ rotate: isExpanded ? 0 : 360 }}
-                transition={{ duration: 0.5 }}
-                className="relative group"
-              >
-                <div className="absolute inset-0 bg-white/30 rounded-lg blur-md" />
-                <div className="relative p-2 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
-                  <Calculator className="w-5 h-5 text-white" />
-                </div>
-              </motion.div>
-
-              <div>
-                <h4 className="text-sm font-semibold text-white tracking-wide">
-                  {calculation.label}
-                </h4>
-                <p className="text-xs text-indigo-100">
-                  Residual Solvent Calculation
-                </p>
+              <div className="absolute inset-0 bg-white/30 rounded-lg blur-md" />
+              <div className="relative p-2 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
+                <Calculator className="w-5 h-5 text-white" />
               </div>
-            </div>
+            </motion.div>
 
-            <div className="flex items-center gap-3">
-              <motion.button
-                onClick={() => setIsExpanded(!isExpanded)}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-              >
-                <motion.div
-                  animate={{ rotate: isExpanded ? 180 : 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                >
-                  <ChevronDown className="w-5 h-5 text-white" />
-                </motion.div>
-              </motion.button>
-
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove();
-                }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${calculation.label}`}
-              >
-                <Trash className="w-4 h-4 text-white" />
-              </motion.button>
+            <div>
+              <h4 className="text-sm font-semibold text-white tracking-wide">
+                {calculation.label}
+              </h4>
+              <p className="text-xs text-emerald-100">
+                Residual Solvent Calculation
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* Content */}
+          <div className="flex items-center gap-3">
+            <motion.button
+              onClick={() => setIsExpanded(!isExpanded)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <motion.div
+                animate={{ rotate: isExpanded ? 180 : 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+              >
+                <ChevronDown className="w-5 h-5 text-white" />
+              </motion.div>
+            </motion.button>
+
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+              title={`Remove ${calculation.label}`}
+            >
+              <Trash className="w-4 h-4 text-white" />
+            </motion.button>
+          </div>
+        </div>
+      </div>
+
+      {!validationResult.isValid && isExpanded && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="bg-red-50 border-b-2 border-red-200"
+        >
+          <div className="p-4">
+            <div className="flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <h4 className="text-sm font-bold text-red-800 mb-2">
+                  Validation Errors ({validationResult.errors.length})
+                </h4>
+                <ul className="space-y-1">
+                  {validationResult.errors.map((error, idx) => (
+                    <li
+                      key={idx}
+                      className="text-xs text-red-700 flex items-start gap-2"
+                    >
+                      <span className="text-red-500 mt-0.5">•</span>
+                      <span>{error}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {validationResult.isValid && isExpanded && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="bg-emerald-50 border-b-2 border-emerald-200"
+        >
+          <div className="p-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+              <p className="text-sm font-semibold text-emerald-800">
+                All required fields are valid - Ready to calculate
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      <div className="relative">
         <AnimatePresence>
           {isExpanded && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden"
             >
-              <div className="p-5 space-y-4 bg-gradient-to-br from-indigo-50/50 to-blue-50/30">
-                {/* Selection Section */}
-                <div className="grid grid-cols-1 gap-4">
-                  {/* Single Preparation Selection */}
-                  <div>
-                    <label className="block text-xs font-semibold text-indigo-900 mb-2">
-                      Select Preparation
-                    </label>
-                    <CustomDropdown
-                      options={preparationPairs.map((pair) => ({
-                        value: pair!.value,
-                        label: pair!.label,
-                      }))}
-                      value={currentPrepLabel}
-                      onChange={handlePreparationChange}
-                      placeholder="-- Select Preparation --"
-                      colorScheme="indigo"
-                    />
-                  </div>
+              <div className="p-6 space-y-6">
+                <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 rounded-lg p-4 border-2 border-emerald-200">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Select Preparation Pair
+                  </label>
+                  <CustomDropdown
+                    options={preparationPairs.map((pair) => ({
+                      value: pair?.value || "",
+                      label: pair?.label || "",
+                    }))}
+                    value={currentPrepLabel}
+                    onChange={handlePreparationChange}
+                    placeholder="Select preparation pair..."
+                    colorScheme="emerald"
+                  />
                 </div>
 
-                {/* Display Selected Preparations Details */}
-                {(selectedStandardPrep || selectedSamplePrep) && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="grid grid-cols-2 gap-5"
-                  >
-                    {/* Standard Preparation Details */}
-                    {selectedStandardPrep && (
-                      <div className="bg-gradient-to-br from-white to-indigo-50/50 rounded-xl border-2 border-indigo-300 p-5 shadow-lg hover:shadow-xl transition-all duration-300">
-                        <h5 className="text-sm font-bold text-indigo-900 mb-4 flex items-center gap-2 pb-3 border-b-2 border-indigo-200">
-                          <div className="w-3 h-3 bg-indigo-500 rounded-full shadow-lg shadow-indigo-500/50 animate-pulse"></div>
-                          Standard Preparation Variables
-                        </h5>
-                        <div className="space-y-2.5">
-                          {/* SW1 */}
-                          <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-indigo-100 to-indigo-50 p-3 rounded-lg border border-indigo-200">
-                            <span className="font-bold text-indigo-800 bg-indigo-200/50 px-2 rounded-md">
-                              SW1:
-                            </span>
-                            <span className="text-gray-800 font-semibold flex items-center">
-                              {standardWeight.value} {standardWeight.unit}
-                              <WarningIndicator value={standardWeight.value} />
-                            </span>
-                          </div>
-                          {/* V1, V2, V3, V4, V5 */}
-                          {standardDilutions.map((dilution, idx) => (
-                            <div key={idx} className="space-y-2">
-                              {dilution.name !== "1st Dilution" && (
-                                <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-indigo-100 to-indigo-50 p-3 rounded-lg border border-indigo-200">
-                                  <span className="font-bold text-indigo-800 bg-indigo-200/50 px-2 rounded-md">
-                                    V{idx * 2}:
-                                  </span>
-                                  <span className="text-gray-800 font-semibold flex items-center">
-                                    {dilution.vol1} {dilution.unit1}
-                                    <WarningIndicator value={dilution.vol1} />
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-indigo-100 to-indigo-50 p-3 rounded-lg border border-indigo-200">
-                                <span className="font-bold text-indigo-800 bg-indigo-200/50 px-2 rounded-md">
-                                  V{idx * 2 + 1}:
-                                </span>
-                                <span className="text-gray-800 font-semibold flex items-center">
-                                  {dilution.name === "1st Dilution"
-                                    ? dilution.vol1
-                                    : dilution.vol2}{" "}
-                                  {dilution.name === "1st Dilution"
-                                    ? dilution.unit1
-                                    : dilution.unit2}
-                                  <WarningIndicator
-                                    value={
-                                      dilution.name === "1st Dilution"
-                                        ? dilution.vol1
-                                        : dilution.vol2
-                                    }
-                                  />
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                {selectedStandardPrep &&
+                  selectedSamplePrep && <FormulaDisplay />}
 
-                    {/* Sample Preparation Details */}
-                    {selectedSamplePrep && (
-                      <div className="bg-gradient-to-br from-white to-indigo-50/50 rounded-xl border-2 border-indigo-300 p-5 shadow-lg hover:shadow-xl transition-all duration-300">
-                        <h5 className="text-sm font-bold text-indigo-900 mb-4 flex items-center gap-2 pb-3 border-b-2 border-indigo-200">
-                          <div className="w-3 h-3 bg-indigo-500 rounded-full shadow-lg shadow-indigo-500/50 animate-pulse"></div>
-                          Sample Preparation Variables
-                        </h5>
-                        <div className="space-y-2.5">
-                          {/* SW2 */}
-                          <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-indigo-100 to-indigo-50 p-3 rounded-lg border border-indigo-200">
-                            <span className="font-bold text-indigo-800 bg-indigo-200/50 px-2 rounded-md">
-                              SW2:
-                            </span>
-                            <span className="text-gray-800 font-semibold flex items-center">
-                              {sampleWeight.value} {sampleWeight.unit}
-                              <WarningIndicator value={sampleWeight.value} />
-                            </span>
-                          </div>
-                          {/* V6 */}
-                          {sampleDilutions.map((dilution, idx) => (
-                            <div key={idx}>
-                              <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-indigo-100 to-indigo-50 p-3 rounded-lg border border-indigo-200">
-                                <span className="font-bold text-indigo-800 bg-indigo-200/50 px-2 rounded-md">
-                                  V6:
-                                </span>
-                                <span className="text-gray-800 font-semibold flex items-center">
-                                  {dilution.vol1} {dilution.unit1}
-                                  <WarningIndicator value={dilution.vol1} />
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-
-                {/* Calculation Formula Section */}
-                {canCalculate && (
-                  <div className="bg-white rounded-lg border-2 border-indigo-300 shadow-md overflow-hidden">
-                    <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-2">
-                      <h5 className="text-sm font-bold text-white flex items-center gap-2">
-                        <Calculator className="w-4 h-4" />
-                        Calculation Formula Inputs
+                {selectedStandardPrep && selectedSamplePrep && (
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 rounded-lg p-4 border-2 border-emerald-200">
+                      <h5 className="text-sm font-bold text-gray-700 mb-3">
+                        Area/ABS Values
                       </h5>
-                    </div>
-
-                    <div className="p-4 space-y-4">
-                      {/* Area/ABS Inputs */}
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-semibold text-indigo-900 mb-1">
-                            Area/ABS of Sample
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">
+                            Standard Area/ABS *
                           </label>
                           <input
                             type="number"
-                            value={calculation.areaOfSample}
-                            onChange={(e) =>
-                              onFieldChange(
-                                calculation.id,
-                                "areaOfSample",
-                                e.target.value
-                              )
-                            }
-                            onKeyDown={(e) => {
-                              if (
-                                e.key === "ArrowUp" ||
-                                e.key === "ArrowDown"
-                              ) {
-                                e.preventDefault();
-                              }
-                            }}
-                            onWheel={(e) => e.currentTarget.blur()}
-                            placeholder="Enter Sample Area/ABS"
-                            className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-indigo-900 mb-1">
-                            Area/ABS of Standard
-                          </label>
-                          <input
-                            type="number"
-                            value={calculation.areaOfStandard}
+                            value={calculation.areaOfStandard || ""}
                             onChange={(e) =>
                               onFieldChange(
                                 calculation.id,
@@ -576,6 +697,7 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                                 e.target.value
                               )
                             }
+                            step="any"
                             onKeyDown={(e) => {
                               if (
                                 e.key === "ArrowUp" ||
@@ -585,95 +707,129 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                               }
                             }}
                             onWheel={(e) => e.currentTarget.blur()}
-                            placeholder="Enter Standard Area/ABS"
-                            className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                            placeholder="Enter standard area"
+                            className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">
+                            Sample Area/ABS *
+                          </label>
+                          <input
+                            type="number"
+                            value={calculation.areaOfSample || ""}
+                            onChange={(e) =>
+                              onFieldChange(
+                                calculation.id,
+                                "areaOfSample",
+                                e.target.value
+                              )
+                            }
+                            step="any"
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "ArrowUp" ||
+                                e.key === "ArrowDown"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
+                            placeholder="Enter sample area"
+                            className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
                           />
                         </div>
                       </div>
+                    </div>
 
-                      {/* Purity */}
-                      <div>
-                        <label className="block text-xs font-semibold text-indigo-900 mb-1">
-                          Purity %
-                        </label>
-                        <input
-                          type="number"
-                          value={calculation.purity}
-                          onChange={(e) =>
-                            onFieldChange(
-                              calculation.id,
-                              "purity",
-                              e.target.value
-                            )
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                              e.preventDefault();
+                    <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 rounded-lg p-4 border-2 border-emerald-200">
+                      <h5 className="text-sm font-bold text-gray-700 mb-3">
+                        Standard Properties
+                      </h5>
+                      <div className="grid md:grid-cols-1 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">
+                            Purity (%)
+                          </label>
+                          <input
+                            type="number"
+                            value={calculation.purity}
+                            onChange={(e) =>
+                              onFieldChange(
+                                calculation.id,
+                                "purity",
+                                e.target.value
+                              )
                             }
-                          }}
-                          onWheel={(e) => e.currentTarget.blur()}
-                          placeholder="Enter Purity"
-                          className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                        />
+                            step="any"
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "ArrowUp" ||
+                                e.key === "ArrowDown"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
+                            placeholder="Purity %"
+                            className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
+                          />
+                        </div>
                       </div>
+                    </div>
 
-                      {/* Calculate Button */}
-                      <div className="flex justify-center pt-2">
-                        <motion.button
-                          onClick={performCalculation}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg text-sm"
-                        >
-                          <Calculator className="w-4 h-4" />
-                          Calculate Result
-                        </motion.button>
-                      </div>
+                    <div className="flex justify-center pt-2">
+                      <motion.button
+                        onClick={performCalculation}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg text-sm"
+                      >
+                        <Calculator className="w-4 h-4" />
+                        Calculate Result
+                      </motion.button>
                     </div>
                   </div>
                 )}
 
-                {/* Warning if preparations not selected */}
                 {(!selectedStandardPrep || !selectedSamplePrep) && (
-                  <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-3 text-center">
-                    <p className="text-xs text-amber-800 font-medium">
+                  <div className="bg-emerald-50 border-2 border-emerald-300 rounded-lg p-3 text-center">
+                    <p className="text-xs text-emerald-800 font-medium">
                       Please select a preparation to enable calculation
                     </p>
                   </div>
                 )}
               </div>
 
-              {/* FIXED BOTTOM RESULTS SECTION - NON-CLOSABLE */}
               {calculation.calculationResult && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4 }}
-                  className="border-t-4 border-indigo-200"
+                  className="border-t-4 border-emerald-200"
                 >
                   <div
                     className={`p-6 ${
                       calculation.calculationResult.startsWith("Error")
-                        ? "bg-gradient-to-br from-red-50 via-red-100/50 to-rose-50"
-                        : "bg-gradient-to-br from-emerald-50 via-green-100/30 to-teal-50"
+                        ? "bg-gradient-to-br from-emerald-50 via-emerald-100/50 to-emerald-50"
+                        : "bg-gradient-to-br from-emerald-50 via-emerald-100/30 to-emerald-50"
                     }`}
                   >
                     <div className="max-w-4xl mx-auto space-y-4">
-                      {/* Header */}
                       <div className="flex items-center gap-3 pb-3">
                         <CheckCircle2
                           className={`w-6 h-6 ${
                             calculation.calculationResult.startsWith("Error")
-                              ? "text-red-700"
-                              : "text-green-700"
+                              ? "text-emerald-700"
+                              : "text-emerald-700"
                           }`}
                         />
                         <div>
                           <h6
                             className={`text-lg font-bold ${
                               calculation.calculationResult.startsWith("Error")
-                                ? "text-red-700"
-                                : "text-green-700"
+                                ? "text-emerald-700"
+                                : "text-emerald-700"
                             }`}
                           >
                             Calculation Results
@@ -681,10 +837,9 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                         </div>
                       </div>
 
-                      {/* Results Grid */}
                       <div className="grid gap-4">
-                        <div className="bg-white rounded-lg shadow-lg border-2 border-green-300 overflow-hidden">
-                          <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2">
+                        <div className="bg-white rounded-lg shadow-lg border-2 border-emerald-300 overflow-hidden">
+                          <div className="bg-gradient-to-r from-emerald-600 to-emerald-600 px-4 py-2">
                             <h6 className="text-sm font-bold text-white">
                               Primary Result
                             </h6>
@@ -702,7 +857,6 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                         </div>
                       </div>
 
-                      {/* Summary Info */}
                       <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4">
                         <div className="grid md:grid-cols-2 gap-4 text-sm">
                           <div>

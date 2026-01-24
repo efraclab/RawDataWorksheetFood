@@ -9,4 +9,8 @@ export interface CalculationLod {
 
   calculationResult: string | null;
   calculationResultUnit: string | null;
+
+  w1: string | null;
+  w2: string | null;
+  w3: string | null;
 }

@@ -51,11 +51,11 @@ const SamplePreparationSulphatedAshDetail: React.FC<
       className="relative group z-20"
     >
       {/* Glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-rose-400/20 to-rose-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-emerald-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
 
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-rose-200/50 transition-all duration-300 mb-4">
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-emerald-200/50 transition-all duration-300 mb-4">
         <div
-          className={`relative bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 ${headerRoundingClass} ${
+          className={`relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-500 ${headerRoundingClass} ${
             isExpanded ? "rounded-t-lg" : "rounded-lg"
           }`}
         >
@@ -79,7 +79,7 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                 <h4 className="text-sm font-semibold text-white tracking-wide">
                   {samplePreparationSulphatedAsh.label}
                 </h4>
-                <p className="text-xs text-rose-100">
+                <p className="text-xs text-emerald-100">
                   Sample Preparation for Sulphated Ash Details
                 </p>
               </div>
@@ -125,7 +125,7 @@ const SamplePreparationSulphatedAshDetail: React.FC<
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
             >
-              <div className="p-5 space-y-3 bg-gradient-to-br from-rose-50/50 to-rose-50/30">
+              <div className="p-5 space-y-3 bg-gradient-to-br from-emerald-50/50 to-emerald-50/30">
                 {samplePreparationSulphatedAsh.steps.map((step, index) => {
                   const isWeighingEmptyCrucible =
                     step.name === "Weighing (Empty Crucible)";
@@ -143,11 +143,11 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                       transition={{ delay: index * 0.1 }}
                       className="group relative"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-rose-400/0 via-rose-400/5 to-pink-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/0 via-emerald-400/5 to-emerald-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
 
-                      <div className="relative bg-white rounded-xl border border-rose-200/60 hover:border-rose-300 transition-all duration-200 p-4">
+                      <div className="relative bg-white rounded-xl border border-emerald-200/60 hover:border-emerald-300 transition-all duration-200 p-4">
                         <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-rose-500 to-pink-500 rounded-full flex items-center justify-center shadow-md">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-emerald-500 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
                             <span className="text-white text-xs font-bold">
                               {index + 1}
                             </span>
@@ -155,10 +155,10 @@ const SamplePreparationSulphatedAshDetail: React.FC<
 
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-3">
-                              <div className="font-bold text-rose-900 text-sm">
+                              <div className="font-bold text-emerald-900 text-sm">
                                 {step.name}
                               </div>
-                              <div className="h-px flex-1 bg-gradient-to-r from-rose-200 to-transparent" />
+                              <div className="h-px flex-1 bg-gradient-to-r from-emerald-200 to-transparent" />
                             </div>
 
                             {isWeighingEmptyCrucible && (
@@ -191,7 +191,7 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
-                                    className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                                   />
                                   {/* Replaced native select with CustomDropdown */}
                                   <div className="w-20">
@@ -207,12 +207,12 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                         )
                                       }
                                       placeholder="Unit"
-                                      colorScheme="rose"
+                                      colorScheme="emerald"
                                     />
                                   </div>
 
                                   <span className="text-gray-500 text-xs">
-                                    (Log ID:
+                                    (W1) (Log ID:
                                   </span>
                                   <input
                                     type="text"
@@ -235,7 +235,7 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter ID"
-                                    className="w-24 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
+                                    className="w-24 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
                                   <span className="text-gray-500 text-xs">
                                     )
@@ -274,7 +274,7 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
-                                    className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                                   />
                                   {/* Replaced native select with CustomDropdown */}
                                   <div className="w-20">
@@ -290,9 +290,12 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                         )
                                       }
                                       placeholder="Unit"
-                                      colorScheme="rose"
+                                      colorScheme="emerald"
                                     />
                                   </div>
+                                  <span className="text-gray-500 text-xs">
+                                    (W2)
+                                  </span>
                                 </div>
                               </div>
                             )}
@@ -327,7 +330,7 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Temp"
-                                    className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                                   />
                                   {/* Replaced native select with CustomDropdown */}
                                   <div className="w-20">
@@ -343,7 +346,7 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                         )
                                       }
                                       placeholder="Unit"
-                                      colorScheme="rose"
+                                      colorScheme="emerald"
                                     />
                                   </div>
 
@@ -374,7 +377,7 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Time"
-                                    className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                                   />
                                   {/* Replaced native select with CustomDropdown */}
                                   <div className="w-20">
@@ -390,7 +393,7 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                         )
                                       }
                                       placeholder="Unit"
-                                      colorScheme="rose"
+                                      colorScheme="emerald"
                                     />
                                   </div>
 
@@ -418,7 +421,7 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter ID"
-                                    className="w-24 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
+                                    className="w-24 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
                                   <span className="text-gray-500 text-xs">
                                     )
@@ -457,7 +460,7 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
-                                    className="w-30 px-2.5 py-1.5 border border-rose-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                                   />
                                   {/* Replaced native select with CustomDropdown */}
                                   <div className="w-20">
@@ -473,9 +476,12 @@ const SamplePreparationSulphatedAshDetail: React.FC<
                                         )
                                       }
                                       placeholder="Unit"
-                                      colorScheme="rose"
+                                      colorScheme="emerald"
                                     />
                                   </div>
+                                  <span className="text-gray-500 text-xs">
+                                    (W3)
+                                  </span>
                                 </div>
                               </div>
                             )}

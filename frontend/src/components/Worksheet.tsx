@@ -68,6 +68,22 @@ import ApproveWorksheetDialog from "./shared/ApproveWorksheetDialog";
 import Toast from "./shared/Toast";
 import { WorksheetDbMapper } from "../helpers/WorksheetDbMapper";
 import { MdDone } from "react-icons/md";
+import type { SamplePreparationTitration } from "../preparation_models/SamplePreparationTitration";
+import type { DissoMediaPreparation } from "../preparation_models/DissoMediaPreparation";
+import type { MobilePhasePreparation } from "../preparation_models/MobilePhasePreparation";
+import type { SamplePreparationTitrationStep } from "../preparation_models/SamplePreparationTitrationStep";
+import type { DissoMediaPreparationStep } from "../preparation_models/DissoMediaPreparationStep";
+import type { MobilePhasePreparationStep } from "../preparation_models/MobilePhasePreparationStep";
+import SamplePreparationTitrationDetail from "./sub-components/SamplePreparationTitrationDetail";
+import MobilePhasePreparationDetail from "./sub-components/MobilePhasePreparationDetail";
+import DissoMediaPreparationDetail from "./sub-components/DissoMediaPreparationDetail";
+import type { CalculationUC } from "../preparation_models/CalculationUC";
+import type { SamplePreparationUC } from "../preparation_models/SamplePreparationUC";
+import type { SamplePreparationUCStep } from "../preparation_models/SamplePreparationUCStep";
+import SamplePreparationUCDetail from "./sub-components/SamplePreparationUCDetail";
+import CalculationDetailUC from "./sub-components/CalculationDetailUC";
+import type { SystemSuitability } from "../preparation_models/SystemSuitability";
+import SystemSuitabilityDetail from "./sub-components/SystemSuitabilityDetail";
 
 // SVG Icons
 const Target: React.FC<{ className: string }> = ({ className }) => (
@@ -170,14 +186,14 @@ interface WorksheetProps {
   onPrint?: (
     info: WorksheetDetail,
     analysts: Analyst[],
-    sampleData: SampleData
+    sampleData: SampleData,
   ) => void;
 }
 
 // Factory functions for creating new preparation objects
 const createNewCalculationDisso = (index: number): CalculationDisso => ({
   id: Date.now() + index,
-  label: `Calculation ${index + 1}`,
+  label: `Calculation${index + 1}`,
   selectedStandardPrepLabel: null,
   selectedSamplePrepLabel: null,
   areaOfSample1: "",
@@ -187,8 +203,8 @@ const createNewCalculationDisso = (index: number): CalculationDisso => ({
   areaOfSample5: "",
   areaOfSample6: "",
   areaOfStandard: "",
-  mwBase: "",
-  mwSalt: "",
+  mWBase: "",
+  mWSalt: "",
   purity: "",
   calculationResult: null,
   calculationResultUnit: null,
@@ -198,19 +214,36 @@ const createNewCalculationDisso = (index: number): CalculationDisso => ({
   calculationResultTablet4: null,
   calculationResultTablet5: null,
   calculationResultTablet6: null,
+  sw1: null,
+  claim: null,
+  mediaVol: null,
+  v1: null,
+  v2: null,
+  v3: null,
+  v4: null,
+  v5: null,
+  v6: null,
+  v7: null,
+  v8: null,
+  v9: null,
+  v10: null,
+  v11: null,
+  v12: null,
+  v13: null,
+  v14: null,
 });
 
 const createNewCalculationAssay = (index: number): CalculationAssay => ({
   id: Date.now() + index,
-  label: `Calculation ${index + 1}`,
+  label: `Calculation${index + 1}`,
   selectedStandardPrepLabel: null,
   selectedSamplePrepLabel: null,
   calculationFor: "",
   areaOfSample: "",
   areaOfStandard: "",
   avgWeight: "",
-  mwSalt: "",
-  mwBase: "",
+  mWSalt: "",
+  mWBase: "",
   claim: "",
   labelClaim: "",
   lodWaterType: "",
@@ -219,53 +252,76 @@ const createNewCalculationAssay = (index: number): CalculationAssay => ({
   labelClaimPercent: null,
   lodWaterBasisResult: null,
   purity: "",
-  avgWeightUnit: "",
-  avgContent: "",
-  avgContentUnit: "",
-  sampleVol: "",
-  sampleVolUnit: "",
+  avgWeightUnit: "mg",
+  weightPerMl: "",
+  weightPerMlUnit: "mg",
   claimUnit: "",
   calculationResultUnit: null,
+  sw1: null,
+  sw2: null,
+  v1: null,
+  v2: null,
+  v3: null,
+  v4: null,
+  v5: null,
+  v6: null,
+  v7: null,
+  v8: null,
+  v9: null,
+  v10: null,
+  v11: null,
+  v12: null,
+  v13: null,
+  v14: null,
 });
 
 const createNewCalculationLod = (index: number): CalculationLod => ({
   id: Date.now() + index,
-  label: `Calculation ${index + 1}`,
+  label: `Calculation${index + 1}`,
   selectedSamplePrepLabel: null,
   w1_emptyDish: "",
   w2_dishWithSample: "",
   w3_dishAfterIgnition: "",
   calculationResult: null,
   calculationResultUnit: null,
+  w1: null,
+  w2: null,
+  w3: null,
 });
 
 const createNewCalculationROI = (index: number): CalculationROI => ({
   id: Date.now() + index,
-  label: `Calculation ${index + 1}`,
+  label: `Calculation${index + 1}`,
   selectedSamplePrepLabel: null,
   w1_emptyDish: "",
   w2_dishWithSample: "",
   w3_dishAfterIgnition: "",
   calculationResult: null,
   calculationResultUnit: null,
+  w1: null,
+  w2: null,
+  w3: null,
 });
 
 const createNewCalculationSulphatedAsh = (
-  index: number
+  index: number,
 ): CalculationSulphatedAsh => ({
   id: Date.now() + index,
-  label: `Calculation ${index + 1}`,
+  label: `Calculation${index + 1}`,
   selectedSamplePrepLabel: null,
   w1_emptyCrucible: "",
   w2_crucibleWithSample: "",
   w3_crucibleAfterAsh: "",
   calculationResult: null,
   calculationResultUnit: null,
+  w1: null,
+  w2: null,
+  w3: null,
 });
 
 const createNewStandardPreparation = (index: number): StandardPreparation => ({
   id: Date.now() + index,
-  label: `Standard Preparation ${index + 1}`,
+  label: `Standard Preparation${index + 1}`,
   assignedStandardId: null,
   steps: [
     {
@@ -285,7 +341,7 @@ const createNewStandardPreparation = (index: number): StandardPreparation => ({
 
 const createNewSamplePreparation = (index: number): SamplePreparation => ({
   id: Date.now() + index,
-  label: `Sample Preparation ${index + 1}`,
+  label: `Sample Preparation${index + 1}`,
   steps: [
     {
       name: "Weighing",
@@ -303,10 +359,10 @@ const createNewSamplePreparation = (index: number): SamplePreparation => ({
 });
 
 const createNewSamplePreparationLod = (
-  index: number
+  index: number,
 ): SamplePreparationLod => ({
   id: Date.now() + index,
-  label: `Sample Preparation ${index + 1}`,
+  label: `Sample Preparation${index + 1}`,
   steps: [
     { name: "Weighing (Empty Bottle)", value1: "", unit1: "g", logBookID: "" },
     { name: "Weighing (Before Drying)", value1: "", unit1: "g", logBookID: "" },
@@ -323,15 +379,15 @@ const createNewSamplePreparationLod = (
 });
 
 const createNewSamplePreparationSulphatedAsh = (
-  index: number
+  index: number,
 ): SamplePreparationSulphatedAsh => ({
   id: Date.now() + index,
-  label: `Sample Preparation ${index + 1}`,
+  label: `Sample Preparation${index + 1}`,
   steps: [
     {
       name: "Weighing (Empty Crucible)",
       value1: "",
-      unit1: "mg",
+      unit1: "g",
       logBookID: "",
     },
     { name: "Weighing (Before Drying)", value1: "", unit1: "g", logBookID: "" },
@@ -348,15 +404,15 @@ const createNewSamplePreparationSulphatedAsh = (
 });
 
 const createNewSamplePreparationROI = (
-  index: number
+  index: number,
 ): SamplePreparationROI => ({
   id: Date.now() + index,
-  label: `Sample Preparation ${index + 1}`,
+  label: `Sample Preparation${index + 1}`,
   steps: [
     {
       name: "Weighing (Empty Crucible)",
       value1: "",
-      unit1: "mg",
+      unit1: "g",
       logBookID: "",
     },
     { name: "Weighing (Before Drying)", value1: "", unit1: "g", logBookID: "" },
@@ -373,10 +429,10 @@ const createNewSamplePreparationROI = (
 });
 
 const createNewSamplePreparationDisso = (
-  index: number
+  index: number,
 ): SamplePreparationDisso => ({
   id: Date.now() + index,
-  label: `Sample Preparation ${index + 1}`,
+  label: `Sample Preparation${index + 1}`,
   assignedStandardId: null,
   steps: [
     {
@@ -392,7 +448,7 @@ const createNewSamplePreparationDisso = (
       value1: "",
       unit1: "mg",
       value2: "",
-      unit2: "mg",
+      unit2: "ml",
       value3: "",
       unit3: "min",
     },
@@ -405,7 +461,7 @@ const createNewSamplePreparationDisso = (
 
 const createNewCalculationRS = (index: number): CalculationRS => ({
   id: Date.now() + index,
-  label: `Calculation ${index + 1}`,
+  label: `Calculation${index + 1}`,
   selectedStandardPrepLabel: null,
   selectedSamplePrepLabel: null,
   areaOfSample: "",
@@ -413,25 +469,194 @@ const createNewCalculationRS = (index: number): CalculationRS => ({
   purity: "",
   calculationResult: null,
   calculationResultUnit: null,
+  sw1: null,
+  sw2: null,
+  v1: null,
+  v2: null,
+  v3: null,
+  v4: null,
+  v5: null,
+  v6: null,
+});
+
+const createNewMobilePhasePreparation = (
+  index: number,
+): MobilePhasePreparation => ({
+  id: Date.now() + index,
+  label: `Mobile Phase${index + 1}`,
+  steps: [
+    {
+      name: "Weighing",
+      value1: "",
+      unit1: "g",
+      logBookID: "",
+      solventChemical: "",
+    },
+    { name: "PH", value1: "", unit1: "", logBookID: "" },
+    { name: "Sonication", value1: "", unit1: "min", mobilePhaseID: "" },
+    { name: "Filtration", value1: "", unit1: "micron" },
+  ],
+});
+
+const createNewDissoMediaPreparation = (
+  index: number,
+): DissoMediaPreparation => ({
+  id: Date.now() + index,
+  label: `Dissolution Media Preparation${index + 1}`,
+  steps: [
+    {
+      name: "Weighing",
+      value1: "",
+      unit1: "g",
+      logBookID: "",
+      solventChemical: "",
+    },
+    { name: "PH", value1: "", unit1: "", logBookID: "" },
+    { name: "Sonication", value1: "", unit1: "min" },
+    { name: "Filtration", value1: "", unit1: "micron" },
+  ],
+});
+
+const createNewSamplePreparationTitration = (
+  index: number,
+): SamplePreparationTitration => ({
+  id: Date.now() + index,
+  label: `Sample Preparation${index + 1}`,
+  steps: [
+    {
+      name: "Weighing",
+      value1: "",
+      unit1: "mg",
+      logBookID: "",
+      solventChemical: "",
+    },
+    { name: "1st Dilution", value1: "", unit1: "ml" },
+    { name: "End Point Determination", value1: "", unit1: "" },
+  ],
+});
+
+const createNewSamplePreparationUC = (index: number): SamplePreparationUC => ({
+  id: Date.now() + index,
+  label: `Sample Preparation${index + 1}`,
+  assignedStandardId: null,
+  steps: [
+    {
+      name: "1 Tablets/Capsules",
+      value1: "",
+      unit1: "mg",
+      value2: "",
+      unit2: "ml",
+    },
+    { name: "1st Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "2nd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "3rd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "4th Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
+    { name: "Filtration", value1: "", unit1: "micron" },
+  ],
+});
+
+const createNewCalculationUC = (index: number): CalculationUC => ({
+  id: Date.now() + index,
+  label: `Calculation${index + 1}`,
+  selectedStandardPrepLabel: null,
+  selectedSamplePrepLabel: null,
+  areaOfStandard: null,
+  areaOfSample1: null,
+  areaOfSample2: null,
+  areaOfSample3: null,
+  areaOfSample4: null,
+  areaOfSample5: null,
+  areaOfSample6: null,
+  areaOfSample7: null,
+  areaOfSample8: null,
+  areaOfSample9: null,
+  areaOfSample10: null,
+  purity: "",
+  mWBase: "",
+  mWSalt: "",
+  calculationResult: null,
+  calculationResultUnit: null,
+  calculationResultTablet1: null,
+  calculationResultTablet2: null,
+  calculationResultTablet3: null,
+  calculationResultTablet4: null,
+  calculationResultTablet5: null,
+  calculationResultTablet6: null,
+  calculationResultTablet7: null,
+  calculationResultTablet8: null,
+  calculationResultTablet9: null,
+  calculationResultTablet10: null,
+  sw1: null,
+  claim: null,
+  dilutedVol: null,
+  v1: null,
+  v2: null,
+  v3: null,
+  v4: null,
+  v5: null,
+  v6: null,
+  v7: null,
+  v8: null,
+  v9: null,
+  v10: null,
+  v11: null,
+  v12: null,
+  v13: null,
+  v14: null,
+  v15: null,
+  v16: null,
+});
+
+const createNewSystemSuitability = (index: number): SystemSuitability => ({
+  id: Date.now() + index,
+  label: `System Suitability${index + 1}`,
+  steps: [
+    { name: "RSD Area", value1: "", value2: "" },
+    { name: "RSD Retention time", value1: "", value2: "" },
+    { name: "Tailing factor", value1: "", value2: "" },
+    { name: "Resolution", value1: "", value2: "" },
+    { name: "Theorital Plate count", value1: "", value2: "" },
+    { name: "Any Other", value1: "", value2: "" },
+  ],
 });
 
 const PREPARATION_GROUPS = {
-  assay: { id: "assay", label: "Preparations for Assay", color: "red" },
-  lod: { id: "lod", label: "Preparations for LOD", color: "sky" },
-  roi: { id: "roi", label: "Preparations for ROI", color: "orange" },
+  assay: { id: "assay", label: "Preparations for Assay", color: "emerald" },
+  lod: { id: "lod", label: "Preparations for LOD", color: "emerald" },
+  roi: { id: "roi", label: "Preparations for ROI", color: "emerald" },
   sulphatedAsh: {
     id: "sulphatedAsh",
     label: "Preparations for Sulphated Ash",
-    color: "rose",
+    color: "emerald",
   },
   residualSolvent: {
     id: "residualSolvent",
     label: "Preparations for Residual Solvent",
-    color: "indigo",
+    color: "emerald",
   },
   dissolution: {
     id: "dissolution",
     label: "Preparations for Dissolution",
+    color: "emerald",
+  },
+  uniformityOfContent: {
+    id: "uniformityOfContent",
+    label: "Preparations for Uniformity of Content",
+    color: "emerald",
+  },
+  mobilePhase: {
+    id: "mobilePhase",
+    label: "Mobile Phase Preparation",
+    color: "emerald",
+  },
+  dissoMedia: {
+    id: "dissoMedia",
+    label: "Dissolution Media Preparation",
+    color: "emerald",
+  },
+  titration: {
+    id: "titration",
+    label: "Preparation for Titration",
     color: "emerald",
   },
 } as const;
@@ -453,7 +678,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [registrationNo, setRegistrationNo] = useState("");
   const [worksheetInfo, setWorksheetInfo] = useState<WorksheetDetail | null>(
-    null
+    null,
   );
   const [samplesData, setSamplesData] = useState<SampleData[]>([]);
   const [addedParameters, setAddedParameters] = useState<ParameterDetail[]>([]);
@@ -506,6 +731,23 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const [showApproveWorksheetDialog, setShowApproveWorksheetDialog] =
     useState(false);
   const [isApprovingWorksheet, setIsApprovingWorksheet] = useState(false);
+
+  const [mobilePhasePerParam, setMobilePhasePerParam] = useState<
+    Record<number, MobilePhasePreparation[]>
+  >({});
+  const [dissoMediaPerParam, setDissoMediaPerParam] = useState<
+    Record<number, DissoMediaPreparation[]>
+  >({});
+  const [samplePrepTitrationPerParam, setSamplePrepTitrationPerParam] =
+    useState<Record<number, SamplePreparationTitration[]>>({});
+
+  const [samplePreparationUCPerParam, setSamplePreparationUCPerParam] =
+    useState<Record<number, SamplePreparationUC[]>>({});
+  const [calculationsUCPerParam, setCalculationsUCPerParam] = useState<
+    Record<number, CalculationUC[]>
+  >({});
+  const [standardPreparationUCPerParam, setStandardPreparationUCPerParam] =
+    useState<Record<number, StandardPreparation[]>>({});
 
   // Per-parameter state
   const [columnsPerParam, setColumnsPerParam] = useState<
@@ -607,8 +849,20 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const [calculationsDissoPerParam, setCalculationsDissoPerParam] = useState<
     Record<number, CalculationDisso[]>
   >({});
+
+  const [showDiluentPreparation, setShowDiluentPreparation] = useState<
+    Record<number, boolean>
+  >({});
+  const [showSystemSuitability, setShowSystemSuitability] = useState<
+    Record<number, boolean>
+  >({});
+  const [systemSuitabilityPerParam, setSystemSuitabilityPerParam] = useState<
+    Record<number, SystemSuitability[]>
+  >({});
+
   const [isAddingRSStandard, setIsAddingRSStandard] = useState(false);
   const [isAddingDissoStandard, setIsAddingDissoStandard] = useState(false);
+  const [isAddingUCStandard, setIsAddingUCStandard] = useState(false);
 
   // Dropdown control states
   const [showInstrumentDropdown, setShowInstrumentDropdown] = useState(false);
@@ -646,7 +900,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
       if (allStatuses.length > 0) {
         const allCompleted = allStatuses.every(
-          (status) => status === "Analysis Completed" || status === "Approved"
+          (status) => status === "Analysis Completed" || status === "Approved",
         );
 
         if (allCompleted) {
@@ -710,7 +964,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         "approved",
       ].includes(status);
     },
-    [role, parameterStatusPerParam]
+    [role, parameterStatusPerParam],
   );
 
   useEffect(() => {
@@ -748,7 +1002,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         const requestData: FetchWorksheetRequest = { employeeId, role };
         const worksheetData = await fetchWorksheetById(
           worksheetId,
-          requestData
+          requestData,
         );
 
         if (!worksheetData) {
@@ -760,7 +1014,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         setWorksheetInfo(worksheetData);
         setRegistrationNo(worksheetData.sample.registrationNo);
 
-        console.log(WorksheetDbMapper.mapAll(worksheetData))
+        //        console.log(WorksheetDbMapper.mapAll(worksheetData));
 
         const samples = await fetchSample(worksheetData.sample.registrationNo);
         setSamplesData(samples);
@@ -782,7 +1036,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
     const restoredParams = parameters.map((param, index) => {
       const matchingParameter = parameters.find(
-        (s) => s.paraCode === param.paraCode
+        (s) => s.paraCode === param.paraCode,
       );
 
       return {
@@ -821,6 +1075,38 @@ const Worksheet: React.FC<WorksheetProps> = ({
     parameters.forEach((param, idx) => {
       const paramId = restoredParams[idx].id;
 
+      const systemSuitabilityPreps = param.preparations.filter(
+        (p: any) => p.preparationCategory === "system_suitability",
+      );
+
+      if (systemSuitabilityPreps.length > 0) {
+        setShowSystemSuitability((prev) => ({
+          ...prev,
+          [paramId]: true,
+        }));
+
+        const restoredSuitability: SystemSuitability[] =
+          systemSuitabilityPreps.map((prep: any, i: number) => {
+            const steps = safeJSONParse(prep.steps, []);
+            return {
+              id: Date.now() + i * 1000 + Math.random() * 1000,
+              label: prep.label || `System Suitability${i + 1}`,
+              steps: steps.map((step: any) => ({
+                name: step.name,
+                value1: step.value1 || "",
+                value2: step.value2 || "",
+              })),
+            };
+          });
+
+        if (restoredSuitability.length > 0) {
+          setSystemSuitabilityPerParam((prev) => ({
+            ...prev,
+            [paramId]: restoredSuitability,
+          }));
+        }
+      }
+
       if (param.columnId) {
         setColumnsPerParam((prev) => ({ ...prev, [paramId]: param.columnId! }));
       }
@@ -829,6 +1115,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
         setDiluentPerParam((prev) => ({
           ...prev,
           [paramId]: param.diluentPreparation!,
+        }));
+        setShowDiluentPreparation((prev) => ({
+          ...prev,
+          [paramId]: true,
         }));
       }
 
@@ -908,7 +1198,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
           if (instruments && instruments.length) {
             const paramInstruments = instruments.filter((inst) =>
-              validInstrumentIds.includes(String(inst.id).trim())
+              validInstrumentIds.includes(String(inst.id).trim()),
             );
             setAddedInstruments((prev) => ({
               ...prev,
@@ -931,7 +1221,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
           if (chemicals && chemicals.length) {
             const paramChemicals = chemicals.filter((chem) =>
-              validChemicalIds.includes(String(chem.id).trim())
+              validChemicalIds.includes(String(chem.slno).trim()),
             );
             setAddedChemicals((prev) => ({
               ...prev,
@@ -954,7 +1244,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
           if (standards && standards.length) {
             const paramStandards = standards.filter((std) =>
-              validStandardIds.includes(String(std.id).trim())
+              validStandardIds.includes(String(std.serialNo).trim()),
             );
             setAddedStandards((prev) => ({
               ...prev,
@@ -964,178 +1254,195 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
       }
 
-      // ========== STANDARD PREPARATIONS (UNIFIED WITH TYPES) ==========
+      // ========== PREPARATIONS (UNIFIED WITH preparationCategory AND preparationType) ==========
       if (
-        param.standardPreparations &&
-        Array.isArray(param.standardPreparations) &&
-        param.standardPreparations.length > 0
+        param.preparations &&
+        Array.isArray(param.preparations) &&
+        param.preparations.length > 0
       ) {
         const assayStdPreps: any[] = [];
         const rsStdPreps: any[] = [];
         const dissoStdPreps: any[] = [];
-
-        param.standardPreparations.forEach((prep: any, i: number) => {
-          const parsedSteps = safeJSONParse(prep.steps, []);
-          const prepType = prep.preparationType || "assay";
-
-          const newPrep = {
-            id: Date.now() + i + 1000 + Math.random() * 1000,
-            label: prep.label || `Standard Preparation ${i + 1}`,
-            steps: parsedSteps,
-            assignedStandardId: prep.assignedStandardId || null,
-          };
-
-          // Route based on preparationType
-          switch (prepType) {
-            case "residual_solvent":
-              rsStdPreps.push(newPrep);
-              break;
-            case "dissolution":
-              dissoStdPreps.push(newPrep);
-              break;
-            case "assay":
-            default:
-              assayStdPreps.push(newPrep);
-              break;
-          }
-        });
-
-        if (assayStdPreps.length > 0) {
-          setStandardPreparationPerParam((prev) => ({
-            ...prev,
-            [paramId]: assayStdPreps,
-          }));
-        }
-
-        if (rsStdPreps.length > 0) {
-          setStandardPreparationRSPerParam((prev) => ({
-            ...prev,
-            [paramId]: rsStdPreps,
-          }));
-        }
-
-        if (dissoStdPreps.length > 0) {
-          setStandardPreparationDissoPerParam((prev) => ({
-            ...prev,
-            [paramId]: dissoStdPreps,
-          }));
-        }
-      }
-
-      // ========== SAMPLE PREPARATIONS (UNIFIED WITH TYPES) ==========
-      if (
-        param.samplePreparations &&
-        Array.isArray(param.samplePreparations) &&
-        param.samplePreparations.length > 0
-      ) {
-        // Arrays to collect preparations by type
+        const ucStdPreps: any[] = [];
         const assaySplPreps: any[] = [];
         const lodSplPreps: any[] = [];
         const roiSplPreps: any[] = [];
         const ashSplPreps: any[] = [];
         const rsSplPreps: any[] = [];
         const dissoSplPreps: any[] = [];
+        const dissoMediaPreps: any[] = [];
+        const mobilePhasePreps: any[] = [];
+        const titrationSplPreps: any[] = [];
+        const ucSplPreps: any[] = [];
 
-        param.samplePreparations.forEach((prep: any, i: number) => {
+        param.preparations.forEach((prep: any, i: number) => {
           const parsedSteps = safeJSONParse(prep.steps, []);
-          const prepType = prep.preparationType || "assay";
+
+          // FIX: preparationCategory is the CATEGORY (standard/sample/mobile_phase/etc)
+          // preparationType is the CONTEXT (assay/lod/roi/etc) - can be null
+          const prepCategory = prep.preparationCategory;
+          const prepType = prep.preparationType;
 
           const newPrep = {
-            id: Date.now() + i + 2000 + Math.random() * 1000,
-            label: prep.label || `Sample Preparation ${i + 1}`,
+            id: Date.now() + i + 1000 + Math.random() * 1000,
+            label: prep.label,
             steps: parsedSteps,
             assignedStandardId: prep.assignedStandardId || null,
           };
 
-          // Route to correct array based on preparationType
-          switch (prepType) {
-            case "lod":
-              lodSplPreps.push(newPrep);
-              break;
-            case "roi":
-              roiSplPreps.push(newPrep);
-              break;
-            case "sulphated_ash":
-              ashSplPreps.push(newPrep);
-              break;
-            case "dissolution":
-              dissoSplPreps.push(newPrep);
-              break;
-            case "residual_solvent":
-              rsSplPreps.push(newPrep);
-              break;
-            case "assay":
-            default:
-              assaySplPreps.push(newPrep);
-              break;
+          // Route based on preparationCategory (CATEGORY TYPE)
+          if (prepCategory === "standard") {
+            // Standard preparations - route by preparationType (context)
+            switch (prepType) {
+              case "uniformity_of_content":
+                ucStdPreps.push(newPrep);
+                break;
+              case "residual_solvent":
+                rsStdPreps.push(newPrep);
+                break;
+              case "dissolution":
+                dissoStdPreps.push(newPrep);
+                break;
+              case "assay":
+              default:
+                assayStdPreps.push(newPrep);
+                break;
+            }
+          } else if (prepCategory === "sample") {
+            // Sample preparations - route by preparationType (context)
+            switch (prepType) {
+              case "lod":
+                lodSplPreps.push(newPrep);
+                break;
+              case "roi":
+                roiSplPreps.push(newPrep);
+                break;
+              case "sulphated_ash":
+                ashSplPreps.push(newPrep);
+                break;
+              case "dissolution":
+                dissoSplPreps.push(newPrep);
+                break;
+              case "titration":
+                titrationSplPreps.push(newPrep);
+                break;
+              case "uniformity_of_content":
+                ucSplPreps.push(newPrep);
+                break;
+              case "residual_solvent":
+                rsSplPreps.push(newPrep);
+                break;
+              case "assay":
+              default:
+                assaySplPreps.push(newPrep);
+                break;
+            }
+          } else if (prepCategory === "dissolution_media") {
+            dissoMediaPreps.push(newPrep);
+          } else if (prepCategory === "mobile_phase") {
+            mobilePhasePreps.push(newPrep);
           }
         });
 
-        // Set state for each type
+        // Set standard preparations
+        if (assayStdPreps.length > 0) {
+          setStandardPreparationPerParam((prev) => ({
+            ...prev,
+            [paramId]: assayStdPreps,
+          }));
+        }
+        if (rsStdPreps.length > 0) {
+          setStandardPreparationRSPerParam((prev) => ({
+            ...prev,
+            [paramId]: rsStdPreps,
+          }));
+        }
+        if (dissoStdPreps.length > 0) {
+          setStandardPreparationDissoPerParam((prev) => ({
+            ...prev,
+            [paramId]: dissoStdPreps,
+          }));
+        }
+
+        // Set sample preparations
         if (assaySplPreps.length > 0) {
           setSamplePreparationPerParam((prev) => ({
             ...prev,
             [paramId]: assaySplPreps,
           }));
         }
-
         if (lodSplPreps.length > 0) {
           setSamplePreparationLodPerParam((prev) => ({
             ...prev,
             [paramId]: lodSplPreps,
           }));
         }
-
         if (roiSplPreps.length > 0) {
           setSamplePreparationROIPerParam((prev) => ({
             ...prev,
             [paramId]: roiSplPreps,
           }));
         }
-
         if (ashSplPreps.length > 0) {
           setSamplePreparationSulphatedAshPerParam((prev) => ({
             ...prev,
             [paramId]: ashSplPreps,
           }));
         }
-
         if (rsSplPreps.length > 0) {
           setSamplePreparationRSPerParam((prev) => ({
             ...prev,
             [paramId]: rsSplPreps,
           }));
         }
-
         if (dissoSplPreps.length > 0) {
           setSamplePreparationDissoPerParam((prev) => ({
             ...prev,
             [paramId]: dissoSplPreps,
           }));
         }
+
+        // Set new preparation types
+        if (dissoMediaPreps.length > 0) {
+          setDissoMediaPerParam((prev) => ({
+            ...prev,
+            [paramId]: dissoMediaPreps,
+          }));
+        }
+        if (mobilePhasePreps.length > 0) {
+          setMobilePhasePerParam((prev) => ({
+            ...prev,
+            [paramId]: mobilePhasePreps,
+          }));
+        }
+        if (titrationSplPreps.length > 0) {
+          setSamplePrepTitrationPerParam((prev) => ({
+            ...prev,
+            [paramId]: titrationSplPreps,
+          }));
+        }
+        if (ucStdPreps.length > 0) {
+          setStandardPreparationUCPerParam((prev) => ({
+            ...prev,
+            [paramId]: ucStdPreps,
+          }));
+        }
+        if (ucSplPreps.length > 0) {
+          setSamplePreparationUCPerParam((prev) => ({
+            ...prev,
+            [paramId]: ucSplPreps,
+          }));
+        }
       }
 
       const prepLabelMapping: Record<string, number> = {};
 
-      // Map standard preparations
-      if (
-        param.standardPreparations &&
-        Array.isArray(param.standardPreparations)
-      ) {
-        param.standardPreparations.forEach((prep: any, i: number) => {
+      // Map all preparations
+      if (param.preparations && Array.isArray(param.preparations)) {
+        param.preparations.forEach((prep: any, i: number) => {
           if (prep.label) {
             prepLabelMapping[prep.label] =
               Date.now() + i + 1000 + Math.random() * 1000;
-          }
-        });
-      }
-
-      // Map sample preparations
-      if (param.samplePreparations && Array.isArray(param.samplePreparations)) {
-        param.samplePreparations.forEach((prep: any, i: number) => {
-          if (prep.label) {
-            prepLabelMapping[prep.label] =
-              Date.now() + i + 2000 + Math.random() * 1000;
           }
         });
       }
@@ -1148,6 +1455,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
           sulphatedAsh: [] as any[],
           residualSolvent: [] as any[],
           dissolution: [] as any[],
+          uniformityOfContent: [] as any[],
         };
 
         param.calculations.forEach((calc: any, i: number) => {
@@ -1164,6 +1472,72 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
             // Route based on calculationType
             switch (calcType) {
+              case "uniformity_of_content":
+                const ucCalc = {
+                  id: baseId + 9000,
+                  label: parsedData.label || calc.label,
+                  selectedStandardPrepLabel:
+                    parsedData.selectedStandardPrepLabel,
+                  selectedSamplePrepLabel: parsedData.selectedSamplePrepLabel,
+                  areaOfStandard: parsedData.areaOfStandard || "",
+                  areaOfSample1: parsedData.areaOfSample1 || "",
+                  areaOfSample2: parsedData.areaOfSample2 || "",
+                  areaOfSample3: parsedData.areaOfSample3 || "",
+                  areaOfSample4: parsedData.areaOfSample4 || "",
+                  areaOfSample5: parsedData.areaOfSample5 || "",
+                  areaOfSample6: parsedData.areaOfSample6 || "",
+                  areaOfSample7: parsedData.areaOfSample7 || "",
+                  areaOfSample8: parsedData.areaOfSample8 || "",
+                  areaOfSample9: parsedData.areaOfSample9 || "",
+                  areaOfSample10: parsedData.areaOfSample10 || "",
+                  purity: parsedData.purity || "",
+                  mWBase: parsedData.mWBase || "",
+                  mWSalt: parsedData.mWSalt || "",
+                  calculationResult: parsedData.calculationResult || null,
+                  calculationResultUnit:
+                    parsedData.calculationResultUnit || null,
+                  calculationResultTablet1:
+                    parsedData.calculationResultTablet1 || null,
+                  calculationResultTablet2:
+                    parsedData.calculationResultTablet2 || null,
+                  calculationResultTablet3:
+                    parsedData.calculationResultTablet3 || null,
+                  calculationResultTablet4:
+                    parsedData.calculationResultTablet4 || null,
+                  calculationResultTablet5:
+                    parsedData.calculationResultTablet5 || null,
+                  calculationResultTablet6:
+                    parsedData.calculationResultTablet6 || null,
+                  calculationResultTablet7:
+                    parsedData.calculationResultTablet7 || null,
+                  calculationResultTablet8:
+                    parsedData.calculationResultTablet8 || null,
+                  calculationResultTablet9:
+                    parsedData.calculationResultTablet9 || null,
+                  calculationResultTablet10:
+                    parsedData.calculationResultTablet10 || null,
+                  sw1: parsedData.sw1 || null,
+                  claim: parsedData.claim || null,
+                  dilutedVol: parsedData.dilutedVol || null,
+                  v1: parsedData.v1 || null,
+                  v2: parsedData.v2 || null,
+                  v3: parsedData.v3 || null,
+                  v4: parsedData.v4 || null,
+                  v5: parsedData.v5 || null,
+                  v6: parsedData.v6 || null,
+                  v7: parsedData.v7 || null,
+                  v8: parsedData.v8 || null,
+                  v9: parsedData.v9 || null,
+                  v10: parsedData.v10 || null,
+                  v11: parsedData.v11 || null,
+                  v12: parsedData.v12 || null,
+                  v13: parsedData.v13 || null,
+                  v14: parsedData.v14 || null,
+                  v15: parsedData.v15 || null,
+                  v16: parsedData.v16 || null,
+                };
+                restoredCalculations.uniformityOfContent.push(ucCalc);
+                break;
               case "assay":
                 const assayCalc = {
                   id: baseId + 3000,
@@ -1175,12 +1549,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   areaOfStandard: parsedData.areaOfStandard || "",
                   avgWeight: parsedData.avgWeight || "",
                   avgWeightUnit: parsedData.avgWeightUnit || "",
-                  avgContent: parsedData.avgContent || "",
-                  avgContentUnit: parsedData.avgContentUnit || "",
-                  sampleVol: parsedData.sampleVol || "",
-                  sampleVolUnit: parsedData.sampleVolUnit || "",
-                  mwSalt: parsedData.mwSalt || "",
-                  mwBase: parsedData.mwBase || "",
+                  weightPerMl: parsedData.weightPerMl || "",
+                  weightPerMlUnit: parsedData.weightPerMlUnit || "",
+                  purity: parsedData.purity || "",
+                  mWSalt: parsedData.mWSalt || "",
+                  mWBase: parsedData.mWBase || "",
                   claim: parsedData.claim || "",
                   claimUnit: parsedData.claimUnit || "",
                   labelClaim: parsedData.labelClaim || "",
@@ -1190,6 +1563,23 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   calculationResultUnit: parsedData.calculationResultUnit || "",
                   labelClaimPercent: parsedData.labelClaimPercent || "",
                   lodWaterBasisResult: parsedData.lodWaterBasisResult || "",
+                  // Stored preparation values
+                  sw1: parsedData.sw1 || null,
+                  sw2: parsedData.sw2 || null,
+                  v1: parsedData.v1 || null,
+                  v2: parsedData.v2 || null,
+                  v3: parsedData.v3 || null,
+                  v4: parsedData.v4 || null,
+                  v5: parsedData.v5 || null,
+                  v6: parsedData.v6 || null,
+                  v7: parsedData.v7 || null,
+                  v8: parsedData.v8 || null,
+                  v9: parsedData.v9 || null,
+                  v10: parsedData.v10 || null,
+                  v11: parsedData.v11 || null,
+                  v12: parsedData.v12 || null,
+                  v13: parsedData.v13 || null,
+                  v14: parsedData.v14 || null,
                 };
                 restoredCalculations.assay.push(assayCalc);
                 break;
@@ -1204,6 +1594,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   w3_dishAfterIgnition: parsedData.w3_dishAfterIgnition || "",
                   calculationResult: parsedData.calculationResult || "",
                   calculationResultUnit: parsedData.calculationResultUnit || "",
+                  // Stored preparation values
+                  w1: parsedData.w1 || null,
+                  w2: parsedData.w2 || null,
+                  w3: parsedData.w3 || null,
                 };
                 restoredCalculations.lod.push(lodCalc);
                 break;
@@ -1218,6 +1612,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   w3_dishAfterIgnition: parsedData.w3_dishAfterIgnition || "",
                   calculationResult: parsedData.calculationResult || "",
                   calculationResultUnit: parsedData.calculationResultUnit || "",
+                  // Stored preparation values
+                  w1: parsedData.w1 || null,
+                  w2: parsedData.w2 || null,
+                  w3: parsedData.w3 || null,
                 };
                 restoredCalculations.roi.push(roiCalc);
                 break;
@@ -1232,6 +1630,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   w3_crucibleAfterAsh: parsedData.w3_crucibleAfterAsh || "",
                   calculationResult: parsedData.calculationResult || "",
                   calculationResultUnit: parsedData.calculationResultUnit || "",
+                  // Stored preparation values
+                  w1: parsedData.w1 || null,
+                  w2: parsedData.w2 || null,
+                  w3: parsedData.w3 || null,
                 };
                 restoredCalculations.sulphatedAsh.push(ashCalc);
                 break;
@@ -1247,6 +1649,15 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   purity: parsedData.purity || "",
                   calculationResult: parsedData.calculationResult || "",
                   calculationResultUnit: parsedData.calculationResultUnit || "",
+                  // Stored preparation values
+                  sw1: parsedData.sw1 || null,
+                  sw2: parsedData.sw2 || null,
+                  v1: parsedData.v1 || null,
+                  v2: parsedData.v2 || null,
+                  v3: parsedData.v3 || null,
+                  v4: parsedData.v4 || null,
+                  v5: parsedData.v5 || null,
+                  v6: parsedData.v6 || null,
                 };
                 restoredCalculations.residualSolvent.push(rsCalc);
                 break;
@@ -1264,8 +1675,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   areaOfSample5: parsedData.areaOfSample5 || "",
                   areaOfSample6: parsedData.areaOfSample6 || "",
                   areaOfStandard: parsedData.areaOfStandard || "",
-                  mwBase: parsedData.mwBase || "",
-                  mwSalt: parsedData.mwSalt || "",
+                  mWBase: parsedData.mWBase || "",
+                  mWSalt: parsedData.mWSalt || "",
                   purity: parsedData.purity || "",
                   calculationResult: parsedData.calculationResult || "",
                   calculationResultTablet1:
@@ -1281,6 +1692,24 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   calculationResultTablet6:
                     parsedData.calculationResultTablet6 || "",
                   calculationResultUnit: parsedData.calculationResultUnit || "",
+                  // Stored preparation values
+                  sw1: parsedData.sw1 || null,
+                  claim: parsedData.claim || null,
+                  mediaVol: parsedData.mediaVol || null,
+                  v1: parsedData.v1 || null,
+                  v2: parsedData.v2 || null,
+                  v3: parsedData.v3 || null,
+                  v4: parsedData.v4 || null,
+                  v5: parsedData.v5 || null,
+                  v6: parsedData.v6 || null,
+                  v7: parsedData.v7 || null,
+                  v8: parsedData.v8 || null,
+                  v9: parsedData.v9 || null,
+                  v10: parsedData.v10 || null,
+                  v11: parsedData.v11 || null,
+                  v12: parsedData.v12 || null,
+                  v13: parsedData.v13 || null,
+                  v14: parsedData.v14 || null,
                 };
                 restoredCalculations.dissolution.push(dissoCalc);
                 break;
@@ -1331,71 +1760,100 @@ const Worksheet: React.FC<WorksheetProps> = ({
             [paramId]: restoredCalculations.dissolution,
           }));
         }
+
+        if (restoredCalculations.uniformityOfContent.length > 0) {
+          setCalculationsUCPerParam((prev) => ({
+            ...prev,
+            [paramId]: restoredCalculations.uniformityOfContent,
+          }));
+        }
       }
 
+      // Determine active preparation groups based on what preparations exist
       const activeGroups: string[] = [];
 
-      // Check for assay preparations
-      if (
-        (param.standardPreparations?.filter(
-          (p: any) => !p.preparationType || p.preparationType === "assay"
-        ).length || 0) > 0 ||
-        (param.samplePreparations?.filter(
-          (p: any) => !p.preparationType || p.preparationType === "assay"
-        ).length || 0) > 0
-      ) {
-        activeGroups.push("assay");
-      }
+      if (param.preparations && Array.isArray(param.preparations)) {
+        // Check for assay preparations (both standard and sample with assay type)
+        if (
+          param.preparations.some(
+            (p: any) =>
+              !p.preparationType ||
+              p.preparationType === "assay" ||
+              p.preparationType === null,
+          )
+        ) {
+          activeGroups.push("assay");
+        }
 
-      // Check for LOD preparations
-      if (
-        (param.samplePreparations?.filter(
-          (p: any) => p.preparationType === "lod"
-        ).length || 0) > 0
-      ) {
-        activeGroups.push("lod");
-      }
+        // Check for LOD preparations
+        if (param.preparations.some((p: any) => p.preparationType === "lod")) {
+          activeGroups.push("lod");
+        }
 
-      // Check for ROI preparations
-      if (
-        (param.samplePreparations?.filter(
-          (p: any) => p.preparationType === "roi"
-        ).length || 0) > 0
-      ) {
-        activeGroups.push("roi");
-      }
+        // Check for ROI preparations
+        if (param.preparations.some((p: any) => p.preparationType === "roi")) {
+          activeGroups.push("roi");
+        }
 
-      // Check for Sulphated Ash preparations
-      if (
-        (param.samplePreparations?.filter(
-          (p: any) => p.preparationType === "sulphated_ash"
-        ).length || 0) > 0
-      ) {
-        activeGroups.push("sulphatedAsh");
-      }
+        // Check for Sulphated Ash preparations
+        if (
+          param.preparations.some(
+            (p: any) => p.preparationType === "sulphated_ash",
+          )
+        ) {
+          activeGroups.push("sulphatedAsh");
+        }
 
-      // Check for Residual Solvent preparations
-      if (
-        (param.standardPreparations?.filter(
-          (p: any) => p.preparationType === "residual_solvent"
-        ).length || 0) > 0 ||
-        (param.samplePreparations?.filter(
-          (p: any) => p.preparationType === "residual_solvent"
-        ).length || 0) > 0
-      ) {
-        activeGroups.push("residualSolvent");
-      }
+        // Check for Residual Solvent preparations
+        if (
+          param.preparations.some(
+            (p: any) => p.preparationType === "residual_solvent",
+          )
+        ) {
+          activeGroups.push("residualSolvent");
+        }
 
-      // Check for Dissolution preparations
-      if (
-        (param.standardPreparations?.filter(
-          (p: any) => p.preparationType === "dissolution"
-        ).length || 0) > 0 ||
-        (param.samplePreparations?.filter(
-          (p: any) => p.preparationType === "dissolution"
-        ).length || 0) > 0
-      ) {
-        activeGroups.push("dissolution");
+        // Check for Dissolution preparations
+        if (
+          param.preparations.some(
+            (p: any) => p.preparationType === "dissolution",
+          )
+        ) {
+          activeGroups.push("dissolution");
+        }
+
+        // Check for Mobile Phase preparations (based on preparationCategory!)
+        if (
+          param.preparations.some(
+            (p: any) => p.preparationCategory === "mobile_phase",
+          )
+        ) {
+          activeGroups.push("mobilePhase");
+        }
+
+        // Check for Dissolution Media Preparation preparations (based on preparationCategory!)
+        if (
+          param.preparations.some(
+            (p: any) => p.preparationCategory === "dissolution_media",
+          )
+        ) {
+          activeGroups.push("dissoMedia");
+        }
+
+        // Check for Sample Titration preparations
+        if (
+          param.preparations.some((p: any) => p.preparationType === "titration")
+        ) {
+          activeGroups.push("titration");
+        }
+
+        if (
+          param.preparations.some(
+            (p: any) => p.preparationType === "uniformity_of_content",
+          )
+        ) {
+          activeGroups.push("uniformityOfContent");
+        }
       }
 
       if (activeGroups.length > 0) {
@@ -1418,7 +1876,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         ? idList.map(String).map((s) => s.trim())
         : [];
       const matched = instruments.filter((inst) =>
-        ids.includes(String(inst.id).trim())
+        ids.includes(String(inst.id).trim()),
       );
       setAddedInstruments((prev) => ({ ...prev, [Number(paramId)]: matched }));
     });
@@ -1431,7 +1889,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         ? idList.map(String).map((s) => s.trim())
         : [];
       const matched = chemicals.filter((chem) =>
-        ids.includes(String(chem.id).trim())
+        ids.includes(String(chem.slno).trim()),
       );
       setAddedChemicals((prev) => ({ ...prev, [Number(paramId)]: matched }));
     });
@@ -1444,7 +1902,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         ? idList.map(String).map((s) => s.trim())
         : [];
       const matched = standards.filter((std) =>
-        ids.includes(String(std.id).trim())
+        ids.includes(String(std.serialNo).trim()),
       );
       setAddedStandards((prev) => ({ ...prev, [Number(paramId)]: matched }));
     });
@@ -1479,71 +1937,143 @@ const Worksheet: React.FC<WorksheetProps> = ({
         approvedAt: worksheetInfo?.sample?.approvedAt || null,
       },
       parameters: addedParameters.map((param) => {
-        const standardPreparations = [
+        const preparations = [
+          // Standard Preparations for UNIFORMITY OF CONTENT
+          ...(standardPreparationUCPerParam[param.id] || []).map((sp) => ({
+            label: sp.label,
+            preparationCategory: "standard",
+            preparationType: "uniformity_of_content",
+            assignedStandardId: (sp as any).assignedStandardId || "",
+            steps: JSON.stringify(sp.steps),
+          })),
+
+          // Sample Preparations for UNIFORMITY OF CONTENT
+          ...(samplePreparationUCPerParam[param.id] || []).map((sp) => ({
+            label: sp.label,
+            preparationCategory: "sample",
+            preparationType: "uniformity_of_content",
+            assignedStandardId: (sp as any).assignedStandardId || null,
+            steps: JSON.stringify(sp.steps),
+          })),
+          // Standard Preparations for ASSAY
           ...(standardPreparationPerParam[param.id] || []).map((sp) => ({
             label: sp.label,
+            preparationCategory: "standard",
             preparationType: "assay",
             assignedStandardId: (sp as any).assignedStandardId || "",
             steps: JSON.stringify(sp.steps),
           })),
+          // Standard Preparations for RESIDUAL SOLVENT
           ...(standardPreparationRSPerParam[param.id] || []).map((sp) => ({
             label: sp.label,
+            preparationCategory: "standard",
             preparationType: "residual_solvent",
             assignedStandardId: (sp as any).assignedStandardId || "",
             steps: JSON.stringify(sp.steps),
           })),
+          // Standard Preparations for DISSOLUTION
           ...(standardPreparationDissoPerParam[param.id] || []).map((sp) => ({
             label: sp.label,
+            preparationCategory: "standard",
             preparationType: "dissolution",
             assignedStandardId: (sp as any).assignedStandardId || "",
             steps: JSON.stringify(sp.steps),
           })),
-        ];
-
-        // Collect all sample preparations with their types
-        const samplePreparations = [
+          // Sample Preparations for ASSAY
           ...(samplePreparationPerParam[param.id] || []).map((sp) => ({
             label: sp.label,
+            preparationCategory: "sample",
             preparationType: "assay",
-            assignedStandardId: (sp as any).assignedStandardId || "",
+            assignedStandardId: null,
             steps: JSON.stringify(sp.steps),
           })),
+          // Sample Preparations for LOD
           ...(samplePreparationLodPerParam[param.id] || []).map((spl) => ({
             label: spl.label,
+            preparationCategory: "sample",
             preparationType: "lod",
-            assignedStandardId: "",
+            assignedStandardId: null,
             steps: JSON.stringify(spl.steps),
           })),
+          // Sample Preparations for ROI
           ...(samplePreparationROIPerParam[param.id] || []).map((spl) => ({
             label: spl.label,
+            preparationCategory: "sample",
             preparationType: "roi",
-            assignedStandardId: "",
+            assignedStandardId: null,
             steps: JSON.stringify(spl.steps),
           })),
+          // Sample Preparations for SULPHATED ASH
           ...(samplePreparationSulphatedAshPerParam[param.id] || []).map(
             (sps) => ({
               label: sps.label,
+              preparationCategory: "sample",
               preparationType: "sulphated_ash",
-              assignedStandardId: "",
+              assignedStandardId: null,
               steps: JSON.stringify(sps.steps),
-            })
+            }),
           ),
+          // Sample Preparations for RESIDUAL SOLVENT
           ...(samplePreparationRSPerParam[param.id] || []).map((sp) => ({
             label: sp.label,
+            preparationCategory: "sample",
             preparationType: "residual_solvent",
-            assignedStandardId: (sp as any).assignedStandardId || "",
+            assignedStandardId: null,
             steps: JSON.stringify(sp.steps),
           })),
+          // Sample Preparations for DISSOLUTION
           ...(samplePreparationDissoPerParam[param.id] || []).map((spd) => ({
             label: spd.label,
+            preparationCategory: "sample",
             preparationType: "dissolution",
-            assignedStandardId: (spd as any).assignedStandardId || "",
+            assignedStandardId: null,
             steps: JSON.stringify(spd.steps),
+          })),
+          // Dissolution Media Preparation Preparations
+          ...(dissoMediaPerParam[param.id] || []).map((dm) => ({
+            label: dm.label,
+            preparationCategory: "dissolution_media",
+            preparationType: null,
+            assignedStandardId: null,
+            steps: JSON.stringify(dm.steps),
+          })),
+          // Mobile Phase Preparations
+          ...(mobilePhasePerParam[param.id] || []).map((mp) => ({
+            label: mp.label,
+            preparationCategory: "mobile_phase",
+            preparationType: null,
+            assignedStandardId: null,
+            steps: JSON.stringify(mp.steps),
+          })),
+          // Sample Preparation for Titration
+          ...(samplePrepTitrationPerParam[param.id] || []).map((spt) => ({
+            label: spt.label,
+            preparationCategory: "sample",
+            preparationType: "titration",
+            assignedStandardId: null,
+            steps: JSON.stringify(spt.steps),
+          })),
+          ...(systemSuitabilityPerParam[param.id] || []).map((ss) => ({
+            label: ss.label,
+            preparationCategory: "system_suitability",
+            preparationType: null,
+            assignedStandardId: null,
+            steps: JSON.stringify(ss.steps),
           })),
         ];
 
         // Collect all calculations with their types
         const calculations = [
+          ...(calculationsUCPerParam[param.id] || []).map((calc) => {
+            const dataObj = { ...calc } as any;
+            delete dataObj.selectedStandardPrepId;
+            delete dataObj.selectedSamplePrepId;
+            return {
+              label: calc.label,
+              calculationType: "uniformity_of_content",
+              data: JSON.stringify(dataObj),
+            };
+          }),
           ...(calculationsAssayPerParam[param.id] || []).map((calc) => {
             const dataObj = { ...calc } as any;
             delete dataObj.selectedStandardPrepId;
@@ -1619,16 +2149,16 @@ const Worksheet: React.FC<WorksheetProps> = ({
           approvedBy: approvedByPerParam[param.id] || null,
           approvedAt: approvedAtPerParam[param.id] || null,
           status: parameterStatusPerParam[param.id] || "Created",
-
           instrumentIds: (addedInstruments[param.id] || []).map(
-            (inst) => inst.id
+            (inst) => inst.id,
           ),
-          chemicalIds: (addedChemicals[param.id] || []).map((chem) => chem.id),
-          standardIds: (addedStandards[param.id] || []).map((std) => std.id),
-
-          // Unified arrays with type discriminators
-          standardPreparations,
-          samplePreparations,
+          chemicalIds: (addedChemicals[param.id] || []).map(
+            (chem) => chem.slno,
+          ),
+          standardIds: (addedStandards[param.id] || []).map(
+            (std) => std.serialNo,
+          ),
+          preparations, // ← Unified preparations array
           calculations,
         };
       }),
@@ -1650,7 +2180,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         return;
       }
 
-      console.log(WorksheetDbMapper.mapAll(worksheetData));
+      //console.log(WorksheetDbMapper.mapAll(worksheetData));
 
       setWorksheetInfo(worksheetData);
       setRegistrationNo(worksheetData.sample.registrationNo);
@@ -1671,7 +2201,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
   const handlePrintClick = () => {
     if (onPrint && worksheetInfo && analysts && samplesData) {
-
       onPrint(worksheetInfo, analysts, samplesData[0]);
     }
   };
@@ -1742,7 +2271,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const createdParameters = worksheetData?.parameters?.filter(
         (param) =>
           (parameterStatusPerParam[param.id] || "created").toLowerCase() ===
-          "created"
+          "created",
       );
 
       if (createdParameters!.length === 0) {
@@ -1783,7 +2312,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
         const response = await updateWorksheet(
           worksheetId,
-          updatedWorksheetData
+          updatedWorksheetData,
         );
 
         if (response && response.worksheetId) {
@@ -1797,7 +2326,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     status: "Submitted For Analysis",
                   },
                 }
-              : null
+              : null,
           );
 
           // Update parameter statuses in local state
@@ -1833,7 +2362,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
             }));
           } else {
             setToastMessage(
-              `Failed to update parameter ${param.parameterName}`
+              `Failed to update parameter ${param.parameterName}`,
             );
             setShowToast(true);
             setTimeout(() => {
@@ -1882,494 +2411,581 @@ const Worksheet: React.FC<WorksheetProps> = ({
     setShowAnalystDialog(true);
   };
 
-const handleAnalystSelected = async (employeeId: string) => {
-  if (!pendingParameter) return;
+  const handleAnalystSelected = async (
+    employeeId: string,
+    employeeName: string,
+  ) => {
+    if (!pendingParameter) return;
 
-  try {
-    if (analystMode === "add") {
-      const newId = paramIdx + 1;
-      setParamIdx(newId);
-      const newParameter = { ...pendingParameter, id: newId };
+    try {
+      if (analystMode === "add") {
+        const newId = paramIdx + 1;
+        setParamIdx(newId);
+        const newParameter = { ...pendingParameter, id: newId };
 
-      setAddedParameters((prev) => [...prev, newParameter]);
+        setAddedParameters((prev) => [...prev, newParameter]);
 
-      setAnalyzedByPerParam((prev) => ({
-        ...prev,
-        [newId]: employeeId,
-      }));
+        setAnalyzedByPerParam((prev) => ({
+          ...prev,
+          [newId]: employeeId,
+        }));
 
-      setParameterStatusPerParam((prev) => ({
-        ...prev,
-        [newId]: "Created",
-      }));
+        setAnalyzedByNamePerParam((prev) => ({
+          ...prev,
+          [newId]: employeeName,
+        }));
 
-      setToastMessage(`Adding parameter "${newParameter.parameterName}"...`);
-      setShowToast(true);
+        setParameterStatusPerParam((prev) => ({
+          ...prev,
+          [newId]: "Created",
+        }));
 
-      try {
-        const parameterData = {
-          paraCode: newParameter.paraCode,
-          parameterName: newParameter.parameterName,
-          methodCode: newParameter.methodCode,
-          methodName: newParameter.methodName,
-          columnId: columnsPerParam[newId] || null,
-          diluentPreparation: diluentPerParam[newId] || null,
-          otherInfo: otherInfoPerParam[newId] || null,
-          analyzedBy: employeeId,
-          approvedBy: null,
-          analysisStartDate: null,
-          analysisCompletionDate: null,
-          approvedAt: null,
-          status: "Created",
-          instrumentIds: (addedInstruments[newId] || []).map(inst => inst.id),
-          chemicalIds: (addedChemicals[newId] || []).map(chem => chem.id),
-          standardIds: (addedStandards[newId] || []).map(std => std.id),
-          standardPreparations: [
-            ...(standardPreparationPerParam[newId] || []).map(sp => ({
-              label: sp.label,
-              preparationType: "assay",
-              assignedStandardId: sp.assignedStandardId || "",
-              steps: JSON.stringify(sp.steps),
-            })),
-            ...(standardPreparationRSPerParam[newId] || []).map(sp => ({
-              label: sp.label,
-              preparationType: "residual_solvent",
-              assignedStandardId: (sp as any).assignedStandardId || "",
-              steps: JSON.stringify(sp.steps),
-            })),
-            ...(standardPreparationDissoPerParam[newId] || []).map(sp => ({
-              label: sp.label,
-              preparationType: "dissolution",
-              assignedStandardId: (sp as any).assignedStandardId || "",
-              steps: JSON.stringify(sp.steps),
-            })),
-          ],
-          samplePreparations: [
-            ...(samplePreparationPerParam[newId] || []).map(sp => ({
-              label: sp.label,
-              preparationType: "assay",
-              assignedStandardId: "",
-              steps: JSON.stringify(sp.steps),
-            })),
-            ...(samplePreparationROIPerParam[newId] || []).map(sp => ({
-              label: sp.label,
-              preparationType: "roi",
-              assignedStandardId: "",
-              steps: JSON.stringify(sp.steps),
-            })),
-            ...(samplePreparationLodPerParam[newId] || []).map(sp => ({
-              label: sp.label,
-              preparationType: "lod",
-              assignedStandardId: "",
-              steps: JSON.stringify(sp.steps),
-            })),
-            ...(samplePreparationSulphatedAshPerParam[newId] || []).map(sp => ({
-              label: sp.label,
-              preparationType: "sulphated_ash",
-              assignedStandardId: "",
-              steps: JSON.stringify(sp.steps),
-            })),
-            ...(samplePreparationRSPerParam[newId] || []).map(sp => ({
-              label: sp.label,
-              preparationType: "residual_solvent",
-              assignedStandardId: (sp as any).assignedStandardId || "",
-              steps: JSON.stringify(sp.steps),
-            })),
-            ...(samplePreparationDissoPerParam[newId] || []).map(sp => ({
-              label: sp.label,
-              preparationType: "dissolution",
-              assignedStandardId: (sp as any).assignedStandardId || "",
-              steps: JSON.stringify(sp.steps),
-            })),
-          ],
-          calculations: [
-            ...(calculationsAssayPerParam[newId] || []).map(calc => {
-              const dataObj = { ...calc } as any;
-              delete dataObj.selectedStandardPrepId;
-              delete dataObj.selectedSamplePrepId;
-              return {
-                label: calc.label,
-                calculationType: "assay",
-                data: JSON.stringify(dataObj),
-              };
-            }),
-            ...(calculationsLodPerParam[newId] || []).map(calc => {
-              const dataObj = { ...calc } as any;
-              delete dataObj.selectedSamplePrepId;
-              return {
-                label: calc.label,
-                calculationType: "lod",
-                data: JSON.stringify(dataObj),
-              };
-            }),
-            ...(calculationsROIPerParam[newId] || []).map(calc => {
-              const dataObj = { ...calc } as any;
-              delete dataObj.selectedSamplePrepId;
-              return {
-                label: calc.label,
-                calculationType: "roi",
-                data: JSON.stringify(dataObj),
-              };
-            }),
-            ...(calculationsSulphatedAshPerParam[newId] || []).map(calc => {
-              const dataObj = { ...calc } as any;
-              delete dataObj.selectedSamplePrepId;
-              return {
-                label: calc.label,
-                calculationType: "sulphated_ash",
-                data: JSON.stringify(dataObj),
-              };
-            }),
-            ...(calculationsRSPerParam[newId] || []).map(calc => {
-              const dataObj = { ...calc } as any;
-              delete dataObj.selectedStandardPrepId;
-              delete dataObj.selectedSamplePrepId;
-              return {
-                label: calc.label,
-                calculationType: "residual_solvent",
-                data: JSON.stringify(dataObj),
-              };
-            }),
-            ...(calculationsDissoPerParam[newId] || []).map(calc => {
-              const dataObj = { ...calc } as any;
-              delete dataObj.selectedStandardPrepId;
-              delete dataObj.selectedSamplePrepId;
-              return {
-                label: calc.label,
-                calculationType: "dissolution",
-                data: JSON.stringify(dataObj),
-              };
-            }),
-          ],
-        };
-
-        const response = await addParameter(worksheetId, parameterData);
-
-        setAddedParameters((prev) => 
-          prev.map(p => 
-            p.id === newId 
-              ? { ...p, id: response.parameterId } 
-              : p
-          )
-        );
-
-        const serverParameterId = response.parameterId;
-
-        setAnalyzedByPerParam((prev) => {
-          const { [newId]: analyzedBy, ...rest } = prev;
-          return { ...rest, [serverParameterId]: analyzedBy };
-        });
-
-        setParameterStatusPerParam((prev) => {
-          const { [newId]: status, ...rest } = prev;
-          return { ...rest, [serverParameterId]: status };
-        });
-
-        if (columnsPerParam[newId]) {
-          setColumnsPerParam((prev) => {
-            const { [newId]: column, ...rest } = prev;
-            return { ...rest, [serverParameterId]: column };
-          });
-        }
-
-        if (diluentPerParam[newId]) {
-          setDiluentPerParam((prev) => {
-            const { [newId]: diluent, ...rest } = prev;
-            return { ...rest, [serverParameterId]: diluent };
-          });
-        }
-
-        if (otherInfoPerParam[newId]) {
-          setOtherInfoPerParam((prev) => {
-            const { [newId]: info, ...rest } = prev;
-            return { ...rest, [serverParameterId]: info };
-          });
-        }
-
-        if (addedInstruments[newId]) {
-          setAddedInstruments((prev) => {
-            const { [newId]: instruments, ...rest } = prev;
-            return { ...rest, [serverParameterId]: instruments };
-          });
-          setAddedInstrumentIdsPerParam((prev) => {
-            const { [newId]: ids, ...rest } = prev;
-            return { ...rest, [serverParameterId]: ids };
-          });
-        }
-
-        if (addedChemicals[newId]) {
-          setAddedChemicals((prev) => {
-            const { [newId]: chemicals, ...rest } = prev;
-            return { ...rest, [serverParameterId]: chemicals };
-          });
-          setAddedChemicalIdsPerParam((prev) => {
-            const { [newId]: ids, ...rest } = prev;
-            return { ...rest, [serverParameterId]: ids };
-          });
-        }
-
-        if (addedStandards[newId]) {
-          setAddedStandards((prev) => {
-            const { [newId]: standards, ...rest } = prev;
-            return { ...rest, [serverParameterId]: standards };
-          });
-          setAddedStandardIdsPerParam((prev) => {
-            const { [newId]: ids, ...rest } = prev;
-            return { ...rest, [serverParameterId]: ids };
-          });
-        }
-
-        if (standardPreparationPerParam[newId]) {
-          setStandardPreparationPerParam((prev) => {
-            const { [newId]: preps, ...rest } = prev;
-            return { ...rest, [serverParameterId]: preps };
-          });
-        }
-
-        if (samplePreparationPerParam[newId]) {
-          setSamplePreparationPerParam((prev) => {
-            const { [newId]: preps, ...rest } = prev;
-            return { ...rest, [serverParameterId]: preps };
-          });
-        }
-
-        if (standardPreparationRSPerParam[newId]) {
-          setStandardPreparationRSPerParam((prev) => {
-            const { [newId]: preps, ...rest } = prev;
-            return { ...rest, [serverParameterId]: preps };
-          });
-        }
-
-        if (samplePreparationRSPerParam[newId]) {
-          setSamplePreparationRSPerParam((prev) => {
-            const { [newId]: preps, ...rest } = prev;
-            return { ...rest, [serverParameterId]: preps };
-          });
-        }
-
-        if (standardPreparationDissoPerParam[newId]) {
-          setStandardPreparationDissoPerParam((prev) => {
-            const { [newId]: preps, ...rest } = prev;
-            return { ...rest, [serverParameterId]: preps };
-          });
-        }
-
-        if (samplePreparationDissoPerParam[newId]) {
-          setSamplePreparationDissoPerParam((prev) => {
-            const { [newId]: preps, ...rest } = prev;
-            return { ...rest, [serverParameterId]: preps };
-          });
-        }
-
-        if (samplePreparationLodPerParam[newId]) {
-          setSamplePreparationLodPerParam((prev) => {
-            const { [newId]: preps, ...rest } = prev;
-            return { ...rest, [serverParameterId]: preps };
-          });
-        }
-
-        if (samplePreparationROIPerParam[newId]) {
-          setSamplePreparationROIPerParam((prev) => {
-            const { [newId]: preps, ...rest } = prev;
-            return { ...rest, [serverParameterId]: preps };
-          });
-        }
-
-        if (samplePreparationSulphatedAshPerParam[newId]) {
-          setSamplePreparationSulphatedAshPerParam((prev) => {
-            const { [newId]: preps, ...rest } = prev;
-            return { ...rest, [serverParameterId]: preps };
-          });
-        }
-
-        if (calculationsAssayPerParam[newId]) {
-          setCalculationsAssayPerParam((prev) => {
-            const { [newId]: calcs, ...rest } = prev;
-            return { ...rest, [serverParameterId]: calcs };
-          });
-        }
-
-        if (calculationsLodPerParam[newId]) {
-          setCalculationsLodPerParam((prev) => {
-            const { [newId]: calcs, ...rest } = prev;
-            return { ...rest, [serverParameterId]: calcs };
-          });
-        }
-
-        if (calculationsROIPerParam[newId]) {
-          setCalculationsROIPerParam((prev) => {
-            const { [newId]: calcs, ...rest } = prev;
-            return { ...rest, [serverParameterId]: calcs };
-          });
-        }
-
-        if (calculationsSulphatedAshPerParam[newId]) {
-          setCalculationsSulphatedAshPerParam((prev) => {
-            const { [newId]: calcs, ...rest } = prev;
-            return { ...rest, [serverParameterId]: calcs };
-          });
-        }
-
-        if (calculationsRSPerParam[newId]) {
-          setCalculationsRSPerParam((prev) => {
-            const { [newId]: calcs, ...rest } = prev;
-            return { ...rest, [serverParameterId]: calcs };
-          });
-        }
-
-        if (calculationsDissoPerParam[newId]) {
-          setCalculationsDissoPerParam((prev) => {
-            const { [newId]: calcs, ...rest } = prev;
-            return { ...rest, [serverParameterId]: calcs };
-          });
-        }
-
-        setToastMessage(`Parameter "${newParameter.parameterName}" added successfully!`);
+        setToastMessage(`Adding parameter "${newParameter.parameterName}"...`);
         setShowToast(true);
-        setTimeout(() => setShowToast(false), 3000);
-      } catch (error) {
-        console.error("❌ Error adding parameter:");
-        console.error("Error type:", error instanceof Error ? error.constructor.name : typeof error);
-        console.error("Error message:", error instanceof Error ? error.message : String(error));
-        console.error("Full error object:", error);
 
-        setAddedParameters((prev) => prev.filter(p => p.id !== newId));
-        
-        const cleanupState = (setter: Function) => {
-          setter((prev: any) => {
-            const { [newId]: _, ...rest } = prev;
-            return rest;
-          });
-        };
-
-        cleanupState(setAnalyzedByPerParam);
-        cleanupState(setParameterStatusPerParam);
-        cleanupState(setColumnsPerParam);
-        cleanupState(setDiluentPerParam);
-        cleanupState(setOtherInfoPerParam);
-        cleanupState(setAddedInstruments);
-        cleanupState(setAddedInstrumentIdsPerParam);
-        cleanupState(setAddedChemicals);
-        cleanupState(setAddedChemicalIdsPerParam);
-        cleanupState(setAddedStandards);
-        cleanupState(setAddedStandardIdsPerParam);
-        cleanupState(setStandardPreparationPerParam);
-        cleanupState(setSamplePreparationPerParam);
-        cleanupState(setStandardPreparationRSPerParam);
-        cleanupState(setSamplePreparationRSPerParam);
-        cleanupState(setStandardPreparationDissoPerParam);
-        cleanupState(setSamplePreparationDissoPerParam);
-        cleanupState(setSamplePreparationLodPerParam);
-        cleanupState(setSamplePreparationROIPerParam);
-        cleanupState(setSamplePreparationSulphatedAshPerParam);
-        cleanupState(setCalculationsAssayPerParam);
-        cleanupState(setCalculationsLodPerParam);
-        cleanupState(setCalculationsROIPerParam);
-        cleanupState(setCalculationsSulphatedAshPerParam);
-        cleanupState(setCalculationsRSPerParam);
-        cleanupState(setCalculationsDissoPerParam);
-
-        setToastMessage(
-          error instanceof Error 
-            ? `Failed to add parameter: ${error.message}` 
-            : "Failed to add parameter. Please try again."
-        );
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 4000);
-      }
-    }
-
-    if (analystMode === "reassign") {
-      const paramId = pendingParameter.id;
-
-      setAnalyzedByPerParam((prev) => ({
-        ...prev,
-        [paramId]: employeeId,
-      }));
-
-      setToastMessage("Reassigning analyst...");
-      setShowToast(true);
-
-      const param = addedParameters.find((p) => p.id === paramId);
-      if (param) {
         try {
-          const paramData = {
-            id: paramId,
-            paraCode: param.paraCode,
-            parameterName: param.parameterName,
-            methodCode: param.methodCode,
-            methodName: param.methodName,
-            columnId: columnsPerParam[paramId] || null,
-            diluentPreparation: diluentPerParam[paramId] || null,
-            otherInfo: otherInfoPerParam[paramId] || null,
-            analyzedBy: employeeId, // ✅ Updated analyst
-            approvedBy: approvedByPerParam[paramId] || null,
-            analysisStartDate: analysisStartDatePerParam[paramId] || null,
-            analysisCompletionDate: analysisCompletionDatePerParam[paramId] || null,
-            approvedAt: approvedAtPerParam[paramId] || null,
-            status: parameterStatusPerParam[paramId] || "Created",
-            instrumentIds: (addedInstruments[paramId] || []).map(inst => inst.id),
-            chemicalIds: (addedChemicals[paramId] || []).map(chem => chem.id),
-            standardIds: (addedStandards[paramId] || []).map(std => std.id),
-            standardPreparations: [], // Add if needed
-            samplePreparations: [], // Add if needed
-            calculations: [], // Add if needed
+          const parameterData = {
+            paraCode: newParameter.paraCode,
+            parameterName: newParameter.parameterName,
+            methodCode: newParameter.methodCode,
+            methodName: newParameter.methodName,
+            columnId: columnsPerParam[newId] || null,
+            diluentPreparation: diluentPerParam[newId] || null,
+            otherInfo: otherInfoPerParam[newId] || null,
+            analyzedBy: employeeId,
+            approvedBy: null,
+            analysisStartDate: null,
+            analysisCompletionDate: null,
+            approvedAt: null,
+            status: "Created",
+            instrumentIds: (addedInstruments[newId] || []).map(
+              (inst) => inst.id,
+            ),
+            chemicalIds: (addedChemicals[newId] || []).map((chem) => chem.slno),
+            standardIds: (addedStandards[newId] || []).map(
+              (std) => std.serialNo,
+            ),
+            preparations: [
+              // Standard Preparations
+              ...(standardPreparationPerParam[newId] || []).map((sp) => ({
+                label: sp.label,
+                preparationCategory: "standard",
+                preparationType: "assay",
+                assignedStandardId: sp.assignedStandardId || "",
+                steps: JSON.stringify(sp.steps),
+              })),
+              ...(standardPreparationRSPerParam[newId] || []).map((sp) => ({
+                label: sp.label,
+                preparationCategory: "standard",
+                preparationType: "residual_solvent",
+                assignedStandardId: (sp as any).assignedStandardId || "",
+                steps: JSON.stringify(sp.steps),
+              })),
+              ...(standardPreparationDissoPerParam[newId] || []).map((sp) => ({
+                label: sp.label,
+                preparationCategory: "standard",
+                preparationType: "dissolution",
+                assignedStandardId: (sp as any).assignedStandardId || "",
+                steps: JSON.stringify(sp.steps),
+              })),
+              // Sample Preparations
+              ...(samplePreparationPerParam[newId] || []).map((sp) => ({
+                label: sp.label,
+                preparationCategory: "sample",
+                preparationType: "assay",
+                assignedStandardId: "",
+                steps: JSON.stringify(sp.steps),
+              })),
+              ...(samplePreparationROIPerParam[newId] || []).map((sp) => ({
+                label: sp.label,
+                preparationCategory: "sample",
+                preparationType: "roi",
+                assignedStandardId: "",
+                steps: JSON.stringify(sp.steps),
+              })),
+              ...(samplePreparationLodPerParam[newId] || []).map((sp) => ({
+                label: sp.label,
+                preparationCategory: "sample",
+                preparationType: "lod",
+                assignedStandardId: "",
+                steps: JSON.stringify(sp.steps),
+              })),
+              ...(samplePreparationSulphatedAshPerParam[newId] || []).map(
+                (sp) => ({
+                  label: sp.label,
+                  preparationCategory: "sample",
+                  preparationType: "sulphated_ash",
+                  assignedStandardId: "",
+                  steps: JSON.stringify(sp.steps),
+                }),
+              ),
+              ...(samplePreparationRSPerParam[newId] || []).map((sp) => ({
+                label: sp.label,
+                preparationCategory: "sample",
+                preparationType: "residual_solvent",
+                assignedStandardId: (sp as any).assignedStandardId || "",
+                steps: JSON.stringify(sp.steps),
+              })),
+              ...(samplePreparationDissoPerParam[newId] || []).map((sp) => ({
+                label: sp.label,
+                preparationCategory: "sample",
+                preparationType: "dissolution",
+                assignedStandardId: (sp as any).assignedStandardId || "",
+                steps: JSON.stringify(sp.steps),
+              })),
+              // Dissolution Media Preparation
+              ...(dissoMediaPerParam[newId] || []).map((dm) => ({
+                label: dm.label,
+                preparationCategory: "dissolution_media",
+                preparationType: null,
+                assignedStandardId: null,
+                steps: JSON.stringify(dm.steps),
+              })),
+              // Mobile Phase
+              ...(mobilePhasePerParam[newId] || []).map((mp) => ({
+                label: mp.label,
+                preparationCategory: "mobile_phase",
+                preparationType: null,
+                assignedStandardId: null,
+                steps: JSON.stringify(mp.steps),
+              })),
+              // Sample Preparation Titration
+              ...(samplePrepTitrationPerParam[newId] || []).map((spt) => ({
+                label: spt.label,
+                preparationCategory: "sample",
+                preparationType: "titration",
+                assignedStandardId: null,
+                steps: JSON.stringify(spt.steps),
+              })),
+            ],
+            calculations: [
+              ...(calculationsAssayPerParam[newId] || []).map((calc) => {
+                const dataObj = { ...calc } as any;
+                delete dataObj.selectedStandardPrepId;
+                delete dataObj.selectedSamplePrepId;
+                return {
+                  label: calc.label,
+                  calculationType: "assay",
+                  data: JSON.stringify(dataObj),
+                };
+              }),
+              ...(calculationsLodPerParam[newId] || []).map((calc) => {
+                const dataObj = { ...calc } as any;
+                delete dataObj.selectedSamplePrepId;
+                return {
+                  label: calc.label,
+                  calculationType: "lod",
+                  data: JSON.stringify(dataObj),
+                };
+              }),
+              ...(calculationsROIPerParam[newId] || []).map((calc) => {
+                const dataObj = { ...calc } as any;
+                delete dataObj.selectedSamplePrepId;
+                return {
+                  label: calc.label,
+                  calculationType: "roi",
+                  data: JSON.stringify(dataObj),
+                };
+              }),
+              ...(calculationsSulphatedAshPerParam[newId] || []).map((calc) => {
+                const dataObj = { ...calc } as any;
+                delete dataObj.selectedSamplePrepId;
+                return {
+                  label: calc.label,
+                  calculationType: "sulphated_ash",
+                  data: JSON.stringify(dataObj),
+                };
+              }),
+              ...(calculationsRSPerParam[newId] || []).map((calc) => {
+                const dataObj = { ...calc } as any;
+                delete dataObj.selectedStandardPrepId;
+                delete dataObj.selectedSamplePrepId;
+                return {
+                  label: calc.label,
+                  calculationType: "residual_solvent",
+                  data: JSON.stringify(dataObj),
+                };
+              }),
+              ...(calculationsDissoPerParam[newId] || []).map((calc) => {
+                const dataObj = { ...calc } as any;
+                delete dataObj.selectedStandardPrepId;
+                delete dataObj.selectedSamplePrepId;
+                return {
+                  label: calc.label,
+                  calculationType: "dissolution",
+                  data: JSON.stringify(dataObj),
+                };
+              }),
+            ],
           };
 
-          const response = await updateParameter(paramId, paramData);
+          const response = await addParameter(worksheetId, parameterData);
 
-          if (response && response.parameterId) {
-            
-            setToastMessage("Analyst reassigned successfully!");
-            setShowToast(true);
-            setTimeout(() => setShowToast(false), 3000);
-          } else {
-            console.error("❌ Update failed: Invalid response from server");
-            console.error("Response received:", response);
+          setAddedParameters((prev) =>
+            prev.map((p) =>
+              p.id === newId ? { ...p, id: response.parameterId } : p,
+            ),
+          );
 
-            setToastMessage("Analyst reassigned but failed to save. Please save manually.");
-            setShowToast(true);
-            setTimeout(() => setShowToast(false), 4000);
+          const serverParameterId = response.parameterId;
+
+          setAnalyzedByPerParam((prev) => {
+            const { [newId]: analyzedBy, ...rest } = prev;
+            return { ...rest, [serverParameterId]: analyzedBy };
+          });
+
+          setAnalyzedByNamePerParam((prev) => {
+            const { [newId]: analyzedByName, ...rest } = prev;
+            return { ...rest, [serverParameterId]: analyzedByName };
+          });
+
+          setParameterStatusPerParam((prev) => {
+            const { [newId]: status, ...rest } = prev;
+            return { ...rest, [serverParameterId]: status };
+          });
+
+          if (columnsPerParam[newId]) {
+            setColumnsPerParam((prev) => {
+              const { [newId]: column, ...rest } = prev;
+              return { ...rest, [serverParameterId]: column };
+            });
           }
+
+          if (diluentPerParam[newId]) {
+            setDiluentPerParam((prev) => {
+              const { [newId]: diluent, ...rest } = prev;
+              return { ...rest, [serverParameterId]: diluent };
+            });
+          }
+
+          if (otherInfoPerParam[newId]) {
+            setOtherInfoPerParam((prev) => {
+              const { [newId]: info, ...rest } = prev;
+              return { ...rest, [serverParameterId]: info };
+            });
+          }
+
+          if (addedInstruments[newId]) {
+            setAddedInstruments((prev) => {
+              const { [newId]: instruments, ...rest } = prev;
+              return { ...rest, [serverParameterId]: instruments };
+            });
+            setAddedInstrumentIdsPerParam((prev) => {
+              const { [newId]: ids, ...rest } = prev;
+              return { ...rest, [serverParameterId]: ids };
+            });
+          }
+
+          if (addedChemicals[newId]) {
+            setAddedChemicals((prev) => {
+              const { [newId]: chemicals, ...rest } = prev;
+              return { ...rest, [serverParameterId]: chemicals };
+            });
+            setAddedChemicalIdsPerParam((prev) => {
+              const { [newId]: ids, ...rest } = prev;
+              return { ...rest, [serverParameterId]: ids };
+            });
+          }
+
+          if (addedStandards[newId]) {
+            setAddedStandards((prev) => {
+              const { [newId]: standards, ...rest } = prev;
+              return { ...rest, [serverParameterId]: standards };
+            });
+            setAddedStandardIdsPerParam((prev) => {
+              const { [newId]: ids, ...rest } = prev;
+              return { ...rest, [serverParameterId]: ids };
+            });
+          }
+
+          if (standardPreparationPerParam[newId]) {
+            setStandardPreparationPerParam((prev) => {
+              const { [newId]: preps, ...rest } = prev;
+              return { ...rest, [serverParameterId]: preps };
+            });
+          }
+
+          if (samplePreparationPerParam[newId]) {
+            setSamplePreparationPerParam((prev) => {
+              const { [newId]: preps, ...rest } = prev;
+              return { ...rest, [serverParameterId]: preps };
+            });
+          }
+
+          if (standardPreparationRSPerParam[newId]) {
+            setStandardPreparationRSPerParam((prev) => {
+              const { [newId]: preps, ...rest } = prev;
+              return { ...rest, [serverParameterId]: preps };
+            });
+          }
+
+          if (samplePreparationRSPerParam[newId]) {
+            setSamplePreparationRSPerParam((prev) => {
+              const { [newId]: preps, ...rest } = prev;
+              return { ...rest, [serverParameterId]: preps };
+            });
+          }
+
+          if (standardPreparationDissoPerParam[newId]) {
+            setStandardPreparationDissoPerParam((prev) => {
+              const { [newId]: preps, ...rest } = prev;
+              return { ...rest, [serverParameterId]: preps };
+            });
+          }
+
+          if (samplePreparationDissoPerParam[newId]) {
+            setSamplePreparationDissoPerParam((prev) => {
+              const { [newId]: preps, ...rest } = prev;
+              return { ...rest, [serverParameterId]: preps };
+            });
+          }
+
+          if (samplePreparationLodPerParam[newId]) {
+            setSamplePreparationLodPerParam((prev) => {
+              const { [newId]: preps, ...rest } = prev;
+              return { ...rest, [serverParameterId]: preps };
+            });
+          }
+
+          if (samplePreparationROIPerParam[newId]) {
+            setSamplePreparationROIPerParam((prev) => {
+              const { [newId]: preps, ...rest } = prev;
+              return { ...rest, [serverParameterId]: preps };
+            });
+          }
+
+          if (samplePreparationSulphatedAshPerParam[newId]) {
+            setSamplePreparationSulphatedAshPerParam((prev) => {
+              const { [newId]: preps, ...rest } = prev;
+              return { ...rest, [serverParameterId]: preps };
+            });
+          }
+
+          if (calculationsAssayPerParam[newId]) {
+            setCalculationsAssayPerParam((prev) => {
+              const { [newId]: calcs, ...rest } = prev;
+              return { ...rest, [serverParameterId]: calcs };
+            });
+          }
+
+          if (calculationsLodPerParam[newId]) {
+            setCalculationsLodPerParam((prev) => {
+              const { [newId]: calcs, ...rest } = prev;
+              return { ...rest, [serverParameterId]: calcs };
+            });
+          }
+
+          if (calculationsROIPerParam[newId]) {
+            setCalculationsROIPerParam((prev) => {
+              const { [newId]: calcs, ...rest } = prev;
+              return { ...rest, [serverParameterId]: calcs };
+            });
+          }
+
+          if (calculationsSulphatedAshPerParam[newId]) {
+            setCalculationsSulphatedAshPerParam((prev) => {
+              const { [newId]: calcs, ...rest } = prev;
+              return { ...rest, [serverParameterId]: calcs };
+            });
+          }
+
+          if (calculationsRSPerParam[newId]) {
+            setCalculationsRSPerParam((prev) => {
+              const { [newId]: calcs, ...rest } = prev;
+              return { ...rest, [serverParameterId]: calcs };
+            });
+          }
+
+          if (calculationsDissoPerParam[newId]) {
+            setCalculationsDissoPerParam((prev) => {
+              const { [newId]: calcs, ...rest } = prev;
+              return { ...rest, [serverParameterId]: calcs };
+            });
+          }
+
+          setToastMessage(
+            `Parameter "${newParameter.parameterName}" added successfully!`,
+          );
+          setShowToast(true);
+          setTimeout(() => setShowToast(false), 3000);
         } catch (error) {
-          console.error("❌ Error updating parameter:");
-          console.error("Error type:", error instanceof Error ? error.constructor.name : typeof error);
-          console.error("Error message:", error instanceof Error ? error.message : String(error));
+          console.error("❌ Error adding parameter:");
+          console.error(
+            "Error type:",
+            error instanceof Error ? error.constructor.name : typeof error,
+          );
+          console.error(
+            "Error message:",
+            error instanceof Error ? error.message : String(error),
+          );
           console.error("Full error object:", error);
 
-          setToastMessage("Failed to reassign analyst. Please try again.");
+          setAddedParameters((prev) => prev.filter((p) => p.id !== newId));
+
+          const cleanupState = (setter: Function) => {
+            setter((prev: any) => {
+              const { [newId]: _, ...rest } = prev;
+              return rest;
+            });
+          };
+
+          cleanupState(setAnalyzedByPerParam);
+          cleanupState(setParameterStatusPerParam);
+          cleanupState(setColumnsPerParam);
+          cleanupState(setDiluentPerParam);
+          cleanupState(setOtherInfoPerParam);
+          cleanupState(setAddedInstruments);
+          cleanupState(setAddedInstrumentIdsPerParam);
+          cleanupState(setAddedChemicals);
+          cleanupState(setAddedChemicalIdsPerParam);
+          cleanupState(setAddedStandards);
+          cleanupState(setAddedStandardIdsPerParam);
+          cleanupState(setStandardPreparationPerParam);
+          cleanupState(setSamplePreparationPerParam);
+          cleanupState(setStandardPreparationRSPerParam);
+          cleanupState(setSamplePreparationRSPerParam);
+          cleanupState(setStandardPreparationDissoPerParam);
+          cleanupState(setSamplePreparationDissoPerParam);
+          cleanupState(setSamplePreparationLodPerParam);
+          cleanupState(setSamplePreparationROIPerParam);
+          cleanupState(setSamplePreparationSulphatedAshPerParam);
+          cleanupState(setCalculationsAssayPerParam);
+          cleanupState(setCalculationsLodPerParam);
+          cleanupState(setCalculationsROIPerParam);
+          cleanupState(setCalculationsSulphatedAshPerParam);
+          cleanupState(setCalculationsRSPerParam);
+          cleanupState(setCalculationsDissoPerParam);
+          cleanupState(setDissoMediaPerParam);
+          cleanupState(setMobilePhasePerParam);
+          cleanupState(setSamplePrepTitrationPerParam);
+          cleanupState(setShowDiluentPreparation);
+          cleanupState(setShowSystemSuitability);
+          cleanupState(setSystemSuitabilityPerParam);
+
+          setToastMessage(
+            error instanceof Error
+              ? `Failed to add parameter: ${error.message}`
+              : "Failed to add parameter. Please try again.",
+          );
           setShowToast(true);
           setTimeout(() => setShowToast(false), 4000);
         }
-      } else {
-        console.error("❌ Parameter not found for reassignment");
-        console.error("Parameter ID:", paramId);
-        console.error("Available parameters:", addedParameters.map(p => ({ id: p.id, name: p.parameterName })));
       }
+
+      if (analystMode === "reassign") {
+        const paramId = pendingParameter.id;
+
+        setAnalyzedByPerParam((prev) => ({
+          ...prev,
+          [paramId]: employeeId,
+        }));
+
+        setToastMessage("Reassigning analyst...");
+        setShowToast(true);
+
+        const param = addedParameters.find((p) => p.id === paramId);
+        if (param) {
+          try {
+            const paramData = {
+              id: paramId,
+              paraCode: param.paraCode,
+              parameterName: param.parameterName,
+              methodCode: param.methodCode,
+              methodName: param.methodName,
+              columnId: columnsPerParam[paramId] || null,
+              diluentPreparation: diluentPerParam[paramId] || null,
+              otherInfo: otherInfoPerParam[paramId] || null,
+              analyzedBy: employeeId, // ✅ Updated analyst
+              approvedBy: approvedByPerParam[paramId] || null,
+              analysisStartDate: analysisStartDatePerParam[paramId] || null,
+              analysisCompletionDate:
+                analysisCompletionDatePerParam[paramId] || null,
+              approvedAt: approvedAtPerParam[paramId] || null,
+              status: parameterStatusPerParam[paramId] || "Created",
+              instrumentIds: (addedInstruments[paramId] || []).map(
+                (inst) => inst.id,
+              ),
+              chemicalIds: (addedChemicals[paramId] || []).map(
+                (chem) => chem.slno,
+              ),
+              standardIds: (addedStandards[paramId] || []).map(
+                (std) => std.serialNo,
+              ),
+              standardPreparations: [], // Add if needed
+              samplePreparations: [], // Add if needed
+              calculations: [], // Add if needed
+            };
+
+            const response = await updateParameter(paramId, paramData);
+
+            if (response && response.parameterId) {
+              setToastMessage("Analyst reassigned successfully!");
+              setShowToast(true);
+              setTimeout(() => setShowToast(false), 3000);
+            } else {
+              console.error("❌ Update failed: Invalid response from server");
+              console.error("Response received:", response);
+
+              setToastMessage(
+                "Analyst reassigned but failed to save. Please save manually.",
+              );
+              setShowToast(true);
+              setTimeout(() => setShowToast(false), 4000);
+            }
+          } catch (error) {
+            console.error("❌ Error updating parameter:");
+            console.error(
+              "Error type:",
+              error instanceof Error ? error.constructor.name : typeof error,
+            );
+            console.error(
+              "Error message:",
+              error instanceof Error ? error.message : String(error),
+            );
+            console.error("Full error object:", error);
+
+            setToastMessage("Failed to reassign analyst. Please try again.");
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 4000);
+          }
+        } else {
+          console.error("❌ Parameter not found for reassignment");
+          console.error("Parameter ID:", paramId);
+          console.error(
+            "Available parameters:",
+            addedParameters.map((p) => ({ id: p.id, name: p.parameterName })),
+          );
+        }
+      }
+
+      setPendingParameter(null);
+      setAnalystMode("add");
+      setShowAnalystDialog(false);
+      setShowParameterDropdown(false);
+    } catch (error) {
+      console.error("❌ Error in handleAnalystSelected:");
+      console.error(
+        "Error type:",
+        error instanceof Error ? error.constructor.name : typeof error,
+      );
+      console.error(
+        "Error message:",
+        error instanceof Error ? error.message : String(error),
+      );
+      console.error("Full error object:", error);
+      console.error("Analyst Mode:", analystMode);
+      console.error("Pending Parameter:", pendingParameter);
+
+      setToastMessage("Failed to process parameter. Please try again.");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     }
-
-    setPendingParameter(null);
-    setAnalystMode("add");
-    setShowAnalystDialog(false);
-    setShowParameterDropdown(false);
-  } catch (error) {
-    console.error("❌ Error in handleAnalystSelected:");
-    console.error("Error type:", error instanceof Error ? error.constructor.name : typeof error);
-    console.error("Error message:", error instanceof Error ? error.message : String(error));
-    console.error("Full error object:", error);
-    console.error("Analyst Mode:", analystMode);
-    console.error("Pending Parameter:", pendingParameter);
-
-    setToastMessage("Failed to process parameter. Please try again.");
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
-  }
-};
+  };
 
   const handleRemoveParameter = (id: number) => {
     setAddedParameters(addedParameters.filter((p) => p.id !== id));
     setSelectedParamsForDetail(
-      selectedParamsForDetail.filter((paramId) => paramId !== id)
+      selectedParamsForDetail.filter((paramId) => paramId !== id),
     );
 
     // Clean up all related state
@@ -2414,13 +3030,22 @@ const handleAnalystSelected = async (employeeId: string) => {
     cleanupState(setAddedInstrumentIdsPerParam);
     cleanupState(setAddedChemicalIdsPerParam);
     cleanupState(setAddedStandardIdsPerParam);
+    cleanupState(setDissoMediaPerParam);
+    cleanupState(setMobilePhasePerParam);
+    cleanupState(setSamplePrepTitrationPerParam);
+    cleanupState(setSamplePreparationUCPerParam);
+    cleanupState(setStandardPreparationUCPerParam);
+    cleanupState(setCalculationsUCPerParam);
+    cleanupState(setShowDiluentPreparation);
+    cleanupState(setShowSystemSuitability);
+    cleanupState(setSystemSuitabilityPerParam);
   };
 
   const toggleParameterDetail = (id: number) => {
     setSelectedParamsForDetail((prev) =>
       prev.includes(id)
         ? prev.filter((paramId) => paramId !== id)
-        : [...prev, id]
+        : [...prev, id],
     );
   };
 
@@ -2450,11 +3075,14 @@ const handleAnalystSelected = async (employeeId: string) => {
       const updatedParam = {
         ...parameterToUnlock,
         status: "created",
+        analyzedBy: null,
+        analyzedByName: null,
+        analysisStartDate: null,
       };
 
       const response = await updateParameter(
         parameterToUnlock.id,
-        updatedParam
+        updatedParam,
       );
 
       if (response && response.parameterId) {
@@ -2531,10 +3159,10 @@ const handleAnalystSelected = async (employeeId: string) => {
         parameterStatusPerParam[parameterId] || "created"
       ).toLowerCase();
       return ["created", "analysis started", "analysis revision"].includes(
-        status
+        status,
       );
     },
-    [role, parameterStatusPerParam]
+    [role, parameterStatusPerParam],
   );
 
   const handleApprove = (param: ParameterDetail) => {
@@ -2561,7 +3189,7 @@ const handleAnalystSelected = async (employeeId: string) => {
 
       const response = await updateParameter(
         parameterForApproval.id,
-        updatedParam
+        updatedParam,
       );
 
       if (response && response.parameterId) {
@@ -2619,7 +3247,7 @@ const handleAnalystSelected = async (employeeId: string) => {
 
       const response = await updateParameter(
         parameterForApproval.id,
-        updatedParam
+        updatedParam,
       );
 
       if (response && response.parameterId) {
@@ -2679,7 +3307,7 @@ const handleAnalystSelected = async (employeeId: string) => {
 
       const response = await updateParameter(
         parameterForApproval?.id!,
-        updatedParam!
+        updatedParam!,
       );
 
       if (response && response.parameterId) {
@@ -2736,7 +3364,7 @@ const handleAnalystSelected = async (employeeId: string) => {
 
       const response = await updateParameter(
         parameterForAnalysis.id,
-        updatedParam
+        updatedParam,
       );
 
       if (response && response.parameterId) {
@@ -2752,7 +3380,7 @@ const handleAnalystSelected = async (employeeId: string) => {
         }));
 
         setToastMessage(
-          "Analysis started successfully! You can now proceed with the analysis."
+          "Analysis started successfully! You can now proceed with the analysis.",
         );
         setShowToast(true);
         setTimeout(() => {
@@ -2784,7 +3412,7 @@ const handleAnalystSelected = async (employeeId: string) => {
     const currentWorksheetData = collectFormDataForAPI();
 
     const curParam = currentWorksheetData.parameters?.filter(
-      parameter => parameter.id === param.id
+      (parameter) => parameter.id === param.id,
     )[0];
 
     setParameterForAnalysis(curParam ?? param);
@@ -2805,7 +3433,7 @@ const handleAnalystSelected = async (employeeId: string) => {
 
       const response = await updateParameter(
         parameterForAnalysis.id,
-        updatedParam
+        updatedParam,
       );
 
       if (response && response.parameterId) {
@@ -2821,7 +3449,7 @@ const handleAnalystSelected = async (employeeId: string) => {
         }));
 
         setToastMessage(
-          "Analysis completed successfully! Submitted for Reviewer approval."
+          "Analysis completed successfully! Submitted for Reviewer approval.",
         );
         setShowToast(true);
         setTimeout(() => {
@@ -2864,7 +3492,7 @@ const handleAnalystSelected = async (employeeId: string) => {
 
       if (!submitResponse.success) {
         throw new Error(
-          submitResponse.message || "Failed to submit worksheet to database"
+          submitResponse.message || "Failed to submit worksheet to database",
         );
       }
 
@@ -2890,11 +3518,11 @@ const handleAnalystSelected = async (employeeId: string) => {
                   status: "Approved",
                 },
               }
-            : null
+            : null,
         );
 
         setToastMessage(
-          "Worksheet submitted to database and approved successfully! All parameters are now finalized."
+          "Worksheet submitted to database and approved successfully! All parameters are now finalized.",
         );
         setShowToast(true);
         setTimeout(() => {
@@ -2919,7 +3547,7 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const availableToAdd = (samplesData ?? []).filter(
     (param) =>
-      !addedParameters.find((added) => added.paraCode === param.paraCode)
+      !addedParameters.find((added) => added.paraCode === param.paraCode),
   );
 
   // Standard Preparation Handlers
@@ -2932,19 +3560,19 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveStandardPreparation = (
     parameterId: number,
-    standardPreparationId: number
+    standardPreparationId: number,
   ) => {
     setStandardPreparationPerParam((prev) => {
       const standards = prev[parameterId] || [];
       const indexToRemove = standards.findIndex(
-        (sp) => sp.id === standardPreparationId
+        (sp) => sp.id === standardPreparationId,
       );
 
       const updatedStandards = standards
         .filter((dm) => dm.id !== standardPreparationId)
         .map((dm, index) => ({
           ...dm,
-          label: `Standard Preparation ${1 + index}`,
+          label: `Standard Preparation${1 + index}`,
         }));
 
       if (indexToRemove !== -1) {
@@ -2954,7 +3582,7 @@ const handleAnalystSelected = async (employeeId: string) => {
             .filter((_, idx) => idx !== indexToRemove)
             .map((sp, index) => ({
               ...sp,
-              label: `Sample Preparation ${1 + index}`,
+              label: `Sample Preparation${1 + index}`,
             }));
           return { ...prevSample, [parameterId]: updatedSamples };
         });
@@ -2977,7 +3605,7 @@ const handleAnalystSelected = async (employeeId: string) => {
       | "unit2"
       | "logBookID"
       | "solventChemical",
-    newValue: string
+    newValue: string,
   ) => {
     setStandardPreparationPerParam((prev) => ({
       ...prev,
@@ -3000,19 +3628,19 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveSamplePreparation = (
     parameterId: number,
-    samplePreparationId: number
+    samplePreparationId: number,
   ) => {
     setSamplePreparationPerParam((prev) => {
       const samples = prev[parameterId] || [];
       const indexToRemove = samples.findIndex(
-        (sp) => sp.id === samplePreparationId
+        (sp) => sp.id === samplePreparationId,
       );
 
       const updatedSamples = samples
         .filter((sp) => sp.id !== samplePreparationId)
         .map((sp, index) => ({
           ...sp,
-          label: `Sample Preparation ${1 + index}`,
+          label: `Sample Preparation${1 + index}`,
         }));
 
       if (indexToRemove !== -1) {
@@ -3022,7 +3650,7 @@ const handleAnalystSelected = async (employeeId: string) => {
             .filter((_, idx) => idx !== indexToRemove)
             .map((sp, index) => ({
               ...sp,
-              label: `Standard Preparation ${1 + index}`,
+              label: `Standard Preparation${1 + index}`,
             }));
           return { ...prevStandard, [parameterId]: updatedStandards };
         });
@@ -3043,7 +3671,7 @@ const handleAnalystSelected = async (employeeId: string) => {
       | "unit2"
       | "logBookID"
       | "solventChemical",
-    newValue: string
+    newValue: string,
   ) => {
     setSamplePreparationPerParam((prev) => ({
       ...prev,
@@ -3081,14 +3709,14 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveSamplePreparationLod = (
     parameterId: number,
-    samplePreparationLodId: number
+    samplePreparationLodId: number,
   ) => {
     setSamplePreparationLodPerParam((prev) => {
       const updatedSamples = (prev[parameterId] || [])
         .filter((spl) => spl.id !== samplePreparationLodId)
         .map((spl, index) => ({
           ...spl,
-          label: `Sample Preparation ${1 + index}`,
+          label: `Sample Preparation${1 + index}`,
         }));
       return { ...prev, [parameterId]: updatedSamples };
     });
@@ -3106,7 +3734,7 @@ const handleAnalystSelected = async (employeeId: string) => {
       | "unit2"
       | "unit3"
       | "logBookID",
-    newValue: string
+    newValue: string,
   ) => {
     setSamplePreparationLodPerParam((prev) => ({
       ...prev,
@@ -3144,14 +3772,14 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveSamplePreparationSulphatedAsh = (
     parameterId: number,
-    samplePreparationSulphatedAshId: number
+    samplePreparationSulphatedAshId: number,
   ) => {
     setSamplePreparationSulphatedAshPerParam((prev) => {
       const updatedSamples = (prev[parameterId] || [])
         .filter((spsa) => spsa.id !== samplePreparationSulphatedAshId)
         .map((spsa, index) => ({
           ...spsa,
-          label: `Sample Preparation ${1 + index}`,
+          label: `Sample Preparation${1 + index}`,
         }));
       return { ...prev, [parameterId]: updatedSamples };
     });
@@ -3169,7 +3797,7 @@ const handleAnalystSelected = async (employeeId: string) => {
       | "unit2"
       | "unit3"
       | "logBookID",
-    newValue: string
+    newValue: string,
   ) => {
     setSamplePreparationSulphatedAshPerParam((prev) => ({
       ...prev,
@@ -3207,14 +3835,14 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveSamplePreparationROI = (
     parameterId: number,
-    samplePreparationROIId: number
+    samplePreparationROIId: number,
   ) => {
     setSamplePreparationROIPerParam((prev) => {
       const updatedSamples = (prev[parameterId] || [])
         .filter((spl) => spl.id !== samplePreparationROIId)
         .map((spl, index) => ({
           ...spl,
-          label: `Sample Preparation ${1 + index}`,
+          label: `Sample Preparation${1 + index}`,
         }));
       return { ...prev, [parameterId]: updatedSamples };
     });
@@ -3232,7 +3860,7 @@ const handleAnalystSelected = async (employeeId: string) => {
       | "unit2"
       | "unit3"
       | "logBookID",
-    newValue: string
+    newValue: string,
   ) => {
     setSamplePreparationROIPerParam((prev) => ({
       ...prev,
@@ -3256,19 +3884,19 @@ const handleAnalystSelected = async (employeeId: string) => {
   // Dissolution Handlers
   const handleRemoveSamplePreparationDisso = (
     parameterId: number,
-    samplePreparationDissoId: number
+    samplePreparationDissoId: number,
   ) => {
     setSamplePreparationDissoPerParam((prev) => {
       const samples = prev[parameterId] || [];
       const indexToRemove = samples.findIndex(
-        (sp) => sp.id === samplePreparationDissoId
+        (sp) => sp.id === samplePreparationDissoId,
       );
 
       const updatedSamples = samples
         .filter((sp) => sp.id !== samplePreparationDissoId)
         .map((sp, index) => ({
           ...sp,
-          label: `Sample Preparation ${1 + index}`,
+          label: `Sample Preparation${1 + index}`,
         }));
 
       if (indexToRemove !== -1) {
@@ -3278,7 +3906,7 @@ const handleAnalystSelected = async (employeeId: string) => {
             .filter((_, idx) => idx !== indexToRemove)
             .map((sp, index) => ({
               ...sp,
-              label: `Standard Preparation ${1 + index}`,
+              label: `Standard Preparation${1 + index}`,
             }));
           return { ...prevStandard, [parameterId]: updatedStandards };
         });
@@ -3301,7 +3929,7 @@ const handleAnalystSelected = async (employeeId: string) => {
       | "unit2"
       | "unit3"
       | "solventChemical",
-    newValue: string
+    newValue: string,
   ) => {
     setSamplePreparationDissoPerParam((prev) => ({
       ...prev,
@@ -3326,21 +3954,23 @@ const handleAnalystSelected = async (employeeId: string) => {
   const searchFilteredInstruments = instruments.filter(
     (inst) =>
       inst.name.toLowerCase().includes(instrumentSearch.toLowerCase()) ||
-      inst.tag.toLowerCase().includes(instrumentSearch.toLowerCase())
+      inst
+        .instrumentTag!.toLowerCase()
+        .includes(instrumentSearch.toLowerCase()),
   );
 
   const searchFilteredChemicals = chemicals.filter(
     (chem) =>
       chem.name.toLowerCase().includes(chemicalSearch.toLowerCase()) ||
       (chem.make &&
-        chem.make.toLowerCase().includes(chemicalSearch.toLowerCase()))
+        chem.make.toLowerCase().includes(chemicalSearch.toLowerCase())),
   );
 
   const searchFilteredStandards = standards.filter(
     (std) =>
       std.name.toLowerCase().includes(standardSearch.toLowerCase()) ||
       (std.make &&
-        std.make.toLowerCase().includes(standardSearch.toLowerCase()))
+        std.make.toLowerCase().includes(standardSearch.toLowerCase())),
   );
 
   const handleAddInstrument = (parameterId: number, instrument: Instrument) => {
@@ -3354,12 +3984,12 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveInstrument = (
     parameterId: number,
-    instrumentId: string
+    instrumentId: string,
   ) => {
     setAddedInstruments((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).filter(
-        (inst) => inst.id !== instrumentId
+        (inst) => inst.id !== instrumentId,
       ),
     }));
   };
@@ -3377,7 +4007,7 @@ const handleAnalystSelected = async (employeeId: string) => {
     setAddedChemicals((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).filter(
-        (chem) => chem.id !== chemicalId
+        (chem) => chem.slno !== chemicalId,
       ),
     }));
   };
@@ -3395,7 +4025,7 @@ const handleAnalystSelected = async (employeeId: string) => {
     setAddedStandards((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).filter(
-        (std) => std.id !== standardId
+        (std) => std.serialNo !== standardId,
       ),
     }));
   };
@@ -3417,12 +4047,12 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveCalculationAssay = (
     parameterId: number,
-    calculationId: number
+    calculationId: number,
   ) => {
     setCalculationsAssayPerParam((prev) => {
       const updatedCalculations = (prev[parameterId] || [])
         .filter((calc) => calc.id !== calculationId)
-        .map((calc, index) => ({ ...calc, label: `Calculation ${index + 1}` }));
+        .map((calc, index) => ({ ...calc, label: `Calculation${index + 1}` }));
       return { ...prev, [parameterId]: updatedCalculations };
     });
   };
@@ -3431,7 +4061,7 @@ const handleAnalystSelected = async (employeeId: string) => {
     parameterId: number,
     calculationId: number,
     field: keyof CalculationAssay,
-    value: string | number | null
+    value: string | number | null,
   ) => {
     setCalculationsAssayPerParam((prev) => ({
       ...prev,
@@ -3461,14 +4091,14 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveCalculationLod = (
     parameterId: number,
-    calculationId: number
+    calculationId: number,
   ) => {
     setCalculationsLodPerParam((prev) => {
       const updatedCalculations = (prev[parameterId] || [])
         .filter((calc) => calc.id !== calculationId)
         .map((calc, index) => ({
           ...calc,
-          label: `Calculation ${index + 1}`,
+          label: `Calculation${index + 1}`,
         }));
       return { ...prev, [parameterId]: updatedCalculations };
     });
@@ -3478,7 +4108,7 @@ const handleAnalystSelected = async (employeeId: string) => {
     parameterId: number,
     calculationId: number,
     field: keyof CalculationLod,
-    value: string | number | null
+    value: string | number | null,
   ) => {
     setCalculationsLodPerParam((prev) => ({
       ...prev,
@@ -3508,14 +4138,14 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveCalculationROI = (
     parameterId: number,
-    calculationId: number
+    calculationId: number,
   ) => {
     setCalculationsROIPerParam((prev) => {
       const updatedCalculations = (prev[parameterId] || [])
         .filter((calc) => calc.id !== calculationId)
         .map((calc, index) => ({
           ...calc,
-          label: `Calculation ${index + 1}`,
+          label: `Calculation${index + 1}`,
         }));
       return { ...prev, [parameterId]: updatedCalculations };
     });
@@ -3525,7 +4155,7 @@ const handleAnalystSelected = async (employeeId: string) => {
     parameterId: number,
     calculationId: number,
     field: keyof CalculationROI,
-    value: string | number | null
+    value: string | number | null,
   ) => {
     setCalculationsROIPerParam((prev) => ({
       ...prev,
@@ -3555,14 +4185,14 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveCalculationSulphatedAsh = (
     parameterId: number,
-    calculationId: number
+    calculationId: number,
   ) => {
     setCalculationsSulphatedAshPerParam((prev) => {
       const updatedCalculations = (prev[parameterId] || [])
         .filter((calc) => calc.id !== calculationId)
         .map((calc, index) => ({
           ...calc,
-          label: `Calculation ${index + 1}`,
+          label: `Calculation${index + 1}`,
         }));
       return { ...prev, [parameterId]: updatedCalculations };
     });
@@ -3572,7 +4202,7 @@ const handleAnalystSelected = async (employeeId: string) => {
     parameterId: number,
     calculationId: number,
     field: keyof CalculationSulphatedAsh,
-    value: string | number | null
+    value: string | number | null,
   ) => {
     setCalculationsSulphatedAshPerParam((prev) => ({
       ...prev,
@@ -3590,19 +4220,54 @@ const handleAnalystSelected = async (employeeId: string) => {
     setCurrentParameterForStandardPrep(parameterId);
     setIsAddingRSStandard(true);
     setIsAddingDissoStandard(false);
+    setIsAddingUCStandard(false);
     setShowStandardSelectionDialog(true);
   };
 
   const handleStandardSelectedForPreparation = (
     standard: Standard,
     isRS: boolean = false,
-    isDisso: boolean = false
+    isDisso: boolean = false,
+    isUC: boolean = false,
   ) => {
     if (currentParameterForStandardPrep === null) return;
 
     const parameterId = currentParameterForStandardPrep;
 
-    if (isRS) {
+    if (isUC) {
+      // UC Standard Preparation
+      const currentStandards = standardPreparationUCPerParam[parameterId] || [];
+      const newIndex = currentStandards.length;
+      const newStandardPrep = createNewStandardPreparation(newIndex);
+
+      newStandardPrep.steps = newStandardPrep.steps.map((step) => {
+        if (step.name === "Weighing") {
+          return { ...step, solventChemical: standard.name };
+        }
+        return step;
+      });
+
+      setStandardPreparationUCPerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentStandards,
+          { ...newStandardPrep, assignedStandardId: standard.serialNo },
+        ],
+      }));
+
+      // UC Sample Preparation
+      const currentSamples = samplePreparationUCPerParam[parameterId] || [];
+      const newSampleIndex = currentSamples.length;
+      const newSamplePrepUC = createNewSamplePreparationUC(newSampleIndex);
+
+      setSamplePreparationUCPerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentSamples,
+          { ...newSamplePrepUC, assignedStandardId: standard.serialNo },
+        ],
+      }));
+    } else if (isRS) {
       const currentStandards = standardPreparationRSPerParam[parameterId] || [];
       const newIndex = currentStandards.length;
       const newStandardPrep = createNewStandardPreparation(newIndex);
@@ -3618,7 +4283,7 @@ const handleAnalystSelected = async (employeeId: string) => {
         ...prev,
         [parameterId]: [
           ...currentStandards,
-          { ...newStandardPrep, assignedStandardId: standard.id },
+          { ...newStandardPrep, assignedStandardId: standard.serialNo },
         ],
       }));
 
@@ -3630,7 +4295,7 @@ const handleAnalystSelected = async (employeeId: string) => {
         ...prev,
         [parameterId]: [
           ...currentSamples,
-          { ...newSamplePrep, assignedStandardId: standard.id },
+          { ...newSamplePrep, assignedStandardId: standard.serialNo },
         ],
       }));
     } else if (isDisso) {
@@ -3650,7 +4315,7 @@ const handleAnalystSelected = async (employeeId: string) => {
         ...prev,
         [parameterId]: [
           ...currentStandards,
-          { ...newStandardPrep, assignedStandardId: standard.id },
+          { ...newStandardPrep, assignedStandardId: standard.serialNo },
         ],
       }));
 
@@ -3663,7 +4328,7 @@ const handleAnalystSelected = async (employeeId: string) => {
         ...prev,
         [parameterId]: [
           ...currentSamples,
-          { ...newSamplePrepDisso, assignedStandardId: standard.id },
+          { ...newSamplePrepDisso, assignedStandardId: standard.serialNo },
         ],
       }));
     } else {
@@ -3682,7 +4347,7 @@ const handleAnalystSelected = async (employeeId: string) => {
         ...prev,
         [parameterId]: [
           ...currentStandards,
-          { ...newStandardPrep, assignedStandardId: standard.id },
+          { ...newStandardPrep, assignedStandardId: standard.serialNo },
         ],
       }));
 
@@ -3694,7 +4359,7 @@ const handleAnalystSelected = async (employeeId: string) => {
         ...prev,
         [parameterId]: [
           ...currentSamples,
-          { ...newSamplePrep, assignedStandardId: standard.id },
+          { ...newSamplePrep, assignedStandardId: standard.serialNo },
         ],
       }));
     }
@@ -3703,23 +4368,24 @@ const handleAnalystSelected = async (employeeId: string) => {
     setCurrentParameterForStandardPrep(null);
     setIsAddingRSStandard(false);
     setIsAddingDissoStandard(false);
+    setIsAddingUCStandard(false);
   };
 
   const handleRemoveStandardPreparationRS = (
     parameterId: number,
-    standardPreparationId: number
+    standardPreparationId: number,
   ) => {
     setStandardPreparationRSPerParam((prev) => {
       const standards = prev[parameterId] || [];
       const indexToRemove = standards.findIndex(
-        (sp) => sp.id === standardPreparationId
+        (sp) => sp.id === standardPreparationId,
       );
 
       const updatedStandards = standards
         .filter((dm) => dm.id !== standardPreparationId)
         .map((dm, index) => ({
           ...dm,
-          label: `Standard Preparation ${1 + index}`,
+          label: `Standard Preparation${1 + index}`,
         }));
 
       if (indexToRemove !== -1) {
@@ -3729,7 +4395,7 @@ const handleAnalystSelected = async (employeeId: string) => {
             .filter((_, idx) => idx !== indexToRemove)
             .map((sp, index) => ({
               ...sp,
-              label: `Sample Preparation ${1 + index}`,
+              label: `Sample Preparation${1 + index}`,
             }));
           return { ...prevSample, [parameterId]: updatedSamples };
         });
@@ -3752,7 +4418,7 @@ const handleAnalystSelected = async (employeeId: string) => {
       | "unit3"
       | "logBookID"
       | "solventChemical",
-    newValue: string
+    newValue: string,
   ) => {
     setStandardPreparationRSPerParam((prev) => ({
       ...prev,
@@ -3775,19 +4441,19 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveSamplePreparationRS = (
     parameterId: number,
-    samplePreparationId: number
+    samplePreparationId: number,
   ) => {
     setSamplePreparationRSPerParam((prev) => {
       const samples = prev[parameterId] || [];
       const indexToRemove = samples.findIndex(
-        (sp) => sp.id === samplePreparationId
+        (sp) => sp.id === samplePreparationId,
       );
 
       const updatedSamples = samples
         .filter((sp) => sp.id !== samplePreparationId)
         .map((sp, index) => ({
           ...sp,
-          label: `Sample Preparation ${1 + index}`,
+          label: `Sample Preparation${1 + index}`,
         }));
 
       if (indexToRemove !== -1) {
@@ -3797,7 +4463,7 @@ const handleAnalystSelected = async (employeeId: string) => {
             .filter((_, idx) => idx !== indexToRemove)
             .map((sp, index) => ({
               ...sp,
-              label: `Standard Preparation ${1 + index}`,
+              label: `Standard Preparation${1 + index}`,
             }));
           return { ...prevStandard, [parameterId]: updatedStandards };
         });
@@ -3820,7 +4486,7 @@ const handleAnalystSelected = async (employeeId: string) => {
       | "unit2"
       | "logBookID"
       | "solventChemical",
-    newValue: string
+    newValue: string,
   ) => {
     setSamplePreparationRSPerParam((prev) => ({
       ...prev,
@@ -3857,14 +4523,14 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveCalculationRS = (
     parameterId: number,
-    calculationId: number
+    calculationId: number,
   ) => {
     setCalculationsRSPerParam((prev) => {
       const updatedCalculations = (prev[parameterId] || [])
         .filter((calc) => calc.id !== calculationId)
         .map((calc, index) => ({
           ...calc,
-          label: `Calculation ${index + 1}`,
+          label: `Calculation${index + 1}`,
         }));
       return { ...prev, [parameterId]: updatedCalculations };
     });
@@ -3874,7 +4540,7 @@ const handleAnalystSelected = async (employeeId: string) => {
     parameterId: number,
     calculationId: number,
     field: keyof CalculationRS,
-    value: string | number | null
+    value: string | number | null,
   ) => {
     setCalculationsRSPerParam((prev) => ({
       ...prev,
@@ -3890,6 +4556,7 @@ const handleAnalystSelected = async (employeeId: string) => {
   const handleAddStandardPreparationDisso = (parameterId: number) => {
     setCurrentParameterForStandardPrep(parameterId);
     setIsAddingRSStandard(false);
+    setIsAddingUCStandard(false);
     setIsAddingDissoStandard(true);
     setShowStandardSelectionDialog(true);
   };
@@ -3910,19 +4577,19 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveStandardPreparationDisso = (
     parameterId: number,
-    standardPreparationId: number
+    standardPreparationId: number,
   ) => {
     setStandardPreparationDissoPerParam((prev) => {
       const standards = prev[parameterId] || [];
       const indexToRemove = standards.findIndex(
-        (sp) => sp.id === standardPreparationId
+        (sp) => sp.id === standardPreparationId,
       );
 
       const updatedStandards = standards
         .filter((dm) => dm.id !== standardPreparationId)
         .map((dm, index) => ({
           ...dm,
-          label: `Standard Preparation ${1 + index}`,
+          label: `Standard Preparation${1 + index}`,
         }));
 
       if (indexToRemove !== -1) {
@@ -3932,7 +4599,7 @@ const handleAnalystSelected = async (employeeId: string) => {
             .filter((_, idx) => idx !== indexToRemove)
             .map((sp, index) => ({
               ...sp,
-              label: `Sample Preparation ${1 + index}`,
+              label: `Sample Preparation${1 + index}`,
             }));
           return { ...prevSample, [parameterId]: updatedSamples };
         });
@@ -3955,7 +4622,7 @@ const handleAnalystSelected = async (employeeId: string) => {
       | "unit2"
       | "logBookID"
       | "solventChemical",
-    newValue: string
+    newValue: string,
   ) => {
     setStandardPreparationDissoPerParam((prev) => ({
       ...prev,
@@ -3978,14 +4645,14 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleRemoveCalculationDisso = (
     parameterId: number,
-    calculationId: number
+    calculationId: number,
   ) => {
     setCalculationsDissoPerParam((prev) => {
       const updatedCalculations = (prev[parameterId] || [])
         .filter((calc) => calc.id !== calculationId)
         .map((calc, index) => ({
           ...calc,
-          label: `Dissolution Calculation ${index + 1}`,
+          label: `Calculation${index + 1}`,
         }));
       return { ...prev, [parameterId]: updatedCalculations };
     });
@@ -3995,9 +4662,364 @@ const handleAnalystSelected = async (employeeId: string) => {
     parameterId: number,
     calculationId: number,
     field: keyof CalculationDisso,
-    value: string | number | null
+    value: string | number | null,
   ) => {
     setCalculationsDissoPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((calc) => {
+        if (calc.id === calculationId) {
+          return { ...calc, [field]: value };
+        }
+        return calc;
+      }),
+    }));
+  };
+
+  // Mobile Phase Handlers
+  const handleAddMobilePhase = (parameterId: number) => {
+    setMobilePhasePerParam((prev) => {
+      const current = prev[parameterId] || [];
+      const newIndex = current.length;
+      return {
+        ...prev,
+        [parameterId]: [...current, createNewMobilePhasePreparation(newIndex)],
+      };
+    });
+  };
+
+  const handleRemoveMobilePhase = (
+    parameterId: number,
+    mobilePhaseId: number,
+  ) => {
+    setMobilePhasePerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((mp) => mp.id !== mobilePhaseId)
+        .map((mp, index) => ({ ...mp, label: `Mobile Phase${index + 1}` }));
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleMobilePhaseStepChange = (
+    parameterId: number,
+    mobilePhaseId: number,
+    stepName: MobilePhasePreparationStep["name"],
+    field:
+      | "value1"
+      | "logBookID"
+      | "mobilePhaseID"
+      | "unit1"
+      | "solventChemical",
+    newValue: string,
+  ) => {
+    setMobilePhasePerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((mp) => {
+        if (mp.id === mobilePhaseId) {
+          return {
+            ...mp,
+            steps: mp.steps.map((step) => {
+              if (step.name === stepName) {
+                return { ...step, [field]: newValue };
+              }
+              return step;
+            }),
+          };
+        }
+        return mp;
+      }),
+    }));
+  };
+
+  // Dissolution Media Preparation Handlers
+  const handleAddDissoMedia = (parameterId: number) => {
+    setDissoMediaPerParam((prev) => {
+      const current = prev[parameterId] || [];
+      const newIndex = current.length;
+      return {
+        ...prev,
+        [parameterId]: [...current, createNewDissoMediaPreparation(newIndex)],
+      };
+    });
+  };
+
+  const handleRemoveDissoMedia = (
+    parameterId: number,
+    dissoMediaId: number,
+  ) => {
+    setDissoMediaPerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((dm) => dm.id !== dissoMediaId)
+        .map((dm, index) => ({
+          ...dm,
+          label: `Dissolution Media Preparation${index + 1}`,
+        }));
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleDissoMediaStepChange = (
+    parameterId: number,
+    dissoMediaId: number,
+    stepName: DissoMediaPreparationStep["name"],
+    field: "value1" | "logBookID" | "unit1" | "solventChemical",
+    newValue: string,
+  ) => {
+    setDissoMediaPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((dm) => {
+        if (dm.id === dissoMediaId) {
+          return {
+            ...dm,
+            steps: dm.steps.map((step) => {
+              if (step.name === stepName) {
+                return { ...step, [field]: newValue };
+              }
+              return step;
+            }),
+          };
+        }
+        return dm;
+      }),
+    }));
+  };
+
+  // Sample Preparation Titration Handlers
+  const handleAddSamplePrepTitration = (parameterId: number) => {
+    setSamplePrepTitrationPerParam((prev) => {
+      const current = prev[parameterId] || [];
+      const newIndex = current.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...current,
+          createNewSamplePreparationTitration(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveSamplePrepTitration = (
+    parameterId: number,
+    samplePrepId: number,
+  ) => {
+    setSamplePrepTitrationPerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((sp) => sp.id !== samplePrepId)
+        .map((sp, index) => ({
+          ...sp,
+          label: `Sample Preparation${index + 1}`,
+        }));
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleSamplePrepTitrationStepChange = (
+    parameterId: number,
+    samplePrepId: number,
+    stepName: SamplePreparationTitrationStep["name"],
+    field: "value1" | "logBookID" | "unit1" | "solventChemical",
+    newValue: string,
+  ) => {
+    setSamplePrepTitrationPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((sp) => {
+        if (sp.id === samplePrepId) {
+          return {
+            ...sp,
+            steps: sp.steps.map((step) => {
+              if (step.name === stepName) {
+                return { ...step, [field]: newValue };
+              }
+              return step;
+            }),
+          };
+        }
+        return sp;
+      }),
+    }));
+  };
+
+  // UC Standard Preparation Handlers
+  const handleAddStandardPreparationUC = (parameterId: number) => {
+    setCurrentParameterForStandardPrep(parameterId);
+    setIsAddingRSStandard(false);
+    setIsAddingDissoStandard(false);
+    setIsAddingUCStandard(true); // Add new flag
+    setShowStandardSelectionDialog(true);
+  };
+
+  const handleRemoveStandardPreparationUC = (
+    parameterId: number,
+    standardPreparationId: number,
+  ) => {
+    setStandardPreparationUCPerParam((prev) => {
+      const standards = prev[parameterId] || [];
+      const indexToRemove = standards.findIndex(
+        (sp) => sp.id === standardPreparationId,
+      );
+
+      const updatedStandards = standards
+        .filter((dm) => dm.id !== standardPreparationId)
+        .map((dm, index) => ({
+          ...dm,
+          label: `Standard Preparation${1 + index}`,
+        }));
+
+      if (indexToRemove !== -1) {
+        setSamplePreparationUCPerParam((prevSample) => {
+          const samples = prevSample[parameterId] || [];
+          const updatedSamples = samples
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Sample Preparation${1 + index}`,
+            }));
+          return { ...prevSample, [parameterId]: updatedSamples };
+        });
+      }
+
+      return { ...prev, [parameterId]: updatedStandards };
+    });
+  };
+
+  const handleStandardPreparationUCStepChange = (
+    parameterId: number,
+    standardPreparationId: number,
+    stepName: StandardPreparationStep["name"],
+    field:
+      | "value1"
+      | "unit1"
+      | "value2"
+      | "unit2"
+      | "logBookID"
+      | "solventChemical",
+    newValue: string,
+  ) => {
+    setStandardPreparationUCPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((sp) => {
+        if (sp.id === standardPreparationId) {
+          return {
+            ...sp,
+            steps: sp.steps.map((step) => {
+              if (step.name === stepName) {
+                return { ...step, [field]: newValue };
+              }
+              return step;
+            }),
+          };
+        }
+        return sp;
+      }),
+    }));
+  };
+
+  // UC Sample Preparation Handlers
+  const handleRemoveSamplePreparationUC = (
+    parameterId: number,
+    samplePreparationId: number,
+  ) => {
+    setSamplePreparationUCPerParam((prev) => {
+      const samples = prev[parameterId] || [];
+      const indexToRemove = samples.findIndex(
+        (sp) => sp.id === samplePreparationId,
+      );
+
+      const updatedSamples = samples
+        .filter((sp) => sp.id !== samplePreparationId)
+        .map((sp, index) => ({
+          ...sp,
+          label: `Sample Preparation${1 + index}`,
+        }));
+
+      if (indexToRemove !== -1) {
+        setStandardPreparationUCPerParam((prevStandard) => {
+          const standards = prevStandard[parameterId] || [];
+          const updatedStandards = standards
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Standard Preparation${1 + index}`,
+            }));
+          return { ...prevStandard, [parameterId]: updatedStandards };
+        });
+      }
+
+      return { ...prev, [parameterId]: updatedSamples };
+    });
+  };
+
+  const handleSamplePreparationUCStepChange = (
+    parameterId: number,
+    samplePreparationUCId: number,
+    stepName: SamplePreparationUCStep["name"],
+    field:
+      | "value1"
+      | "unit1"
+      | "value2"
+      | "unit2"
+      | "value3"
+      | "unit3"
+      | "value4"
+      | "unit4",
+    newValue: string,
+  ) => {
+    setSamplePreparationUCPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((spl) => {
+        if (spl.id === samplePreparationUCId) {
+          return {
+            ...spl,
+            steps: spl.steps.map((step) => {
+              if (step.name === stepName) {
+                return { ...step, [field]: newValue };
+              }
+              return step;
+            }),
+          };
+        }
+        return spl;
+      }),
+    }));
+  };
+
+  // UC Calculation Handlers
+  const handleAddCalculationUC = (parameterId: number) => {
+    setCalculationsUCPerParam((prev) => {
+      const currentCalculations = prev[parameterId] || [];
+      const newIndex = currentCalculations.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentCalculations,
+          createNewCalculationUC(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveCalculationUC = (
+    parameterId: number,
+    calculationId: number,
+  ) => {
+    setCalculationsUCPerParam((prev) => {
+      const updatedCalculations = (prev[parameterId] || [])
+        .filter((calc) => calc.id !== calculationId)
+        .map((calc, index) => ({
+          ...calc,
+          label: `Calculation${index + 1}`,
+        }));
+      return { ...prev, [parameterId]: updatedCalculations };
+    });
+  };
+
+  const handleCalculationUCFieldChange = (
+    parameterId: number,
+    calculationId: number,
+    field: keyof CalculationUC,
+    value: string | number | null,
+  ) => {
+    setCalculationsUCPerParam((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((calc) => {
         if (calc.id === calculationId) {
@@ -4019,28 +5041,31 @@ const handleAnalystSelected = async (employeeId: string) => {
   const getAvailableStandardsForParameter = (
     parameterId: number,
     isForRS: boolean = false,
-    isForDisso: boolean = false
+    isForDisso: boolean = false,
+    isForUC: boolean = false,
   ): Standard[] => {
     const paramStandards = addedStandards[parameterId] || [];
     const preparations = isForRS
       ? standardPreparationRSPerParam[parameterId] || []
       : isForDisso
-      ? standardPreparationDissoPerParam[parameterId] || []
-      : standardPreparationPerParam[parameterId] || [];
+        ? standardPreparationDissoPerParam[parameterId] || []
+        : isForUC
+          ? standardPreparationUCPerParam[parameterId] || []
+          : standardPreparationPerParam[parameterId] || [];
 
     const assignedStandardIds = preparations
       .map((prep: any) => prep.assignedStandardId)
       .filter(Boolean);
 
     return paramStandards.filter(
-      (std) => !assignedStandardIds.includes(std.id)
+      (std) => !assignedStandardIds.includes(std.serialNo),
     );
   };
 
   const allParameters = samplesData.map((data) => data.parameter) ?? [];
   const uniqueMethods = [
     ...new Map(
-      (samplesData ?? []).map((item) => [item.methodCode, item])
+      (samplesData ?? []).map((item) => [item.methodCode, item]),
     ).values(),
   ];
   const allMethods = uniqueMethods.map((item) => item.methodName);
@@ -4063,7 +5088,7 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const handleTogglePreparationGroup = (
     parameterId: number,
-    groupId: string
+    groupId: string,
   ) => {
     setActivePreparationGroups((prev) => {
       const currentGroups = prev[parameterId] || [];
@@ -4072,7 +5097,21 @@ const handleAnalystSelected = async (employeeId: string) => {
         const group =
           PREPARATION_GROUPS[groupId as keyof typeof PREPARATION_GROUPS];
 
-        // Clean up state for removed group
+        if (group.id === "uniformityOfContent") {
+          setStandardPreparationUCPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+          setSamplePreparationUCPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+          setCalculationsUCPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+
         if (group.id === "assay") {
           setStandardPreparationPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
@@ -4139,6 +5178,21 @@ const handleAnalystSelected = async (employeeId: string) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
+        } else if (group.id === "mobilePhase") {
+          setMobilePhasePerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        } else if (group.id === "dissoMedia") {
+          setDissoMediaPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        } else if (group.id === "titration") {
+          setSamplePrepTitrationPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
         }
 
         return {
@@ -4157,22 +5211,42 @@ const handleAnalystSelected = async (employeeId: string) => {
 
   const getAvailablePreparationGroups = () => {
     return [
-      { id: "assay", label: "Preparations for Assay", color: "red" },
-      { id: "lod", label: "Preparations for LOD", color: "sky" },
-      { id: "roi", label: "Preparations for ROI", color: "orange" },
+      { id: "assay", label: "Preparations for Assay", color: "emerald" },
+      { id: "lod", label: "Preparations for LOD", color: "emerald" },
+      { id: "roi", label: "Preparations for ROI", color: "emerald" },
       {
         id: "sulphatedAsh",
         label: "Preparations for Sulphated Ash",
-        color: "rose",
+        color: "emerald",
       },
       {
         id: "residualSolvent",
         label: "Preparations for Residual Solvent",
-        color: "indigo",
+        color: "emerald",
       },
       {
         id: "dissolution",
         label: "Preparations for Dissolution",
+        color: "emerald",
+      },
+      {
+        id: "uniformityOfContent",
+        label: "Preparations for Uniformity of Content",
+        color: "emerald",
+      },
+      {
+        id: "mobilePhase",
+        label: "Mobile Phase Preparation",
+        color: "emerald",
+      },
+      {
+        id: "dissoMedia",
+        label: "Dissolution Media Preparation",
+        color: "emerald",
+      },
+      {
+        id: "titration",
+        label: "Preparation for Titration",
         color: "emerald",
       },
     ];
@@ -4201,13 +5275,13 @@ const handleAnalystSelected = async (employeeId: string) => {
       if (role.toLowerCase() === "analyst" && isAnalysisPending && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
-            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-6 py-5 border-b border-slate-200">
+            <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
                       <svg
-                        className="w-6 h-6 text-blue-600 animate-pulse"
+                        className="w-6 h-6 text-emerald-600 animate-pulse"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -4233,7 +5307,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                   onClick={() => handleStartAnalysis(param)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-blue-200 text-blue-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-blue-300 transition-all flex items-center gap-2 shadow-sm"
+                  className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
                 >
                   <BsPlayFill className="w-5 h-5" />
                   Start Analysis
@@ -4241,13 +5315,13 @@ const handleAnalystSelected = async (employeeId: string) => {
               </div>
             </div>
 
-            <div className="p-6 bg-slate-50">
+            <div className="p-6 bg-emerald-50">
               <div className="grid grid-cols-1 gap-4">
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-5 h-5 text-blue-600"
+                        className="w-5 h-5 text-emerald-600"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -4266,27 +5340,27 @@ const handleAnalystSelected = async (employeeId: string) => {
                       </h4>
                       <ul className="text-sm text-slate-600 space-y-2">
                         <li className="flex items-start gap-2">
-                          <span className="text-blue-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             You'll gain full access to edit all preparations and
                             calculations
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-blue-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             The parameter status will change to "Analysis
                             Started"
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-blue-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             You must complete the entire analysis - no pausing
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-blue-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             Click "Complete Analysis" when you're done with all
                             work
@@ -4297,10 +5371,10 @@ const handleAnalystSelected = async (employeeId: string) => {
                   </div>
                 </div>
 
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                   <div className="flex items-start gap-3">
                     <svg
-                      className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"
+                      className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -4312,7 +5386,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                       />
                     </svg>
-                    <p className="text-sm text-amber-800">
+                    <p className="text-sm text-emerald-800">
                       <strong>Important:</strong> Once started, you cannot pause
                       or go back. Make sure you have all required materials and
                       time to complete.
@@ -4329,7 +5403,7 @@ const handleAnalystSelected = async (employeeId: string) => {
       if (role.toLowerCase() === "analyst" && isAnalysisStarted && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
-            <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 px-6 py-5 border-b border-slate-200">
+            <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="relative">
@@ -4381,7 +5455,7 @@ const handleAnalystSelected = async (employeeId: string) => {
               </div>
             </div>
 
-            <div className="p-6 bg-slate-50">
+            <div className="p-6 bg-emerald-50">
               <div className="grid grid-cols-1 gap-4">
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
@@ -4438,10 +5512,10 @@ const handleAnalystSelected = async (employeeId: string) => {
                   </div>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                   <div className="flex items-start gap-3">
                     <svg
-                      className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
+                      className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -4453,7 +5527,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    <p className="text-sm text-blue-800">
+                    <p className="text-sm text-emerald-800">
                       <strong>Before Completing:</strong> Verify all
                       preparations, calculations, and data are accurate. This
                       will submit your work to Reviewer for approval.
@@ -4470,13 +5544,13 @@ const handleAnalystSelected = async (employeeId: string) => {
       if (role.toLowerCase() === "analyst" && isAnalysisCompleted && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
-            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-6 py-5 border-b border-slate-200">
+            <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
                       <svg
-                        className="w-6 h-6 text-blue-600"
+                        className="w-6 h-6 text-emerald-600"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -4500,13 +5574,13 @@ const handleAnalystSelected = async (employeeId: string) => {
               </div>
             </div>
 
-            <div className="p-6 bg-slate-50">
+            <div className="p-6 bg-emerald-50">
               <div className="grid grid-cols-1 gap-4">
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-5 h-5 text-blue-600"
+                        className="w-5 h-5 text-emerald-600"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -4525,26 +5599,26 @@ const handleAnalystSelected = async (employeeId: string) => {
                       </h4>
                       <ul className="text-sm text-slate-600 space-y-2">
                         <li className="flex items-start gap-2">
-                          <span className="text-blue-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             Reviewer is currently reviewing your analysis
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-blue-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             If approved, the parameter will be finalized
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-blue-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             If revisions are needed, you'll regain editing
                             access
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-blue-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             You can view all parameter details below while
                             waiting
@@ -4572,7 +5646,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                     </svg>
                     <p className="text-sm text-slate-700">
                       <strong>Status:</strong> Your analysis is locked for
-                      review. No edits can be made until Reviewer provides feedback.
+                      review. No edits can be made until Reviewer provides
+                      feedback.
                     </p>
                   </div>
                 </div>
@@ -4586,13 +5661,13 @@ const handleAnalystSelected = async (employeeId: string) => {
       if (role.toLowerCase() === "analyst" && isAnalysisRevision && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
-            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 px-6 py-5 border-b border-slate-200">
+            <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
                       <svg
-                        className="w-6 h-6 text-amber-600 animate-pulse"
+                        className="w-6 h-6 text-emerald-600 animate-pulse"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -4609,8 +5684,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                       Revision Requested
                     </h3>
                     <p className="text-sm text-slate-600 mt-0.5">
-                      Reviewer has requested revisions. Review feedback and update
-                      your work
+                      Reviewer has requested revisions. Review feedback and
+                      update your work
                     </p>
                   </div>
                 </div>
@@ -4619,7 +5694,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                   onClick={() => handleCompleteAnalysis(param)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
+                  className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
                 >
                   <svg
                     className="w-5 h-5"
@@ -4639,13 +5714,13 @@ const handleAnalystSelected = async (employeeId: string) => {
               </div>
             </div>
 
-            <div className="p-6 bg-slate-50">
+            <div className="p-6 bg-emerald-50">
               <div className="grid grid-cols-1 gap-4">
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-5 h-5 text-amber-600"
+                        className="w-5 h-5 text-emerald-600"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -4664,27 +5739,28 @@ const handleAnalystSelected = async (employeeId: string) => {
                       </h4>
                       <ul className="text-sm text-slate-600 space-y-2">
                         <li className="flex items-start gap-2">
-                          <span className="text-amber-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
-                            Review Reviewer's feedback and make necessary corrections
+                            Review Reviewer's feedback and make necessary
+                            corrections
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-amber-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             You have full editing access to all preparations and
                             calculations
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-amber-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             Click <strong>"Save Draft"</strong> to save your
                             changes
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-amber-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             Click <strong>"Complete Revision"</strong> when all
                             changes are done
@@ -4695,10 +5771,10 @@ const handleAnalystSelected = async (employeeId: string) => {
                   </div>
                 </div>
 
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                   <div className="flex items-start gap-3">
                     <svg
-                      className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"
+                      className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -4710,7 +5786,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    <p className="text-sm text-yellow-800">
+                    <p className="text-sm text-emerald-800">
                       <strong>Tip:</strong> Carefully review all sections to
                       ensure accuracy before resubmitting. Your work will be
                       sent back to Reviewer for re-approval.
@@ -4727,7 +5803,7 @@ const handleAnalystSelected = async (employeeId: string) => {
       if (role.toLowerCase() === "analyst" && isApproved && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
-            <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 px-6 py-5 border-b border-slate-200">
+            <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="relative">
@@ -4757,7 +5833,7 @@ const handleAnalystSelected = async (employeeId: string) => {
               </div>
             </div>
 
-            <div className="p-6 bg-slate-50">
+            <div className="p-6 bg-emerald-50">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
@@ -4790,9 +5866,9 @@ const handleAnalystSelected = async (employeeId: string) => {
 
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-5 h-5 text-blue-600"
+                        className="w-5 h-5 text-emerald-600"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -4918,13 +5994,13 @@ const handleAnalystSelected = async (employeeId: string) => {
               </div>
             </div>
 
-            <div className="p-6 bg-slate-50">
+            <div className="p-6 bg-emerald-50">
               <div className="grid grid-cols-1 gap-4">
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-5 h-5 text-blue-600"
+                        className="w-5 h-5 text-emerald-600"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -4943,19 +6019,19 @@ const handleAnalystSelected = async (employeeId: string) => {
                       </h4>
                       <ul className="text-sm text-slate-600 space-y-2">
                         <li className="flex items-start gap-2">
-                          <span className="text-slate-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             This parameter is in draft mode and being set up
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-slate-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             It has not been submitted for analysis yet
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-slate-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             Once submitted, it will be assigned for analysis
                           </span>
@@ -5081,13 +6157,13 @@ const handleAnalystSelected = async (employeeId: string) => {
               </div>
             </div>
 
-            <div className="p-6 bg-slate-50">
+            <div className="p-6 bg-emerald-50">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-5 h-5 text-blue-600"
+                        className="w-5 h-5 text-emerald-600"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -5115,9 +6191,9 @@ const handleAnalystSelected = async (employeeId: string) => {
 
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-5 h-5 text-amber-600"
+                        className="w-5 h-5 text-emerald-600"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -5198,7 +6274,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5" />
+                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5" />
                         <span>
                           <strong>View:</strong> You can still view all
                           parameter details below
@@ -5217,13 +6293,13 @@ const handleAnalystSelected = async (employeeId: string) => {
       if (role.toLowerCase() === "reviewer" && isAnalysisCompleted && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
-            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-6 py-5 border-b border-slate-200">
+            <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
                       <svg
-                        className="w-6 h-6 text-blue-600 animate-pulse"
+                        className="w-6 h-6 text-emerald-600 animate-pulse"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -5260,7 +6336,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                     onClick={() => handleRequestRevision(param)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
+                    className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
                   >
                     <svg
                       className="w-4 h-4"
@@ -5281,7 +6357,7 @@ const handleAnalystSelected = async (employeeId: string) => {
               </div>
             </div>
 
-            <div className="p-6 bg-slate-50">
+            <div className="p-6 bg-emerald-50">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
@@ -5318,9 +6394,9 @@ const handleAnalystSelected = async (employeeId: string) => {
 
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-5 h-5 text-blue-600"
+                        className="w-5 h-5 text-emerald-600"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -5347,10 +6423,10 @@ const handleAnalystSelected = async (employeeId: string) => {
                 </div>
               </div>
 
-              <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                 <div className="flex items-start gap-3">
                   <svg
-                    className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
+                    className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -5368,7 +6444,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                       d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                     />
                   </svg>
-                  <p className="text-sm text-blue-800">
+                  <p className="text-sm text-emerald-800">
                     <strong>Reminder:</strong> Your decision will be final.
                     Approved parameters cannot be edited. Parameters sent for
                     revision will return to the analyst.
@@ -5384,13 +6460,13 @@ const handleAnalystSelected = async (employeeId: string) => {
       if (role.toLowerCase() === "reviewer" && isAnalysisRevision && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
-            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 px-6 py-5 border-b border-slate-200">
+            <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
                       <svg
-                        className="w-6 h-6 text-amber-600"
+                        className="w-6 h-6 text-emerald-600"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -5412,21 +6488,21 @@ const handleAnalystSelected = async (employeeId: string) => {
                   </div>
                 </div>
 
-                <div className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 rounded-lg">
-                  <span className="text-sm font-semibold text-amber-700">
+                <div className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-emerald-200 rounded-lg">
+                  <span className="text-sm font-semibold text-emerald-700">
                     AWAITING REVISION
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="p-6 bg-slate-50">
+            <div className="p-6 bg-emerald-50">
               <div className="grid grid-cols-1 gap-4">
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-5 h-5 text-amber-600"
+                        className="w-5 h-5 text-emerald-600"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -5445,25 +6521,25 @@ const handleAnalystSelected = async (employeeId: string) => {
                       </h4>
                       <ul className="text-sm text-slate-600 space-y-2">
                         <li className="flex items-start gap-2">
-                          <span className="text-amber-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>You requested revisions on this parameter</span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-amber-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             The analyst is currently making the necessary
                             changes
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-amber-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>
                             Once complete, it will be resubmitted for your
                             review
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="text-amber-500 mt-1">•</span>
+                          <span className="text-emerald-500 mt-1">•</span>
                           <span>You can view all parameter details below</span>
                         </li>
                       </ul>
@@ -5503,7 +6579,7 @@ const handleAnalystSelected = async (employeeId: string) => {
       if (role.toLowerCase() === "reviewer" && isApproved && param) {
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
-            <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 px-6 py-5 border-b border-slate-200">
+            <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="relative">
@@ -5533,7 +6609,7 @@ const handleAnalystSelected = async (employeeId: string) => {
               </div>
             </div>
 
-            <div className="p-6 bg-slate-50">
+            <div className="p-6 bg-emerald-50">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
@@ -5566,9 +6642,9 @@ const handleAnalystSelected = async (employeeId: string) => {
 
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-5 h-5 text-blue-600"
+                        className="w-5 h-5 text-emerald-600"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -5640,402 +6716,316 @@ const handleAnalystSelected = async (employeeId: string) => {
     },
     (prevProps, nextProps) => {
       return prevProps.parameterId === nextProps.parameterId;
-    }
+    },
   );
 
   LockedParameterOverlay.displayName = "LockedParameterOverlay";
 
-  const BottomParameterActionBar: React.FC<{ parameterId: number }> = React.memo(
-    ({ parameterId }) => {
-      const status = (
-        parameterStatusPerParam[parameterId] || "Created"
-      ).toLowerCase();
-      const canUnlock = status === "analysis pending";
-      const isAnalysisStarted = status === "analysis started";
-      const isAnalysisPending = status === "analysis pending";
-      const isAnalysisCompleted = status === "analysis completed";
-      const isAnalysisRevision = status === "analysis revision";
-      const isApproved = status === "approved";
-      const isCreated = status === "created";
-      const param = addedParameters.find((p) => p.id === parameterId);
+  const BottomParameterActionBar: React.FC<{ parameterId: number }> =
+    React.memo(
+      ({ parameterId }) => {
+        const status = (
+          parameterStatusPerParam[parameterId] || "Created"
+        ).toLowerCase();
+        const canUnlock = status === "analysis pending";
+        const isAnalysisStarted = status === "analysis started";
+        const isAnalysisPending = status === "analysis pending";
+        const isAnalysisCompleted = status === "analysis completed";
+        const isAnalysisRevision = status === "analysis revision";
+        const isApproved = status === "approved";
+        const isCreated = status === "created";
+        const param = addedParameters.find((p) => p.id === parameterId);
 
-      // ========== ANALYST VIEW - CREATED (NO BAR) ==========
-      if (role.toLowerCase() === "analyst" && isCreated) {
-        return null; // No action bar needed for created status
-      }
+        // ========== ANALYST VIEW - CREATED (NO BAR) ==========
+        if (role.toLowerCase() === "analyst" && isCreated) {
+          return null; // No action bar needed for created status
+        }
 
-      // ========== ANALYST VIEW - ANALYSIS PENDING ==========
-      if (role.toLowerCase() === "analyst" && isAnalysisPending && param) {
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
-          >
-            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-6 py-4 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-blue-600 animate-pulse"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">
-                      Analysis Pending - Ready to Start
-                    </h4>
-                    <p className="text-xs text-slate-600">
-                      Click "Start Analysis" to begin working on this parameter
-                    </p>
-                  </div>
-                </div>
-
-                <motion.button
-                  onClick={() => handleStartAnalysis(param)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-blue-200 text-blue-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-blue-300 transition-all flex items-center gap-2 shadow-sm"
-                >
-                  <BsPlayFill className="w-5 h-5" />
-                  Start Analysis
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
-        );
-      }
-
-      // ========== ANALYST VIEW - ANALYSIS STARTED ==========
-      if (role.toLowerCase() === "analyst" && isAnalysisStarted && param) {
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
-          >
-            <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 px-6 py-4 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-emerald-600 animate-pulse"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">
-                      Analysis In Progress
-                    </h4>
-                    <p className="text-xs text-slate-600">
-                      Complete your analysis and click on Complete button
-                    </p>
-                  </div>
-                </div>
-
-                <motion.button
-                  onClick={() => handleCompleteAnalysis(param)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  Complete Analysis
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
-        );
-      }
-
-      // ========== ANALYST VIEW - ANALYSIS COMPLETED ==========
-      if (role.toLowerCase() === "analyst" && isAnalysisCompleted && param) {
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
-          >
-            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-6 py-4 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-blue-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">
-                      Analysis Completed
-                    </h4>
-                    <p className="text-xs text-slate-600">
-                      Your work has been submitted and is under review
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        );
-      }
-
-      // ========== ANALYST VIEW - ANALYSIS REVISION ==========
-      if (role.toLowerCase() === "analyst" && isAnalysisRevision && param) {
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
-          >
-            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 px-6 py-4 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-amber-600 animate-pulse"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">
-                      Revision Requested
-                    </h4>
-                    <p className="text-xs text-slate-600">
-                      HOD has requested revisions. Review feedback and update your work
-                    </p>
-                  </div>
-                </div>
-
-                <motion.button
-                  onClick={() => handleCompleteAnalysis(param)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  Complete Revision
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
-        );
-      }
-
-      // ========== ANALYST VIEW - APPROVED ==========
-      if (role.toLowerCase() === "analyst" && isApproved && param) {
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
-          >
-            <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 px-6 py-4 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-emerald-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">
-                      Parameter Approved - Well Done!
-                    </h4>
-                    <p className="text-xs text-slate-600">
-                      Your analysis has been reviewed and approved by HOD
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        );
-      }
-
-      // ========== reviewer VIEW - CREATED ==========
-      if (role.toLowerCase() === "reviewer" && isCreated && param) {
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
-          >
-            <div className="bg-gradient-to-r from-slate-50 via-gray-50 to-slate-50 px-6 py-4 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-slate-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">
-                      Parameter in Draft Mode
-                    </h4>
-                    <p className="text-xs text-slate-600">
-                      This parameter is being prepared and has not been submitted yet
-                    </p>
-                  </div>
-                </div>
-
-                <motion.button
-                  onClick={() => handleInitiateDelete(param)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-red-200 text-red-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-red-300 transition-all flex items-center gap-2 shadow-sm"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                  Delete
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
-        );
-      }
-
-      // ========== reviewer VIEW - ANALYSIS PENDING OR STARTED ==========
-      if (
-        role.toLowerCase() === "reviewer" &&
-        (isAnalysisPending || isAnalysisStarted) &&
-        param
-      ) {
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
-          >
-            <div className="bg-gradient-to-r from-slate-50 via-gray-50 to-slate-50 px-6 py-4 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-slate-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">
-                      {isAnalysisStarted ? "Analysis In Progress" : "Awaiting Analysis"}
-                    </h4>
-                    <p className="text-xs text-slate-600">
-                      Status: <span className="uppercase font-semibold">{status}</span>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  {canUnlock && (
-                    <motion.button
-                      onClick={() => handleInitiateUnlock(param)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
-                    >
+        // ========== ANALYST VIEW - ANALYSIS PENDING ==========
+        if (role.toLowerCase() === "analyst" && isAnalysisPending && param) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+              <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
                       <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+                        className="w-5 h-5 text-emerald-600 animate-pulse"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
                       >
                         <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                          clipRule="evenodd"
                         />
                       </svg>
-                      Unlock
-                    </motion.button>
-                  )}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        Analysis Pending - Ready to Start
+                      </h4>
+                      <p className="text-xs text-slate-600">
+                        Click "Start Analysis" to begin working on this
+                        parameter
+                      </p>
+                    </div>
+                  </div>
+
+                  <motion.button
+                    onClick={() => handleStartAnalysis(param)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+                  >
+                    <BsPlayFill className="w-5 h-5" />
+                    Start Analysis
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
+        // ========== ANALYST VIEW - ANALYSIS STARTED ==========
+        if (role.toLowerCase() === "analyst" && isAnalysisStarted && param) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+              <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-emerald-600 animate-pulse"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        Analysis In Progress
+                      </h4>
+                      <p className="text-xs text-slate-600">
+                        Complete your analysis and click on Complete button
+                      </p>
+                    </div>
+                  </div>
+
+                  <motion.button
+                    onClick={() => handleCompleteAnalysis(param)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    Complete Analysis
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
+        // ========== ANALYST VIEW - ANALYSIS COMPLETED ==========
+        if (role.toLowerCase() === "analyst" && isAnalysisCompleted && param) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+              <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-emerald-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        Analysis Completed
+                      </h4>
+                      <p className="text-xs text-slate-600">
+                        Your work has been submitted and is under review
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
+        // ========== ANALYST VIEW - ANALYSIS REVISION ==========
+        if (role.toLowerCase() === "analyst" && isAnalysisRevision && param) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+              <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-emerald-600 animate-pulse"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        Revision Requested
+                      </h4>
+                      <p className="text-xs text-slate-600">
+                        HOD has requested revisions. Review feedback and update
+                        your work
+                      </p>
+                    </div>
+                  </div>
+
+                  <motion.button
+                    onClick={() => handleCompleteAnalysis(param)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    Complete Revision
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
+        // ========== ANALYST VIEW - APPROVED ==========
+        if (role.toLowerCase() === "analyst" && isApproved && param) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+              <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-emerald-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        Parameter Approved - Well Done!
+                      </h4>
+                      <p className="text-xs text-slate-600">
+                        Your analysis has been reviewed and approved by HOD
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
+        // ========== reviewer VIEW - CREATED ==========
+        if (role.toLowerCase() === "reviewer" && isCreated && param) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+              <div className="bg-gradient-to-r from-slate-50 via-gray-50 to-slate-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-slate-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        Parameter in Draft Mode
+                      </h4>
+                      <p className="text-xs text-slate-600">
+                        This parameter is being prepared and has not been
+                        submitted yet
+                      </p>
+                    </div>
+                  </div>
 
                   <motion.button
                     onClick={() => handleInitiateDelete(param)}
@@ -6060,175 +7050,270 @@ const handleAnalystSelected = async (employeeId: string) => {
                   </motion.button>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        );
-      }
+            </motion.div>
+          );
+        }
 
-      // ========== reviewer VIEW - ANALYSIS COMPLETED ==========
-      if (role.toLowerCase() === "reviewer" && isAnalysisCompleted && param) {
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
-          >
-            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-6 py-4 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-blue-600 animate-pulse"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
+        // ========== reviewer VIEW - ANALYSIS PENDING OR STARTED ==========
+        if (
+          role.toLowerCase() === "reviewer" &&
+          (isAnalysisPending || isAnalysisStarted) &&
+          param
+        ) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+              <div className="bg-gradient-to-r from-slate-50 via-gray-50 to-slate-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-slate-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        {isAnalysisStarted
+                          ? "Analysis In Progress"
+                          : "Awaiting Analysis"}
+                      </h4>
+                      <p className="text-xs text-slate-600">
+                        Status:{" "}
+                        <span className="uppercase font-semibold">
+                          {status}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    {canUnlock && (
+                      <motion.button
+                        onClick={() => handleInitiateUnlock(param)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                          />
+                        </svg>
+                        Unlock
+                      </motion.button>
+                    )}
+
+                    <motion.button
+                      onClick={() => handleInitiateDelete(param)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-red-200 text-red-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-red-300 transition-all flex items-center gap-2 shadow-sm"
                     >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">
-                      Analysis Completed
-                    </h4>
-                    <p className="text-xs text-slate-600">
-                      Review the analysis and approve or request revisions
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <motion.button
-                    onClick={() => handleApprove(param)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
-                  >
-                    <MdDone className="w-4 h-4" />
-                    Approve
-                  </motion.button>
-
-                  <motion.button
-                    onClick={() => handleRequestRevision(param)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                    Request Revision
-                  </motion.button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        );
-      }
-
-      // ========== reviewer VIEW - ANALYSIS REVISION ==========
-      if (role.toLowerCase() === "reviewer" && isAnalysisRevision && param) {
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
-          >
-            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 px-6 py-4 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-amber-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">
-                      Revision In Progress
-                    </h4>
-                    <p className="text-xs text-slate-600">
-                      Analyst is working on the requested revisions
-                    </p>
-                  </div>
-                </div>
-
-                <div className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 rounded-lg">
-                  <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">
-                    Awaiting Revision
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        );
-      }
-
-      // ========== reviewer VIEW - APPROVED ==========
-      if (role.toLowerCase() === "reviewer" && isApproved && param) {
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
-          >
-            <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 px-6 py-4 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-emerald-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">
-                      Parameter Approved & Finalized
-                    </h4>
-                    <p className="text-xs text-slate-600">
-                      This parameter has been reviewed and approved
-                    </p>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                      Delete
+                    </motion.button>
                   </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        );
-      }
+            </motion.div>
+          );
+        }
 
-      // If none of the conditions match, return null (no action bar)
-      return null;
-    },
-    (prevProps, nextProps) => {
-      return prevProps.parameterId === nextProps.parameterId;
-    }
-  );
+        // ========== reviewer VIEW - ANALYSIS COMPLETED ==========
+        if (role.toLowerCase() === "reviewer" && isAnalysisCompleted && param) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+              <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-emerald-600 animate-pulse"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        Analysis Completed
+                      </h4>
+                      <p className="text-xs text-slate-600">
+                        Review the analysis and approve or request revisions
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <motion.button
+                      onClick={() => handleApprove(param)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+                    >
+                      <MdDone className="w-4 h-4" />
+                      Approve
+                    </motion.button>
+
+                    <motion.button
+                      onClick={() => handleRequestRevision(param)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                      Request Revision
+                    </motion.button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
+        // ========== reviewer VIEW - ANALYSIS REVISION ==========
+        if (role.toLowerCase() === "reviewer" && isAnalysisRevision && param) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+              <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-emerald-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        Revision In Progress
+                      </h4>
+                      <p className="text-xs text-slate-600">
+                        Analyst is working on the requested revisions
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-emerald-200 rounded-lg">
+                    <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">
+                      Awaiting Revision
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
+        // ========== reviewer VIEW - APPROVED ==========
+        if (role.toLowerCase() === "reviewer" && isApproved && param) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+              <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-emerald-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        Parameter Approved & Finalized
+                      </h4>
+                      <p className="text-xs text-slate-600">
+                        This parameter has been reviewed and approved
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
+        // If none of the conditions match, return null (no action bar)
+        return null;
+      },
+      (prevProps, nextProps) => {
+        return prevProps.parameterId === nextProps.parameterId;
+      },
+    );
   // Loading/Error states
   if (isLoading) {
     return (
@@ -6251,7 +7336,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="absolute w-64 h-64 rounded-full bg-gradient-to-br from-emerald-200 to-teal-200 blur-3xl"
+              className="absolute w-64 h-64 rounded-full bg-gradient-to-br from-emerald-200 to-emerald-200 blur-3xl"
             />
             <motion.div
               animate={{
@@ -6264,7 +7349,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                 ease: "easeInOut",
                 delay: 0.5,
               }}
-              className="absolute w-80 h-80 rounded-full bg-gradient-to-br from-blue-200 to-cyan-200 blur-3xl"
+              className="absolute w-80 h-80 rounded-full bg-gradient-to-br from-emerald-200 to-emerald-200 blur-3xl"
             />
           </div>
 
@@ -6281,7 +7366,7 @@ const handleAnalystSelected = async (employeeId: string) => {
               >
                 <div className="absolute inset-0 rounded-full border-4 border-emerald-100"></div>
                 <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-emerald-500 border-r-emerald-500"></div>
-                <div className="absolute inset-2 rounded-full bg-gradient-to-br from-emerald-50 to-teal-50"></div>
+                <div className="absolute inset-2 rounded-full bg-gradient-to-br from-emerald-50 to-emerald-50"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <svg
                     className="w-8 h-8 text-emerald-600"
@@ -6402,8 +7487,8 @@ const handleAnalystSelected = async (employeeId: string) => {
               className="mb-6 relative overflow-hidden rounded-2xl"
             >
               {/* Animated background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500" />
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/50 via-green-400/50 to-teal-400/50 animate-pulse" />
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 via-emerald-1000 to-emerald-500" />
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/50 via-emerald-500/50 to-emerald-400/50 animate-pulse" />
 
               {/* Decorative elements */}
               <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
@@ -6453,7 +7538,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                       Approved By
                     </div>
                     <div className="text-white font-bold">
-                      {worksheetInfo.sample.preparedByName ||"Reviewer"}
+                      {worksheetInfo.sample.preparedByName || "Reviewer"}
                     </div>
                   </div>
                 </div>
@@ -6462,7 +7547,7 @@ const handleAnalystSelected = async (employeeId: string) => {
           )}
 
         <div className="my-4 border-2 border-emerald-400 rounded-xl overflow-hidden shadow-lg">
-          <div className="flex justify-between items-center px-6 py-4 bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-700">
+          <div className="flex justify-between items-center px-6 py-4 bg-gradient-to-r from-emerald-600 via-emerald-700 to-emerald-700">
             <div className="flex items-center gap-4">
               <h1 className="flex items-baseline gap-3 tracking-wide text-white">
                 <span className="text-sm font-semibold">Worksheet ID:</span>
@@ -6566,9 +7651,9 @@ const handleAnalystSelected = async (employeeId: string) => {
         </div>
 
         <div className="my-4 border-2 border-emerald-300 rounded-xl overflow-hidden shadow-md">
-          <div className="grid grid-cols-2 border-b-2 border-emerald-300 text-sm bg-gradient-to-r from-emerald-50 to-teal-50">
+          <div className="grid grid-cols-2 border-b-2 border-emerald-300 text-sm bg-gradient-to-r from-emerald-50 to-emerald-50">
             <div className="flex items-center px-4 py-3 border-r-2 border-emerald-300">
-              <span className="font-bold mr-2 text-emerald-900">
+              <span className="font-bold mr-2 text-emerald-700">
                 Registration No:
               </span>
               <span className="font-semibold text-slate-700">
@@ -6578,7 +7663,7 @@ const handleAnalystSelected = async (employeeId: string) => {
               </span>
             </div>
             <div className="flex items-center px-4 py-3">
-              <span className="font-bold mr-2 text-emerald-900">
+              <span className="font-bold mr-2 text-emerald-700">
                 Sample Name:
               </span>
               <span className="font-semibold text-slate-700">
@@ -6589,7 +7674,7 @@ const handleAnalystSelected = async (employeeId: string) => {
 
           <div className="grid grid-cols-2 text-sm bg-white">
             <div className="flex items-center px-4 py-3 border-r-2 border-emerald-300">
-              <span className="font-bold mr-2 text-emerald-900">
+              <span className="font-bold mr-2 text-emerald-700">
                 Number of Parameters:
               </span>
               <span className="font-semibold text-slate-700">
@@ -6597,7 +7682,7 @@ const handleAnalystSelected = async (employeeId: string) => {
               </span>
             </div>
             <div className="flex items-center px-4 py-3">
-              <span className="font-bold mr-2 text-emerald-900">Due Date:</span>
+              <span className="font-bold mr-2 text-emerald-700">Due Date:</span>
               <span className="font-semibold text-slate-700">
                 {worksheetInfo!.sample?.dueDate || "---"}
               </span>
@@ -6610,10 +7695,10 @@ const handleAnalystSelected = async (employeeId: string) => {
             <table className="w-full border-collapse text-sm  shadow-md rounded-xl overflow-hidden">
               <tbody>
                 <tr className="border-b-2 border-emerald-400 hover:bg-emerald-50 transition-colors">
-                  <td className="w-10 px-4 py-4 border-r-2 border-emerald-400 font-bold text-center bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-900">
+                  <td className="w-10 px-4 py-4 border-r-2 border-emerald-400 font-bold text-center bg-gradient-to-br from-emerald-100 to-emerald-100 text-emerald-700">
                     1
                   </td>
-                  <td className="w-1/3 px-4 py-4 border-r-2 border-emerald-400 font-bold bg-gradient-to-r from-emerald-50 to-white text-emerald-900">
+                  <td className="w-1/3 px-4 py-4 border-r-2 border-emerald-400 font-bold bg-gradient-to-r from-emerald-50 to-white text-emerald-700">
                     Sample Particulars (All relevant information received with
                     sample to be entered):
                   </td>
@@ -6622,10 +7707,10 @@ const handleAnalystSelected = async (employeeId: string) => {
                   </td>
                 </tr>
                 <tr className="border-b-2 border-emerald-400 hover:bg-emerald-50 transition-colors">
-                  <td className="w-10 px-4 py-4 border-r-2 border-emerald-400 font-bold text-center bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-900">
+                  <td className="w-10 px-4 py-4 border-r-2 border-emerald-400 font-bold text-center bg-gradient-to-br from-emerald-100 to-emerald-100 text-emerald-700">
                     2
                   </td>
-                  <td className="w-1/3 px-4 py-4 border-r-2 border-emerald-400 font-bold bg-gradient-to-r from-emerald-50 to-white text-emerald-900">
+                  <td className="w-1/3 px-4 py-4 border-r-2 border-emerald-400 font-bold bg-gradient-to-r from-emerald-50 to-white text-emerald-700">
                     Test(s) required (all tests and condition to be entered):
                   </td>
                   <td className="px-3 py-3 font-medium">
@@ -6633,10 +7718,10 @@ const handleAnalystSelected = async (employeeId: string) => {
                   </td>
                 </tr>
                 <tr className="hover:bg-emerald-50 transition-colors">
-                  <td className="w-10 px-4 py-4 border-r-2 border-emerald-400 font-bold text-center bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-900">
+                  <td className="w-10 px-4 py-4 border-r-2 border-emerald-400 font-bold text-center bg-gradient-to-br from-emerald-100 to-emerald-100 text-emerald-700">
                     3
                   </td>
-                  <td className="w-1/3 px-4 py-4 border-r-2 border-emerald-400 font-bold bg-gradient-to-r from-emerald-50 to-white text-emerald-900">
+                  <td className="w-1/3 px-4 py-4 border-r-2 border-emerald-400 font-bold bg-gradient-to-r from-emerald-50 to-white text-emerald-700">
                     Method(s) of Analysis / testing
                   </td>
                   <td className="px-3 py-3 h-16 font-medium">
@@ -6649,9 +7734,9 @@ const handleAnalystSelected = async (employeeId: string) => {
 
           <div className="my-6 p-5 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-emerald-400 rounded-xl shadow-lg">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-emerald-900 flex items-center gap-2">
+              <h3 className="text-xl font-bold text-emerald-700 flex items-center gap-2">
                 <div className="relative">
-                  <div className="flex item-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <div className="flex item-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
                     <IoFlask className="w-6 h-6 text-white" />
                   </div>
                 </div>
@@ -6667,7 +7752,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                         setShowParameterDropdown(!showParameterDropdown)
                       }
                       disabled={availableToAdd.length === 0}
-                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
                       <Plus className="w-4 h-4" />
                       Add Parameter
@@ -6694,9 +7779,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   instrumentIds: [],
                                   chemicalIds: [],
                                   standardIds: [],
-                                  standardPreparations: [],
-                                  samplePreparations: [],
-                                  calculations: []
+                                  preparations: [],
+                                  calculations: [],
                                 })
                               }
                               className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
@@ -6737,23 +7821,23 @@ const handleAnalystSelected = async (employeeId: string) => {
                     // Add these to your status constants (around line 350)
                     const STATUS_COLORS = {
                       created: {
-                        bg: "bg-green-100",
-                        border: "border-green-300",
-                        text: "text-green-700",
+                        bg: "bg-emerald-100",
+                        border: "border-emerald-300",
+                        text: "text-emerald-700",
                         label: "CREATED",
                         icon: "✓",
                       },
                       "analysis pending": {
-                        bg: "bg-orange-100",
-                        border: "border-orange-300",
-                        text: "text-orange-700",
+                        bg: "bg-emerald-100",
+                        border: "border-emerald-300",
+                        text: "text-emerald-700",
                         label: "ANALYSIS PENDING",
                         icon: "⏳",
                       },
                       "analysis started": {
-                        bg: "bg-blue-100",
-                        border: "border-blue-300",
-                        text: "text-blue-700",
+                        bg: "bg-emerald-100",
+                        border: "border-emerald-300",
+                        text: "text-emerald-700",
                         label: "ANALYSIS STARTED",
                         icon: "🔬",
                       },
@@ -6772,9 +7856,9 @@ const handleAnalystSelected = async (employeeId: string) => {
                         icon: "🎉",
                       },
                       "analysis revision": {
-                        bg: "bg-amber-100",
-                        border: "border-amber-300",
-                        text: "text-amber-700",
+                        bg: "bg-emerald-100",
+                        border: "border-emerald-300",
+                        text: "text-emerald-700",
                         label: "REVISION REQUESTED",
                         icon: "🔄",
                       },
@@ -6801,7 +7885,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                         className={`relative flex items-center justify-between mt-5 p-4 rounded-xl shadow-inner transition-all duration-300 ${
                           isLocked
                             ? "bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 border-2 border-slate-300"
-                            : "bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-200"
+                            : "bg-gradient-to-r from-emerald-50 via-emerald-50 to-emerald-50 border-2 border-emerald-200"
                         }`}
                       >
                         {/* Locked Overlay Effect */}
@@ -6834,7 +7918,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                           <div className="flex items-center gap-3 mb-2">
                             <div
                               className={`font-semibold text-sm ${
-                                isLocked ? "text-slate-700" : "text-emerald-900"
+                                isLocked ? "text-slate-700" : "text-emerald-700"
                               }`}
                             >
                               {param.parameterName}
@@ -6892,11 +7976,10 @@ const handleAnalystSelected = async (employeeId: string) => {
                           {analyzedByPerParam[param.id] && (
                             <div
                               className={`mt-1 text-xs font-medium ${
-                                isLocked ? "text-slate-700" : "text-blue-700"
+                                isLocked ? "text-slate-700" : "text-emerald-700"
                               }`}
                             >
-                              Assigned to:{" "}
-                              {analyzedByNamePerParam[param.id]}
+                              Assigned to: {analyzedByNamePerParam[param.id]}
                             </div>
                           )}
 
@@ -6936,7 +8019,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                             rounded-md border text-xs font-semibold tracking-tight transition-all duration-200
                             ${
                               selectedParamsForDetail.includes(param.id)
-                                ? "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 shadow-sm"
+                                ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 shadow-sm"
                                 : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 shadow-sm"
                             }
                           `}
@@ -6945,7 +8028,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                             <span
                               className={`h-1.5 w-1.5 rounded-full ${
                                 selectedParamsForDetail.includes(param.id)
-                                  ? "bg-orange-500 animate-pulse"
+                                  ? "bg-emerald-500 animate-pulse"
                                   : "bg-emerald-500"
                               }`}
                             />
@@ -6980,8 +8063,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                           {role === "Reviewer" && !isLocked && (
                             <motion.button
                               onClick={() => {
-                                setShowDeleteDialog(true)
-                                setParameterToDelete(param)
+                                setShowDeleteDialog(true);
+                                setParameterToDelete(param);
                               }}
                               whileHover={{ scale: 1.1, rotate: 10 }}
                               whileTap={{ scale: 0.9 }}
@@ -7028,14 +8111,14 @@ const handleAnalystSelected = async (employeeId: string) => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="mb-4 p-3 bg-blue-50 border-2 border-blue-300 rounded-xl flex items-center gap-3"
+                className="mb-4 p-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl flex items-center gap-3"
               >
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full"
+                  className="w-5 h-5 border-2 border-emerald-600 border-t-transparent rounded-full"
                 />
-                <span className="text-sm font-semibold text-blue-800">
+                <span className="text-sm font-semibold text-emerald-800">
                   Saving parameter assignment to database...
                 </span>
               </motion.div>
@@ -7047,7 +8130,7 @@ const handleAnalystSelected = async (employeeId: string) => {
             .map((selectedParam) => {
               const isLocked = isParameterLocked(selectedParam?.id);
               const isEditableForAnalyst = isParameterEditableForAnalyst(
-                selectedParam?.id
+                selectedParam?.id,
               );
 
               const shouldDisableContent =
@@ -7068,7 +8151,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                       className="mb-8 relative overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-lg"
                     >
                       {/* Header Section */}
-                      <div className="relative bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 px-6 py-4 border-b border-slate-200">
+                      <div className="relative bg-gradient-to-r from-emerald-50 via-emerald-50 to-emerald-50 px-6 py-4 border-b border-slate-200">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className="relative">
@@ -7113,7 +8196,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                       </div>
 
                       {/* Content Section */}
-                      <div className="p-6 bg-slate-50 space-y-6">
+                      <div className="p-6 bg-emerald-50 space-y-6">
                         {/* Parameter Details Grid */}
                         <div className="grid grid-cols-2 gap-4">
                           <motion.div
@@ -7178,7 +8261,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                       <motion.button
                                         onClick={() =>
                                           handleReassignAnalyst(
-                                            selectedParam.id
+                                            selectedParam.id,
                                           )
                                         }
                                         whileHover={{ scale: 1.02 }}
@@ -7206,9 +8289,11 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   <div className="flex items-center gap-4">
                                     {/* Avatar */}
                                     <div className="relative">
-                                      <div className="relative w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center ring-2 ring-emerald-200">
+                                      <div className="relative w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center ring-2 ring-emerald-200">
                                         <span className="text-white text-lg font-bold">
-                                          {analyzedByNamePerParam[selectedParam.id].charAt(0) || "A"}
+                                          {analyzedByNamePerParam[
+                                            selectedParam.id
+                                          ].charAt(0) || "A"}
                                         </span>
                                       </div>
                                     </div>
@@ -7216,7 +8301,9 @@ const handleAnalystSelected = async (employeeId: string) => {
                                     {/* Analyst Info */}
                                     <div className="flex-1">
                                       <div className="font-semibold text-base text-slate-900 mb-1">
-                                        {analyzedByNamePerParam[selectedParam.id]|| "Unknown"}
+                                        {analyzedByNamePerParam[
+                                          selectedParam.id
+                                        ] || "Unknown"}
                                       </div>
                                       <div className="flex items-center gap-2 flex-wrap">
                                         <span className="inline-flex items-center px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-semibold text-emerald-700">
@@ -7252,7 +8339,9 @@ const handleAnalystSelected = async (employeeId: string) => {
                                               d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                                             />
                                           </svg>
-                                          {analyzedByNamePerParam[selectedParam.id] || "Analyst"}
+                                          {analyzedByNamePerParam[
+                                            selectedParam.id
+                                          ] || "Analyst"}
                                         </span>
                                       </div>
                                     </div>
@@ -7298,7 +8387,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                 {analysisStartDatePerParam[
                                   selectedParam.id
                                 ] && (
-                                  <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 hover:border-emerald-300 transition-all">
+                                  <div className="bg-emerald-50 rounded-lg p-4 border border-slate-200 hover:border-emerald-300 transition-all">
                                     <div className="flex items-center gap-2 mb-2">
                                       <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
                                         <svg
@@ -7338,11 +8427,11 @@ const handleAnalystSelected = async (employeeId: string) => {
                                 {analysisCompletionDatePerParam[
                                   selectedParam.id
                                 ] && (
-                                  <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 hover:border-emerald-300 transition-all">
+                                  <div className="bg-emerald-50 rounded-lg p-4 border border-slate-200 hover:border-emerald-300 transition-all">
                                     <div className="flex items-center gap-2 mb-2">
-                                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                      <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
                                         <svg
-                                          className="w-4 h-4 text-blue-600"
+                                          className="w-4 h-4 text-emerald-600"
                                           fill="none"
                                           viewBox="0 0 24 24"
                                           stroke="currentColor"
@@ -7370,7 +8459,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                 )}
 
                                 {approvedByPerParam[selectedParam.id] && (
-                                  <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 hover:border-emerald-300 transition-all">
+                                  <div className="bg-emerald-50 rounded-lg p-4 border border-slate-200 hover:border-emerald-300 transition-all">
                                     <div className="flex items-center gap-2 mb-2">
                                       <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
                                         <svg
@@ -7411,7 +8500,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                       className={
                         shouldDisableContent
                           ? ["Analysis Completed", "Approved"].includes(
-                              parameterStatusPerParam[selectedParam.id]
+                              parameterStatusPerParam[selectedParam.id],
                             )
                             ? "pointer-events-none opacity-80"
                             : "pointer-events-none opacity-60"
@@ -7421,8 +8510,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                       {/* Instruments Details */}
                       <div className="mb-4">
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight mb-3">
-                            <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
+                          <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight mb-3">
+                            <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
                             Instruments Details:
                           </h3>
 
@@ -7430,7 +8519,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                             <button
                               onClick={() =>
                                 setShowInstrumentDropdown(
-                                  !showInstrumentDropdown
+                                  !showInstrumentDropdown,
                                 )
                               }
                               disabled={
@@ -7438,7 +8527,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                 !!referenceDataError ||
                                 instruments.length === 0
                               }
-                              className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                              className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
@@ -7473,8 +8562,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                                           !addedInstruments[
                                             selectedParam.id
                                           ]?.find(
-                                            (added) => added.id === inst.id
-                                          )
+                                            (added) => added.id === inst.id,
+                                          ),
                                       )
                                       .map((inst) => (
                                         <button
@@ -7482,7 +8571,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                           onClick={() =>
                                             handleAddInstrument(
                                               selectedParam.id,
-                                              inst
+                                              inst,
                                             )
                                           }
                                           className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
@@ -7491,7 +8580,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                             {inst.name}
                                           </div>
                                           <div className="text-xs text-gray-600">
-                                            {inst.tag}
+                                            {inst.instrumentTag!}
                                           </div>
                                         </button>
                                       ))}
@@ -7499,7 +8588,9 @@ const handleAnalystSelected = async (employeeId: string) => {
                                       (inst) =>
                                         !addedInstruments[
                                           selectedParam.id
-                                        ]?.find((added) => added.id === inst.id)
+                                        ]?.find(
+                                          (added) => added.id === inst.id,
+                                        ),
                                     ).length === 0 && (
                                       <div className="px-3 py-4 text-center text-gray-500 text-sm">
                                         {instrumentSearch
@@ -7524,7 +8615,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                             <thead>
                               <tr className="bg-emerald-100 border-2 border-emerald-500">
                                 <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
-                                  Instrument Id.
+                                  Instrument Tag
                                 </th>
                                 <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                                   Instrument Name
@@ -7556,25 +8647,31 @@ const handleAnalystSelected = async (employeeId: string) => {
                                         className="border-2 border-emerald-500 hover:bg-emerald-50 transition-colors"
                                       >
                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                          {instrument.tag || "---"}
+                                          {instrument.instrumentTag! || "---"}
                                         </td>
                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
                                           {instrument.name || "---"}
                                         </td>
                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                          {instrument.calibrationDoneDate ||
-                                            "---"}
+                                          {instrument.calibrationDoneDate
+                                            ? new Date(
+                                                instrument.calibrationDoneDate,
+                                              ).toLocaleDateString("en-GB")
+                                            : "---"}
                                         </td>
                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                          {instrument.calibrationDueDate ||
-                                            "---"}
+                                          {instrument.calibrationDueDate
+                                            ? new Date(
+                                                instrument.calibrationDueDate,
+                                              ).toLocaleDateString("en-GB")
+                                            : "---"}
                                         </td>
                                         <td className="px-3 py-2 text-center">
                                           <motion.button
                                             onClick={() =>
                                               handleRemoveInstrument(
                                                 selectedParam.id,
-                                                instrument.id
+                                                instrument.id,
                                               )
                                             }
                                             whileHover={{
@@ -7588,7 +8685,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                           </motion.button>
                                         </td>
                                       </motion.tr>
-                                    )
+                                    ),
                                   )
                                 ) : (
                                   <tr className="border-2 border-emerald-500">
@@ -7616,8 +8713,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                       {/* Chemicals Used - Dynamic with Add/Remove */}
                       <div className="mb-4">
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight mb-3">
-                            <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
+                          <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight mb-3">
+                            <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
                             Reagents and Chemicals Details:
                           </h3>
 
@@ -7631,7 +8728,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                 !!referenceDataError ||
                                 chemicals.length === 0
                               }
-                              className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                              className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
@@ -7666,16 +8763,16 @@ const handleAnalystSelected = async (employeeId: string) => {
                                           !addedChemicals[
                                             selectedParam.id
                                           ]?.find(
-                                            (added) => added.id === chem.id
-                                          )
+                                            (added) => added.slno === chem.slno,
+                                          ),
                                       )
                                       .map((chem) => (
                                         <button
-                                          key={chem.id}
+                                          key={chem.slno}
                                           onClick={() =>
                                             handleAddChemical(
                                               selectedParam.id,
-                                              chem
+                                              chem,
                                             )
                                           }
                                           className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
@@ -7691,8 +8788,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                                     {searchFilteredChemicals.filter(
                                       (chem) =>
                                         !addedChemicals[selectedParam.id]?.find(
-                                          (added) => added.id === chem.id
-                                        )
+                                          (added) => added.slno === chem.slno,
+                                        ),
                                     ).length === 0 && (
                                       <div className="px-3 py-4 text-center text-gray-500 text-sm">
                                         {chemicalSearch
@@ -7720,6 +8817,9 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   Name of Solvents
                                 </th>
                                 <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                                  Code
+                                </th>
+                                <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                                   Make
                                 </th>
                                 <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
@@ -7742,7 +8842,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   addedChemicals[selectedParam.id].map(
                                     (chemical) => (
                                       <motion.tr
-                                        key={chemical.id}
+                                        key={chemical.slno}
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, x: 20 }}
@@ -7752,20 +8852,27 @@ const handleAnalystSelected = async (employeeId: string) => {
                                           {chemical.name || "---"}
                                         </td>
                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
+                                          {chemical.code || "---"}
+                                        </td>
+                                        <td className="px-3 py-2 border-r-2 border-emerald-500">
                                           {chemical.make || "---"}
                                         </td>
                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
                                           {chemical.batchNo || "---"}
                                         </td>
                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                          {chemical.validity || "---"}
+                                          {chemical.exp_Date
+                                            ? new Date(
+                                                chemical.exp_Date,
+                                              ).toLocaleDateString("en-GB")
+                                            : "---"}
                                         </td>
                                         <td className="px-3 py-2 text-center">
                                           <motion.button
                                             onClick={() =>
                                               handleRemoveChemical(
                                                 selectedParam.id,
-                                                chemical.id
+                                                chemical.slno,
                                               )
                                             }
                                             whileHover={{
@@ -7779,7 +8886,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                           </motion.button>
                                         </td>
                                       </motion.tr>
-                                    )
+                                    ),
                                   )
                                 ) : (
                                   <tr className="border-2 border-emerald-500">
@@ -7807,8 +8914,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                       {/* Standards Used - Dynamic with Add/Remove */}
                       <div className="mb-4">
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight mb-3">
-                            <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
+                          <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight mb-3">
+                            <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
                             Standards Details:
                           </h3>
 
@@ -7822,7 +8929,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                 !!referenceDataError ||
                                 standards.length === 0
                               }
-                              className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                              className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
@@ -7857,16 +8964,17 @@ const handleAnalystSelected = async (employeeId: string) => {
                                           !addedStandards[
                                             selectedParam.id
                                           ]?.find(
-                                            (added) => added.id === std.id
-                                          )
+                                            (added) =>
+                                              added.serialNo === std.serialNo,
+                                          ),
                                       )
                                       .map((std) => (
                                         <button
-                                          key={std.id}
+                                          key={std.serialNo}
                                           onClick={() =>
                                             handleAddStandard(
                                               selectedParam.id,
-                                              std
+                                              std,
                                             )
                                           }
                                           className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
@@ -7882,8 +8990,9 @@ const handleAnalystSelected = async (employeeId: string) => {
                                     {searchFilteredStandards.filter(
                                       (std) =>
                                         !addedStandards[selectedParam.id]?.find(
-                                          (added) => added.id === std.id
-                                        )
+                                          (added) =>
+                                            added.serialNo === std.serialNo,
+                                        ),
                                     ).length === 0 && (
                                       <div className="px-3 py-4 text-center text-gray-500 text-sm">
                                         {standardSearch
@@ -7936,7 +9045,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   addedStandards[selectedParam.id].map(
                                     (standard) => (
                                       <motion.tr
-                                        key={standard.id}
+                                        key={standard.serialNo}
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, x: 20 }}
@@ -7955,14 +9064,18 @@ const handleAnalystSelected = async (employeeId: string) => {
                                           {standard.batchNo || "---"}
                                         </td>
                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                          {standard.validity || "---"}
+                                          {standard.validity
+                                            ? new Date(
+                                                standard.validity,
+                                              ).toLocaleDateString("en-GB")
+                                            : "---"}
                                         </td>
                                         <td className="px-3 py-2 text-center">
                                           <motion.button
                                             onClick={() =>
                                               handleRemoveStandard(
                                                 selectedParam.id,
-                                                standard.id
+                                                standard.serialNo,
                                               )
                                             }
                                             whileHover={{
@@ -7976,7 +9089,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                           </motion.button>
                                         </td>
                                       </motion.tr>
-                                    )
+                                    ),
                                   )
                                 ) : (
                                   <tr className="border-2 border-emerald-500">
@@ -8001,37 +9114,17 @@ const handleAnalystSelected = async (employeeId: string) => {
                         )}
                       </div>
 
-                      {/* Preparation of Diluent */}
-                      <div className="mb-4">
-                        <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight mb-3">
-                          <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
-                          Preparation of Diluent:
-                        </h3>
-                        <textarea
-                          value={diluentPerParam[selectedParam.id] || ""}
-                          onChange={(e) =>
-                            handleDiluentChange(
-                              selectedParam.id,
-                              e.target.value
-                            )
-                          }
-                          placeholder="Enter diluent preparation details..."
-                          className="w-full min-h-[100px] border border-emerald-300 rounded-lg p-3 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          readOnly={role !== "Reviewer"}
-                        />
-                      </div>
-
                       {/* ============= PREPARATIONS MANAGEMENT SECTION ============= */}
-                      <div className="mb-8 p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-400 rounded-2xl shadow-2xl">
+                      <div className="mb-8 p-6 bg-gradient-to-br from-emerald-50 via-emerald-50 to-emerald-50 border-2 border-emerald-400 rounded-2xl shadow-2xl">
                         <div className="flex items-center justify-between mb-6">
                           <div className="flex items-center gap-3">
                             <div className="relative">
-                              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
                                 <BiTestTube className="w-6 h-6 text-white" />
                               </div>
                             </div>
                             <div>
-                              <h3 className="text-xl font-bold text-emerald-900 tracking-tight">
+                              <h3 className="text-xl font-bold text-emerald-700 tracking-tight">
                                 Preparations Management
                               </h3>
                               <p className="text-xs text-emerald-600 font-medium">
@@ -8052,7 +9145,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   [selectedParam.id]: !prev[selectedParam.id],
                                 }))
                               }
-                              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                             >
                               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                               <Plus className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
@@ -8082,7 +9175,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                           onClick={() =>
                                             handleTogglePreparationGroup(
                                               selectedParam.id,
-                                              group.id
+                                              group.id,
                                             )
                                           }
                                           className="w-full text-left px-3 py-3 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
@@ -8097,7 +9190,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                           </div>
                                         </button>
                                       );
-                                    }
+                                    },
                                   )}
                                 </motion.div>
                               )}
@@ -8127,58 +9220,6 @@ const handleAnalystSelected = async (employeeId: string) => {
                               };
                             });
 
-                            const colorClasses = {
-                              emerald: {
-                                bg: "bg-gradient-to-br from-emerald-100 to-teal-100",
-                                text: "text-emerald-900",
-                                border: "border-emerald-400",
-                                glow: "shadow-emerald-200/50",
-                                btnBg: "bg-emerald-800",
-                              },
-                              sky: {
-                                bg: "bg-gradient-to-br from-sky-100 to-blue-200",
-                                text: "text-sky-900",
-                                border: "border-sky-400",
-                                glow: "shadow-sky-200/50",
-                                btnBg: "bg-sky-800",
-                              },
-                              orange: {
-                                bg: "bg-gradient-to-br from-orange-100 to-amber-200",
-                                text: "text-orange-900",
-                                border: "border-orange-400",
-                                glow: "shadow-orange-200/50",
-                                btnBg: "bg-orange-800",
-                              },
-                              rose: {
-                                bg: "bg-gradient-to-br from-rose-100 to-pink-200",
-                                text: "text-rose-900",
-                                border: "border-rose-400",
-                                glow: "shadow-rose-200/50",
-                                btnBg: "bg-rose-800",
-                              },
-                              red: {
-                                bg: "bg-gradient-to-br from-red-100 to-rose-200",
-                                text: "text-red-900",
-                                border: "border-red-400",
-                                glow: "shadow-red-200/50",
-                                btnBg: "bg-red-800",
-                              },
-                              indigo: {
-                                bg: "bg-gradient-to-br from-indigo-100 to-purple-200",
-                                text: "text-indigo-900",
-                                border: "border-indigo-400",
-                                glow: "shadow-indigo-200/50",
-                                btnBg: "bg-indigo-800",
-                              },
-                              default: {
-                                bg: "bg-gradient-to-br from-gray-100 to-gray-200",
-                                text: "text-gray-800",
-                                border: "border-gray-400",
-                                glow: "shadow-gray-200/50",
-                                btnBg: "bg-gray-700",
-                              },
-                            };
-
                             if (Object.keys(groupInfo).length > 0) {
                               return (
                                 <motion.div
@@ -8191,7 +9232,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                 >
                                   <div className="flex items-center gap-3 my-4">
                                     <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent"></div>
-                                    <div className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full shadow-lg">
+                                    <div className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-emerald-600 to-emerald-600 rounded-full shadow-lg">
                                       <span className="text-xs font-bold text-white uppercase tracking-wider">
                                         Active Preparation Groups
                                       </span>
@@ -8206,15 +9247,6 @@ const handleAnalystSelected = async (employeeId: string) => {
                                     <div className="flex flex-wrap gap-3">
                                       {Object.entries(groupInfo).map(
                                         ([groupId, info]) => {
-                                          const colors =
-                                            info &&
-                                            typeof info === "object" &&
-                                            "color" in info
-                                              ? colorClasses[
-                                                  info.color as keyof typeof colorClasses
-                                                ] || colorClasses.default
-                                              : colorClasses.default;
-
                                           return (
                                             <motion.div
                                               key={groupId}
@@ -8234,7 +9266,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                                 y: 20,
                                               }}
                                               whileHover={{ scale: 1.05 }}
-                                              className={`group relative inline-flex items-center gap-3 py-2 px-4 ${colors.bg} ${colors.text} ${colors.border} border-2 rounded-lg font-semibold shadow-lg ${colors.glow} hover:shadow-xl transition-all duration-300 overflow-hidden`}
+                                              className={`group relative inline-flex items-center gap-3 py-2 px-4 bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-700 border-emerald-400 border-2 rounded-lg font-semibold shadow-lg shadow-emerald-200/50 hover:shadow-xl transition-all duration-300 overflow-hidden`}
                                             >
                                               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
 
@@ -8248,7 +9280,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                                 onClick={() =>
                                                   handleTogglePreparationGroup(
                                                     selectedParam.id,
-                                                    groupId
+                                                    groupId,
                                                   )
                                                 }
                                                 whileHover={{
@@ -8256,7 +9288,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                                   rotate: 90,
                                                 }}
                                                 whileTap={{ scale: 0.9 }}
-                                                className={`relative z-10 w-5 h-5 flex items-center justify-center rounded-full ${colors.btnBg} hover:bg-red-500 text-gray-600 hover:text-white transition-all font-bold border-1 border-white/50 hover:border-red-600 shadow-sm`}
+                                                className={`relative z-10 w-5 h-5 flex items-center justify-center rounded-full bg-emerald-800 hover:bg-red-500 text-gray-600 hover:text-white transition-all font-bold border-1 border-white/50 hover:border-red-600 shadow-sm`}
                                                 title={`Remove ${info.label} group`}
                                               >
                                                 <span className="text-[9px] text-white inline-flex items-center justify-center h-full w-full">
@@ -8265,23 +9297,23 @@ const handleAnalystSelected = async (employeeId: string) => {
                                               </motion.button>
                                             </motion.div>
                                           );
-                                        }
+                                        },
                                       )}
                                     </div>
 
                                     <motion.div
                                       initial={{ opacity: 0, y: 10 }}
                                       animate={{ opacity: 1, y: 0 }}
-                                      className="mt-5 p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-200 rounded-xl shadow-inner"
+                                      className="mt-5 p-4 bg-gradient-to-r from-emerald-50 via-emerald-50 to-emerald-50 border-2 border-emerald-200 rounded-xl shadow-inner"
                                     >
                                       <div className="flex items-start gap-3">
-                                        <div className="w-8 h-8 flex-shrink-0 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-md">
+                                        <div className="w-8 h-8 flex-shrink-0 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-md">
                                           <span className="text-white text-lg">
                                             💡
                                           </span>
                                         </div>
                                         <div className="flex-1">
-                                          <p className="text-sm text-emerald-900 font-semibold mb-1">
+                                          <p className="text-sm text-emerald-700 font-semibold mb-1">
                                             Quick Guide
                                           </p>
                                           <p className="text-xs text-emerald-700 leading-relaxed">
@@ -8335,6 +9367,399 @@ const handleAnalystSelected = async (employeeId: string) => {
                       </div>
                       {/* ============= END OF PREPARATIONS MANAGEMENT SECTION ============= */}
 
+                      {/* ============= MOBILE PHASE GROUP CARD ============= */}
+                      {(
+                        activePreparationGroups[selectedParam.id] || []
+                      ).includes("mobilePhase") && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
+                        >
+                          {/* Decorative elements */}
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                          {/* Card Header */}
+                          <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                  <BiTestTube className="w-6 h-6 text-white" />
+                                </div>
+                              </div>
+                              <div>
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
+                                  Mobile Phase Preparation
+                                </h2>
+                                <p className="text-sm text-emerald-600/80 font-medium">
+                                  Mobile Phase Details
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
+                                {
+                                  (mobilePhasePerParam[selectedParam.id] || [])
+                                    .length
+                                }{" "}
+                                Items
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Mobile Phase Preparations */}
+                          <div>
+                            <div className="flex items-center justify-between mb-4 px-2">
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                Mobile Phase Preparations
+                              </h3>
+                              <button
+                                onClick={() =>
+                                  handleAddMobilePhase(selectedParam.id)
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Mobile Phase
+                              </button>
+                            </div>
+
+                            <AnimatePresence>
+                              {(
+                                mobilePhasePerParam[selectedParam.id] || []
+                              ).map((mobilePhase) => (
+                                <div key={mobilePhase.id}>
+                                  <MobilePhasePreparationDetail
+                                    mobilePhase={mobilePhase}
+                                    onStepChange={(
+                                      mobilePhaseId,
+                                      stepName,
+                                      field,
+                                      newValue,
+                                    ) =>
+                                      handleMobilePhaseStepChange(
+                                        selectedParam.id,
+                                        mobilePhaseId,
+                                        stepName,
+                                        field,
+                                        newValue,
+                                      )
+                                    }
+                                    onRemove={() =>
+                                      handleRemoveMobilePhase(
+                                        selectedParam.id,
+                                        mobilePhase.id,
+                                      )
+                                    }
+                                  />
+                                </div>
+                              ))}
+                            </AnimatePresence>
+
+                            {(mobilePhasePerParam[selectedParam.id] || [])
+                              .length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                              >
+                                <div className="absolute inset-0 opacity-5">
+                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                </div>
+
+                                <div className="relative z-10">
+                                  <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                                    <Target className="w-14 h-14 text-emerald-400" />
+                                  </div>
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
+                                    No mobile phase preparations added yet
+                                  </p>
+                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
+                                    Click "Add Mobile Phase" to create mobile
+                                    phase preparation
+                                  </p>
+                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                    <span className="text-xs font-semibold text-emerald-700">
+                                      Ready to start
+                                    </span>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* ============= Dissolution Media Preparation GROUP CARD ============= */}
+                      {(
+                        activePreparationGroups[selectedParam.id] || []
+                      ).includes("dissoMedia") && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
+                        >
+                          {/* Decorative elements */}
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                          {/* Card Header */}
+                          <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                  <BiTestTube className="w-6 h-6 text-white" />
+                                </div>
+                              </div>
+                              <div>
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
+                                  Dissolution Media Preparation
+                                </h2>
+                                <p className="text-sm text-emerald-600/80 font-medium">
+                                  Dissolution Media Preparation Details
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
+                                {
+                                  (dissoMediaPerParam[selectedParam.id] || [])
+                                    .length
+                                }{" "}
+                                Items
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Dissolution Media Preparation Preparations */}
+                          <div>
+                            <div className="flex items-center justify-between mb-4 px-2">
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                Dissolution Media Preparations
+                              </h3>
+                              <button
+                                onClick={() =>
+                                  handleAddDissoMedia(selectedParam.id)
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Dissolution Media Preparation
+                              </button>
+                            </div>
+
+                            <AnimatePresence>
+                              {(dissoMediaPerParam[selectedParam.id] || []).map(
+                                (dissoMedia) => (
+                                  <div key={dissoMedia.id}>
+                                    <DissoMediaPreparationDetail
+                                      dissoMedia={dissoMedia}
+                                      onStepChange={(
+                                        dissoMediaId,
+                                        stepName,
+                                        field,
+                                        newValue,
+                                      ) =>
+                                        handleDissoMediaStepChange(
+                                          selectedParam.id,
+                                          dissoMediaId,
+                                          stepName,
+                                          field,
+                                          newValue,
+                                        )
+                                      }
+                                      onRemove={() =>
+                                        handleRemoveDissoMedia(
+                                          selectedParam.id,
+                                          dissoMedia.id,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                ),
+                              )}
+                            </AnimatePresence>
+
+                            {(dissoMediaPerParam[selectedParam.id] || [])
+                              .length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                              >
+                                <div className="absolute inset-0 opacity-5">
+                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                </div>
+
+                                <div className="relative z-10">
+                                  <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                                    <Target className="w-14 h-14 text-emerald-400" />
+                                  </div>
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
+                                    No Dissolution Media preparations added yet
+                                  </p>
+                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
+                                    Click "Add Dissolution Media Preparation" to
+                                    create Dissolution Media Preparation
+                                  </p>
+                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                    <span className="text-xs font-semibold text-emerald-700">
+                                      Ready to start
+                                    </span>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* ============= TITRATION GROUP CARD ============= */}
+                      {(
+                        activePreparationGroups[selectedParam.id] || []
+                      ).includes("titration") && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
+                        >
+                          {/* Decorative elements */}
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                          {/* Card Header */}
+                          <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                  <BiTestTube className="w-6 h-6 text-white" />
+                                </div>
+                              </div>
+                              <div>
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
+                                  Preparation for Titration
+                                </h2>
+                                <p className="text-sm text-emerald-600/80 font-medium">
+                                  Titration Sample Preparation Details
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
+                                {
+                                  (
+                                    samplePrepTitrationPerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).length
+                                }{" "}
+                                Items
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Sample Preparation Titration */}
+                          <div>
+                            <div className="flex items-center justify-between mb-4 px-2">
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                Sample Preparations for Titration
+                              </h3>
+                              <button
+                                onClick={() =>
+                                  handleAddSamplePrepTitration(selectedParam.id)
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Sample Preparation
+                              </button>
+                            </div>
+
+                            <AnimatePresence>
+                              {(
+                                samplePrepTitrationPerParam[selectedParam.id] ||
+                                []
+                              ).map((samplePrep) => (
+                                <div key={samplePrep.id}>
+                                  <SamplePreparationTitrationDetail
+                                    samplePreparationTitration={samplePrep}
+                                    onStepChange={(
+                                      samplePrepId,
+                                      stepName,
+                                      field,
+                                      newValue,
+                                    ) =>
+                                      handleSamplePrepTitrationStepChange(
+                                        selectedParam.id,
+                                        samplePrepId,
+                                        stepName,
+                                        field,
+                                        newValue,
+                                      )
+                                    }
+                                    onRemove={() =>
+                                      handleRemoveSamplePrepTitration(
+                                        selectedParam.id,
+                                        samplePrep.id,
+                                      )
+                                    }
+                                  />
+                                </div>
+                              ))}
+                            </AnimatePresence>
+
+                            {(
+                              samplePrepTitrationPerParam[selectedParam.id] ||
+                              []
+                            ).length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                              >
+                                <div className="absolute inset-0 opacity-5">
+                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                </div>
+
+                                <div className="relative z-10">
+                                  <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                                    <Target className="w-14 h-14 text-emerald-400" />
+                                  </div>
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
+                                    No sample preparations added yet
+                                  </p>
+                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
+                                    Click "Add Sample Preparation" to create
+                                    titration sample preparation
+                                  </p>
+                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                    <span className="text-xs font-semibold text-emerald-700">
+                                      Ready to start
+                                    </span>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+
                       {/* ============= ASSAY GROUP CARD ============= */}
                       {(
                         activePreparationGroups[selectedParam.id] || []
@@ -8342,33 +9767,33 @@ const handleAnalystSelected = async (employeeId: string) => {
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-red-200/50 bg-gradient-to-br from-red-50/40 via-white/60 to-rose-50/40 backdrop-blur-sm shadow-2xl hover:shadow-red-200/50 transition-all duration-500 hover:scale-[1.01]"
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
                         >
                           {/* Decorative elements */}
-                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-red-400/10 to-transparent rounded-bl-full -z-10" />
-                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-rose-400/10 to-transparent rounded-tr-full -z-10" />
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
 
                           {/* Card Header */}
                           <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-4">
                               <div className="relative">
-                                <div className="absolute inset-0 bg-red-500/20 blur-xl rounded-full" />
-                                <div className="relative w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
                                   <BiTestTube className="w-6 h-6 text-white" />
                                 </div>
                               </div>
                               <div>
-                                <h2 className="text-xl font-bold text-red-900 tracking-tight">
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
                                   Assay Analysis
                                 </h2>
-                                <p className="text-sm text-red-600/80 font-medium">
+                                <p className="text-sm text-emerald-600/80 font-medium">
                                   Standard, Sample & Calculations
                                 </p>
                               </div>
                             </div>
 
-                            <div className="px-4 py-1 bg-gradient-to-r from-red-100 to-rose-100 border-2 border-red-300/50 rounded-full shadow-sm">
-                              <span className="text-xs font-bold text-red-700">
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
                                 {(
                                   standardPreparationPerParam[
                                     selectedParam.id
@@ -8392,15 +9817,15 @@ const handleAnalystSelected = async (employeeId: string) => {
                           {/* Standard & Sample Preparations Section */}
                           <div className="mb-8">
                             <div className="flex items-center justify-between mb-4 px-2">
-                              <h3 className="text-lg font-bold text-red-900 flex items-center gap-2.5 tracking-tight">
-                                <span className="w-1.5 h-6 bg-gradient-to-b from-red-500 to-rose-700 rounded-full"></span>
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
                                 Standard & Sample Preparations
                               </h3>
                               <button
                                 onClick={() =>
                                   handleAddStandardPreparation(selectedParam.id)
                                 }
-                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-700 text-white font-semibold rounded-xl hover:from-red-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                               >
                                 <Plus className="w-4 h-4" />
                                 Add Preparation
@@ -8416,8 +9841,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   addedStandards[selectedParam.id] || []
                                 ).find(
                                   (std) =>
-                                    std.id ===
-                                    standardPreparation.assignedStandardId
+                                    std.serialNo ===
+                                    standardPreparation.assignedStandardId,
                                 );
 
                                 const correspondingSample =
@@ -8439,20 +9864,20 @@ const handleAnalystSelected = async (employeeId: string) => {
                                         standardPreparationId,
                                         stepName,
                                         field,
-                                        newValue
+                                        newValue,
                                       ) =>
                                         handleStandardPreparationStepChange(
                                           selectedParam.id,
                                           standardPreparationId,
                                           stepName,
                                           field,
-                                          newValue
+                                          newValue,
                                         )
                                       }
                                       onRemove={() =>
                                         handleRemoveStandardPreparation(
                                           selectedParam.id,
-                                          standardPreparation.id
+                                          standardPreparation.id,
                                         )
                                       }
                                       role={role}
@@ -8471,20 +9896,20 @@ const handleAnalystSelected = async (employeeId: string) => {
                                             samplePreparationId,
                                             stepName,
                                             field,
-                                            newValue
+                                            newValue,
                                           ) =>
                                             handleSamplePreparationStepChange(
                                               selectedParam.id,
                                               samplePreparationId,
                                               stepName,
                                               field,
-                                              newValue
+                                              newValue,
                                             )
                                           }
                                           onRemove={() =>
                                             handleRemoveSamplePreparation(
                                               selectedParam.id,
-                                              correspondingSample.id
+                                              correspondingSample.id,
                                             )
                                           }
                                           role={role}
@@ -8503,27 +9928,27 @@ const handleAnalystSelected = async (employeeId: string) => {
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-red-50 via-white to-rose-50 border-2 border-dashed border-red-300 rounded-2xl shadow-inner"
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
                               >
                                 <div className="absolute inset-0 opacity-5">
-                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-red-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
-                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-rose-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
                                 </div>
 
                                 <div className="relative z-10">
                                   <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
-                                    <Target className="w-14 h-14 text-red-400" />
+                                    <Target className="w-14 h-14 text-emerald-400" />
                                   </div>
-                                  <p className="text-lg font-bold text-red-900 mb-2">
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
                                     No preparations added yet
                                   </p>
-                                  <p className="text-sm text-red-600/80 max-w-md mx-auto mb-4">
+                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
                                     Click "Add Preparation" to create your first
                                     standard and sample preparation
                                   </p>
-                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-100/50 rounded-lg border border-red-200">
-                                    <div className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
-                                    <span className="text-xs font-semibold text-red-700">
+                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                    <span className="text-xs font-semibold text-emerald-700">
                                       Ready to start
                                     </span>
                                   </div>
@@ -8539,34 +9964,34 @@ const handleAnalystSelected = async (employeeId: string) => {
                               <>
                                 {/* Visual Separator */}
                                 <div className="flex items-center gap-4 my-8">
-                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-red-300 to-transparent" />
-                                  <div className="px-4 py-2 bg-gradient-to-r from-red-100 to-rose-100 rounded-lg border border-red-300/50 shadow-sm">
-                                    <span className="text-xs font-bold text-red-700 uppercase tracking-wider flex items-center gap-2">
-                                      <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                  <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                                    <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
+                                      <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                                       Calculations
                                     </span>
                                   </div>
-                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-red-300 to-transparent" />
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
                                 </div>
 
                                 {/* Calculations Section */}
-                                <div className="relative p-6 rounded-xl border-2 border-red-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                                <div className="relative p-6 rounded-xl border-2 border-emerald-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
                                   <div className="flex items-center justify-between mb-6 px-2">
                                     <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
-                                      <span className="w-1.5 h-6 bg-gradient-to-b from-red-500 to-rose-700 rounded-full"></span>
-                                      <span className="text-red-600">
+                                      <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
+                                      <span className="text-emerald-600">
                                         Calculations for Assay
                                       </span>
                                     </h3>
                                     <motion.button
                                       onClick={() =>
                                         handleAddCalculationAssay(
-                                          selectedParam.id
+                                          selectedParam.id,
                                         )
                                       }
                                       whileHover={{ scale: 1 }}
                                       whileTap={{ scale: 1 }}
-                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-red-600 to-rose-600 text-white font-semibold rounded-xl hover:from-red-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                                     >
                                       <Plus className="w-4 h-4" />
                                       Add Assay Calculation
@@ -8595,19 +10020,19 @@ const handleAnalystSelected = async (employeeId: string) => {
                                         onFieldChange={(
                                           calculationId,
                                           field,
-                                          value
+                                          value,
                                         ) =>
                                           handleCalculationAssayFieldChange(
                                             selectedParam.id,
                                             calculationId,
                                             field,
-                                            value
+                                            value,
                                           )
                                         }
                                         onRemove={() =>
                                           handleRemoveCalculationAssay(
                                             selectedParam.id,
-                                            calculation.id
+                                            calculation.id,
                                           )
                                         }
                                         role={role}
@@ -8623,20 +10048,20 @@ const handleAnalystSelected = async (employeeId: string) => {
                                     <motion.div
                                       initial={{ opacity: 0, scale: 0.95 }}
                                       animate={{ opacity: 1, scale: 1 }}
-                                      className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-red-50 via-white to-rose-50 border-2 border-dashed border-red-300 rounded-xl shadow-inner"
+                                      className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
                                     >
                                       <div className="absolute inset-0 opacity-5">
-                                        <div className="absolute top-0 left-1/4 w-48 h-48 bg-red-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
+                                        <div className="absolute top-0 left-1/4 w-48 h-48 bg-emerald-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
                                       </div>
 
                                       <div className="relative z-10">
                                         <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
-                                          <Target className="w-10 h-10 text-red-400" />
+                                          <Target className="w-10 h-10 text-emerald-400" />
                                         </div>
-                                        <p className="font-semibold text-base text-red-900 mb-1">
+                                        <p className="font-semibold text-base text-emerald-700 mb-1">
                                           No calculations added yet
                                         </p>
-                                        <p className="text-xs text-red-600/80 max-w-sm mx-auto">
+                                        <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
                                           Click "Add Calculation" to begin
                                         </p>
                                       </div>
@@ -8655,33 +10080,33 @@ const handleAnalystSelected = async (employeeId: string) => {
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-sky-200/50 bg-gradient-to-br from-sky-50/40 via-white/60 to-blue-50/40 backdrop-blur-sm shadow-2xl hover:shadow-sky-200/50 transition-all duration-500 hover:scale-[1.01]"
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
                         >
                           {/* Decorative elements */}
-                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-sky-400/10 to-transparent rounded-bl-full -z-10" />
-                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-blue-400/10 to-transparent rounded-tr-full -z-10" />
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
 
                           {/* Card Header */}
                           <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-4">
                               <div className="relative">
-                                <div className="absolute inset-0 bg-sky-500/20 blur-xl rounded-full" />
-                                <div className="relative w-12 h-12 bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
                                   <BiTestTube className="w-6 h-6 text-white" />
                                 </div>
                               </div>
                               <div>
-                                <h2 className="text-xl font-bold text-sky-900 tracking-tight">
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
                                   LOD Analysis
                                 </h2>
-                                <p className="text-sm text-sky-600/80 font-medium">
+                                <p className="text-sm text-emerald-600/80 font-medium">
                                   Loss on Drying - Sample & Calculations
                                 </p>
                               </div>
                             </div>
 
-                            <div className="px-4 py-1 bg-gradient-to-r from-sky-100 to-blue-100 border-2 border-sky-300/50 rounded-full shadow-sm">
-                              <span className="text-xs font-bold text-sky-700">
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
                                 {(
                                   samplePreparationLodPerParam[
                                     selectedParam.id
@@ -8699,17 +10124,17 @@ const handleAnalystSelected = async (employeeId: string) => {
                           {/* Sample Preparation for LOD */}
                           <div className="mb-8">
                             <div className="flex items-center justify-between mb-4 px-2">
-                              <h3 className="text-lg font-bold text-sky-700 flex items-center gap-2.5 tracking-tight">
-                                <span className="w-1.5 h-6 bg-gradient-to-b from-sky-500 to-blue-700 rounded-full"></span>
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
                                 Sample Preparations for LOD
                               </h3>
                               <button
                                 onClick={() =>
                                   handleAddSamplePreparationLod(
-                                    selectedParam.id
+                                    selectedParam.id,
                                   )
                                 }
-                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-700 text-white font-semibold rounded-xl hover:from-sky-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg transform text-sm"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg transform text-sm"
                               >
                                 <Plus className="w-4 h-4" />
                                 Add Preparation
@@ -8729,20 +10154,20 @@ const handleAnalystSelected = async (employeeId: string) => {
                                       samplePreparationLodId,
                                       stepName,
                                       field,
-                                      newValue
+                                      newValue,
                                     ) =>
                                       handleSamplePreparationLodStepChange(
                                         selectedParam.id,
                                         samplePreparationLodId,
                                         stepName,
                                         field,
-                                        newValue
+                                        newValue,
                                       )
                                     }
                                     onRemove={() =>
                                       handleRemoveSamplePreparationLod(
                                         selectedParam.id,
-                                        samplePreparationLod.id
+                                        samplePreparationLod.id,
                                       )
                                     }
                                     role={role}
@@ -8758,27 +10183,27 @@ const handleAnalystSelected = async (employeeId: string) => {
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-sky-50 via-white to-blue-50 border-2 border-dashed border-sky-300 rounded-2xl shadow-inner"
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
                               >
                                 <div className="absolute inset-0 opacity-5">
-                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-sky-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
-                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
                                 </div>
 
                                 <div className="relative z-10">
                                   <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
-                                    <Target className="w-14 h-14 text-sky-400" />
+                                    <Target className="w-14 h-14 text-emerald-400" />
                                   </div>
-                                  <p className="text-lg font-bold text-sky-900 mb-2">
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
                                     No sample preparations added yet
                                   </p>
-                                  <p className="text-sm text-sky-600/80 max-w-md mx-auto mb-4">
+                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
                                     Click the add button to create LOD sample
                                     preparation
                                   </p>
-                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-sky-100/50 rounded-lg border border-sky-200">
-                                    <div className="w-2 h-2 bg-sky-500 rounded-full animate-ping" />
-                                    <span className="text-xs font-semibold text-sky-700">
+                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                    <span className="text-xs font-semibold text-emerald-700">
                                       Ready to start
                                     </span>
                                   </div>
@@ -8792,22 +10217,22 @@ const handleAnalystSelected = async (employeeId: string) => {
                             <>
                               {/* Visual Separator */}
                               <div className="flex items-center gap-4 my-8">
-                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-sky-300 to-transparent" />
-                                <div className="px-4 py-2 bg-gradient-to-r from-sky-100 to-blue-100 rounded-lg border border-sky-300/50 shadow-sm">
-                                  <span className="text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-sky-500 rounded-full animate-pulse" />
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                                  <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                                     Calculations
                                   </span>
                                 </div>
-                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-sky-300 to-transparent" />
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
                               </div>
 
                               {/* Calculations for LOD */}
-                              <div className="relative p-6 rounded-xl border-2 border-sky-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                              <div className="relative p-6 rounded-xl border-2 border-emerald-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
                                 <div className="flex items-center justify-between mb-6 px-2">
                                   <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
-                                    <span className="w-1.5 h-6 bg-gradient-to-b from-sky-500 to-blue-700 rounded-full"></span>
-                                    <span className="text-sky-600">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                    <span className="text-emerald-600">
                                       LOD Calculations
                                     </span>
                                   </h3>
@@ -8817,7 +10242,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                     }
                                     whileHover={{ scale: 1 }}
                                     whileTap={{ scale: 1 }}
-                                    className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white font-semibold rounded-xl hover:from-sky-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                    className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                                   >
                                     <Plus className="w-4 h-4" />
                                     Add LOD Calculation
@@ -8840,19 +10265,19 @@ const handleAnalystSelected = async (employeeId: string) => {
                                       onFieldChange={(
                                         calculationId,
                                         field,
-                                        value
+                                        value,
                                       ) =>
                                         handleCalculationLodFieldChange(
                                           selectedParam.id,
                                           calculationId,
                                           field,
-                                          value
+                                          value,
                                         )
                                       }
                                       onRemove={() =>
                                         handleRemoveCalculationLod(
                                           selectedParam.id,
-                                          calculation.id
+                                          calculation.id,
                                         )
                                       }
                                       role={role}
@@ -8867,20 +10292,20 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   <motion.div
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-sky-50 via-white to-blue-50 border-2 border-dashed border-sky-300 rounded-xl shadow-inner"
+                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
                                   >
                                     <div className="absolute inset-0 opacity-5">
-                                      <div className="absolute top-0 left-1/4 w-48 h-48 bg-sky-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
+                                      <div className="absolute top-0 left-1/4 w-48 h-48 bg-emerald-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
                                     </div>
 
                                     <div className="relative z-10">
                                       <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
-                                        <Target className="w-10 h-10 text-sky-400" />
+                                        <Target className="w-10 h-10 text-emerald-400" />
                                       </div>
-                                      <p className="font-semibold text-base text-sky-900 mb-1">
+                                      <p className="font-semibold text-base text-emerald-700 mb-1">
                                         No LOD calculations added yet
                                       </p>
-                                      <p className="text-xs text-sky-600/80 max-w-sm mx-auto">
+                                      <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
                                         Click "Add LOD Calculation" to begin
                                       </p>
                                     </div>
@@ -8899,33 +10324,33 @@ const handleAnalystSelected = async (employeeId: string) => {
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-orange-200/50 bg-gradient-to-br from-orange-50/40 via-white/60 to-amber-50/40 backdrop-blur-sm shadow-2xl hover:shadow-orange-200/50 transition-all duration-500 hover:scale-[1.01]"
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
                         >
                           {/* Decorative elements */}
-                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-orange-400/10 to-transparent rounded-bl-full -z-10" />
-                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-amber-400/10 to-transparent rounded-tr-full -z-10" />
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
 
                           {/* Card Header */}
                           <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-4">
                               <div className="relative">
-                                <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full" />
-                                <div className="relative w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
                                   <BiTestTube className="w-6 h-6 text-white" />
                                 </div>
                               </div>
                               <div>
-                                <h2 className="text-xl font-bold text-orange-900 tracking-tight">
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
                                   ROI Analysis
                                 </h2>
-                                <p className="text-sm text-orange-600/80 font-medium">
+                                <p className="text-sm text-emerald-600/80 font-medium">
                                   Residue on Ignition - Sample & Calculations
                                 </p>
                               </div>
                             </div>
 
-                            <div className="px-4 py-1 bg-gradient-to-r from-orange-100 to-amber-100 border-2 border-orange-300/50 rounded-full shadow-sm">
-                              <span className="text-xs font-bold text-orange-700">
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
                                 {(
                                   samplePreparationROIPerParam[
                                     selectedParam.id
@@ -8943,17 +10368,17 @@ const handleAnalystSelected = async (employeeId: string) => {
                           {/* Sample Preparation for ROI */}
                           <div className="mb-8">
                             <div className="flex items-center justify-between mb-4 px-2">
-                              <h3 className="text-lg font-bold text-amber-700 flex items-center gap-2.5 tracking-tight">
-                                <span className="w-1.5 h-6 bg-gradient-to-b from-orange-500 to-amber-700 rounded-full"></span>
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
                                 Sample Preparations for ROI
                               </h3>
                               <button
                                 onClick={() =>
                                   handleAddSamplePreparationROI(
-                                    selectedParam.id
+                                    selectedParam.id,
                                   )
                                 }
-                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-orange-600 to-amber-700 text-sm text-white font-semibold rounded-xl hover:from-orange-700 hover:to-amber-800 transition-all duration-200 shadow-md hover:shadow-lg transform"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-sm text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg transform"
                               >
                                 <Plus className="w-4 h-4" />
                                 Add Preparation
@@ -8966,30 +10391,27 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   selectedParam.id
                                 ] || []
                               ).map((samplePreparationROI) => (
-                                <div
-                                  className="overflow-hidden"
-                                  key={samplePreparationROI.id}
-                                >
+                                <div key={samplePreparationROI.id}>
                                   <SamplePreparationROIDetail
                                     samplePreparationROI={samplePreparationROI}
                                     onStepChange={(
                                       samplePreparationROIId,
                                       stepName,
                                       field,
-                                      newValue
+                                      newValue,
                                     ) =>
                                       handleSamplePreparationROIStepChange(
                                         selectedParam.id,
                                         samplePreparationROIId,
                                         stepName,
                                         field,
-                                        newValue
+                                        newValue,
                                       )
                                     }
                                     onRemove={() =>
                                       handleRemoveSamplePreparationROI(
                                         selectedParam.id,
-                                        samplePreparationROI.id
+                                        samplePreparationROI.id,
                                       )
                                     }
                                     role={role}
@@ -9005,27 +10427,27 @@ const handleAnalystSelected = async (employeeId: string) => {
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-orange-50 via-white to-amber-50 border-2 border-dashed border-orange-300 rounded-2xl shadow-inner"
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
                               >
                                 <div className="absolute inset-0 opacity-5">
-                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
-                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-amber-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
                                 </div>
 
                                 <div className="relative z-10">
                                   <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
-                                    <Target className="w-14 h-14 text-orange-400" />
+                                    <Target className="w-14 h-14 text-emerald-400" />
                                   </div>
-                                  <p className="text-lg font-bold text-orange-900 mb-2">
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
                                     No sample preparations added yet
                                   </p>
-                                  <p className="text-sm text-orange-600/80 max-w-md mx-auto mb-4">
+                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
                                     Click the add button to create ROI sample
                                     preparation
                                   </p>
-                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100/50 rounded-lg border border-orange-200">
-                                    <div className="w-2 h-2 bg-orange-500 rounded-full animate-ping" />
-                                    <span className="text-xs font-semibold text-orange-700">
+                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                    <span className="text-xs font-semibold text-emerald-700">
                                       Ready to start
                                     </span>
                                   </div>
@@ -9039,22 +10461,22 @@ const handleAnalystSelected = async (employeeId: string) => {
                             <>
                               {/* Visual Separator */}
                               <div className="flex items-center gap-4 my-8">
-                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-orange-300 to-transparent" />
-                                <div className="px-4 py-2 bg-gradient-to-r from-orange-100 to-amber-100 rounded-lg border border-orange-300/50 shadow-sm">
-                                  <span className="text-xs font-bold text-orange-700 uppercase tracking-wider flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                                  <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                                     Calculations
                                   </span>
                                 </div>
-                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-orange-300 to-transparent" />
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
                               </div>
 
                               {/* Calculations for ROI */}
-                              <div className="relative p-6 rounded-xl border-2 border-orange-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                              <div className="relative p-6 rounded-xl border-2 border-emerald-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
                                 <div className="flex items-center justify-between mb-6 px-2">
                                   <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
-                                    <span className="w-1.5 h-6 bg-gradient-to-b from-amber-500 to-orange-700 rounded-full"></span>
-                                    <span className="text-orange-600">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                    <span className="text-emerald-600">
                                       ROI Calculations
                                     </span>
                                   </h3>
@@ -9064,7 +10486,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                     }
                                     whileHover={{ scale: 1 }}
                                     whileTap={{ scale: 1 }}
-                                    className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold rounded-xl hover:from-amber-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                    className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                                   >
                                     <Plus className="w-4 h-4" />
                                     Add ROI Calculation
@@ -9087,19 +10509,19 @@ const handleAnalystSelected = async (employeeId: string) => {
                                       onFieldChange={(
                                         calculationId,
                                         field,
-                                        value
+                                        value,
                                       ) =>
                                         handleCalculationROIFieldChange(
                                           selectedParam.id,
                                           calculationId,
                                           field,
-                                          value
+                                          value,
                                         )
                                       }
                                       onRemove={() =>
                                         handleRemoveCalculationROI(
                                           selectedParam.id,
-                                          calculation.id
+                                          calculation.id,
                                         )
                                       }
                                       role={role}
@@ -9114,20 +10536,20 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   <motion.div
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-orange-50 via-white to-amber-50 border-2 border-dashed border-orange-300 rounded-xl shadow-inner"
+                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
                                   >
                                     <div className="absolute inset-0 opacity-5">
-                                      <div className="absolute top-0 left-1/4 w-48 h-48 bg-orange-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
+                                      <div className="absolute top-0 left-1/4 w-48 h-48 bg-emerald-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
                                     </div>
 
                                     <div className="relative z-10">
                                       <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
-                                        <Target className="w-10 h-10 text-orange-400" />
+                                        <Target className="w-10 h-10 text-emerald-400" />
                                       </div>
-                                      <p className="font-semibold text-base text-orange-900 mb-1">
+                                      <p className="font-semibold text-base text-emerald-700 mb-1">
                                         No ROI calculations added yet
                                       </p>
-                                      <p className="text-xs text-orange-600/80 max-w-sm mx-auto">
+                                      <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
                                         Click "Add ROI Calculation" to begin
                                       </p>
                                     </div>
@@ -9146,33 +10568,33 @@ const handleAnalystSelected = async (employeeId: string) => {
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-rose-200/50 bg-gradient-to-br from-rose-50/40 via-white/60 to-pink-50/40 backdrop-blur-sm shadow-2xl hover:shadow-rose-200/50 transition-all duration-500 hover:scale-[1.01]"
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-teal-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
                         >
                           {/* Decorative elements */}
-                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-rose-400/10 to-transparent rounded-bl-full -z-10" />
-                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-pink-400/10 to-transparent rounded-tr-full -z-10" />
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-teal-400/10 to-transparent rounded-tr-full -z-10" />
 
                           {/* Card Header */}
                           <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-4">
                               <div className="relative">
-                                <div className="absolute inset-0 bg-rose-500/20 blur-xl rounded-full" />
-                                <div className="relative w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
                                   <BiTestTube className="w-8 h-8 text-white" />
                                 </div>
                               </div>
                               <div>
-                                <h2 className="text-xl font-bold text-rose-900 tracking-tight">
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
                                   Sulphated Ash Analysis
                                 </h2>
-                                <p className="text-sm text-rose-600/80 font-medium">
+                                <p className="text-sm text-emerald-600/80 font-medium">
                                   Sulphated Ash - Sample & Calculations
                                 </p>
                               </div>
                             </div>
 
-                            <div className="px-4 py-2 bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300/50 rounded-full shadow-sm">
-                              <span className="text-xs font-bold text-rose-700">
+                            <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-teal-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
                                 {(
                                   samplePreparationSulphatedAshPerParam[
                                     selectedParam.id
@@ -9191,17 +10613,17 @@ const handleAnalystSelected = async (employeeId: string) => {
                           {/* Sample Preparation for Sulphated Ash */}
                           <div className="mb-8">
                             <div className="flex items-center justify-between mb-4 px-2">
-                              <h3 className="text-lg font-bold text-rose-900 flex items-center gap-2.5 tracking-tight">
-                                <span className="w-1.5 h-6 bg-gradient-to-b from-rose-500 to-rose-700 rounded-full"></span>
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
                                 Sample Preparations for Sulphated Ash
                               </h3>
                               <button
                                 onClick={() =>
                                   handleAddSamplePreparationSulphatedAsh(
-                                    selectedParam.id
+                                    selectedParam.id,
                                   )
                                 }
-                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-rose-600 to-rose-700 text-white font-semibold rounded-xl hover:from-rose-700 hover:to-rose-800 transition-all duration-200 shadow-md hover:shadow-lg transform text-sm"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg transform text-sm"
                               >
                                 <Plus className="w-4 h-4" />
                                 Add Preparation
@@ -9223,20 +10645,20 @@ const handleAnalystSelected = async (employeeId: string) => {
                                       samplePreparationSulphatedAshId,
                                       stepName,
                                       field,
-                                      newValue
+                                      newValue,
                                     ) =>
                                       handleSamplePreparationSulphatedAshStepChange(
                                         selectedParam.id,
                                         samplePreparationSulphatedAshId,
                                         stepName,
                                         field,
-                                        newValue
+                                        newValue,
                                       )
                                     }
                                     onRemove={() =>
                                       handleRemoveSamplePreparationSulphatedAsh(
                                         selectedParam.id,
-                                        samplePreparationSulphatedAsh.id
+                                        samplePreparationSulphatedAsh.id,
                                       )
                                     }
                                     role={role}
@@ -9253,27 +10675,27 @@ const handleAnalystSelected = async (employeeId: string) => {
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-rose-50 via-white to-pink-50 border-2 border-dashed border-rose-300 rounded-2xl shadow-inner"
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-teal-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
                               >
                                 <div className="absolute inset-0 opacity-5">
-                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-rose-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
-                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
                                 </div>
 
                                 <div className="relative z-10">
                                   <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
-                                    <Target className="w-14 h-14 text-rose-400" />
+                                    <Target className="w-14 h-14 text-emerald-400" />
                                   </div>
-                                  <p className="text-lg font-bold text-rose-900 mb-2">
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
                                     No sample preparations added yet
                                   </p>
-                                  <p className="text-sm text-rose-600/80 max-w-md mx-auto mb-4">
+                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
                                     Click the add button to create Sulphated Ash
                                     sample preparation
                                   </p>
-                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-rose-100/50 rounded-lg border border-rose-200">
-                                    <div className="w-2 h-2 bg-rose-500 rounded-full animate-ping" />
-                                    <span className="text-xs font-semibold text-rose-700">
+                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                    <span className="text-xs font-semibold text-emerald-700">
                                       Ready to start
                                     </span>
                                   </div>
@@ -9288,34 +10710,34 @@ const handleAnalystSelected = async (employeeId: string) => {
                             <>
                               {/* Visual Separator */}
                               <div className="flex items-center gap-4 my-8">
-                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-rose-300 to-transparent" />
-                                <div className="px-4 py-2 bg-gradient-to-r from-rose-100 to-pink-100 rounded-lg border border-rose-300/50 shadow-sm">
-                                  <span className="text-xs font-bold text-rose-700 uppercase tracking-wider flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                                  <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                                     Calculations
                                   </span>
                                 </div>
-                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-rose-300 to-transparent" />
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
                               </div>
 
                               {/* Calculations for Sulphated Ash */}
-                              <div className="relative p-6 rounded-xl border-2 border-rose-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                              <div className="relative p-6 rounded-xl border-2 border-emerald-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
                                 <div className="flex items-center justify-between mb-6 px-2">
                                   <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
-                                    <span className="w-1.5 h-6 bg-gradient-to-b from-pink-500 to-rose-700 rounded-full"></span>
-                                    <span className="text-pink-600">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-teal-500 to-emerald-700 rounded-full"></span>
+                                    <span className="text-teal-600">
                                       Sulphated Ash Calculations
                                     </span>
                                   </h3>
                                   <motion.button
                                     onClick={() =>
                                       handleAddCalculationSulphatedAsh(
-                                        selectedParam.id
+                                        selectedParam.id,
                                       )
                                     }
                                     whileHover={{ scale: 1 }}
                                     whileTap={{ scale: 1 }}
-                                    className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-semibold rounded-xl hover:from-pink-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                    className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-teal-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                                   >
                                     <Plus className="w-4 h-4" />
                                     Add Ash Calculation
@@ -9339,19 +10761,19 @@ const handleAnalystSelected = async (employeeId: string) => {
                                       onFieldChange={(
                                         calculationId,
                                         field,
-                                        value
+                                        value,
                                       ) =>
                                         handleCalculationSulphatedAshFieldChange(
                                           selectedParam.id,
                                           calculationId,
                                           field,
-                                          value
+                                          value,
                                         )
                                       }
                                       onRemove={() =>
                                         handleRemoveCalculationSulphatedAsh(
                                           selectedParam.id,
-                                          calculation.id
+                                          calculation.id,
                                         )
                                       }
                                       role={role}
@@ -9367,20 +10789,20 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   <motion.div
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-rose-50 via-white to-pink-50 border-2 border-dashed border-rose-300 rounded-xl shadow-inner"
+                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-teal-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
                                   >
                                     <div className="absolute inset-0 opacity-5">
-                                      <div className="absolute top-0 left-1/4 w-48 h-48 bg-rose-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
+                                      <div className="absolute top-0 left-1/4 w-48 h-48 bg-emerald-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
                                     </div>
 
                                     <div className="relative z-10">
                                       <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
-                                        <Target className="w-10 h-10 text-rose-400" />
+                                        <Target className="w-10 h-10 text-emerald-400" />
                                       </div>
-                                      <p className="font-semibold text-base text-rose-900 mb-1">
+                                      <p className="font-semibold text-base text-emerald-700 mb-1">
                                         No Sulphated Ash calculations added yet
                                       </p>
-                                      <p className="text-xs text-rose-600/80 max-w-sm mx-auto">
+                                      <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
                                         Click "Add Ash Calculation" to begin
                                       </p>
                                     </div>
@@ -9399,33 +10821,33 @@ const handleAnalystSelected = async (employeeId: string) => {
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-indigo-200/50 bg-gradient-to-br from-indigo-50/40 via-white/60 to-purple-50/40 backdrop-blur-sm shadow-2xl hover:shadow-indigo-200/50 transition-all duration-500 hover:scale-[1.01]"
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
                         >
                           {/* Decorative elements */}
-                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-400/10 to-transparent rounded-bl-full -z-10" />
-                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-purple-400/10 to-transparent rounded-tr-full -z-10" />
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
 
                           {/* Card Header */}
                           <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-4">
                               <div className="relative">
-                                <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full" />
-                                <div className="relative w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
                                   <BiTestTube className="w-6 h-6 text-white" />
                                 </div>
                               </div>
                               <div>
-                                <h2 className="text-xl font-bold text-indigo-900 tracking-tight">
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
                                   Residual Solvent Analysis
                                 </h2>
-                                <p className="text-sm text-indigo-600/80 font-medium">
+                                <p className="text-sm text-emerald-600/80 font-medium">
                                   Standard, Sample & Calculations
                                 </p>
                               </div>
                             </div>
 
-                            <div className="px-4 py-1 bg-gradient-to-r from-indigo-100 to-purple-100 border-2 border-indigo-300/50 rounded-full shadow-sm">
-                              <span className="text-xs font-bold text-indigo-700">
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
                                 {(
                                   standardPreparationRSPerParam[
                                     selectedParam.id
@@ -9448,18 +10870,18 @@ const handleAnalystSelected = async (employeeId: string) => {
                           {/* Combined Preparations Header with Single Add Button */}
                           <div className="mb-8">
                             <div className="flex items-center justify-between mb-4 px-2">
-                              <h3 className="text-lg font-bold text-indigo-900 flex items-center gap-2.5 tracking-tight">
-                                <span className="w-1.5 h-6 bg-gradient-to-b from-indigo-500 to-blue-700 rounded-full"></span>
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
                                 Standard & Sample Preparations for Residual
                                 Solvent
                               </h3>
                               <button
                                 onClick={() =>
                                   handleAddStandardPreparationRS(
-                                    selectedParam.id
+                                    selectedParam.id,
                                   )
                                 }
-                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                               >
                                 <Plus className="w-4 h-4" />
                                 Add Preparation
@@ -9477,8 +10899,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   addedStandards[selectedParam.id] || []
                                 ).find(
                                   (std) =>
-                                    std.id ===
-                                    standardPreparation.assignedStandardId
+                                    std.serialNo ===
+                                    standardPreparation.assignedStandardId,
                                 );
 
                                 const correspondingSample =
@@ -9503,20 +10925,20 @@ const handleAnalystSelected = async (employeeId: string) => {
                                           standardPreparationId,
                                           stepName,
                                           field,
-                                          newValue
+                                          newValue,
                                         ) =>
                                           handleStandardPreparationRSStepChange(
                                             selectedParam.id,
                                             standardPreparationId,
                                             stepName,
                                             field,
-                                            newValue
+                                            newValue,
                                           )
                                         }
                                         onRemove={() =>
                                           handleRemoveStandardPreparationRS(
                                             selectedParam.id,
-                                            standardPreparation.id
+                                            standardPreparation.id,
                                           )
                                         }
                                         isRS={true}
@@ -9538,20 +10960,20 @@ const handleAnalystSelected = async (employeeId: string) => {
                                             samplePreparationId,
                                             stepName,
                                             field,
-                                            newValue
+                                            newValue,
                                           ) =>
                                             handleSamplePreparationRSStepChange(
                                               selectedParam.id,
                                               samplePreparationId,
                                               stepName,
                                               field,
-                                              newValue
+                                              newValue,
                                             )
                                           }
                                           onRemove={() =>
                                             handleRemoveSamplePreparationRS(
                                               selectedParam.id,
-                                              correspondingSample.id
+                                              correspondingSample.id,
                                             )
                                           }
                                           isRS={true}
@@ -9572,27 +10994,27 @@ const handleAnalystSelected = async (employeeId: string) => {
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-indigo-50 via-white to-purple-50 border-2 border-dashed border-indigo-300 rounded-2xl shadow-inner"
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
                               >
                                 <div className="absolute inset-0 opacity-5">
-                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
-                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
                                 </div>
 
                                 <div className="relative z-10">
                                   <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
-                                    <Target className="w-14 h-14 text-indigo-400" />
+                                    <Target className="w-14 h-14 text-emerald-400" />
                                   </div>
-                                  <p className="text-lg font-bold text-indigo-900 mb-2">
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
                                     No preparations added yet
                                   </p>
-                                  <p className="text-sm text-indigo-600/80 max-w-md mx-auto mb-4">
+                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
                                     Click "Add Preparation" to create standard
                                     and sample preparations for Residual Solvent
                                   </p>
-                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100/50 rounded-lg border border-indigo-200">
-                                    <div className="w-2 h-2 bg-indigo-500 rounded-full animate-ping" />
-                                    <span className="text-xs font-semibold text-indigo-700">
+                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                    <span className="text-xs font-semibold text-emerald-700">
                                       Ready to start
                                     </span>
                                   </div>
@@ -9608,22 +11030,22 @@ const handleAnalystSelected = async (employeeId: string) => {
                               <>
                                 {/* Visual Separator */}
                                 <div className="flex items-center gap-4 my-8">
-                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-indigo-300 to-transparent" />
-                                  <div className="px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-lg border border-indigo-300/50 shadow-sm">
-                                    <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider flex items-center gap-2">
-                                      <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                  <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                                    <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
+                                      <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                                       Calculations
                                     </span>
                                   </div>
-                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-indigo-300 to-transparent" />
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
                                 </div>
 
                                 {/* Calculations for RS */}
-                                <div className="relative p-6 rounded-xl border-2 border-indigo-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                                <div className="relative p-6 rounded-xl border-2 border-emerald-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
                                   <div className="flex items-center justify-between mb-6 px-2">
                                     <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
-                                      <span className="w-1.5 h-6 bg-gradient-to-b from-indigo-500 to-blue-700 rounded-full"></span>
-                                      <span className="text-indigo-600">
+                                      <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                      <span className="text-emerald-600">
                                         Residual Solvent Calculations
                                       </span>
                                     </h3>
@@ -9633,7 +11055,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                       }
                                       whileHover={{ scale: 1 }}
                                       whileTap={{ scale: 1 }}
-                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                                     >
                                       <Plus className="w-4 h-4" />
                                       Add RS Calculation
@@ -9662,19 +11084,19 @@ const handleAnalystSelected = async (employeeId: string) => {
                                         onFieldChange={(
                                           calculationId,
                                           field,
-                                          value
+                                          value,
                                         ) =>
                                           handleCalculationRSFieldChange(
                                             selectedParam.id,
                                             calculationId,
                                             field,
-                                            value
+                                            value,
                                           )
                                         }
                                         onRemove={() =>
                                           handleRemoveCalculationRS(
                                             selectedParam.id,
-                                            calculation.id
+                                            calculation.id,
                                           )
                                         }
                                         role={role}
@@ -9689,20 +11111,20 @@ const handleAnalystSelected = async (employeeId: string) => {
                                     <motion.div
                                       initial={{ opacity: 0, scale: 0.95 }}
                                       animate={{ opacity: 1, scale: 1 }}
-                                      className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-indigo-50 via-white to-purple-50 border-2 border-dashed border-indigo-300 rounded-xl shadow-inner"
+                                      className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
                                     >
                                       <div className="absolute inset-0 opacity-5">
-                                        <div className="absolute top-0 left-1/4 w-48 h-48 bg-indigo-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
+                                        <div className="absolute top-0 left-1/4 w-48 h-48 bg-emerald-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
                                       </div>
 
                                       <div className="relative z-10">
                                         <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
-                                          <Target className="w-10 h-10 text-indigo-400" />
+                                          <Target className="w-10 h-10 text-emerald-400" />
                                         </div>
-                                        <p className="font-semibold text-base text-indigo-900 mb-1">
+                                        <p className="font-semibold text-base text-emerald-700 mb-1">
                                           No RS calculations added yet
                                         </p>
-                                        <p className="text-xs text-indigo-600/80 max-w-sm mx-auto">
+                                        <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
                                           Click "Add RS Calculation" to begin
                                         </p>
                                       </div>
@@ -9721,7 +11143,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-green-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
                         >
                           {/* Decorative elements */}
                           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
@@ -9732,12 +11154,12 @@ const handleAnalystSelected = async (employeeId: string) => {
                             <div className="flex items-center gap-4">
                               <div className="relative">
                                 <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
-                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
                                   <BiTestTube className="w-6 h-6 text-white" />
                                 </div>
                               </div>
                               <div>
-                                <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
                                   Dissolution Analysis
                                 </h2>
                                 <p className="text-sm text-emerald-600/80 font-medium">
@@ -9746,7 +11168,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                               </div>
                             </div>
 
-                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-green-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
                               <span className="text-xs font-bold text-emerald-700">
                                 {(
                                   standardPreparationDissoPerParam[
@@ -9771,17 +11193,17 @@ const handleAnalystSelected = async (employeeId: string) => {
                           {/* Standard & Sample Preparations Section */}
                           <div className="mb-8">
                             <div className="flex items-center justify-between mb-4 px-2">
-                              <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2.5 tracking-tight">
-                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-green-700 rounded-full"></span>
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
                                 Standard & Sample Preparations for Dissolution
                               </h3>
                               <button
                                 onClick={() =>
                                   handleAddStandardPreparationDisso(
-                                    selectedParam.id
+                                    selectedParam.id,
                                   )
                                 }
-                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-green-700 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-green-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                               >
                                 <Plus className="w-4 h-4" />
                                 Add Preparation
@@ -9798,8 +11220,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   addedStandards[selectedParam.id] || []
                                 ).find(
                                   (std) =>
-                                    std.id ===
-                                    standardPreparation.assignedStandardId
+                                    std.serialNo ===
+                                    standardPreparation.assignedStandardId,
                                 );
 
                                 const correspondingSample =
@@ -9821,20 +11243,20 @@ const handleAnalystSelected = async (employeeId: string) => {
                                         standardPreparationId,
                                         stepName,
                                         field,
-                                        newValue
+                                        newValue,
                                       ) =>
                                         handleStandardPreparationDissoStepChange(
                                           selectedParam.id,
                                           standardPreparationId,
                                           stepName,
                                           field,
-                                          newValue
+                                          newValue,
                                         )
                                       }
                                       onRemove={() =>
                                         handleRemoveStandardPreparationDisso(
                                           selectedParam.id,
-                                          standardPreparation.id
+                                          standardPreparation.id,
                                         )
                                       }
                                       isDisso={true}
@@ -9843,34 +11265,35 @@ const handleAnalystSelected = async (employeeId: string) => {
 
                                     {correspondingSample && (
                                       <div className="mt-4">
-                                        <div className="overflow-hidden">
-                                          <SamplePreparationDissoDetail
-                                            samplePreparationDisso={
-                                              correspondingSample
-                                            }
-                                            onStepChange={(
+                                        <SamplePreparationDissoDetail
+                                          samplePreparationDisso={
+                                            correspondingSample
+                                          }
+                                          assignedStandard={
+                                            assignedStandard || null
+                                          }
+                                          onStepChange={(
+                                            samplePreparationDissoId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          ) =>
+                                            handleSamplePreparationDissoStepChange(
+                                              selectedParam.id,
                                               samplePreparationDissoId,
                                               stepName,
                                               field,
-                                              newValue
-                                            ) =>
-                                              handleSamplePreparationDissoStepChange(
-                                                selectedParam.id,
-                                                samplePreparationDissoId,
-                                                stepName,
-                                                field,
-                                                newValue
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparationDisso(
-                                                selectedParam.id,
-                                                correspondingSample.id
-                                              )
-                                            }
-                                            role={role}
-                                          />
-                                        </div>
+                                              newValue,
+                                            )
+                                          }
+                                          onRemove={() =>
+                                            handleRemoveSamplePreparationDisso(
+                                              selectedParam.id,
+                                              correspondingSample.id,
+                                            )
+                                          }
+                                          role={role}
+                                        />
                                       </div>
                                     )}
                                   </div>
@@ -9886,7 +11309,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-green-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
                               >
                                 <div className="absolute inset-0 opacity-5">
                                   <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
@@ -9897,7 +11320,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                   <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
                                     <Target className="w-14 h-14 text-emerald-400" />
                                   </div>
-                                  <p className="text-lg font-bold text-emerald-900 mb-2">
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
                                     No preparations added yet
                                   </p>
                                   <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
@@ -9924,7 +11347,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                 {/* Visual Separator */}
                                 <div className="flex items-center gap-4 my-8">
                                   <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
-                                  <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-green-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                                  <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-100 rounded-lg border border-emerald-300/50 shadow-sm">
                                     <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
                                       <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                                       Calculations
@@ -9937,7 +11360,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                 <div className="relative p-6 rounded-xl border-2 border-emerald-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
                                   <div className="flex items-center justify-between mb-6 px-2">
                                     <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
-                                      <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-green-700 rounded-full"></span>
+                                      <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
                                       <span className="text-emerald-600">
                                         Dissolution Calculations
                                       </span>
@@ -9945,12 +11368,12 @@ const handleAnalystSelected = async (employeeId: string) => {
                                     <motion.button
                                       onClick={() =>
                                         handleAddCalculationDisso(
-                                          selectedParam.id
+                                          selectedParam.id,
                                         )
                                       }
                                       whileHover={{ scale: 1 }}
                                       whileTap={{ scale: 1 }}
-                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                                     >
                                       <Plus className="w-4 h-4" />
                                       Add Dissolution Calculation
@@ -9979,19 +11402,19 @@ const handleAnalystSelected = async (employeeId: string) => {
                                         onFieldChange={(
                                           calculationId,
                                           field,
-                                          value
+                                          value,
                                         ) =>
                                           handleCalculationDissoFieldChange(
                                             selectedParam.id,
                                             calculationId,
                                             field,
-                                            value
+                                            value,
                                           )
                                         }
                                         onRemove={() =>
                                           handleRemoveCalculationDisso(
                                             selectedParam.id,
-                                            calculation.id
+                                            calculation.id,
                                           )
                                         }
                                         role={role}
@@ -10007,7 +11430,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                     <motion.div
                                       initial={{ opacity: 0, scale: 0.95 }}
                                       animate={{ opacity: 1, scale: 1 }}
-                                      className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-green-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
+                                      className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
                                     >
                                       <div className="absolute inset-0 opacity-5">
                                         <div className="absolute top-0 left-1/4 w-48 h-48 bg-emerald-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
@@ -10017,7 +11440,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                                         <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
                                           <Target className="w-10 h-10 text-emerald-400" />
                                         </div>
-                                        <p className="font-semibold text-base text-emerald-900 mb-1">
+                                        <p className="font-semibold text-base text-emerald-700 mb-1">
                                           No dissolution calculations added yet
                                         </p>
                                         <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
@@ -10033,26 +11456,699 @@ const handleAnalystSelected = async (employeeId: string) => {
                         </motion.div>
                       )}
 
-                      <div className="mb-4">
-                        <h3 className="text-base font-bold mb-2 text-green-900">
-                          Other informations you want to mention regarding test:
-                        </h3>
-                        <textarea
-                          value={otherInfoPerParam[selectedParam.id] || ""}
-                          onChange={(e) =>
-                            handleOtherInfoChange(
-                              selectedParam.id,
-                              e.target.value
-                            )
-                          }
-                          placeholder="Enter other informations..."
-                          className="w-full min-h-[100px] border border-green-300 rounded-lg p-3 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        />
+                      {/* ============= Uniformity of Content GROUP CARD ============= */}
+                      {(
+                        activePreparationGroups[selectedParam.id] || []
+                      ).includes("uniformityOfContent") && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
+                        >
+                          {/* Decorative elements */}
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                          {/* Card Header */}
+                          <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                  <BiTestTube className="w-6 h-6 text-white" />
+                                </div>
+                              </div>
+                              <div>
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
+                                  Uniformity of Content Analysis
+                                </h2>
+                                <p className="text-sm text-emerald-600/80 font-medium">
+                                  Standard, Sample & Calculations
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
+                                {(
+                                  standardPreparationUCPerParam[
+                                    selectedParam.id
+                                  ] || []
+                                ).length +
+                                  (
+                                    samplePreparationUCPerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).length +
+                                  (
+                                    calculationsUCPerParam[selectedParam.id] ||
+                                    []
+                                  ).length}
+                                Items
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Standard & Sample Preparations Section */}
+                          <div className="mb-8">
+                            <div className="flex items-center justify-between mb-4 px-2">
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                Standard & Sample Preparations for Uniformity of
+                                Content
+                              </h3>
+                              <button
+                                onClick={() =>
+                                  handleAddStandardPreparationUC(
+                                    selectedParam.id,
+                                  )
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Preparation
+                              </button>
+                            </div>
+
+                            <AnimatePresence>
+                              {(
+                                standardPreparationUCPerParam[
+                                  selectedParam.id
+                                ] || []
+                              ).map((standardPreparation: any, idx: number) => {
+                                const assignedStandard = (
+                                  addedStandards[selectedParam.id] || []
+                                ).find(
+                                  (std) =>
+                                    std.serialNo ===
+                                    standardPreparation.assignedStandardId,
+                                );
+
+                                const correspondingSample =
+                                  (samplePreparationUCPerParam[
+                                    selectedParam.id
+                                  ] || [])[idx];
+
+                                return (
+                                  <div
+                                    key={standardPreparation.id}
+                                    className="mb-6"
+                                  >
+                                    <StandardPreparationDetail
+                                      standardPreparation={standardPreparation}
+                                      assignedStandard={
+                                        assignedStandard || null
+                                      }
+                                      onStepChange={(
+                                        standardPreparationId,
+                                        stepName,
+                                        field,
+                                        newValue,
+                                      ) =>
+                                        handleStandardPreparationUCStepChange(
+                                          selectedParam.id,
+                                          standardPreparationId,
+                                          stepName,
+                                          field,
+                                          newValue,
+                                        )
+                                      }
+                                      onRemove={() =>
+                                        handleRemoveStandardPreparationUC(
+                                          selectedParam.id,
+                                          standardPreparation.id,
+                                        )
+                                      }
+                                      isDisso={true}
+                                      role={role}
+                                    />
+
+                                    {correspondingSample && (
+                                      <div className="mt-4">
+                                        <SamplePreparationUCDetail
+                                          samplePreparationUC={
+                                            correspondingSample
+                                          }
+                                          assignedStandard={
+                                            assignedStandard || null
+                                          }
+                                          onStepChange={(
+                                            samplePreparationUCId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          ) =>
+                                            handleSamplePreparationUCStepChange(
+                                              selectedParam.id,
+                                              samplePreparationUCId,
+                                              stepName,
+                                              field,
+                                              newValue,
+                                            )
+                                          }
+                                          onRemove={() =>
+                                            handleRemoveSamplePreparationUC(
+                                              selectedParam.id,
+                                              correspondingSample.id,
+                                            )
+                                          }
+                                          role={role}
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </AnimatePresence>
+
+                            {(
+                              standardPreparationUCPerParam[selectedParam.id] ||
+                              []
+                            ).length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                              >
+                                <div className="absolute inset-0 opacity-5">
+                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                </div>
+
+                                <div className="relative z-10">
+                                  <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                                    <Target className="w-14 h-14 text-emerald-400" />
+                                  </div>
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
+                                    No preparations added yet
+                                  </p>
+                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
+                                    Click "Add Preparation" to create your first
+                                    standard and sample preparation for
+                                    uniformity of content
+                                  </p>
+                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                    <span className="text-xs font-semibold text-emerald-700">
+                                      Ready to start
+                                    </span>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+
+                          {standardPreparationUCPerParam[selectedParam.id]
+                            ?.length > 0 &&
+                            samplePreparationUCPerParam[selectedParam.id]
+                              ?.length > 0 && (
+                              <>
+                                {/* Visual Separator */}
+                                <div className="flex items-center gap-4 my-8">
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                  <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                                    <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
+                                      <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                                      Calculations
+                                    </span>
+                                  </div>
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                </div>
+
+                                {/* Calculations Section */}
+                                <div className="relative p-6 rounded-xl border-2 border-emerald-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                                  <div className="flex items-center justify-between mb-6 px-2">
+                                    <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
+                                      <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                      <span className="text-emerald-600">
+                                        Uniformity of Content Calculations
+                                      </span>
+                                    </h3>
+                                    <motion.button
+                                      onClick={() =>
+                                        handleAddCalculationUC(selectedParam.id)
+                                      }
+                                      whileHover={{ scale: 1 }}
+                                      whileTap={{ scale: 1 }}
+                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                      Add Uniformity of Content Calculation
+                                    </motion.button>
+                                  </div>
+                                  <AnimatePresence>
+                                    {(
+                                      calculationsUCPerParam[
+                                        selectedParam.id
+                                      ] || []
+                                    ).map((calculation) => (
+                                      <CalculationDetailUC
+                                        key={calculation.id}
+                                        calculation={calculation}
+                                        standardPreparations={
+                                          standardPreparationUCPerParam[
+                                            selectedParam.id
+                                          ] || []
+                                        }
+                                        samplePreparationsUC={
+                                          samplePreparationUCPerParam[
+                                            selectedParam.id
+                                          ] || []
+                                        }
+                                        onFieldChange={(
+                                          calculationId,
+                                          field,
+                                          value,
+                                        ) =>
+                                          handleCalculationUCFieldChange(
+                                            selectedParam.id,
+                                            calculationId,
+                                            field,
+                                            value,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveCalculationUC(
+                                            selectedParam.id,
+                                            calculation.id,
+                                          )
+                                        }
+                                        role={role}
+                                      />
+                                    ))}
+                                  </AnimatePresence>
+                                  {(
+                                    calculationsUCPerParam[selectedParam.id] ||
+                                    []
+                                  ).length === 0 && (
+                                    <motion.div
+                                      initial={{ opacity: 0, scale: 0.95 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
+                                    >
+                                      <div className="absolute inset-0 opacity-5">
+                                        <div className="absolute top-0 left-1/4 w-48 h-48 bg-emerald-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
+                                      </div>
+
+                                      <div className="relative z-10">
+                                        <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
+                                          <Target className="w-10 h-10 text-emerald-400" />
+                                        </div>
+                                        <p className="font-semibold text-base text-emerald-700 mb-1">
+                                          No uniformity of content calculations
+                                          added yet
+                                        </p>
+                                        <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
+                                          Click "Add Uniformity of Content
+                                          Calculation" to begin
+                                        </p>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                  ,
+                                </div>
+                              </>
+                            )}
+                        </motion.div>
+                      )}
+
+                      {/* Diluent Preparation Toggle */}
+                      <div className="mb-6">
+                        <label className="flex items-center gap-4 cursor-pointer group relative">
+                          <div className="relative flex items-center justify-center">
+                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
+
+                            <input
+                              type="checkbox"
+                              checked={
+                                showDiluentPreparation[selectedParam.id] ||
+                                false
+                              }
+                              onChange={(e) => {
+                                setShowDiluentPreparation((prev) => ({
+                                  ...prev,
+                                  [selectedParam.id]: e.target.checked,
+                                }));
+                                if (!e.target.checked) {
+                                  setDiluentPerParam((prev) => ({
+                                    ...prev,
+                                    [selectedParam.id]: "",
+                                  }));
+                                }
+                              }}
+                              className="peer sr-only"
+                            />
+
+                            <div className="relative w-14 h-7 rounded-full border-2 border-emerald-200 bg-gray-200 peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-emerald-600 peer-checked:border-emerald-600 transition-all duration-300 shadow-inner group-hover:border-emerald-300">
+                              <motion.div
+                                className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
+                                animate={{
+                                  x: showDiluentPreparation[selectedParam.id]
+                                    ? 28
+                                    : 0,
+                                }}
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 500,
+                                  damping: 30,
+                                }}
+                              >
+                                {/* Icon inside thumb */}
+                                {showDiluentPreparation[selectedParam.id] ? (
+                                  <svg
+                                    className="w-3 h-3 text-emerald-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                ) : (
+                                  <svg
+                                    className="w-3 h-3 text-gray-400"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M6 18L18 6M6 6l12 12"
+                                    />
+                                  </svg>
+                                )}
+                              </motion.div>
+                            </div>
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base font-bold text-emerald-700 group-hover:text-emerald-700 transition-colors duration-200">
+                                Preparation of Diluent
+                              </span>
+
+                              <motion.span
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className={`px-2 py-0.3 text-[10px] font-medium rounded-full transition-all duration-200 ${
+                                  showDiluentPreparation[selectedParam.id]
+                                    ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                                    : "bg-gray-100 text-gray-500 border border-gray-200"
+                                }`}
+                              >
+                                {showDiluentPreparation[selectedParam.id]
+                                  ? "Active"
+                                  : "Inactive"}
+                              </motion.span>
+                            </div>
+
+                            <p className="text-xs text-emerald-600/70">
+                              Toggle diluent preparation section
+                            </p>
+                          </div>
+                        </label>
                       </div>
+
+                      {/* Diluent Preparation Section (Conditional) */}
+                      <AnimatePresence>
+                        {showDiluentPreparation[selectedParam.id] && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mb-4"
+                          >
+                            <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight mb-3">
+                              <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                              Preparation of Diluent:
+                            </h3>
+                            <textarea
+                              value={diluentPerParam[selectedParam.id] || ""}
+                              onChange={(e) =>
+                                handleDiluentChange(
+                                  selectedParam.id,
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Enter diluent preparation details..."
+                              className="w-full min-h-[100px] border border-emerald-300 rounded-lg p-3 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                              readOnly={role !== "Reviewer"}
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* System Suitability Toggle */}
+                      <div className="mb-6">
+                        <label className="flex items-center gap-4 cursor-pointer group relative">
+                          <div className="relative flex items-center justify-center">
+                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
+
+                            <input
+                              type="checkbox"
+                              checked={
+                                showSystemSuitability[selectedParam.id] || false
+                              }
+                              onChange={(e) => {
+                                setShowSystemSuitability((prev) => ({
+                                  ...prev,
+                                  [selectedParam.id]: e.target.checked,
+                                }));
+                                if (
+                                  e.target.checked &&
+                                  (!systemSuitabilityPerParam[
+                                    selectedParam.id
+                                  ] ||
+                                    systemSuitabilityPerParam[selectedParam.id]
+                                      .length === 0)
+                                ) {
+                                  // Initialize with one system suitability
+                                  setSystemSuitabilityPerParam((prev) => ({
+                                    ...prev,
+                                    [selectedParam.id]: [
+                                      createNewSystemSuitability(0),
+                                    ],
+                                  }));
+                                } else if (!e.target.checked) {
+                                  // Clear system suitability data
+                                  setSystemSuitabilityPerParam((prev) => {
+                                    const { [selectedParam.id]: _, ...rest } =
+                                      prev;
+                                    return rest;
+                                  });
+                                }
+                              }}
+                              className="peer sr-only"
+                            />
+
+                            <div className="relative w-14 h-7 rounded-full border-2 border-emerald-200 bg-gray-200 peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-emerald-600 peer-checked:border-emerald-600 transition-all duration-300 shadow-inner group-hover:border-emerald-300">
+                              <motion.div
+                                className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
+                                animate={{
+                                  x: showSystemSuitability[selectedParam.id]
+                                    ? 28
+                                    : 0,
+                                }}
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 500,
+                                  damping: 30,
+                                }}
+                              >
+                                {/* Icon inside thumb */}
+                                {showSystemSuitability[selectedParam.id] ? (
+                                  <svg
+                                    className="w-3 h-3 text-emerald-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                ) : (
+                                  <svg
+                                    className="w-3 h-3 text-gray-400"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M6 18L18 6M6 6l12 12"
+                                    />
+                                  </svg>
+                                )}
+                              </motion.div>
+                            </div>
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base font-bold text-emerald-700 group-hover:text-emerald-700 transition-colors duration-200">
+                                System Suitabilities
+                              </span>
+
+                              <motion.span
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className={`px-2 py-0.2 text-[10px] font-medium rounded-full transition-all duration-200 ${
+                                  showSystemSuitability[selectedParam.id]
+                                    ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                                    : "bg-gray-100 text-gray-500 border border-gray-200"
+                                }`}
+                              >
+                                {showSystemSuitability[selectedParam.id]
+                                  ? "Active"
+                                  : "Inactive"}
+                              </motion.span>
+                            </div>
+
+                            <p className="text-xs text-emerald-600/70">
+                              Toggle system suitability section
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+
+                      {/* System Suitability Section (Conditional) */}
+                      <AnimatePresence>
+                        {showSystemSuitability[selectedParam.id] && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mb-6 overflow-hidden"
+                          >
+                            <div className="flex items-center justify-between mb-4 px-2">
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                System Suitability
+                              </h3>
+                              <button
+                                onClick={() => {
+                                  const current =
+                                    systemSuitabilityPerParam[
+                                      selectedParam.id
+                                    ] || [];
+                                  const newIndex = current.length;
+                                  setSystemSuitabilityPerParam((prev) => ({
+                                    ...prev,
+                                    [selectedParam.id]: [
+                                      ...current,
+                                      createNewSystemSuitability(newIndex),
+                                    ],
+                                  }));
+                                }}
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add System Suitability
+                              </button>
+                            </div>
+
+                            <AnimatePresence>
+                              {(
+                                systemSuitabilityPerParam[selectedParam.id] ||
+                                []
+                              ).map((systemSuitability) => (
+                                <SystemSuitabilityDetail
+                                  key={systemSuitability.id}
+                                  systemSuitability={systemSuitability}
+                                  onStepChange={(
+                                    systemSuitabilityId,
+                                    stepName,
+                                    field,
+                                    newValue,
+                                  ) => {
+                                    setSystemSuitabilityPerParam((prev) => ({
+                                      ...prev,
+                                      [selectedParam.id]: (
+                                        prev[selectedParam.id] || []
+                                      ).map((ss) => {
+                                        if (ss.id === systemSuitabilityId) {
+                                          return {
+                                            ...ss,
+                                            steps: ss.steps.map((step) => {
+                                              if (step.name === stepName) {
+                                                return {
+                                                  ...step,
+                                                  [field]: newValue,
+                                                };
+                                              }
+                                              return step;
+                                            }),
+                                          };
+                                        }
+                                        return ss;
+                                      }),
+                                    }));
+                                  }}
+                                  onRemove={() => {
+                                    setSystemSuitabilityPerParam((prev) => {
+                                      const updated = (
+                                        prev[selectedParam.id] || []
+                                      )
+                                        .filter(
+                                          (ss) =>
+                                            ss.id !== systemSuitability.id,
+                                        )
+                                        .map((ss, index) => ({
+                                          ...ss,
+                                          label: `System Suitability${index + 1}`,
+                                        }));
+                                      return {
+                                        ...prev,
+                                        [selectedParam.id]: updated,
+                                      };
+                                    });
+                                  }}
+                                />
+                              ))}
+                            </AnimatePresence>
+
+                            {(systemSuitabilityPerParam[selectedParam.id] || [])
+                              .length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                              >
+                                <div className="relative z-10">
+                                  <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                                    <Target className="w-14 h-14 text-emerald-400" />
+                                  </div>
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
+                                    No system suitability added yet
+                                  </p>
+                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
+                                    Click "Add System Suitability" to create
+                                    system suitability parameters
+                                  </p>
+                                </div>
+                              </motion.div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
 
                     {isLocked && (
-                      <BottomParameterActionBar parameterId={selectedParam.id} />
+                      <BottomParameterActionBar
+                        parameterId={selectedParam.id}
+                      />
                     )}
                   </motion.div>
                 </AnimatePresence>
@@ -10071,8 +12167,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                   whileTap={!isSaving ? { scale: 0.98 } : {}}
                   className={`relative px-6 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all duration-200 flex items-center gap-2 min-w-[140px] justify-center ${
                     isSaving
-                      ? "bg-gradient-to-r from-blue-400 to-blue-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl"
+                      ? "bg-gradient-to-r from-emerald-400 to-emerald-500 cursor-not-allowed"
+                      : "bg-gradient-to-r from-emerald-600 to-emerald-600 hover:from-emerald-700 hover:to-emerald-800 hover:shadow-xl"
                   } text-white`}
                 >
                   {isSaving ? (
@@ -10130,7 +12226,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                 (param) =>
                   (
                     parameterStatusPerParam[param.id] || "created"
-                  ).toLowerCase() === "created"
+                  ).toLowerCase() === "created",
               ) && (
                 <motion.button
                   onClick={() => setShowSubmitDialog(true)}
@@ -10139,8 +12235,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                   whileTap={!isSubmitting ? { scale: 0.98 } : {}}
                   className={`relative px-6 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all duration-200 flex items-center gap-2 min-w-[180px] justify-center ${
                     isSubmitting
-                      ? "bg-gradient-to-r from-emerald-400 to-emerald-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 hover:shadow-xl"
+                      ? "bg-gradient-to-r from-blue-400 to-blue-500 cursor-not-allowed"
+                      : "bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl"
                   } text-white`}
                 >
                   {isSubmitting ? (
@@ -10189,8 +12285,8 @@ const handleAnalystSelected = async (employeeId: string) => {
                   whileTap={!isApprovingWorksheet ? { scale: 0.98 } : {}}
                   className={`relative px-6 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all duration-200 flex items-center gap-2 min-w-[200px] justify-center ${
                     isApprovingWorksheet
-                      ? "bg-gradient-to-r from-emerald-400 to-green-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 hover:shadow-xl"
+                      ? "bg-gradient-to-r from-green-400 to-green-500 cursor-not-allowed"
+                      : "bg-gradient-to-r from-green-600 to-green-600 hover:from-green-700 hover:to-green-800 hover:shadow-xl"
                   } text-white`}
                 >
                   {isApprovingWorksheet ? (
@@ -10232,7 +12328,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                 onClick={handlePrintClick}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-sm flex items-center gap-2"
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-sm flex items-center gap-2"
               >
                 <svg
                   className="w-5 h-5"
@@ -10260,13 +12356,15 @@ const handleAnalystSelected = async (employeeId: string) => {
             setCurrentParameterForStandardPrep(null);
             setIsAddingRSStandard(false);
             setIsAddingDissoStandard(false);
+            setIsAddingUCStandard(false);
           }}
           availableStandards={
             currentParameterForStandardPrep !== null
               ? getAvailableStandardsForParameter(
                   currentParameterForStandardPrep,
                   isAddingRSStandard,
-                  isAddingDissoStandard
+                  isAddingDissoStandard,
+                  isAddingUCStandard,
                 )
               : []
           }
@@ -10274,7 +12372,8 @@ const handleAnalystSelected = async (employeeId: string) => {
             handleStandardSelectedForPreparation(
               standard,
               isAddingRSStandard,
-              isAddingDissoStandard
+              isAddingDissoStandard,
+              isAddingUCStandard,
             );
           }}
         />
@@ -10304,7 +12403,7 @@ const handleAnalystSelected = async (employeeId: string) => {
                   (param) =>
                     (
                       parameterStatusPerParam[param.id] || "created"
-                    ).toLowerCase() === "created"
+                    ).toLowerCase() === "created",
                 ).length
               }
             />

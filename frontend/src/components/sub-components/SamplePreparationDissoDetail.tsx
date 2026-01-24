@@ -4,6 +4,7 @@ import { ChevronDown, Droplets, Trash } from "lucide-react";
 import type { SamplePreparationDisso } from "../../preparation_models/SamplePreparationDisso";
 import type { SamplePreparationDissoStep } from "../../preparation_models/SamplePreparationDissoStep";
 import CustomDropdown from "../shared/CustomDropdown";
+import type { Standard } from "../../preparation_models/Standard";
 
 const weightUnitOptions = [
   { value: "mg", label: "mg" },
@@ -37,6 +38,7 @@ const tempUnitOptions = [
 
 interface SamplePreparationDissoDetailProps {
   samplePreparationDisso: SamplePreparationDisso;
+  assignedStandard: Standard | null;
   onStepChange: (
     samplePreparationDissoId: number,
     stepName: SamplePreparationDissoStep["name"],
@@ -57,7 +59,7 @@ interface SamplePreparationDissoDetailProps {
 
 const SamplePreparationDissoDetail: React.FC<
   SamplePreparationDissoDetailProps
-> = ({ samplePreparationDisso, onStepChange, onRemove, role }) => {
+> = ({ samplePreparationDisso, assignedStandard, onStepChange, onRemove, role }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
@@ -68,12 +70,12 @@ const SamplePreparationDissoDetail: React.FC<
       className="relative group z-20"
     >
       {/* Glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-green-400/20 rounded-lg blur-xl group-hover:blur-xl transition-all duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-emerald-400/20 rounded-lg blur-xl group-hover:blur-xl transition-all duration-300" />
 
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-emerald-200/50 transition-all duration-300 mb-4">
         {/* Elegant Header */}
         <div
-          className={`relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-500 ${
+          className={`relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-500 ${
             isExpanded ? "rounded-t-lg" : "rounded-lg"
           }`}
         >
@@ -143,7 +145,7 @@ const SamplePreparationDissoDetail: React.FC<
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
             >
-              <div className="p-5 space-y-3 bg-gradient-to-br from-emerald-50/50 to-green-50/30">
+              <div className="p-5 space-y-3 bg-gradient-to-br from-emerald-50/50 to-emerald-50/30">
                 {samplePreparationDisso.steps.map((step, index) => {
                   const isInstrument = step.name === "Instrument Details";
                   const isTablet = step.name === "Tablet Details";
@@ -164,7 +166,7 @@ const SamplePreparationDissoDetail: React.FC<
 
                       <div className="relative bg-white rounded-xl border border-emerald-200/60 hover:border-emerald-300 transition-all duration-200 p-4">
                         <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center shadow-md">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-emerald-500 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
                             <span className="text-white text-xs font-bold">
                               {index + 1}
                             </span>
@@ -342,7 +344,7 @@ const SamplePreparationDissoDetail: React.FC<
                                   </div>
 
                                   <span className="text-gray-600 ml-2 font-medium">
-                                    Media Volume
+                                    Media Volume (V8)
                                   </span>
                                   <input
                                     type="number"
@@ -370,7 +372,7 @@ const SamplePreparationDissoDetail: React.FC<
                                     placeholder="Enter Volume"
                                     className="flex-1 min-w-[100px] px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
-                                  <div className="w-16">
+                                  <div className="w-20">
                                     <CustomDropdown
                                       options={volumeUnitOptions}
                                       value={step.unit2 || "ml"}
@@ -386,8 +388,8 @@ const SamplePreparationDissoDetail: React.FC<
                                       colorScheme="emerald"
                                     />
                                   </div>
-                                  <span className="text-gray-600 ml-4 font-medium">
-                                    Sampling Time
+                                  <span className="text-gray-600 font-medium">
+                                     Sampling Time
                                   </span>
                                   <input
                                     type="number"
@@ -486,14 +488,19 @@ const SamplePreparationDissoDetail: React.FC<
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
+                                    {is1stDilution
+                                      ? "(V9)"
+                                      : is2ndDilution
+                                      ? "(V11)"
+                                      : "(V13)"}{" "}
                                     of{" "}
                                     {is1stDilution
-                                      ? "stock"
+                                      ? "Disso"
                                       : is2ndDilution
                                       ? "1st"
                                       : "2nd"}{" "}
                                     {is1stDilution
-                                      ? "solution"
+                                      ? "Solution"
                                       : "Dilution Solution"}{" "}
                                     & dilute to
                                   </span>
@@ -540,7 +547,12 @@ const SamplePreparationDissoDetail: React.FC<
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
-                                    with diluent
+                                    {is1stDilution
+                                      ? "(V10)"
+                                      : is2ndDilution
+                                      ? "(V12)"
+                                      : "(V14)"}{" "}
+                                    with Diluent
                                   </span>
                                 </div>
                               </div>
@@ -577,7 +589,7 @@ const SamplePreparationDissoDetail: React.FC<
                                   placeholder="Enter Size"
                                   className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                 />
-                                <div className="w-20">
+                                <div className="w-30">
                                   <CustomDropdown
                                     options={filtrationUnitOptions}
                                     value={step.unit1 || "µm"}

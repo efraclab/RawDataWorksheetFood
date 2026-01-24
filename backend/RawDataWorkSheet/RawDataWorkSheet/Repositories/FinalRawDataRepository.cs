@@ -83,10 +83,20 @@ namespace RawDataWorkSheet.Repositories
             foreach (var p in parameters)
             {
                 var id = await tx.Connection.ExecuteScalarAsync<long>(
-                    query, 
-                    new {
-                        p.WorksheetId, p.ParameterCode, p.ParameterName, p.MethodName, p.MethodCode, p.ColumnId, p.DiluentPreparation, p.OtherInfo,
-                        p.ParameterAnalyzedBy, p.ParameterApprovedBy, p.ParameterStatus,
+                    query,
+                    new
+                    {
+                        p.WorksheetId,
+                        p.ParameterCode,
+                        p.ParameterName,
+                        p.MethodName,
+                        p.MethodCode,
+                        p.ColumnId,
+                        p.DiluentPreparation,
+                        p.OtherInfo,
+                        p.ParameterAnalyzedBy,
+                        p.ParameterApprovedBy,
+                        p.ParameterStatus,
                         ParameterApprovedAt = ParseDate(p.ParameterApprovedAt),
                         AnalysisStartedAt = ParseDate(p.AnalysisStartedAt),
                         AnalysisCompletedAt = ParseDate(p.AnalysisCompletedAt)
@@ -168,7 +178,9 @@ namespace RawDataWorkSheet.Repositories
             Value2,
             Unit2,
             Value3,
-            Unit3
+            Unit3,
+            SolventChemical,
+            LogBookID
         )
         VALUES (
             @PreparationId,
@@ -185,7 +197,9 @@ namespace RawDataWorkSheet.Repositories
             @Value2,
             @Unit2,
             @Value3,
-            @Unit3
+            @Unit3,
+            @SolventChemical,
+            @LogBookID
         )
     """;
 
@@ -222,7 +236,9 @@ namespace RawDataWorkSheet.Repositories
                         p.Value2,
                         p.Unit2,
                         p.Value3,
-                        p.Unit3
+                        p.Unit3,
+                        p.SolventChemical,
+                        p.LogBookID
                     },
                     tx
                 );

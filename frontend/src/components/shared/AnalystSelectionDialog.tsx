@@ -7,7 +7,7 @@ interface AnalystSelectionDialogProps {
   isOpen: boolean;
   onClose: () => void;
   analysts: Analyst[];
-  onSelectAnalyst: (employeeId: string) => void;
+  onSelectAnalyst: (employeeId: string, employeeName: string) => void;
 }
 
 const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
@@ -17,7 +17,7 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
   onSelectAnalyst,
 }) => {
 
-    console.log("Analysts passed to dialog:", analysts);
+  console.log("Analysts passed to dialog:", analysts);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedId, setSelectedId] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -63,7 +63,9 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
 
   const handleConfirm = () => {
     if (selectedId) {
-      onSelectAnalyst(selectedId);
+      if (selectedAnalyst) {
+        onSelectAnalyst(selectedId, selectedAnalyst.username);
+      } 
       setSelectedId("");
       setSearchTerm("");
       setIsDropdownOpen(false);

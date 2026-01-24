@@ -41,6 +41,108 @@
         }
       }
     },
+    "/api/chemicals": {
+      "get": {
+        "tags": [
+          "Chemical"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Chemical"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChemicalMaster"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChemicalMaster"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChemicalMaster"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChemicalMaster"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Chemical"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChemicalMaster"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChemicalMaster"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChemicalMaster"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChemicalMaster"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/chemicals/{slNo}": {
+      "delete": {
+        "tags": [
+          "Chemical"
+        ],
+        "parameters": [
+          {
+            "name": "slNo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/raw-data/save": {
       "post": {
         "tags": [
@@ -70,6 +172,108 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/instruments": {
+      "get": {
+        "tags": [
+          "Instrument"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Instrument"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstrumentMaster"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstrumentMaster"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstrumentMaster"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstrumentMaster"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Instrument"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstrumentMaster"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstrumentMaster"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstrumentMaster"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstrumentMaster"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/instruments/{id}": {
+      "delete": {
+        "tags": [
+          "Instrument"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -113,19 +317,7 @@
         }
       }
     },
-    "/api/instruments": {
-      "get": {
-        "tags": [
-          "RawData"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/chemicals": {
+    "/api/columns": {
       "get": {
         "tags": [
           "RawData"
@@ -140,8 +332,76 @@
     "/api/standards": {
       "get": {
         "tags": [
-          "RawData"
+          "Standard"
         ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Standard"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMaster"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMaster"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMaster"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMaster"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Standard"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMaster"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMaster"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMaster"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMaster"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -149,10 +409,20 @@
         }
       }
     },
-    "/api/columns": {
-      "get": {
+    "/api/standards/{serialNo}": {
+      "delete": {
         "tags": [
-          "RawData"
+          "Standard"
+        ],
+        "parameters": [
+          {
+            "name": "serialNo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -491,6 +761,62 @@
         },
         "additionalProperties": false
       },
+      "ChemicalMaster": {
+        "type": "object",
+        "properties": {
+          "slno": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "make": {
+            "type": "string",
+            "nullable": true
+          },
+          "part_No": {
+            "type": "string",
+            "nullable": true
+          },
+          "exp_Date": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "batchNo": {
+            "type": "string",
+            "nullable": true
+          },
+          "modular_Height": {
+            "type": "string",
+            "nullable": true
+          },
+          "cas_No": {
+            "type": "string",
+            "nullable": true
+          },
+          "manufacturer_Date": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "packQuantity": {
+            "type": "string",
+            "nullable": true
+          },
+          "packUnit": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "DocumentInfoDto": {
         "type": "object",
         "properties": {
@@ -521,6 +847,68 @@
             "nullable": true
           },
           "role": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "InstrumentMaster": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "sl_No": {
+            "type": "string",
+            "nullable": true
+          },
+          "make": {
+            "type": "string",
+            "nullable": true
+          },
+          "instrumentTag": {
+            "type": "string",
+            "nullable": true
+          },
+          "purchaseDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "labName": {
+            "type": "string",
+            "nullable": true
+          },
+          "warrenty_UOTO": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "amC_UPTO": {
+            "type": "string",
+            "nullable": true
+          },
+          "cmC_UPTO": {
+            "type": "string",
+            "nullable": true
+          },
+          "calibrationDoneDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "calibrationDueDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "calibrationAgency": {
             "type": "string",
             "nullable": true
           }
@@ -634,17 +1022,10 @@
             },
             "nullable": true
           },
-          "standardPreparations": {
+          "preparations": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StandardPreparationDto"
-            },
-            "nullable": true
-          },
-          "samplePreparations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SamplePreparationDto"
+              "$ref": "#/components/schemas/PreparationDto"
             },
             "nullable": true
           },
@@ -653,6 +1034,32 @@
             "items": {
               "$ref": "#/components/schemas/CalculationDto"
             },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PreparationDto": {
+        "type": "object",
+        "properties": {
+          "preparationCategory": {
+            "type": "string",
+            "nullable": true
+          },
+          "preparationType": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          },
+          "assignedStandardId": {
+            "type": "string",
+            "nullable": true
+          },
+          "steps": {
+            "type": "string",
             "nullable": true
           }
         },
@@ -920,6 +1327,14 @@
           "unit3": {
             "type": "string",
             "nullable": true
+          },
+          "solventChemical": {
+            "type": "string",
+            "nullable": true
+          },
+          "logBookID": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1016,27 +1431,6 @@
         },
         "additionalProperties": false
       },
-      "SamplePreparationDto": {
-        "type": "object",
-        "properties": {
-          "label": {
-            "type": "string",
-            "nullable": true
-          },
-          "assignedStandardId": {
-            "type": "string",
-            "nullable": true
-          },
-          "preparationType": {
-            "type": "string",
-            "nullable": true
-          },
-          "steps": {
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
       "SaveWorksheetRawDataRequest": {
         "type": "object",
         "properties": {
@@ -1101,22 +1495,53 @@
         },
         "additionalProperties": false
       },
-      "StandardPreparationDto": {
+      "StandardMaster": {
         "type": "object",
         "properties": {
-          "label": {
+          "serialNo": {
             "type": "string",
             "nullable": true
           },
-          "assignedStandardId": {
+          "name": {
             "type": "string",
             "nullable": true
           },
-          "preparationType": {
+          "batchNo": {
             "type": "string",
             "nullable": true
           },
-          "steps": {
+          "make": {
+            "type": "string",
+            "nullable": true
+          },
+          "purity": {
+            "type": "string",
+            "nullable": true
+          },
+          "department": {
+            "type": "string",
+            "nullable": true
+          },
+          "pack": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitCode": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "unit": {
+            "type": "string",
+            "nullable": true
+          },
+          "validity": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "remarks": {
+            "type": "string",
             "nullable": true
           }
         },

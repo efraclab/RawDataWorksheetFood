@@ -1,8 +1,13 @@
 export interface Standard {
-  id: string;
+  serialNo: string;
   name: string;
-  make?: string;
-  batchNo?: string;
-  purity: string;
-  validity?: string;
+  batchNo?: string | null;
+  make?: string | null;
+  purity?: string | null;
+  department?: string | null;
+  pack?: string | null;
+  unitCode?: number | null;
+  unit?: string | null;
+  validity?: string | null;
+  remarks?: string | null;
 }

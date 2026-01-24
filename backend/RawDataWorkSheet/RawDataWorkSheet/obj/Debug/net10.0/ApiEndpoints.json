@@ -16,13 +16,61 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
-    "Method": "GetChemicals",
+    "ContainingType": "RawDataWorkSheet.Controllers.ChemicalController",
+    "Method": "GetAll",
     "RelativePath": "api/chemicals",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.ChemicalController",
+    "Method": "Add",
+    "RelativePath": "api/chemicals",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.References.ChemicalMaster",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.ChemicalController",
+    "Method": "Update",
+    "RelativePath": "api/chemicals",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.References.ChemicalMaster",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.ChemicalController",
+    "Method": "Delete",
+    "RelativePath": "api/chemicals/{slNo}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "slNo",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
     "ReturnTypes": []
   },
   {
@@ -36,13 +84,61 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
-    "Method": "GetInstruments",
+    "ContainingType": "RawDataWorkSheet.Controllers.InstrumentController",
+    "Method": "GetAll",
     "RelativePath": "api/instruments",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.InstrumentController",
+    "Method": "Add",
+    "RelativePath": "api/instruments",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.References.InstrumentMaster",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.InstrumentController",
+    "Method": "Update",
+    "RelativePath": "api/instruments",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.References.InstrumentMaster",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.InstrumentController",
+    "Method": "Delete",
+    "RelativePath": "api/instruments/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
     "ReturnTypes": []
   },
   {
@@ -78,13 +174,61 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
-    "Method": "GetStandards",
+    "ContainingType": "RawDataWorkSheet.Controllers.StandardController",
+    "Method": "GetAll",
     "RelativePath": "api/standards",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.StandardController",
+    "Method": "Add",
+    "RelativePath": "api/standards",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.References.StandardMaster",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.StandardController",
+    "Method": "Update",
+    "RelativePath": "api/standards",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.References.StandardMaster",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.StandardController",
+    "Method": "Delete",
+    "RelativePath": "api/standards/{serialNo}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "serialNo",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
     "ReturnTypes": []
   },
   {

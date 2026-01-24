@@ -10,7 +10,6 @@ import {
   Clock,
   CheckCircle2,
   FileEdit,
-  TrendingUp,
   Hash,
   AlertCircle,
   Beaker,
@@ -19,10 +18,14 @@ import {
   ChevronDown,
   Calendar,
   ClipboardCheck,
+  Database,
+  ArrowRight,
+  BarChart3,
 } from "lucide-react";
 import { fetchAllWorksheets } from "../services/api";
 import type { FetchWorksheetRequest } from "../models/FetchWorksheetRequest";
 import type { WorksheetSummary } from "../models/WorksheetSummary";
+import { MdAnalytics } from "react-icons/md";
 
 interface WorksheetItem {
   id: number;
@@ -36,7 +39,10 @@ interface WorksheetItem {
 }
 
 interface WorksheetDashboardProps {
-  onNavigate: (screen: "worksheet" | "create", worksheetId?: string) => void;
+  onNavigate: (
+    screen: "worksheet" | "create" | "reference-data",
+    worksheetId?: string
+  ) => void;
   employeeId: string;
   username: string;
   department: string;
@@ -183,67 +189,23 @@ export default function WorksheetDashboard({
   const stats = {
     total: worksheets.length,
     draft: worksheets.filter((f) => f.status === "Draft").length,
-    submitted: worksheets.filter((f) => f.status === "Submitted For Analysis")
+    inAnalysis: worksheets.filter((f) => f.status === "Submitted For Analysis")
       .length,
     pendingReview: worksheets.filter((f) => f.status === "Pending For Review")
       .length,
     approved: worksheets.filter((f) => f.status === "Approved").length,
   };
 
-  // Build stats cards based on role
-  const statsCards = [
-    {
-      label: "Total Worksheets",
-      value: stats.total,
-      icon: FileSpreadsheet,
-      color: "slate",
-      bgGradient: "from-slate-500 to-slate-600",
-      show: true,
-    },
-    {
-      label: "Draft",
-      value: stats.draft,
-      icon: FileEdit,
-      color: "amber",
-      bgGradient: "from-amber-500 to-amber-600",
-      show: role.includes("Reviewer"),
-    },
-    {
-      label: "Submitted",
-      value: stats.submitted,
-      icon: Clock,
-      color: "blue",
-      bgGradient: "from-blue-500 to-blue-600",
-      show: true,
-    },
-    {
-      label: "Pending Review",
-      value: stats.pendingReview,
-      icon: ClipboardCheck,
-      color: "orange",
-      bgGradient: "from-orange-500 to-red-600",
-      show: true,
-    },
-    {
-      label: "Approved",
-      value: stats.approved,
-      icon: CheckCircle2,
-      color: "emerald",
-      bgGradient: "from-emerald-500 to-emerald-600",
-      show: true,
-    },
-  ].filter((card) => card.show);
 
-  // Status filter options based on role
   const statusFilters = [
     { label: "All", value: "all", count: stats.total },
     ...(role.includes("Reviewer")
       ? [{ label: "Draft", value: "Draft", count: stats.draft }]
       : []),
     {
-      label: "Submitted",
+      label: "In Analysis",
       value: "Submitted For Analysis",
-      count: stats.submitted,
+      count: stats.inAnalysis,
     },
     {
       label: "Pending Review",
@@ -334,6 +296,30 @@ export default function WorksheetDashboard({
               transparent
             );
           }
+
+          @keyframes blob {
+            0%, 100% {
+              transform: translate(0, 0) scale(1);
+            }
+            33% {
+              transform: translate(30px, -50px) scale(1.1);
+            }
+            66% {
+              transform: translate(-20px, 20px) scale(0.9);
+            }
+          }
+
+          .animate-blob {
+            animation: blob 7s infinite;
+          }
+
+          .animation-delay-2000 {
+            animation-delay: 2s;
+          }
+
+          .animation-delay-4000 {
+            animation-delay: 4s;
+          }
         `}
       </style>
 
@@ -373,17 +359,6 @@ export default function WorksheetDashboard({
                   className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`}
                 />
               </button>
-
-              {/* Create New Button (Reviewer only) */}
-              {role.includes("Reviewer") && (
-                <button
-                  onClick={() => onNavigate("create")}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">New Worksheet</span>
-                </button>
-              )}
 
               {/* User Menu */}
               <div className="relative">
@@ -439,45 +414,164 @@ export default function WorksheetDashboard({
 
       {/* Main Content */}
       <div className="max-w-[1800px] mx-auto px-6 py-6">
-        {/* Stats Grid */}
-        <div className="mb-6">
-          <div
-            className={`grid gap-4 ${
-              statsCards.length === 5
-                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-5"
-                : statsCards.length === 4
-                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-            }`}
-          >
-            {statsCards.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <div
-                  key={stat.label}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                  className="animate-slideIn bg-white rounded-xl border border-slate-200 shadow-sm p-4 hover:shadow-lg transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div
-                      className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.bgGradient} flex items-center justify-center group-hover:scale-110 transition-transform`}
-                    >
-                      <Icon className="w-5 h-5 text-white" />
-                    </div>
-                    <TrendingUp className="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+
+        {role.includes("Reviewer") && (
+        <div className="mb-8 mt-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Reference Management Card */}
+            <div className="group bg-white rounded-xl border-2 border-slate-200 hover:border-blue-500 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+              <div className="relative p-5">
+                {/* Decorative Background */}
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-100/30 to-indigo-100/30 rounded-full blur-3xl -z-10 group-hover:scale-150 transition-transform duration-500"></div>
+
+                <div className="flex items-center gap-4">
+                  {/* Icon Badge */}
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                    <Database className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-800 mb-1">
-                    {stat.value}
-                  </h3>
-                  <p className="text-xs font-medium text-slate-500">
-                    {stat.label}
-                  </p>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold text-slate-800 mb-1">
+                      Reference Management
+                    </h3>
+                    <p className="text-xs text-slate-600 mb-2 line-clamp-2">
+                      Manage chemicals, instruments, and standards data
+                    </p>
+                  </div>
+
+                  {/* Button */}
+                  <button
+                    onClick={() => onNavigate("reference-data")}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-semibold rounded-lg  transition-all shadow-md hover:shadow-lg group-hover:gap-3 flex-shrink-0"
+                  >
+                    <span>Let's Go</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  </button>
                 </div>
-              );
-            })}
+              </div>
+            </div>
+
+            {/* RawData Analysis Card */}
+            <div className="group bg-white rounded-xl border-2 border-slate-200 hover:border-emerald-500 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+              <div className="relative p-5">
+                {/* Decorative Background */}
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-100/30 to-teal-100/30 rounded-full blur-3xl -z-10 group-hover:scale-150 transition-transform duration-500"></div>
+
+                <div className="flex items-center gap-4">
+                  {/* Icon Badge */}
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                    <BarChart3 className="w-6 h-6 text-white" />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold text-slate-800 mb-1">
+                      RawData Analysis
+                    </h3>
+                    <p className="text-xs text-slate-600 mb-2 line-clamp-2">
+                      Create worksheets and perform comprehensive analysis
+                    </p>
+                  </div>
+
+                  {/* Button */}
+                  <button
+                    onClick={() => onNavigate("create")}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all shadow-md hover:shadow-lg group-hover:gap-3 flex-shrink-0"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Create</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+        )}
 
+
+        {/* Analyst Hero Section - EMERALD THEME */}
+        {!role.includes("Reviewer") && (
+        <div className="mb-8 mt-3">
+          <div className="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 rounded-2xl border-2 border-emerald-300 shadow-sm overflow-hidden">
+            <div className="relative py-8 px-10">
+              <div className="flex flex-col lg:flex-row items-center gap-8">
+
+                {/* Middle: Content Section */}
+                <div className="flex-1">
+                  <div className="mb-6">
+                    <h2 className="text-3xl font-bold text-slate-800 mb-2 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                      Welcome, {username.split(" ")[0]}!
+                    </h2>
+                    <p className="text-slate-600 text-sm leading-relaxed">
+                      Review and analyze assigned worksheets with precision. Follow the workflow below to complete your analysis tasks.
+                    </p>
+                  </div>
+
+                  {/* Workflow Steps */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    {/* Step 1 */}
+                    <div className="relative bg-white rounded-xl p-4 mr-2 border-2 border-emerald-200 hover:shadow-lg transition-all group">
+                      <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
+                        <span className="text-white text-xs font-bold">1</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Clock className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-800">Start Analysis</h4>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">Select and begin analyzing assigned worksheets</p>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="relative bg-white rounded-xl p-4 mr-2 border-2 border-teal-200 hover:shadow-lg transition-all group">
+                      <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-full flex items-center justify-center shadow-lg">
+                        <span className="text-white text-xs font-bold">2</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <ClipboardCheck className="w-4 h-4 text-teal-600" />
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-800">Submit Review</h4>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">Complete analysis and wait for approval</p>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="relative bg-white rounded-xl p-4 mr-2 border-2 border-amber-200 hover:shadow-lg transition-all group">
+                      <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
+                        <span className="text-white text-xs font-bold">3</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <FileEdit className="w-4 h-4 text-amber-600" />
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-800">Revise if Needed</h4>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">Update analysis based on reviewer feedback</p>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="relative bg-white rounded-xl p-4 border-2 border-emerald-200 hover:shadow-lg transition-all group">
+                      <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                        <span className="text-white text-xs font-bold">4</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-800">Approved!</h4>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">Analysis complete and approved by reviewer</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        )}
         {/* Search and Filter Bar */}
         <div className="mb-6 animate-fadeIn">
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">

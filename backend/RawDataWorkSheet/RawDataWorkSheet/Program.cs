@@ -18,8 +18,14 @@ builder.Services.AddScoped<IWorksheetRepository, WorksheetRepository>();
 builder.Services.AddScoped<IWorksheetService, WorksheetService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped < IFinalRawDataRepository, FinalRawDataRepository>();
-builder.Services.AddScoped < IFinalRawDataService, FinalRawDataService>();
+builder.Services.AddScoped <IFinalRawDataRepository, FinalRawDataRepository>();
+builder.Services.AddScoped <IFinalRawDataService, FinalRawDataService>();
+builder.Services.AddScoped <IChemicalRepository, ChemicalRepository>();
+builder.Services.AddScoped <IStandardRepository, StandardRepository>();
+builder.Services.AddScoped <IInstrumentRepository, InstrumentRepository>();
+builder.Services.AddScoped <IChemicalService, ChemicalService>();
+builder.Services.AddScoped <IInstrumentService, InstrumentService>();
+builder.Services.AddScoped <IStandardService, StandardService>();
 builder.Services.AddScoped<JwtService>();
 
 builder.Services.AddCors(options =>

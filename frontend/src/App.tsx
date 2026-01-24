@@ -17,6 +17,7 @@ import WorksheetDashboard from "./components/WorksheetDashboard";
 import CreateWorksheet from "./components/CreateWorksheet";
 import Worksheet from "./components/Worksheet";
 import PrintReport from "./components/PrintReport";
+import ReferenceDataManagement from "./components/ReferenceDataManagement";
 
 import type { Instrument } from "./preparation_models/Instrument";
 import type { Chemical } from "./preparation_models/Chemical";
@@ -25,9 +26,9 @@ import type { Column } from "./preparation_models/Column";
 import type { WorksheetDetail } from "./models/WorksheetDetail";
 
 import {
-  fetchInstruments,
-  fetchChemicals,
-  fetchStandards,
+  getInstruments,
+  getChemicals,
+  getStandards,
   fetchColumns,
 } from "./services/api";
 import type { Analyst } from "./models/Analyst";
@@ -83,10 +84,11 @@ function DashboardPage({
   const navigate = useNavigate();
 
   const handleNavigation = (
-    screen: "create" | "worksheet",
+    screen: "create" | "worksheet" | "reference-data",
     worksheetId?: string
   ) => {
     if (screen === "create") navigate("/worksheets/new");
+    else if (screen === "reference-data") navigate("/reference-data");
     else if (worksheetId) navigate(`/worksheets/${worksheetId}`);
   };
 
@@ -100,6 +102,16 @@ function DashboardPage({
         role={role}
         onLogout={onLogout}
       />
+    </motion.div>
+  );
+}
+
+function ReferenceDataPage() {
+  const navigate = useNavigate();
+
+  return (
+    <motion.div variants={pageVariants} initial="initial" animate="animate">
+      <ReferenceDataManagement onBack={() => navigate("/")} />
     </motion.div>
   );
 }
@@ -131,6 +143,7 @@ function WorksheetPreviewPage(props: {
 }) {
   const { worksheetId } = useParams<{ worksheetId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
 
   if (!worksheetId) return null;
 
@@ -258,9 +271,9 @@ function AuthenticatedApp({
     const loadReferenceData = async () => {
       try {
         const [inst, chem, std, col] = await Promise.all([
-          fetchInstruments(),
-          fetchChemicals(),
-          fetchStandards(),
+          getInstruments(),
+          getChemicals(),
+          getStandards(),
           fetchColumns(),
         ]);
         setInstruments(inst);
@@ -291,6 +304,10 @@ function AuthenticatedApp({
                 onLogout={onLogout}
               />
             }
+          />
+          <Route
+            path="/reference-data"
+            element={<ReferenceDataPage />}
           />
           <Route
             path="/worksheets/new"
@@ -339,9 +356,6 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [sessionKey, setSessionKey] = useState(Date.now());
-
-  // const INACTIVITY_TIMEOUT =
-  //   localStorage.getItem("EmployeeId") === "admin" ? 1800000 : 3600000;
 
   const clearAuthData = () => {
     localStorage.clear();

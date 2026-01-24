@@ -11,7 +11,7 @@ namespace RawDataWorkSheet.Repositories
 
         public UserRepository(IConfiguration configuration)
         {
-            _connectionString = configuration["Connnectionstrings:Connection2"]; ;
+            _connectionString = configuration["Connnectionstrings:Connection2"];
         }
 
         public async Task<User?> GetUserAsync(string employeeId)

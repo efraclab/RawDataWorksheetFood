@@ -4,8 +4,8 @@ import {
   ChevronDown,
   Calculator,
   Trash,
-  AlertTriangle,
   CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import type { CalculationLod } from "../../preparation_models/CalculationLod";
 import type { SamplePreparationLod } from "../../preparation_models/SamplePreparationLod";
@@ -23,24 +23,11 @@ interface CalculationDetailLodProps {
   role: string;
 }
 
-// Helper component for warning indicator
-const WarningIndicator: React.FC<{ value: string | number }> = ({ value }) => {
-  const strValue = String(value);
-  const isInvalid = strValue.trim() === "" || parseFloat(strValue) === 0;
-
-  if (isInvalid) {
-    return (
-      <span
-        className="text-blue-500 ml-2"
-        title="Missing or zero value detected, calculation will fail."
-      >
-        <AlertTriangle className="w-4 h-4 inline-block" />
-      </span>
-    );
-  }
-  return null;
-};
-
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
 
 const convertMassToG = (value: string | number, unit: string): number => {
   const val = parseFloat(String(value));
@@ -71,10 +58,12 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
   role,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [validationResult, setValidationResult] = useState<ValidationResult>({
+    isValid: false,
+    errors: [],
+    warnings: [],
+  });
 
-  const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
-
-  // Get selected sample preparation
   const selectedSamplePrep = samplePreparations.find(
     (prep) => prep.label === calculation.selectedSamplePrepLabel
   );
@@ -94,7 +83,6 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
     }
   }, [calculation.selectedSamplePrepLabel, samplePreparations]);
 
-  // Extract weight values from sample preparation steps
   const getSampleWeights = () => {
     if (!selectedSamplePrep) {
       return {
@@ -104,13 +92,17 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
       };
     }
 
-    const weighingEmptyCrucible = selectedSamplePrep.steps.find(
+    const stepsArr = Array.isArray(selectedSamplePrep.steps)
+      ? selectedSamplePrep.steps
+      : [];
+
+    const weighingEmptyCrucible = stepsArr.find(
       (s) => s.name === "Weighing (Empty Bottle)"
     );
-    const weighingBeforeDrying = selectedSamplePrep.steps.find(
+    const weighingBeforeDrying = stepsArr.find(
       (s) => s.name === "Weighing (Before Drying)"
     );
-    const weighingAfterDrying = selectedSamplePrep.steps.find(
+    const weighingAfterDrying = stepsArr.find(
       (s) => s.name === "Weighing (After Drying)"
     );
 
@@ -131,11 +123,158 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
   };
 
   const sampleWeights = getSampleWeights();
+
+  const validatePreparations = (): ValidationResult => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    if (!selectedSamplePrep) {
+      errors.push("Please select a Sample Preparation");
+      return { isValid: false, errors, warnings };
+    }
+
+    const isValueValid = (value: any): boolean => {
+      if (value === null || value === undefined) return false;
+      const strValue = String(value).trim();
+      return (
+        strValue !== "" &&
+        !isNaN(parseFloat(strValue)) &&
+        parseFloat(strValue) !== 0
+      );
+    };
+
+    const smpSteps = Array.isArray(selectedSamplePrep.steps)
+      ? selectedSamplePrep.steps
+      : [];
+
+    const weighingEmpty = smpSteps.find(
+      (s) => s.name === "Weighing (Empty Bottle)"
+    );
+    if (!weighingEmpty) {
+      errors.push(
+        "Sample Preparation: Weighing (Empty Bottle) step is missing"
+      );
+    } else {
+      if (!isValueValid(weighingEmpty.value1)) {
+        errors.push(
+          "Sample Preparation - Weighing (Empty Bottle): Weight value is required"
+        );
+      }
+    }
+
+    const weighingBefore = smpSteps.find(
+      (s) => s.name === "Weighing (Before Drying)"
+    );
+    if (!weighingBefore) {
+      errors.push(
+        "Sample Preparation: Weighing (Before Drying) step is missing"
+      );
+    } else {
+      if (!isValueValid(weighingBefore.value1)) {
+        errors.push(
+          "Sample Preparation - Weighing (Before Drying): Weight value is required"
+        );
+      }
+    }
+
+    const weighingAfter = smpSteps.find(
+      (s) => s.name === "Weighing (After Drying)"
+    );
+    if (!weighingAfter) {
+      errors.push(
+        "Sample Preparation: Weighing (After Drying) step is missing"
+      );
+    } else {
+      if (!isValueValid(weighingAfter.value1)) {
+        errors.push(
+          "Sample Preparation - Weighing (After Drying): Weight value is required"
+        );
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    };
+  };
+
+  useEffect(() => {
+    const result = validatePreparations();
+    setValidationResult(result);
+  }, [selectedSamplePrep]);
+
+  // Formula Display Component
+  const FormulaDisplay: React.FC = () => {
+    if (!selectedSamplePrep) return null;
+
+    const W1_raw = sampleWeights.w1.value || "0";
+    const W2_raw = sampleWeights.w2.value || "0";
+    const W3_raw = sampleWeights.w3.value || "0";
+
+    const W1_unit = sampleWeights.w1.unit;
+    const W2_unit = sampleWeights.w2.unit;
+    const W3_unit = sampleWeights.w3.unit;
+
+    const W1 = convertMassToG(W1_raw, W1_unit);
+    const W2 = convertMassToG(W2_raw, W2_unit);
+    const W3 = convertMassToG(W3_raw, W3_unit);
+
+    return (
+      <div className="bg-white rounded-lg p-4 border-2 border-emerald-200 shadow-sm mt-4">
+        <h4 className="text-sm font-bold text-gray-900 mb-3">
+          Formula for LOD/Water (Loss on Drying)
+        </h4>
+
+        {/* Symbolic Formula */}
+        <div className="bg-gray-50 rounded p-3 mb-3">
+          <div className="flex flex-col items-center">
+            <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
+              <p className="text-xs font-mono text-black break-words">
+                (Weight of Sample + bottle in g W2) - (Weight of Sample + bottle
+                after in Drying W3)
+              </p>
+            </div>
+            <div className="text-center px-2 w-full">
+              <p className="text-xs font-mono text-black break-words">
+                (Weight of Sample + bottle in g W2) - (Weight of empty bottle in
+                g W1)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Values Formula with = sign */}
+        <div className="bg-emerald-50 rounded p-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold text-black">=</span>
+            <div className="flex-1 flex flex-col items-center">
+              <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
+                <p className="text-xs font-mono text-black break-words">
+                  ({W2.toFixed(4)} - {W3.toFixed(4)})
+                </p>
+              </div>
+              <div className="text-center px-2 w-full">
+                <p className="text-xs font-mono text-black break-words">
+                  ({W2.toFixed(4)} - {W1.toFixed(4)})
+                </p>
+              </div>
+            </div>
+            <span className="text-lg font-bold text-black">X 100</span>
+          </div>
+        </div>
+
+        <p className="text-xs text-right text-gray-600 mt-2 font-semibold">
+          = %
+        </p>
+      </div>
+    );
+  };
+
   const canCalculate = selectedSamplePrep;
 
-  // Lod Calculation Logic
   const performCalculation = () => {
-    console.group("🔥 Lod Calculation Debugger Started");
+    console.group("🔥 LOD Calculation Started");
 
     if (!canCalculate) {
       console.warn("Cannot calculate: Missing sample preparation.");
@@ -148,21 +287,23 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
       return;
     }
 
-    // Get weight values - prioritize manual inputs if provided, otherwise use from sample prep
-    const W1_raw = calculation.w1_emptyDish || sampleWeights.w1.value;
-    const W2_raw = calculation.w2_dishWithSample || sampleWeights.w2.value;
-    const W3_raw = calculation.w3_dishAfterIgnition || sampleWeights.w3.value;
+    const W1_raw = sampleWeights.w1.value;
+    const W2_raw = sampleWeights.w2.value;
+    const W3_raw = sampleWeights.w3.value;
 
     const W1_unit = sampleWeights.w1.unit;
     const W2_unit = sampleWeights.w2.unit;
     const W3_unit = sampleWeights.w3.unit;
 
-    // Convert all weights to grams
     const W1 = convertMassToG(W1_raw, W1_unit);
     const W2 = convertMassToG(W2_raw, W2_unit);
     const W3 = convertMassToG(W3_raw, W3_unit);
 
-    console.log("1. Raw Inputs:", {
+    onFieldChange(calculation.id, "w1", W1.toString());
+    onFieldChange(calculation.id, "w2", W2.toString());
+    onFieldChange(calculation.id, "w3", W3.toString());
+
+    console.log("1. Raw Inputs from Sample Preparation:", {
       W1_EmptyDish: W1_raw,
       W2_DishWithSample: W2_raw,
       W3_DishAfterIgnition: W3_raw,
@@ -170,7 +311,6 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
 
     console.log("2. Converted to grams:", { W1, W2, W3 });
 
-    // Formula: Lod % (w/w) = [(W2 - W3) / (W2 - W1)] x 100
     const numerator = W2 - W3;
     const denominator = W2 - W1;
 
@@ -192,35 +332,23 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
 
     const Lod_Percentage = (numerator / denominator) * 100;
 
-    console.log(
-      `%c 4. FINAL FORMULA: [(${W2} - ${W3}) / (${W2} - ${W1})] x 100`,
-      "color: blue; font-weight: bold"
-    );
-    console.log(
-      `%c Calculated Lod Result: ${Lod_Percentage.toFixedNoRound(4)} %`,
-      "color: green; font-weight: bold; font-size: 14px"
-    );
+    console.log(`4. FINAL FORMULA: [(${W2} - ${W3}) / (${W2} - ${W1})] x 100`);
+    console.log(`Calculated LOD Result: ${Lod_Percentage.toFixed(4)} %`);
     console.groupEnd();
 
     if (isNaN(Lod_Percentage) || !isFinite(Lod_Percentage)) {
       onFieldChange(
         calculation.id,
         "calculationResult",
-        "Error: Result is NaN or Infinite. Check console for details."
+        "Error: Result is NaN or Infinite"
       );
     } else {
-      const result = `${Lod_Percentage.toFixedNoRound(4)}`;
-
       onFieldChange(
         calculation.id,
         "calculationResult",
-        result
+        Lod_Percentage.toFixed(4)
       );
-      onFieldChange(
-        calculation.id,
-        "calculationResultUnit",
-        '%'
-      );
+      onFieldChange(calculation.id, "calculationResultUnit", "%");
     }
   };
 
@@ -229,12 +357,10 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="relative group z-20"
+      className="bg-white rounded-xl shadow-lg border-2 border-emerald-200 overflow-hidden mb-6"
     >
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-sky-200/50 shadow-lg hover:shadow-xl transition-all duration-300 mb-4">
-        {/* Header */}
-          <div
-            className={`relative bg-gradient-to-r from-sky-600 via-sky-500 to-blue-500 ${headerRoundingClass} ${
+      <div
+            className={`relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-500 ${
               isExpanded ? "rounded-t-lg" : "rounded-lg"
             }`}
           >
@@ -258,7 +384,7 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
                 <h4 className="text-sm font-semibold text-white tracking-wide">
                   {calculation.label}
                 </h4>
-                <p className="text-xs text-sky-100">
+                <p className="text-xs text-emerald-100">
                   Calculation for Residue on Ignition
                 </p>
               </div>
@@ -295,191 +421,189 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
           </div>
         </div>
 
-        {/* Content */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-            >
-              <div className="p-5 space-y-4 bg-gradient-to-br from-sky-50/50 to-blue-50/30">
-                {/* Sample Preparation Selection */}
-                <div>
-                  <label className="block text-xs font-semibold text-sky-900 mb-2">
-                    Select Sample Preparation
-                  </label>
-                  <CustomDropdown
-                    options={samplePreparations.map((prep) => ({
-                      value: prep.label,
-                      label: prep.label,
-                    }))}
-                    value={calculation.selectedSamplePrepLabel || ""}
-                    onChange={(value) =>
-                      onFieldChange(
-                        calculation.id,
-                        "selectedSamplePrepLabel",
-                        value || null
-                      )
-                    }
-                    placeholder="-- Select Sample Prep --"
-                    colorScheme="sky"
-                  />
+      {!validationResult.isValid && isExpanded && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="bg-red-50 border-b-2 border-red-200"
+        >
+          <div className="p-4">
+            <div className="flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <h4 className="text-sm font-bold text-red-800 mb-2">
+                  Validation Errors ({validationResult.errors.length})
+                </h4>
+                <ul className="space-y-1">
+                  {validationResult.errors.map((error, idx) => (
+                    <li
+                      key={idx}
+                      className="text-xs text-red-700 flex items-start gap-2"
+                    >
+                      <span className="text-red-500 mt-0.5">•</span>
+                      <span>{error}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {validationResult.isValid && isExpanded && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="bg-emerald-50 border-b-2 border-emerald-200"
+        >
+          <div className="p-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+              <p className="text-sm font-semibold text-emerald-800">
+                All required fields are valid - Ready to calculate
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {isExpanded && (
+        <div className="border-t-4 border-emerald-300">
+          <AnimatePresence>
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="p-6 bg-gradient-to-b from-gray-50 to-white space-y-6">
+                  <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 rounded-lg p-4 border-2 border-emerald-200">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Select Sample Preparation
+                    </label>
+                    <CustomDropdown
+                      options={samplePreparations.map((prep) => ({
+                        value: prep.label,
+                        label: prep.label,
+                      }))}
+                      value={calculation.selectedSamplePrepLabel || ""}
+                      onChange={(value) =>
+                        onFieldChange(
+                          calculation.id,
+                          "selectedSamplePrepLabel",
+                          value
+                        )
+                      }
+                      placeholder="Select sample preparation..."
+                      colorScheme="emerald"
+                    />
+                  </div>
+
+                  {selectedSamplePrep && <FormulaDisplay />}
+
+                  {selectedSamplePrep && (
+                    <div className="space-y-6">
+                      <div className="flex justify-center pt-2">
+                        <motion.button
+                          onClick={performCalculation}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg text-sm"
+                        >
+                          <Calculator className="w-4 h-4" />
+                          Calculate Result
+                        </motion.button>
+                      </div>
+                    </div>
+                  )}
+
+                  {!selectedSamplePrep && (
+                    <div className="bg-emerald-50 border-2 border-emerald-300 rounded-lg p-3 text-center">
+                      <p className="text-xs text-emerald-800 font-medium">
+                        Please select a sample preparation to enable calculation
+                      </p>
+                    </div>
+                  )}
                 </div>
 
-                {/* Display Selected Sample Preparation Details */}
-                {selectedSamplePrep && (
+                {calculation.calculationResult && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
+                    transition={{ duration: 0.4 }}
+                    className="border-t-4 border-emerald-200"
                   >
-                    <div className="bg-gradient-to-br from-white to-sky-50/50 rounded-xl border-2 border-sky-300 p-5 shadow-lg hover:shadow-xl transition-all duration-300">
-                      <h5 className="text-sm font-bold text-sky-900 mb-4 flex items-center gap-2 pb-3 border-b-2 border-sky-200">
-                        <div className="w-3 h-3 bg-sky-500 rounded-full shadow-lg shadow-sky-500/50 animate-pulse"></div>
-                        Sample Preparation Variables
-                      </h5>
-                      <div className="space-y-2.5">
-                        {/* W1 - Empty Crucible */}
-                        <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-sky-100 to-sky-50 p-3 rounded-lg border border-sky-200 hover:shadow-md transition-all">
-                          <span className="font-bold text-sky-800 bg-sky-200/50 px-2 rounded-md">
-                            W1 (Empty Bottle):
-                          </span>
-                          <span className="text-gray-800 font-semibold flex items-center">
-                            {sampleWeights.w1.value} {sampleWeights.w1.unit}
-                            <WarningIndicator value={sampleWeights.w1.value} />
-                          </span>
+                    <div
+                      className={`p-6 ${
+                        calculation.calculationResult.startsWith("Error")
+                          ? "bg-gradient-to-br from-emerald-50 via-emerald-100/50 to-emerald-50"
+                          : "bg-gradient-to-br from-emerald-50 via-emerald-100/30 to-emerald-50"
+                      }`}
+                    >
+                      <div className="max-w-4xl mx-auto space-y-4">
+                        <div className="flex items-center gap-3 pb-3">
+                          <CheckCircle2
+                            className={`w-6 h-6 ${
+                              calculation.calculationResult.startsWith("Error")
+                                ? "text-emerald-700"
+                                : "text-emerald-700"
+                            }`}
+                          />
+                          <div>
+                            <h6
+                              className={`text-lg font-bold ${
+                                calculation.calculationResult.startsWith("Error")
+                                  ? "text-emerald-700"
+                                  : "text-emerald-700"
+                              }`}
+                            >
+                              Calculation Results
+                            </h6>
+                          </div>
                         </div>
 
-                        {/* W2 - Crucible + Sample */}
-                        <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-sky-100 to-sky-50 p-3 rounded-lg border border-sky-200 hover:shadow-md transition-all">
-                          <span className="font-bold text-sky-800 bg-sky-200/50 px-2 rounded-md">
-                            W2 (Bottle + Sample):
-                          </span>
-                          <span className="text-gray-800 font-semibold flex items-center">
-                            {sampleWeights.w2.value} {sampleWeights.w2.unit}
-                            <WarningIndicator value={sampleWeights.w2.value} />
-                          </span>
+                        <div className="grid gap-4">
+                          <div className="bg-white rounded-lg shadow-lg border-2 border-emerald-300 overflow-hidden">
+                            <div className="bg-gradient-to-r from-emerald-600 to-emerald-600 px-4 py-2">
+                              <h6 className="text-sm font-bold text-white">
+                                LOD/Water Result
+                              </h6>
+                            </div>
+                            <div className="p-4">
+                              <p className="text-2xl font-bold text-gray-800">
+                                {calculation.calculationResult}{" "}
+                                {!calculation.calculationResult.startsWith(
+                                  "Error"
+                                )
+                                  ? calculation.calculationResultUnit
+                                  : ""}
+                              </p>
+                            </div>
+                          </div>
                         </div>
 
-                        {/* W3 - After Drying */}
-                        <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-sky-100 to-sky-50 p-3 rounded-lg border border-sky-200 hover:shadow-md transition-all">
-                          <span className="font-bold text-sky-800 bg-sky-200/50 px-2 rounded-md">
-                            W3 (After Drying):
-                          </span>
-                          <span className="text-gray-800 font-semibold flex items-center">
-                            {sampleWeights.w3.value} {sampleWeights.w3.unit}
-                            <WarningIndicator value={sampleWeights.w3.value} />
-                          </span>
+                        <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4">
+                          <div className="grid md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <p className="text-gray-600 font-medium">
+                                Sample Prep
+                              </p>
+                              <p className="text-gray-900 font-semibold">
+                                {calculation.selectedSamplePrepLabel || "N/A"}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </motion.div>
                 )}
+              </motion.div>
+          </AnimatePresence>
+        </div>
+      )}
 
-                {/* Manual Weight Inputs (Optional Override) */}
-                {canCalculate && (
-                  <>
-                    {/* Calculate Button */}
-                    <div className="flex justify-center pt-2">
-                      <motion.button
-                        onClick={performCalculation}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="flex items-center justify-center w-full gap-2 px-6 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white font-semibold rounded-lg hover:from-sky-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg text-sm"
-                      >
-                        <Calculator className="w-4 h-4" />
-                        Calculate Lod
-                      </motion.button>
-                    </div>
-                  </>
-                )}
-
-                {/* Warning if preparation not selected */}
-                {!selectedSamplePrep && (
-                  <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3 text-center">
-                    <p className="text-xs text-blue-800 font-medium">
-                      Please select a Sample Preparation to enable calculation
-                    </p>
-                  </div>
-                )}
-              </div>
-              {/* FIXED BOTTOM RESULTS SECTION - NON-CLOSABLE */}
-              {calculation.calculationResult && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="border-t-4 border-sky-200"
-                >
-                  <div
-                    className={`p-6 ${
-                      calculation.calculationResult.startsWith("Error")
-                        ? "bg-gradient-to-br from-red-50 via-red-100/50 to-rose-50"
-                        : "bg-gradient-to-br from-emerald-50 via-green-100/30 to-teal-50"
-                    }`}
-                  >
-                    <div className="max-w-4xl mx-auto space-y-4">
-                      {/* Header */}
-                      <div className="flex items-center gap-3 pb-3">
-                        <CheckCircle2
-                          className={`w-6 h-6 ${
-                            calculation.calculationResult.startsWith("Error")
-                              ? "text-red-700"
-                              : "text-green-700"
-                          }`}
-                        />
-                        <div>
-                          <h6
-                            className={`text-lg font-bold ${
-                              calculation.calculationResult.startsWith("Error")
-                                ? "text-red-700"
-                                : "text-green-700"
-                            }`}
-                          >
-                            Calculation Results
-                          </h6>
-                        </div>
-                      </div>
-
-                      {/* Results Grid */}
-                      <div className="grid gap-4">
-                        <div className="bg-white rounded-lg shadow-lg border-2 border-green-300 overflow-hidden">
-                            <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2">
-                              <h6 className="text-sm font-bold text-white">
-                                Primary Result
-                              </h6>
-                            </div>
-                            <div className="p-4">
-                              <p className="text-2xl font-bold text-gray-800">
-                                {calculation.calculationResult} {" "} {!calculation.calculationResult.startsWith("Error") ? calculation.calculationResultUnit : ''}
-                              </p>
-                            </div>
-                          </div>
-                      </div>
-
-                      {/* Summary Info */}
-                      <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4">
-                        <div className="grid md:grid-cols-1 gap-4 text-sm">
-                          <div>
-                            <p className="text-gray-600 font-medium">
-                              Sample Prep
-                            </p>
-                            <p className="text-gray-900 font-semibold">
-                              {calculation.selectedSamplePrepLabel || "N/A"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
     </motion.div>
   );
 };

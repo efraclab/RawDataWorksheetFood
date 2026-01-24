@@ -19,12 +19,10 @@ export interface CalculationAssay {
   purity: string;
   avgWeight: string;
   avgWeightUnit: string;
-  avgContent: string;
-  avgContentUnit: string;
-  sampleVol: string;
-  sampleVolUnit: string;
-  mwSalt: string;
-  mwBase: string;
+  weightPerMl: string;
+  weightPerMlUnit: string;
+  mWSalt: string;
+  mWBase: string;
 
   claim: string;
   claimUnit: string;
@@ -37,4 +35,22 @@ export interface CalculationAssay {
   calculationResultUnit: string | null;
   labelClaimPercent: string | null;
   lodWaterBasisResult: string | null;
+
+  // Stored preparation values
+  sw1: string | null;
+  sw2: string | null;
+  v1: string | null;
+  v2: string | null;
+  v3: string | null;
+  v4: string | null;
+  v5: string | null;
+  v6: string | null;
+  v7: string | null;
+  v8: string | null;
+  v9: string | null;
+  v10: string | null;
+  v11: string | null;
+  v12: string | null;
+  v13: string | null;
+  v14: string | null;
 }

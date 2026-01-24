@@ -83,21 +83,21 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
       <div
         className={`absolute inset-0 bg-gradient-to-r ${
           isRS
-            ? "from-indigo-400/20 to-blue-400/20"
-            : "from-red-400/20 to-rose-400/20"
+            ? "from-emerald-400/20 to-emerald-400/20"
+            : "from-emerald-400/20 to-emerald-400/20"
         } rounded-xl blur-xl group-hover:blur-xl transition-all duration-300`}
       />
 
       <div
         className={`relative bg-white/95 backdrop-blur-sm rounded-lg border ${
-          isRS ? "border-indigo-200/50" : "border-red-200/50"
+          isRS ? "border-emerald-200/50" : "border-emerald-200/50"
         } transition-all duration-300 mb-4`}
       >
         <div
           className={`relative bg-gradient-to-r ${
             isRS
-              ? "from-indigo-600 via-indigo-500 to-blue-500"
-              : "from-red-600 via-red-500 to-rose-500"
+              ? "from-emerald-600 via-emerald-500 to-emerald-500"
+              : "from-emerald-600 via-emerald-500 to-emerald-500"
           } ${headerRoundingClass}`}
         >
           <div className="relative flex items-center justify-between px-4 py-3">
@@ -118,13 +118,11 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
 
               <div>
                 <h4 className="text-sm font-semibold text-white tracking-wide">
-                  {`${samplePreparation.label} ${
-                    assignedStandard ? `(${assignedStandard.name})` : ""
-                  }`}
+                  {`${samplePreparation.label}`}
                 </h4>
                 <p
                   className={`text-xs ${
-                    isRS ? "text-indigo-100" : "text-red-100"
+                    isRS ? "text-emerald-100" : "text-emerald-100"
                   }`}
                 >
                   Sample Preparation Details {isRS ? "(RS)" : ""}
@@ -175,8 +173,8 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
               <div
                 className={`p-5 space-y-3 bg-gradient-to-br ${
                   isRS
-                    ? "from-indigo-50/50 to-blue-50/30"
-                    : "from-red-50/50 to-rose-50/30"
+                    ? "from-emerald-50/50 to-emerald-50/30"
+                    : "from-emerald-50/50 to-emerald-50/30"
                 }`}
               >
                 {filteredSteps.map((step, index) => {
@@ -187,25 +185,24 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                   const is4thDilution = step.name === "4th Dilution";
                   const isFiltration = step.name === "Filtration";
 
-                  const colorScheme = isRS ? "indigo" : "red";
+                  const colorScheme = "emerald";
                   const gradientFrom = isRS
-                    ? "from-indigo-500"
-                    : "from-red-500";
-                  const gradientTo = isRS ? "to-blue-500" : "to-rose-500";
+                    ? "from-emerald-500"
+                    : "from-emerald-500";
+                  const gradientTo = isRS ? "to-emerald-500" : "to-emerald-500";
                   const borderColor = isRS
-                    ? "border-indigo-200/60"
-                    : "border-red-200/60";
+                    ? "border-emerald-200/60"
+                    : "border-emerald-200/60";
                   const hoverBorderColor = isRS
-                    ? "hover:border-indigo-300"
-                    : "hover:border-red-300";
-                  const textColor = isRS ? "text-indigo-900" : "text-red-900";
-                  const bgColor = isRS ? "bg-indigo-50" : "bg-red-50";
+                    ? "hover:border-emerald-300"
+                    : "hover:border-emerald-300";
+                  const textColor = isRS ? "text-emerald-900" : "text-emerald-900";
                   const inputBorderColor = isRS
-                    ? "border-indigo-300"
-                    : "border-red-300";
+                    ? "border-emerald-300"
+                    : "border-emerald-300";
                   const focusRingColor = isRS
-                    ? "focus:ring-indigo-400"
-                    : "focus:ring-red-400";
+                    ? "focus:ring-emerald-400"
+                    : "focus:ring-emerald-400";
 
                   return (
                     <motion.div
@@ -218,8 +215,8 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                       <div
                         className={`absolute inset-0 bg-gradient-to-r ${
                           isRS
-                            ? "from-indigo-400/0 via-indigo-400/5 to-indigo-400/0"
-                            : "from-red-400/0 via-red-400/5 to-red-400/0"
+                            ? "from-emerald-400/0 via-emerald-400/5 to-emerald-400/0"
+                            : "from-emerald-400/0 via-emerald-400/5 to-emerald-400/0"
                         } rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity`}
                       />
 
@@ -242,7 +239,7 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                               </div>
                               <div
                                 className={`h-px flex-1 bg-gradient-to-r ${
-                                  isRS ? "from-indigo-200" : "from-red-200"
+                                  isRS ? "from-emerald-200" : "from-emerald-200"
                                 } to-transparent`}
                               />
                             </div>
@@ -295,18 +292,10 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
-                                    of
+                                    (SW2) of
                                   </span>
 
-                                  {/* Display assigned standard name (read-only) or allow manual input */}
-                                  {assignedStandard ? (
-                                    <div
-                                      className={`flex-1 min-w-[150px] px-3 py-2 ${bgColor} border ${inputBorderColor} rounded-lg text-xs font-semibold ${textColor}`}
-                                    >
-                                      {assignedStandard.name}
-                                    </div>
-                                  ) : (
-                                    <input
+                                  <input
                                       type="text"
                                       value={step.solventChemical || ""}
                                       onChange={(e) =>
@@ -329,7 +318,6 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                       placeholder="Sample"
                                       className={`flex-1 min-w-[120px] px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
                                     />
-                                  )}
                                 </div>
 
                                 {/* Log Book ID Input */}
@@ -413,7 +401,7 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
-                                    with diluent
+                                    (V8) with Diluent
                                   </span>
                                 </div>
                               </div>
@@ -470,6 +458,11 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
+                                    {is2ndDilution
+                                      ? "(V9)"
+                                      : is3rdDilution
+                                      ? "(V11)"
+                                      : "(V13)"}{" "}
                                     of{" "}
                                     {is2ndDilution
                                       ? "1st"
@@ -521,7 +514,12 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
-                                    with diluent
+                                    {is2ndDilution
+                                      ? "(V10)"
+                                      : is3rdDilution
+                                      ? "(V12)"
+                                      : "(V14)"}{" "}
+                                      with Diluent
                                   </span>
                                 </div>
                               </div>

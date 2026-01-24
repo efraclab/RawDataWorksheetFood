@@ -4,8 +4,8 @@ import {
   ChevronDown,
   Calculator,
   Trash,
-  AlertTriangle,
   CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import type { CalculationDisso } from "../../preparation_models/CalculationDisso";
 import type { StandardPreparation } from "../../preparation_models/StandardPreparation";
@@ -38,23 +38,11 @@ interface SummaryResults {
   unit: string;
 }
 
-// Helper component for warning indicator
-const WarningIndicator: React.FC<{ value: string | number }> = ({ value }) => {
-  const strValue = String(value);
-  const isInvalid = strValue.trim() === "" || parseFloat(strValue) === 0;
-
-  if (isInvalid) {
-    return (
-      <span
-        className="text-amber-500 ml-2"
-        title="Missing or zero value detected"
-      >
-        <AlertTriangle className="w-4 h-4 inline-block" />
-      </span>
-    );
-  }
-  return null;
-};
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
 
 // Unit conversion helpers
 const convertMassToMg = (value: string | number, unit: string): number => {
@@ -104,6 +92,11 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
   role,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [validationResult, setValidationResult] = useState<ValidationResult>({
+    isValid: false,
+    errors: [],
+    warnings: [],
+  });
   const [tabletResults, setTabletResults] = useState<TabletResult[]>([]);
   const [summaryResults, setSummaryResults] = useState<SummaryResults | null>(
     null
@@ -117,7 +110,7 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     (prep) => prep.label === calculation.selectedSamplePrepLabel
   );
 
-  // Create preparation pair options - simplified to 1:1 mapping
+  // Create preparation pair options
   const preparationPairs = standardPreparations
     .map((stdPrep, stdIdx) => {
       const matchingSamplePrep = samplePreparationsDisso[stdIdx];
@@ -138,6 +131,11 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     standardLabel: string;
     sampleLabel: string;
   }[];
+
+  const currentPrepLabel =
+    calculation.selectedStandardPrepLabel && calculation.selectedSamplePrepLabel
+      ? `${calculation.selectedStandardPrepLabel}-${calculation.selectedSamplePrepLabel}`
+      : "";
 
   useEffect(() => {
     if (
@@ -182,7 +180,6 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     if (existingResults.length > 0) {
       setTabletResults(existingResults);
 
-      // Calculate summary if we have valid numeric results
       const validResults = existingResults
         .filter((r) => typeof r.result === "number")
         .map((r) => r.result as number);
@@ -223,10 +220,12 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     }
   };
 
-  // Extract dilution values from standard preparation
   const getStandardDilutions = () => {
     if (!selectedStandardPrep) return [];
-    return selectedStandardPrep.steps
+    const stepsArr = Array.isArray(selectedStandardPrep.steps)
+      ? selectedStandardPrep.steps
+      : [];
+    return stepsArr
       .filter(
         (step) =>
           step.name === "1st Dilution" ||
@@ -243,10 +242,12 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
       }));
   };
 
-  // Extract dilution values from sample preparation (Dissolution)
   const getSampleDilutions = () => {
     if (!selectedSamplePrepDisso) return [];
-    return selectedSamplePrepDisso.steps
+    const stepsArr = Array.isArray(selectedSamplePrepDisso.steps)
+      ? selectedSamplePrepDisso.steps
+      : [];
+    return stepsArr
       .filter(
         (step) =>
           step.name === "1st Dilution" ||
@@ -264,9 +265,10 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
 
   const getStandardWeight = () => {
     if (!selectedStandardPrep) return { value: "", unit: "g" };
-    const weighingStep = selectedStandardPrep.steps.find(
-      (step) => step.name === "Weighing"
-    );
+    const stepsArr = Array.isArray(selectedStandardPrep.steps)
+      ? selectedStandardPrep.steps
+      : [];
+    const weighingStep = stepsArr.find((step) => step.name === "Weighing");
     return {
       value: weighingStep?.value1 || "",
       unit: weighingStep?.unit1 || "g",
@@ -276,9 +278,10 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
   const getTabletDetails = () => {
     if (!selectedSamplePrepDisso)
       return { claim: "", claimUnit: "mg", mediaVol: "", unit: "ml" };
-    const tabletStep = selectedSamplePrepDisso.steps.find(
-      (step) => step.name === "Tablet Details"
-    );
+    const stepsArr = Array.isArray(selectedSamplePrepDisso.steps)
+      ? selectedSamplePrepDisso.steps
+      : [];
+    const tabletStep = stepsArr.find((step) => step.name === "Tablet Details");
     return {
       claim: tabletStep?.value1 || "",
       claimUnit: tabletStep?.unit1 || "mg",
@@ -291,6 +294,343 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
   const sampleDilutions = getSampleDilutions();
   const standardWeight = getStandardWeight();
   const tabletDetails = getTabletDetails();
+
+  const validatePreparations = (): ValidationResult => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    if (!selectedStandardPrep || !selectedSamplePrepDisso) {
+      errors.push("Please select both Standard and Sample preparations");
+      return { isValid: false, errors, warnings };
+    }
+
+    const isValueValid = (value: any): boolean => {
+      if (value === null || value === undefined) return false;
+      const strValue = String(value).trim();
+      return (
+        strValue !== "" &&
+        !isNaN(parseFloat(strValue)) &&
+        parseFloat(strValue) !== 0
+      );
+    };
+
+    const checkDilutionPair = (
+      vol1: any,
+      vol2: any,
+      stepName: string,
+      prepType: string
+    ) => {
+      const hasVol1 = isValueValid(vol1);
+      const hasVol2 = isValueValid(vol2);
+
+      if (stepName === "1st Dilution") {
+        return;
+      }
+
+      if (hasVol1 && !hasVol2) {
+        errors.push(
+          `${prepType} - ${stepName}: Volume 2 is required when Volume 1 is provided`
+        );
+      } else if (!hasVol1 && hasVol2) {
+        errors.push(
+          `${prepType} - ${stepName}: Volume 1 is required when Volume 2 is provided`
+        );
+      }
+    };
+
+    const stdSteps = Array.isArray(selectedStandardPrep.steps)
+      ? selectedStandardPrep.steps
+      : [];
+
+    const stdWeighing = stdSteps.find((s) => s.name === "Weighing");
+    if (!stdWeighing) {
+      errors.push("Standard Preparation: Weighing step is missing");
+    } else {
+      if (!isValueValid(stdWeighing.value1)) {
+        errors.push(
+          "Standard Preparation - Weighing: Weight value is required"
+        );
+      }
+      if (!stdWeighing.logBookID || stdWeighing.logBookID.trim() === "") {
+        errors.push("Standard Preparation - Weighing: Logbook ID is required");
+      }
+    }
+
+    const stdFiltration = stdSteps.find((s) => s.name === "Filtration");
+    if (!stdFiltration) {
+      errors.push("Standard Preparation: Filtration step is missing");
+    } else {
+      if (!isValueValid(stdFiltration.value1)) {
+        errors.push(
+          "Standard Preparation - Filtration: Filter size is required"
+        );
+      }
+    }
+
+    standardDilutions.forEach((dilution) => {
+      checkDilutionPair(
+        dilution.vol1,
+        dilution.vol2,
+        dilution.name,
+        "Standard Preparation"
+      );
+    });
+
+    const smpSteps = Array.isArray(selectedSamplePrepDisso.steps)
+      ? selectedSamplePrepDisso.steps
+      : [];
+
+    const smpInstrumentDetails = smpSteps.find(
+      (s) => s.name === "Instrument Details"
+    );
+    if (!smpInstrumentDetails) {
+      errors.push("Sample Preparation: Instrument Details step is missing");
+    } else {
+      if (!isValueValid(smpInstrumentDetails.id)) {
+        errors.push("Sample Preparation - Instrument Details: Id is required");
+      }
+      if (!isValueValid(smpInstrumentDetails.value1)) {
+        errors.push("Sample Preparation - Instrument Details: RPM is required");
+      }
+    }
+
+    const smpTabletDetails = smpSteps.find((s) => s.name === "Tablet Details");
+    if (!smpTabletDetails) {
+      errors.push("Sample Preparation: Tablet Details step is missing");
+    } else {
+      if (!isValueValid(smpTabletDetails.value1)) {
+        errors.push(
+          "Sample Preparation - Tablet Details: Claim value is required"
+        );
+      }
+      if (!isValueValid(smpTabletDetails.value2)) {
+        errors.push(
+          "Sample Preparation - Tablet Details: Media Volume is required"
+        );
+      }
+    }
+
+    const smpFiltration = smpSteps.find((s) => s.name === "Filtration");
+    if (!smpFiltration) {
+      errors.push("Sample Preparation: Filtration step is missing");
+    } else {
+      if (!isValueValid(smpFiltration.value1)) {
+        errors.push("Sample Preparation - Filtration: Filter size is required");
+      }
+    }
+
+    sampleDilutions.forEach((dilution) => {
+      checkDilutionPair(
+        dilution.vol1,
+        dilution.vol2,
+        dilution.name,
+        "Sample Preparation"
+      );
+    });
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    };
+  };
+
+  useEffect(() => {
+    const result = validatePreparations();
+    setValidationResult(result);
+  }, [selectedStandardPrep, selectedSamplePrepDisso]);
+
+  // Formula Display Component
+  const FormulaDisplay: React.FC = () => {
+    if (!selectedStandardPrep || !selectedSamplePrepDisso) return null;
+
+    const stdSteps = Array.isArray(selectedStandardPrep.steps)
+      ? selectedStandardPrep.steps
+      : [];
+
+    const stdWeighing = stdSteps.find((s) => s.name === "Weighing");
+    const stdWeightMg = stdWeighing?.value1
+      ? convertMassToMg(stdWeighing.value1, stdWeighing.unit1 || "mg")
+      : 0;
+
+    const areaStd = calculation.areaOfStandard || "0";
+    const purity = calculation.purity || "100";
+    const mwBase = calculation.mWBase || "1";
+    const mwSalt = calculation.mWSalt || "1";
+
+    // Build volume labels for standard
+    const stdVolsNumSymbolic: string[] = [];
+    const stdVolsDenomSymbolic: string[] = [];
+    const stdVolsNumValues: string[] = [];
+    const stdVolsDenomValues: string[] = [];
+
+    standardDilutions.forEach((dil, idx) => {
+      if (idx === 0) {
+        if (dil.vol1) {
+          stdVolsDenomSymbolic.push("V1");
+          stdVolsDenomValues.push(
+            convertVolumeToMl(dil.vol1, dil.unit1).toString()
+          );
+        }
+      } else {
+        if (dil.vol1) {
+          const vNum = idx === 1 ? "V2" : idx === 2 ? "V4" : "V6";
+          stdVolsNumSymbolic.push(vNum);
+          stdVolsNumValues.push(
+            convertVolumeToMl(dil.vol1, dil.unit1).toString()
+          );
+        }
+        if (dil.vol2) {
+          const vNum = idx === 1 ? "V3" : idx === 2 ? "V5" : "V7";
+          stdVolsDenomSymbolic.push(vNum);
+          stdVolsDenomValues.push(
+            convertVolumeToMl(dil.vol2, dil.unit2).toString()
+          );
+        }
+      }
+    });
+
+    // Build volume labels for sample
+    const smpVolsNumSymbolic: string[] = [];
+    const smpVolsDenomSymbolic: string[] = [];
+    const smpVolsNumValues: string[] = [];
+    const smpVolsDenomValues: string[] = [];
+
+    const mediaVol = tabletDetails.mediaVol
+      ? convertVolumeToMl(tabletDetails.mediaVol, tabletDetails.unit).toString()
+      : "0";
+    smpVolsNumSymbolic.push("V8");
+    smpVolsNumValues.push(mediaVol);
+
+    sampleDilutions.forEach((dil, idx) => {
+      if (dil.vol1) {
+        const vNum = idx === 0 ? "V9" : idx === 1 ? "V11" : "V13";
+        smpVolsDenomSymbolic.push(vNum);
+        smpVolsDenomValues.push(
+          convertVolumeToMl(dil.vol1, dil.unit1).toString()
+        );
+      }
+      if (dil.vol2) {
+        const vNum = idx === 0 ? "V10" : idx === 1 ? "V12" : "V14";
+        smpVolsNumSymbolic.push(vNum);
+        smpVolsNumValues.push(
+          convertVolumeToMl(dil.vol2, dil.unit2).toString()
+        );
+      }
+    });
+
+    const claim = tabletDetails.claim
+      ? convertMassToMg(tabletDetails.claim, tabletDetails.claimUnit).toString()
+      : "0";
+
+    const numeratorSymbolic = [
+      "Area/ABS of Sample",
+      "X SW1",
+      ...stdVolsNumSymbolic.map((v) => `X ${v}`),
+      ...smpVolsNumSymbolic.map((v) => `X ${v}`),
+      "X MW Base",
+      "X Purity %",
+      "X 100",
+    ];
+
+    const denominatorSymbolic = [
+      "Area/ABS of Standard",
+      ...stdVolsDenomSymbolic.map((v) => `X ${v}`),
+      "X Claim",
+      ...smpVolsDenomSymbolic.map((v) => `X ${v}`),
+      "X MW salt",
+      "X 100",
+    ];
+
+    const tabletAreas = [
+      calculation.areaOfSample1 || "0",
+      calculation.areaOfSample2 || "0",
+      calculation.areaOfSample3 || "0",
+      calculation.areaOfSample4 || "0",
+      calculation.areaOfSample5 || "0",
+      calculation.areaOfSample6 || "0",
+    ];
+
+    return (
+      <div className="bg-white rounded-lg p-4 border-2 border-emerald-200 shadow-sm mt-4">
+        <h4 className="text-sm font-bold text-gray-900 mb-3">
+          Formula for Capsule/Tablets
+        </h4>
+
+        {/* Main Symbolic Formula */}
+        <div className="bg-gray-50 rounded p-3 mb-3">
+          <div className="flex flex-col items-center">
+            <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
+              <p className="text-xs font-mono text-black break-words">
+                {numeratorSymbolic.join(" ")}
+              </p>
+            </div>
+            <div className="text-center px-2 w-full">
+              <p className="text-xs font-mono text-black break-words">
+                {denominatorSymbolic.join(" ")}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Individual Tablet Formulas */}
+        <div className="space-y-3 mt-4">
+          {tabletAreas.map((area, idx) => {
+            const numeratorValues = [
+              area || "0",
+              stdWeightMg.toString(),
+              ...stdVolsNumValues,
+              ...smpVolsNumValues,
+              mwBase,
+              purity,
+              "100",
+            ];
+
+            const denominatorValues = [
+              areaStd,
+              ...stdVolsDenomValues,
+              claim,
+              ...smpVolsDenomValues,
+              mwSalt,
+              "100",
+            ];
+
+            return (
+              <div
+                key={idx}
+                className="bg-emerald-50 rounded p-3 border border-emerald-300"
+              >
+                <div className="flex items-start gap-2">
+                  <span className="text-xs font-bold text-emerald-700 min-w-[70px]">
+                    Tablet {idx + 1}:
+                  </span>
+                  <div className="flex-1 flex items-center gap-2">
+                    <span className="text-sm font-bold text-black">=</span>
+                    <div className="flex-1 flex flex-col items-center">
+                      <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
+                        <p className="text-xs font-mono text-black break-words">
+                          {numeratorValues.join(" X ")}
+                        </p>
+                      </div>
+                      <div className="text-center px-2 w-full">
+                        <p className="text-xs font-mono text-black break-words">
+                          {denominatorValues.join(" X ")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="text-xs text-right text-gray-600 mt-2 font-semibold">
+          = mg / tablets
+        </p>
+      </div>
+    );
+  };
 
   const canCalculate = selectedStandardPrep && selectedSamplePrepDisso;
 
@@ -311,8 +651,8 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
       standardWeight.value,
       standardWeight.unit
     );
-    const MWBase = parseFloat(calculation.mwBase as string) || 1;
-    const MWSalt = parseFloat(calculation.mwSalt as string) || 1;
+    const MWBase = parseFloat(calculation.mWBase as string) || 1;
+    const MWSalt = parseFloat(calculation.mWSalt as string) || 1;
     const Purity = parseFloat(calculation.purity as string) || 1;
 
     const V1 = standardDilutions[0]
@@ -404,6 +744,24 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
       return "Error: Invalid calculation";
     }
 
+    onFieldChange(calculation.id, "sw1", SW1_Standard.toString());
+    onFieldChange(calculation.id, "claim", Claim.toString());
+    onFieldChange(calculation.id, "mediaVol", MediaVol.toString());
+    onFieldChange(calculation.id, "v1", V1.toString());
+    onFieldChange(calculation.id, "v2", V2.toString());
+    onFieldChange(calculation.id, "v3", V3.toString());
+    onFieldChange(calculation.id, "v4", V4.toString());
+    onFieldChange(calculation.id, "v5", V5.toString());
+    onFieldChange(calculation.id, "v6", V6.toString());
+    onFieldChange(calculation.id, "v7", V7.toString());
+    onFieldChange(calculation.id, "v8", MediaVol.toString());
+    onFieldChange(calculation.id, "v9", V9.toString());
+    onFieldChange(calculation.id, "v10", V10.toString());
+    onFieldChange(calculation.id, "v11", V11.toString());
+    onFieldChange(calculation.id, "v12", V12.toString());
+    onFieldChange(calculation.id, "v13", V13.toString());
+    onFieldChange(calculation.id, "v14", V14.toString());
+
     return parseFloat(result.toFixed(4));
   };
 
@@ -450,7 +808,6 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
           });
           validResults.push(result);
 
-          // Store individual tablet result
           onFieldChange(calculation.id, resultFields[index], result.toFixed(4));
         } else {
           results.push({
@@ -459,18 +816,15 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
             unit: "",
           });
 
-          // Store error message
           onFieldChange(calculation.id, resultFields[index], result);
         }
       } else {
-        // Clear the result if area is empty
         onFieldChange(calculation.id, resultFields[index], null);
       }
     });
 
     setTabletResults(results);
 
-    // Calculate summary statistics
     if (validResults.length > 0) {
       const min = Math.min(...validResults);
       const max = Math.max(...validResults);
@@ -485,24 +839,23 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
       };
 
       setSummaryResults(summaryData);
-
-      // Store summary in calculationResult field
-      const summaryText = `Min: ${summaryData.min}, Avg: ${summaryData.avg}, Max: ${summaryData.max}`;
-      onFieldChange(calculation.id, "calculationResult", summaryText);
+      onFieldChange(
+        calculation.id,
+        "calculationResult",
+        `Min: ${summaryData.min}, Max: ${summaryData.max}, Avg: ${summaryData.avg}`
+      );
       onFieldChange(calculation.id, "calculationResultUnit", "mg/tablet");
 
-      console.log("Calculation completed successfully");
-      console.log("Results:", { min, max, avg, count: validResults.length });
+      console.log("Summary Results:", summaryData);
     } else {
       setSummaryResults(null);
       onFieldChange(calculation.id, "calculationResult", null);
-      console.warn("No valid results calculated");
+      onFieldChange(calculation.id, "calculationResultUnit", null);
     }
 
     console.groupEnd();
   };
 
-  // Helper function to get sample area field name
   const getSampleAreaField = (index: number): keyof CalculationDisso => {
     const fields: Array<keyof CalculationDisso> = [
       "areaOfSample1",
@@ -515,7 +868,6 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     return fields[index];
   };
 
-  // Helper function to get sample area value
   const getSampleAreaValue = (index: number): string => {
     const fields = [
       calculation.areaOfSample1,
@@ -533,17 +885,16 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     onFieldChange(calculation.id, field, value);
   };
 
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="relative group z-20"
+      className="bg-white rounded-xl shadow-lg border-2 border-emerald-200 overflow-hidden mb-6"
     >
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-emerald-200/50 shadow-lg hover:shadow-xl transition-all duration-300 mb-4">
-        {/* Header */}
-        <div
-          className={`relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-500 ${
+      <div
+          className={`relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-500 ${
             isExpanded ? "rounded-t-lg" : "rounded-lg"
           }`}
         >
@@ -604,504 +955,413 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
           </div>
         </div>
 
-        {/* Content */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-            >
-              <div className="p-5 space-y-4 bg-gradient-to-br from-emerald-50/50 to-green-50/30">
-                {/* Selection Section */}
-                <div className="grid grid-cols-1 gap-4">
-                  {/* Single Preparation Selection */}
-                  <div>
-                    <label className="block text-xs font-semibold text-emerald-900 mb-1">
-                      Select Preparation
+      {!validationResult.isValid && isExpanded && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="bg-red-50 border-b-2 border-red-200"
+        >
+          <div className="p-4">
+            <div className="flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <h4 className="text-sm font-bold text-red-800 mb-2">
+                  Validation Errors ({validationResult.errors.length})
+                </h4>
+                <ul className="space-y-1">
+                  {validationResult.errors.map((error, idx) => (
+                    <li
+                      key={idx}
+                      className="text-xs text-red-700 flex items-start gap-2"
+                    >
+                      <span className="text-red-500 mt-0.5">•</span>
+                      <span>{error}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {validationResult.isValid && isExpanded && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="bg-emerald-50 border-b-2 border-emerald-200"
+        >
+          <div className="p-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+              <p className="text-sm font-semibold text-emerald-800">
+                All required fields are valid - Ready to calculate
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {isExpanded && (
+        <div className="border-t-4 border-emerald-300">
+          <AnimatePresence>
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="p-6 bg-gradient-to-b from-gray-50 to-white space-y-6">
+                  <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 rounded-lg p-4 border-2 border-emerald-200">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Select Preparation Pair
                     </label>
                     <CustomDropdown
                       options={preparationPairs.map((pair) => ({
                         value: pair.value,
                         label: pair.label,
                       }))}
-                      value={
-                        calculation.selectedStandardPrepLabel &&
-                        calculation.selectedSamplePrepLabel
-                          ? `${calculation.selectedStandardPrepLabel}-${calculation.selectedSamplePrepLabel}`
-                          : ""
-                      }
+                      value={currentPrepLabel}
                       onChange={handlePreparationChange}
-                      placeholder="Select preparation"
+                      placeholder="Select preparation pair..."
                       colorScheme="emerald"
                     />
                   </div>
-                </div>
 
-                {/* Display Selected Preparations Details */}
-                {(selectedStandardPrep || selectedSamplePrepDisso) && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="grid grid-cols-2 gap-5"
-                  >
-                    {/* Standard Preparation Details */}
-                    {selectedStandardPrep && (
-                      <div className="bg-gradient-to-br from-white to-emerald-50/50 rounded-xl border-2 border-emerald-300 p-5 shadow-lg hover:shadow-xl transition-all duration-300">
-                        <h5 className="text-sm font-bold text-emerald-900 mb-4 flex items-center gap-2 pb-3 border-b-2 border-emerald-200">
-                          <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-lg shadow-emerald-500/50 animate-pulse"></div>
-                          Standard Preparation Variables
+                  {selectedStandardPrep && selectedSamplePrepDisso && (
+                    <FormulaDisplay />
+                  )}
+
+                  {selectedStandardPrep && selectedSamplePrepDisso && (
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 rounded-lg p-4 border-2 border-emerald-200">
+                        <h5 className="text-sm font-bold text-gray-700 mb-3">
+                          Area/ABS Values
                         </h5>
-                        <div className="space-y-2.5">
-                          {/* SW1 */}
-                          <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-emerald-100 to-emerald-50 p-3 rounded-lg border border-emerald-200">
-                            <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">
-                              SW1:
-                            </span>
-                            <span className="text-gray-800 font-semibold flex items-center">
-                              {standardWeight.value} {standardWeight.unit}
-                              <WarningIndicator value={standardWeight.value} />
-                            </span>
-                          </div>
-                          {/* V1, V2, V3, V4, V5, V6, V7 */}
-                          {standardDilutions.map((dilution, idx) => (
-                            <div key={idx} className="space-y-2">
-                              {dilution.name !== "1st Dilution" && (
-                                <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-emerald-100 to-emerald-50 p-3 rounded-lg border border-emerald-200">
-                                  <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">
-                                    V{idx * 2}:
-                                  </span>
-                                  <span className="text-gray-800 font-semibold flex items-center">
-                                    {dilution.vol1} {dilution.unit1}
-                                    <WarningIndicator value={dilution.vol1} />
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-emerald-100 to-emerald-50 p-3 rounded-lg border border-emerald-200">
-                                <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">
-                                  V
-                                  {dilution.name === "1st Dilution"
-                                    ? "1"
-                                    : idx * 2 + 1}
-                                  :
-                                </span>
-                                <span className="text-gray-800 font-semibold flex items-center">
-                                  {dilution.name === "1st Dilution"
-                                    ? dilution.vol1
-                                    : dilution.vol2}{" "}
-                                  {dilution.name === "1st Dilution"
-                                    ? dilution.unit1
-                                    : dilution.unit2}
-                                  <WarningIndicator
-                                    value={
-                                      dilution.name === "1st Dilution"
-                                        ? dilution.vol1
-                                        : dilution.vol2
-                                    }
-                                  />
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Sample Preparation (Dissolution) Details */}
-                    {selectedSamplePrepDisso && (
-                      <div className="bg-gradient-to-br from-white to-emerald-50/50 rounded-xl border-2 border-emerald-300 p-5 shadow-lg hover:shadow-xl transition-all duration-300">
-                        <h5 className="text-sm font-bold text-emerald-900 mb-4 flex items-center gap-2 pb-3 border-b-2 border-emerald-200">
-                          <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-lg shadow-emerald-500/50 animate-pulse"></div>
-                          Sample Preparation Variables
-                        </h5>
-                        <div className="space-y-2.5">
-                          {/* Claim */}
-                          <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-emerald-100 to-emerald-50 p-3 rounded-lg border border-emerald-200">
-                            <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">
-                              Claim:
-                            </span>
-                            <span className="text-gray-800 font-semibold flex items-center">
-                              {tabletDetails.claim} mg
-                              <WarningIndicator value={tabletDetails.claim} />
-                            </span>
-                          </div>
-                          {/* Media Volume (V8) */}
-                          <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-emerald-100 to-emerald-50 p-3 rounded-lg border border-emerald-200">
-                            <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">
-                              Media Vol (V8):
-                            </span>
-                            <span className="text-gray-800 font-semibold flex items-center">
-                              {tabletDetails.mediaVol} {tabletDetails.unit}
-                              <WarningIndicator
-                                value={tabletDetails.mediaVol}
-                              />
-                            </span>
-                          </div>
-                          {/* V9, V10, V11, V12, V13, V14 */}
-                          {sampleDilutions.map((dilution, idx) => (
-                            <div key={idx} className="space-y-2">
-                              <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-emerald-100 to-emerald-50 p-3 rounded-lg border border-emerald-200">
-                                <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">
-                                  V{idx * 2 + 9}:
-                                </span>
-                                <span className="text-gray-800 font-semibold flex items-center">
-                                  {dilution.vol1} {dilution.unit1}
-                                  <WarningIndicator value={dilution.vol1} />
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between gap-3 text-xs bg-gradient-to-r from-emerald-100 to-emerald-50 p-3 rounded-lg border border-emerald-200">
-                                <span className="font-bold text-emerald-800 bg-emerald-200/50 px-2 rounded-md">
-                                  V{idx * 2 + 10}:
-                                </span>
-                                <span className="text-gray-800 font-semibold flex items-center">
-                                  {dilution.vol2} {dilution.unit2}
-                                  <WarningIndicator value={dilution.vol2} />
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-
-                {/* Calculation Formula Section */}
-                {canCalculate && (
-                  <div className="bg-white rounded-lg border-2 border-emerald-300 shadow-md overflow-hidden">
-                    <div className="bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-2">
-                      <h5 className="text-sm font-bold text-white flex items-center gap-2">
-                        <Calculator className="w-4 h-4" />
-                        Calculation Formula Inputs
-                      </h5>
-                    </div>
-
-                    <div className="p-4 space-y-4">
-                      {/* Area/ABS of Standard */}
-                      <div>
-                        <label className="block text-xs font-semibold text-emerald-900 mb-1">
-                          Area/ABS of Standard
-                        </label>
-                        <input
-                          type="number"
-                          value={calculation.areaOfStandard}
-                          onChange={(e) =>
-                            onFieldChange(
-                              calculation.id,
-                              "areaOfStandard",
-                              e.target.value
-                            )
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                              e.preventDefault();
-                            }
-                          }}
-                          onWheel={(e) => e.currentTarget.blur()}
-                          placeholder="Enter Standard Area/ABS"
-                          className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                        />
-                      </div>
-
-                      {/* 6 Sample Area/ABS Inputs */}
-                      <div>
-                        <label className="block text-xs font-semibold text-emerald-900 mb-2">
-                          Area/ABS of Samples (6 Tablets)
-                        </label>
-                        <div className="grid grid-cols-2 gap-3">
-                          {[1, 2, 3, 4, 5, 6].map((tabletNum) => (
-                            <div key={tabletNum}>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
-                                Sample {tabletNum}
-                              </label>
-                              <input
-                                type="number"
-                                value={getSampleAreaValue(tabletNum - 1)}
-                                onChange={(e) =>
-                                  handleSampleAreaChange(
-                                    tabletNum - 1,
-                                    e.target.value
-                                  )
+                        <div>
+                          <div className="mb-4">
+                            <label className="block text-xs font-semibold text-gray-600 mb-1">
+                              Standard Area/ABS *
+                            </label>
+                            <input
+                              type="number"
+                              value={calculation.areaOfStandard || ""}
+                              onChange={(e) =>
+                                onFieldChange(
+                                  calculation.id,
+                                  "areaOfStandard",
+                                  e.target.value
+                                )
+                              }
+                              step="any"
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === "ArrowUp" ||
+                                  e.key === "ArrowDown"
+                                ) {
+                                  e.preventDefault();
                                 }
-                                onKeyDown={(e) => {
-                                  if (
-                                    e.key === "ArrowUp" ||
-                                    e.key === "ArrowDown"
-                                  ) {
-                                    e.preventDefault();
+                              }}
+                              onWheel={(e) => e.currentTarget.blur()}
+                              placeholder="Enter standard area"
+                              className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-600 mb-1">
+                              Sample Areas/ABS (6 Tablets)
+                            </label>
+                            <div className="grid grid-cols-3 gap-2">
+                              {[0, 1, 2, 3, 4, 5].map((index) => (
+                                <input
+                                  key={index}
+                                  type="number"
+                                  value={getSampleAreaValue(index)}
+                                  onChange={(e) =>
+                                    handleSampleAreaChange(index, e.target.value)
                                   }
-                                }}
-                                onWheel={(e) => e.currentTarget.blur()}
-                                placeholder={`Tablet ${tabletNum}`}
-                                className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                              />
+                                  step="any"
+                                  onKeyDown={(e) => {
+                                    if (
+                                      e.key === "ArrowUp" ||
+                                      e.key === "ArrowDown"
+                                    ) {
+                                      e.preventDefault();
+                                    }
+                                  }}
+                                  onWheel={(e) => e.currentTarget.blur()}
+                                  placeholder={`T${index + 1}`}
+                                  className="w-full px-2 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
+                                />
+                              ))}
                             </div>
-                          ))}
+                          </div>
                         </div>
                       </div>
 
-                      {/* MW & Purity Parameters */}
-                      <div className="grid grid-cols-3 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-emerald-900 mb-1">
-                            MW Base
-                          </label>
-                          <input
-                            type="number"
-                            value={calculation.mwBase}
-                            onChange={(e) =>
-                              onFieldChange(
-                                calculation.id,
-                                "mwBase",
-                                e.target.value
-                              )
-                            }
-                            onKeyDown={(e) => {
-                              if (
-                                e.key === "ArrowUp" ||
-                                e.key === "ArrowDown"
-                              ) {
-                                e.preventDefault();
+                      <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 rounded-lg p-4 border-2 border-emerald-200">
+                        <h5 className="text-sm font-bold text-gray-700 mb-3">
+                          Standard Properties
+                        </h5>
+                        <div className="grid md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-600 mb-1">
+                              Purity (%)
+                            </label>
+                            <input
+                              type="number"
+                              value={calculation.purity}
+                              onChange={(e) =>
+                                onFieldChange(
+                                  calculation.id,
+                                  "purity",
+                                  e.target.value
+                                )
                               }
-                            }}
-                            onWheel={(e) => e.currentTarget.blur()}
-                            placeholder="MW Base"
-                            className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-emerald-900 mb-1">
-                            MW Salt
-                          </label>
-                          <input
-                            type="number"
-                            value={calculation.mwSalt}
-                            onChange={(e) =>
-                              onFieldChange(
-                                calculation.id,
-                                "mwSalt",
-                                e.target.value
-                              )
-                            }
-                            onKeyDown={(e) => {
-                              if (
-                                e.key === "ArrowUp" ||
-                                e.key === "ArrowDown"
-                              ) {
-                                e.preventDefault();
+                              step="any"
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === "ArrowUp" ||
+                                  e.key === "ArrowDown"
+                                ) {
+                                  e.preventDefault();
+                                }
+                              }}
+                              onWheel={(e) => e.currentTarget.blur()}
+                              placeholder="Purity %"
+                              className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-600 mb-1">
+                              MW Base
+                            </label>
+                            <input
+                              type="number"
+                              value={calculation.mWBase}
+                              onChange={(e) =>
+                                onFieldChange(
+                                  calculation.id,
+                                  "mWBase",
+                                  e.target.value
+                                )
                               }
-                            }}
-                            onWheel={(e) => e.currentTarget.blur()}
-                            placeholder="MW Salt"
-                            className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-emerald-900 mb-1">
-                            Purity
-                          </label>
-                          <input
-                            type="number"
-                            value={calculation.purity}
-                            onChange={(e) =>
-                              onFieldChange(
-                                calculation.id,
-                                "purity",
-                                e.target.value
-                              )
-                            }
-                            onKeyDown={(e) => {
-                              if (
-                                e.key === "ArrowUp" ||
-                                e.key === "ArrowDown"
-                              ) {
-                                e.preventDefault();
+                              step="any"
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === "ArrowUp" ||
+                                  e.key === "ArrowDown"
+                                ) {
+                                  e.preventDefault();
+                                }
+                              }}
+                              onWheel={(e) => e.currentTarget.blur()}
+                              placeholder="MW Base"
+                              className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-600 mb-1">
+                              MW Salt
+                            </label>
+                            <input
+                              type="number"
+                              value={calculation.mWSalt}
+                              onChange={(e) =>
+                                onFieldChange(
+                                  calculation.id,
+                                  "mWSalt",
+                                  e.target.value
+                                )
                               }
-                            }}
-                            onWheel={(e) => e.currentTarget.blur()}
-                            placeholder="Purity"
-                            className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                          />
+                              step="any"
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === "ArrowUp" ||
+                                  e.key === "ArrowDown"
+                                ) {
+                                  e.preventDefault();
+                                }
+                              }}
+                              onWheel={(e) => e.currentTarget.blur()}
+                              placeholder="MW Salt"
+                              className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
+                            />
+                          </div>
                         </div>
                       </div>
 
-                      {/* Calculate Button */}
                       <div className="flex justify-center pt-2">
                         <motion.button
                           onClick={performCalculation}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-green-700 transition-all shadow-md hover:shadow-lg text-sm"
+                          className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg text-sm"
                         >
                           <Calculator className="w-4 h-4" />
-                          Calculate Results
+                          Calculate Result
                         </motion.button>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Warning if preparations not selected */}
-                {(!selectedStandardPrep || !selectedSamplePrepDisso) && (
-                  <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-3 text-center">
-                    <p className="text-xs text-amber-800 font-medium">
-                      Please select a preparation to enable calculation
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* RESULTS SECTION - Tablet Results & Summary Tables */}
-              {tabletResults.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="border-t-4 border-emerald-200 p-6 bg-gradient-to-br from-emerald-50 via-green-100/30 to-teal-50"
-                >
-                  <div className="max-w-full mx-auto space-y-6">
-                    {/* Header */}
-                    <div className="flex items-center gap-3 pb-3">
-                      <CheckCircle2 className="w-6 h-6 text-green-700" />
-                      <div>
-                        <h6 className="text-lg font-bold text-green-700">
-                          Calculation Results
-                        </h6>
-                      </div>
+                  {(!selectedStandardPrep || !selectedSamplePrepDisso) && (
+                    <div className="bg-emerald-50 border-2 border-emerald-300 rounded-lg p-3 text-center">
+                      <p className="text-xs text-emerald-800 font-medium">
+                        Please select a preparation to enable calculation
+                      </p>
                     </div>
+                  )}
+                </div>
 
-                    {/* Tablet Results Table */}
-                    <div className="bg-white rounded-lg shadow-lg border-2 border-green-300 overflow-hidden">
-                      <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2">
-                        <h6 className="text-sm font-bold text-white">
-                          Individual Tablet Results
-                        </h6>
+                {/* RESULTS SECTION - Tablet Results & Summary Tables */}
+                {tabletResults.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="border-t-4 border-emerald-200 p-6 bg-gradient-to-br from-emerald-50 via-emerald-100/30 to-emerald-50"
+                  >
+                    <div className="max-w-full mx-auto space-y-6">
+                      {/* Header */}
+                      <div className="flex items-center gap-3 pb-3">
+                        <CheckCircle2 className="w-6 h-6 text-emerald-700" />
+                        <div>
+                          <h6 className="text-lg font-bold text-emerald-700">
+                            Calculation Results
+                          </h6>
+                        </div>
                       </div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="bg-emerald-100">
-                              {tabletResults.map((result) => (
-                                <th
-                                  key={result.tabletNumber}
-                                  className="px-4 py-3 text-center text-sm font-bold text-emerald-900 border-r border-emerald-200 last:border-r-0"
-                                >
-                                  Tablet {result.tabletNumber}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr className="bg-white">
-                              {tabletResults.map((result) => (
-                                <td
-                                  key={result.tabletNumber}
-                                  className="px-4 py-4 text-center border-r border-gray-200 last:border-r-0"
-                                >
-                                  <div className="text-lg font-bold text-gray-800">
-                                    {typeof result.result === "number"
-                                      ? result.result.toFixed(4)
-                                      : result.result}
-                                  </div>
-                                  {typeof result.result === "number" && (
-                                    <div className="text-xs text-gray-600 mt-1">
-                                      {result.unit}
-                                    </div>
-                                  )}
-                                </td>
-                              ))}
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
 
-                    {/* Summary Statistics Table */}
-                    {summaryResults && (
-                      <div className="bg-white rounded-lg shadow-lg border-2 border-blue-300 overflow-hidden">
-                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2">
+                      <div className="bg-white rounded-lg shadow-lg border-2 border-emerald-300 overflow-hidden">
+                        <div className="bg-gradient-to-r from-emerald-600 to-emerald-600 px-4 py-2">
                           <h6 className="text-sm font-bold text-white">
-                            Summary Statistics
+                            Individual Tablet Results
                           </h6>
                         </div>
                         <div className="overflow-x-auto">
                           <table className="w-full">
                             <thead>
-                              <tr className="bg-blue-100">
-                                <th className="px-6 py-3 text-center text-sm font-bold text-blue-900 border-r border-blue-200">
-                                  Minimum
-                                </th>
-                                <th className="px-6 py-3 text-center text-sm font-bold text-blue-900 border-r border-blue-200">
-                                  Average
-                                </th>
-                                <th className="px-6 py-3 text-center text-sm font-bold text-blue-900">
-                                  Maximum
-                                </th>
+                              <tr className="bg-emerald-100">
+                                {tabletResults.map((result) => (
+                                  <th
+                                    key={result.tabletNumber}
+                                    className="px-4 py-3 text-center text-sm font-bold text-emerald-900 border-r border-emerald-200 last:border-r-0"
+                                  >
+                                    Tablet {result.tabletNumber}
+                                  </th>
+                                ))}
                               </tr>
                             </thead>
                             <tbody>
                               <tr className="bg-white">
-                                <td className="px-6 py-4 text-center border-r border-gray-200">
-                                  <div className="text-xl font-bold text-gray-800">
-                                    {summaryResults.min.toFixed(4)}
-                                  </div>
-                                  <div className="text-xs text-gray-600 mt-1">
-                                    {summaryResults.unit}
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 text-center border-r border-gray-200">
-                                  <div className="text-xl font-bold text-blue-800">
-                                    {summaryResults.avg.toFixed(4)}
-                                  </div>
-                                  <div className="text-xs text-gray-600 mt-1">
-                                    {summaryResults.unit}
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 text-center">
-                                  <div className="text-xl font-bold text-gray-800">
-                                    {summaryResults.max.toFixed(4)}
-                                  </div>
-                                  <div className="text-xs text-gray-600 mt-1">
-                                    {summaryResults.unit}
-                                  </div>
-                                </td>
+                                {tabletResults.map((result) => (
+                                  <td
+                                    key={result.tabletNumber}
+                                    className="px-4 py-4 text-center border-r border-gray-200 last:border-r-0"
+                                  >
+                                    <div className="text-lg font-bold text-gray-800">
+                                      {typeof result.result === "number"
+                                        ? result.result.toFixed(4)
+                                        : result.result}
+                                    </div>
+                                    {typeof result.result === "number" && (
+                                      <div className="text-xs text-gray-600 mt-1">
+                                        {result.unit}
+                                      </div>
+                                    )}
+                                  </td>
+                                ))}
                               </tr>
                             </tbody>
                           </table>
                         </div>
                       </div>
-                    )}
 
-                    {/* Preparation Info */}
-                    <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4">
-                      <div className="grid md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-600 font-medium">
-                            Standard Preparation
-                          </p>
-                          <p className="text-gray-900 font-semibold">
-                            {calculation.selectedStandardPrepLabel || "N/A"}
-                          </p>
+                      {/* Summary Statistics Table */}
+                      {summaryResults && (
+                        <div className="bg-white rounded-lg shadow-lg border-2 border-emerald-300 overflow-hidden">
+                          <div className="bg-gradient-to-r from-emerald-600 to-emerald-600 px-4 py-2">
+                            <h6 className="text-sm font-bold text-white">
+                              Summary Statistics
+                            </h6>
+                          </div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="bg-emerald-100">
+                                  <th className="px-6 py-3 text-center text-sm font-bold text-emerald-900 border-r border-emerald-200">
+                                    Minimum
+                                  </th>
+                                  <th className="px-6 py-3 text-center text-sm font-bold text-emerald-900 border-r border-emerald-200">
+                                    Average
+                                  </th>
+                                  <th className="px-6 py-3 text-center text-sm font-bold text-emerald-900">
+                                    Maximum
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr className="bg-white">
+                                  <td className="px-6 py-4 text-center border-r border-gray-200">
+                                    <div className="text-xl font-bold text-gray-800">
+                                      {summaryResults.min.toFixed(4)}
+                                    </div>
+                                    <div className="text-xs text-gray-600 mt-1">
+                                      {summaryResults.unit}
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 text-center border-r border-gray-200">
+                                    <div className="text-xl font-bold text-emerald-800">
+                                      {summaryResults.avg.toFixed(4)}
+                                    </div>
+                                    <div className="text-xs text-gray-600 mt-1">
+                                      {summaryResults.unit}
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 text-center">
+                                    <div className="text-xl font-bold text-gray-800">
+                                      {summaryResults.max.toFixed(4)}
+                                    </div>
+                                    <div className="text-xs text-gray-600 mt-1">
+                                      {summaryResults.unit}
+                                    </div>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-gray-600 font-medium">
-                            Sample Preparation
-                          </p>
-                          <p className="text-gray-900 font-semibold">
-                            {calculation.selectedSamplePrepLabel || "N/A"}
-                          </p>
+                      )}
+
+                      {/* Preparation Info */}
+                      <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4">
+                        <div className="grid md:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-600 font-medium">
+                              Standard Preparation
+                            </p>
+                            <p className="text-gray-900 font-semibold">
+                              {calculation.selectedStandardPrepLabel || "N/A"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600 font-medium">
+                              Sample Preparation
+                            </p>
+                            <p className="text-gray-900 font-semibold">
+                              {calculation.selectedSamplePrepLabel || "N/A"}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                  </motion.div>
+                )}
+              </motion.div>
+          </AnimatePresence>
+        </div>
+      )}
     </motion.div>
   );
 };

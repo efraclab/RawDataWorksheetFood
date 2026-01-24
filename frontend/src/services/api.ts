@@ -65,45 +65,6 @@ export const fetchSample = async (regNo: string): Promise<SampleData[]> => {
   }
 };
 
-export const fetchInstruments = async (): Promise<Instrument[]> => {
-  try {
-    const response = await axios.get<Instrument[]>(`${API_BASE_URL}/instruments`);
-    return response.data;
-  } catch (error: any) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.error || `Failed to fetch instruments: ${error.message}`);
-    } else {
-      throw new Error(`An unexpected error occurred: ${error.message}`);
-    }
-  }
-};
-
-export const fetchChemicals = async (): Promise<Chemical[]> => {
-  try {
-    const response = await axios.get<Chemical[]>(`${API_BASE_URL}/chemicals`);
-    return response.data;
-  } catch (error: any) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.error || `Failed to fetch chemicals: ${error.message}`);
-    } else {
-      throw new Error(`An unexpected error occurred: ${error.message}`);
-    }
-  }
-};
-
-export const fetchStandards = async (): Promise<Standard[]> => {
-  try {
-    const response = await axios.get<Standard[]>(`${API_BASE_URL}/standards`);
-    return response.data;
-  } catch (error: any) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.error || `Failed to fetch standards: ${error.message}`);
-    } else {
-      throw new Error(`An unexpected error occurred: ${error.message}`);
-    }
-  }
-};
-
 export const fetchColumns = async (): Promise<Column[]> => {
   try {
     const response = await axios.get<Column[]>(`${API_BASE_URL}/columns`);
@@ -154,6 +115,8 @@ export const updateWorksheet = async (
   if (!worksheetId) {
     throw new Error("Worksheet ID is required.");
   }
+
+  console.log("Updating worksheet with ID:", worksheetData);
 
   try {
     const response = await axios.put<{ worksheetId: string }>(
@@ -352,5 +315,200 @@ export const fetchAnalysts = async (
       );
     }
     throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+// ========== CHEMICAL API FUNCTIONS ==========
+
+export const addChemical = async (payload: Chemical): Promise<void> => {
+  try {
+    await axios.post(`${API_BASE_URL}/chemicals`, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to add chemical: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+export const updateChemical = async (payload: Chemical): Promise<void> => {
+  try {
+    await axios.put(`${API_BASE_URL}/chemicals`, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to update chemical: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+export const deleteChemical = async (slNo: string): Promise<void> => {
+  if (!slNo) throw new Error("Chemical serial number is required.");
+
+  try {
+    await axios.delete(`${API_BASE_URL}/chemicals/${slNo}`);
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to delete chemical: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+
+// ========== INSTRUMENT API FUNCTIONS ==========
+
+export const addInstrument = async (payload: Instrument): Promise<void> => {
+  try {
+    await axios.post(`${API_BASE_URL}/instruments`, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to add instrument: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+export const updateInstrument = async (payload: Instrument): Promise<void> => {
+  try {
+    await axios.put(`${API_BASE_URL}/instruments`, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to update instrument: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+export const deleteInstrument = async (id: string): Promise<void> => {
+  if (!id) throw new Error("Instrument ID is required.");
+
+  try {
+    await axios.delete(`${API_BASE_URL}/instruments/${id}`);
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to delete instrument: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+
+// ========== STANDARD API FUNCTIONS ==========
+
+export const addStandard = async (payload: Standard): Promise<void> => {
+  try {
+    await axios.post(`${API_BASE_URL}/standards`, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to add standard: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+export const updateStandard = async (payload: Standard): Promise<void> => {
+  try {
+    await axios.put(`${API_BASE_URL}/standards`, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to update standard: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+export const deleteStandard = async (serialNo: string): Promise<void> => {
+  if (!serialNo) throw new Error("Standard serial number is required.");
+
+  try {
+    await axios.delete(`${API_BASE_URL}/standards/${serialNo}`);
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to delete standard: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+
+export const getInstruments = async (): Promise<Instrument[]> => {
+  try {
+    const response = await axios.get<Instrument[]>(`${API_BASE_URL}/instruments`);
+    //console.log("instruments", response.data);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || `Failed to fetch instruments: ${error.message}`);
+    } else {
+      throw new Error(`An unexpected error occurred: ${error.message}`);
+    }
+  }
+};
+
+export const getChemicals = async (): Promise<Chemical[]> => {
+  try {
+    const response = await axios.get<Chemical[]>(`${API_BASE_URL}/chemicals`);
+    //console.log("chemicals", response.data);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || `Failed to fetch chemicals: ${error.message}`);
+    } else {
+      throw new Error(`An unexpected error occurred: ${error.message}`);
+    }
+  }
+};
+
+export const getStandards = async (): Promise<Standard[]> => {
+  try {
+    const response = await axios.get<Standard[]>(`${API_BASE_URL}/standards`);
+    //console.log("standards", response.data);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || `Failed to fetch standards: ${error.message}`);
+    } else {
+      throw new Error(`An unexpected error occurred: ${error.message}`);
+    }
   }
 };

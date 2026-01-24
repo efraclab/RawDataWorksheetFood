@@ -24,8 +24,10 @@
         public List<string>? ChemicalIds { get; set; }
         public List<string>? StandardIds { get; set; }
 
-        public List<StandardPreparationDto>? StandardPreparations { get; set; }
-        public List<SamplePreparationDto>? SamplePreparations { get; set; }
+        //public List<StandardPreparationDto>? StandardPreparations { get; set; }
+        //public List<SamplePreparationDto>? SamplePreparations { get; set; }
+
+        public List<PreparationDto>? Preparations { get; set; }
 
         public List<CalculationDto>? Calculations { get; set; }
     }

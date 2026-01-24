@@ -1,7 +1,7 @@
 export type SamplePreparationTitrationStep = {
   name: "Weighing" | "1st Dilution" | "End Point Determination" ;
-  value?: string;
-  unit?: string;
+  value1?: string;
+  unit1?: string;
   logBookID?: string;
   solventChemical?: string;
 };

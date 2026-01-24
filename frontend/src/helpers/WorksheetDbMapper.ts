@@ -91,7 +91,7 @@ export class WorksheetDbMapper {
     const rows: TblPreparationRow[] = [];
 
     detail.parameters.forEach((p) => {
-      const mapPrep = (prep: any, category: "STANDARD" | "SAMPLE") => {
+      const mapPrep = (prep: any, category: "STANDARD" | "SAMPLE" | "MOBILE_PHASE" | "DISSOLUTION_MEDIA") => {
         const steps = JSON.parse(prep.steps || "[]");
 
         steps.forEach((step: any, idx: number) => {
@@ -119,12 +119,33 @@ export class WorksheetDbMapper {
 
             Value3: v3,
             Unit3: v3 ? nv(step.unit3) : null,
+
+            SolventChemical: nv(step.solventChemical),
+            LogBookID: nv(step.logBookID),
           });
         });
       };
 
-      p.standardPreparations?.forEach((sp) => mapPrep(sp, "STANDARD"));
-      p.samplePreparations?.forEach((sp) => mapPrep(sp, "SAMPLE"));
+      // Handle preparations array (NEW STRUCTURE - PRIORITY)
+      if (p.preparations) {
+        // Check if preparations is already an array or a JSON string
+        const preps = typeof p.preparations === 'string' 
+          ? JSON.parse(p.preparations || "[]") 
+          : p.preparations;
+          
+        preps.forEach((prep: any) => {
+          const category = prep.preparationCategory;
+          if (category === "mobile_phase") {
+            mapPrep(prep, "MOBILE_PHASE");
+          } else if (category === "dissolution_media") {
+            mapPrep(prep, "DISSOLUTION_MEDIA");
+          } else if (category === "standard") {
+            mapPrep(prep, "STANDARD");
+          } else if (category === "sample") {
+            mapPrep(prep, "SAMPLE");
+          }
+        });
+      }
     });
 
     return rows;
@@ -139,6 +160,7 @@ export class WorksheetDbMapper {
         const calculationType = nv(calc.calculationType);
 
         const isDissolution = calculationType?.toLowerCase() === "dissolution";
+        const isUniformityOfContent = calculationType?.toLowerCase() === "uniformity_of_content";
 
         if (isDissolution) {
           
@@ -223,8 +245,111 @@ export class WorksheetDbMapper {
               });
             }
           });
+        } else if (isUniformityOfContent) {
+          
+          const tabletData = [
+            {
+              num: 1,
+              area: d.areaOfSample1,
+              result: d.calculationResultTablet1,
+            },
+            {
+              num: 2,
+              area: d.areaOfSample2,
+              result: d.calculationResultTablet2,
+            },
+            {
+              num: 3,
+              area: d.areaOfSample3,
+              result: d.calculationResultTablet3,
+            },
+            {
+              num: 4,
+              area: d.areaOfSample4,
+              result: d.calculationResultTablet4,
+            },
+            {
+              num: 5,
+              area: d.areaOfSample5,
+              result: d.calculationResultTablet5,
+            },
+            {
+              num: 6,
+              area: d.areaOfSample6,
+              result: d.calculationResultTablet6,
+            },
+            {
+              num: 7,
+              area: d.areaOfSample7,
+              result: d.calculationResultTablet7,
+            },
+            {
+              num: 8,
+              area: d.areaOfSample8,
+              result: d.calculationResultTablet8,
+            },
+            {
+              num: 9,
+              area: d.areaOfSample9,
+              result: d.calculationResultTablet9,
+            },
+            {
+              num: 10,
+              area: d.areaOfSample10,
+              result: d.calculationResultTablet10,
+            },
+          ];
+
+          tabletData.forEach((tablet) => {
+            // Only create a row if there's an area value (tablet was used)
+            const areaValue = nv(tablet.area);
+            if (areaValue) {
+              rows.push({
+                WorksheetId: detail.sample.worksheetId,
+                ParameterCode: p.paraCode,
+                CalculationLabel: nv(calc.label),
+                CalculationType: calculationType,
+
+                // Tablet-specific values
+                AreaOfSample: areaValue,
+                CalculationFor: `Tablet${tablet.num}`,
+                CalculationResult: nv(tablet.result),
+
+                // Common values for all tablets
+                AreaOfStandard: nv(d.areaOfStandard),
+                Purity: nv(d.purity),
+                MwSalt: nv(d.mwSalt),
+                MwBase: nv(d.mwBase),
+                CalculationResultUnit: nv(d.calculationResultUnit),
+                SelectedStandardPrepLabel: nv(d.selectedStandardPrepLabel),
+                SelectedSamplePrepLabel: nv(d.selectedSamplePrepLabel),
+
+                // Set other fields to null for UC
+                AvgWeight: null,
+                AvgWeightUnit: null,
+                AvgContent: null,
+                AvgContentUnit: null,
+                SampleVol: null,
+                SampleVolUnit: null,
+                Claim: null,
+                ClaimUnit: null,
+                LabelClaim: null,
+                LabelClaimUnit: null,
+                LodWaterType: null,
+                LodWaterValue: null,
+                W1_EmptyDish: null,
+                W2_DishWithSample: null,
+                W3_DishAfterIgnition: null,
+                W1_EmptyCrucible: null,
+                W2_CrucibleWithSample: null,
+                W3_CrucibleAfterAsh: null,
+                LabelClaimPercentResult: null,
+                LodWaterBasisResult: null,
+              });
+            }
+          });
         } else {
-          // For non-dissolution calculations, use the original logic
+          // For non-dissolution and non-UC calculations, use the original logic
           let resultValue = nv(d.calculationResult);
           let resultUnit = nv(d.calculationResultUnit);
 

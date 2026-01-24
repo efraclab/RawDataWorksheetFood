@@ -3,17 +3,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Droplets, Trash } from "lucide-react";
 import type { SamplePreparationTitration } from "../../preparation_models/SamplePreparationTitration";
 import type { SamplePreparationTitrationStep } from "../../preparation_models/SamplePreparationTitrationStep";
+import CustomDropdown from "../shared/CustomDropdown";
 
-const weightUnitOptions = ["g", "mg", "kg"];
-const volumeUnitOptions = ["ml", "L", "µL"];
+const weightUnitOptions = [
+  { value: "mg", label: "mg" },
+  { value: "g", label: "g" },
+  { value: "kg", label: "kg" },
+];
+const volumeUnitOptions = [
+  { value: "ml", label: "ml" },
+  { value: "L", label: "L" },
+  { value: "µL", label: "µL" },
+];
 
 interface SamplePreparationTitrationDetailProps {
   samplePreparationTitration: SamplePreparationTitration;
   onStepChange: (
     samplePreparationTitrationId: number,
     stepName: SamplePreparationTitrationStep["name"],
-    field: "value" | "logBookID" | "unit" | "solventChemical",
-    newValue: string
+    field: "value1" | "logBookID" | "unit1" | "solventChemical",
+    newValue: string,
   ) => void;
   onRemove: () => void;
 }
@@ -23,22 +32,21 @@ const SamplePreparationTitrationDetail: React.FC<
 > = ({ samplePreparationTitration, onStepChange, onRemove }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
+  const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="relative group"
+      className="relative group z-20"
     >
       {/* Glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-lime-400/20 to-green-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-emerald-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
 
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-lime-200/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mb-4">
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-emerald-200/50 transition-all duration-300 mb-4">
         {/* Elegant Header */}
-        <div className="relative bg-gradient-to-r from-lime-600 via-lime-500 to-green-500 overflow-hidden">
-          <div className="absolute inset-0 bg-black/5" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-
+        <div className={`relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-500 ${headerRoundingClass}`}>
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
               className="flex items-center gap-4 flex-1 cursor-pointer select-none"
@@ -59,7 +67,7 @@ const SamplePreparationTitrationDetail: React.FC<
                 <h4 className="text-sm font-semibold text-white tracking-wide">
                   {samplePreparationTitration.label}
                 </h4>
-                <p className="text-xs text-lime-100">
+                <p className="text-xs text-emerald-100">
                   Sample Preparation for Titration Details
                 </p>
               </div>
@@ -104,9 +112,8 @@ const SamplePreparationTitrationDetail: React.FC<
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
             >
-              <div className="p-5 space-y-3 bg-gradient-to-br from-lime-50/50 to-green-50/30">
+              <div className="p-5 space-y-3 bg-gradient-to-br from-emerald-50/50 to-emerald-50/30">
                 {samplePreparationTitration.steps.map((step, index) => {
                   const isWeighing = step.name === "Weighing";
                   const is1stDilution = step.name === "1st Dilution";
@@ -120,11 +127,11 @@ const SamplePreparationTitrationDetail: React.FC<
                       transition={{ delay: index * 0.1 }}
                       className="group/item relative"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-lime-400/0 via-lime-400/5 to-lime-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/0 via-emerald-400/5 to-emerald-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
 
-                      <div className="relative bg-white rounded-xl border border-lime-200/60 shadow-sm hover:shadow-md hover:border-lime-300 transition-all duration-200 p-4">
+                      <div className="relative bg-white rounded-xl border border-emerald-200/60 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all duration-200 p-4">
                         <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-lime-500 to-green-500 rounded-full flex items-center justify-center shadow-md">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-emerald-500 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
                             <span className="text-white text-xs font-bold">
                               {index + 1}
                             </span>
@@ -132,10 +139,10 @@ const SamplePreparationTitrationDetail: React.FC<
 
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-3">
-                              <div className="font-bold text-lime-900 text-sm">
+                              <div className="font-bold text-emerald-900 text-sm">
                                 {step.name}
                               </div>
-                              <div className="h-px flex-1 bg-gradient-to-r from-lime-200 to-transparent" />
+                              <div className="h-px flex-1 bg-gradient-to-r from-emerald-200 to-transparent" />
                             </div>
 
                             {isWeighing && (
@@ -149,42 +156,41 @@ const SamplePreparationTitrationDetail: React.FC<
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.value || ""}
+                                    value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationTitration.id,
                                         step.name,
-                                        "value",
-                                        e.target.value
+                                        "value1",
+                                        e.target.value,
                                       )
                                     }
                                     onKeyDown={(e) => {
-                                        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                                          e.preventDefault();
-                                        }
-                                      }}
-                                      onWheel={(e) => e.currentTarget.blur()}
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Weight"
-                                    className="w-30 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all"
+                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                                   />
-                                  <select
-                                    value={step.unit}
-                                    onChange={(e) =>
+                                  <CustomDropdown
+                                  options={weightUnitOptions}
+                                    value={step.unit1}
+                                    onChange={(newUnit) =>
                                       onStepChange(
                                         samplePreparationTitration.id,
                                         step.name,
-                                        "unit",
-                                        e.target.value
+                                        "unit1",
+                                        newUnit,
                                       )
                                     }
-                                    className="w-16 px-2 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
-                                  >
-                                    {weightUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
+                                    placeholder="Unit"
+                                      colorScheme="emerald"
+                                  />
                                   <span className="text-gray-600 font-medium">
                                     of
                                   </span>
@@ -196,17 +202,20 @@ const SamplePreparationTitrationDetail: React.FC<
                                         samplePreparationTitration.id,
                                         step.name,
                                         "solventChemical",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     onKeyDown={(e) => {
-                                        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                                          e.preventDefault();
-                                        }
-                                      }}
-                                      onWheel={(e) => e.currentTarget.blur()}
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Sample"
-                                    className="flex-1 min-w-[120px] px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
+                                    className="flex-1 min-w-[120px] px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
                                   <span className="text-gray-500 text-xs">
                                     (Log ID:
@@ -219,17 +228,20 @@ const SamplePreparationTitrationDetail: React.FC<
                                         samplePreparationTitration.id,
                                         step.name,
                                         "logBookID",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     onKeyDown={(e) => {
-                                        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                                          e.preventDefault();
-                                        }
-                                      }}
-                                      onWheel={(e) => e.currentTarget.blur()}
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter ID"
-                                    className="w-24 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
+                                    className="w-24 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
                                   <span className="text-gray-500 text-xs">
                                     )
@@ -249,42 +261,41 @@ const SamplePreparationTitrationDetail: React.FC<
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.value || ""}
+                                    value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationTitration.id,
                                         step.name,
-                                        "value",
-                                        e.target.value
+                                        "value1",
+                                        e.target.value,
                                       )
                                     }
                                     onKeyDown={(e) => {
-                                        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                                          e.preventDefault();
-                                        }
-                                      }}
-                                      onWheel={(e) => e.currentTarget.blur()}
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Volume"
-                                    className="w-30 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
+                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
-                                  <select
-                                    value={step.unit || "ml"}
-                                    onChange={(e) =>
+                                  <CustomDropdown
+                                    options={volumeUnitOptions}
+                                    value={step.unit1 || "ml"}
+                                    onChange={(newUint) =>
                                       onStepChange(
                                         samplePreparationTitration.id,
                                         step.name,
-                                        "unit",
-                                        e.target.value
+                                        "unit1",
+                                        newUint,
                                       )
                                     }
-                                    className="w-16 px-2 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
-                                  >
-                                    {volumeUnitOptions.map((unit) => (
-                                      <option key={unit} value={unit}>
-                                        {unit}
-                                      </option>
-                                    ))}
-                                  </select>
+                                    placeholder="Unit"
+                                    colorScheme="emerald"
+                                  />
                                   <span className="text-gray-600 font-medium">
                                     with diluent
                                   </span>
@@ -303,23 +314,26 @@ const SamplePreparationTitrationDetail: React.FC<
                                     min="0"
                                     step="0.01"
                                     inputMode="decimal"
-                                    value={step.value || ""}
+                                    value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationTitration.id,
                                         step.name,
-                                        "value",
-                                        e.target.value
+                                        "value1",
+                                        e.target.value,
                                       )
                                     }
                                     onKeyDown={(e) => {
-                                        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                                          e.preventDefault();
-                                        }
-                                      }}
-                                      onWheel={(e) => e.currentTarget.blur()}
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Value"
-                                    className="w-30 px-2.5 py-1.5 border border-lime-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-lime-400 transition-all"
+                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
                                 </div>
                               </div>
@@ -339,5 +353,4 @@ const SamplePreparationTitrationDetail: React.FC<
   );
 };
 
-
-export default SamplePreparationTitrationDetail
+export default SamplePreparationTitrationDetail;

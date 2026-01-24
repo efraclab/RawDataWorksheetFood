@@ -1,6 +1,5 @@
-import type { StandardPreparationData } from "./StandardPreparationData";
-import type { SamplePreparationData } from "./SamplePreparationData";
 import type { CalculationData } from "./CalculationData";
+import type { PreparationData } from "./PreparationData";
 
 export interface ParameterDetail {
     id: number;
@@ -24,7 +23,9 @@ export interface ParameterDetail {
     chemicalIds: string[];
     standardIds: string[];
 
-    standardPreparations: StandardPreparationData[];
-    samplePreparations: SamplePreparationData[];
+    // standardPreparations: StandardPreparationData[];
+    // samplePreparations: SamplePreparationData[];
+
+    preparations: PreparationData[];
     calculations: CalculationData[];
 }

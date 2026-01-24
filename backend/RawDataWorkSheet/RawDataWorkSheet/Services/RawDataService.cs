@@ -21,20 +21,20 @@ namespace RawDataWorkSheet.Services
             return await _rawDataRepository.GetSampleDetailsByIdAsync(regNo);
         }
 
-        public async Task<IEnumerable<Instruments>> GetInstrumentsAsync()
-        {
-            return await _rawDataRepository.GetInstrumentsAsync();
-        }
+        //public async Task<IEnumerable<Instruments>> GetInstrumentsAsync()
+        //{
+        //    return await _rawDataRepository.GetInstrumentsAsync();
+        //}
 
-        public async Task<IEnumerable<Chemicals>> GetChemicalsAsync()
-        {
-            return await _rawDataRepository.GetChemicalsAsync();
-        }
+        //public async Task<IEnumerable<Chemicals>> GetChemicalsAsync()
+        //{
+        //    return await _rawDataRepository.GetChemicalsAsync();
+        //}
 
-        public async Task<IEnumerable<Standard>> GetStandardsAsync()
-        {
-            return await _rawDataRepository.GetStandardsAsync();
-        }
+        //public async Task<IEnumerable<Standard>> GetStandardsAsync()
+        //{
+        //    return await _rawDataRepository.GetStandardsAsync();
+        //}
 
         public async Task<IEnumerable<Columns>> GetCloumnsAsync()
         {

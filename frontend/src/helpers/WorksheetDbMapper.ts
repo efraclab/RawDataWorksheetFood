@@ -91,7 +91,7 @@ export class WorksheetDbMapper {
     const rows: TblPreparationRow[] = [];
 
     detail.parameters.forEach((p) => {
-      const mapPrep = (prep: any, category: "STANDARD" | "SAMPLE" | "MOBILE_PHASE" | "DISSOLUTION_MEDIA") => {
+      const mapPrep = (prep: any, category: "STANDARD" | "SAMPLE" | "MOBILE_PHASE" | "DISSOLUTION_MEDIA" | "SYSTEM_SUITABILITY") => {
         const steps = JSON.parse(prep.steps || "[]");
 
         steps.forEach((step: any, idx: number) => {
@@ -122,13 +122,12 @@ export class WorksheetDbMapper {
 
             SolventChemical: nv(step.solventChemical),
             LogBookID: nv(step.logBookID),
+            LimitType: category === "SYSTEM_SUITABILITY" ? nv(step.limitType) : null,
           });
         });
       };
 
-      // Handle preparations array (NEW STRUCTURE - PRIORITY)
       if (p.preparations) {
-        // Check if preparations is already an array or a JSON string
         const preps = typeof p.preparations === 'string' 
           ? JSON.parse(p.preparations || "[]") 
           : p.preparations;
@@ -143,6 +142,8 @@ export class WorksheetDbMapper {
             mapPrep(prep, "STANDARD");
           } else if (category === "sample") {
             mapPrep(prep, "SAMPLE");
+          } else if (category === "system_suitability") {
+            mapPrep(prep, "SYSTEM_SUITABILITY");
           }
         });
       }

@@ -106,11 +106,11 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
   });
 
   const selectedStandardPrep = standardPreparations.find(
-    (prep) => prep.label === calculation.selectedStandardPrepLabel
+    (prep) => prep.label === calculation.selectedStandardPreparationLabel
   );
 
   const selectedSamplePrep = samplePreparations.find(
-    (prep) => prep.label === calculation.selectedSamplePrepLabel
+    (prep) => prep.label === calculation.selectedSamplePreparationLabel
   );
 
   const preparationPairs = standardPreparations
@@ -137,18 +137,18 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
 
   useEffect(() => {
     if (
-      calculation.selectedStandardPrepLabel &&
-      calculation.selectedSamplePrepLabel
+      calculation.selectedStandardPreparationLabel &&
+      calculation.selectedSamplePreparationLabel
     ) {
       preparationPairs.find(
         (pair) =>
-          pair?.standardLabel === calculation.selectedStandardPrepLabel &&
-          pair?.sampleLabel === calculation.selectedSamplePrepLabel
+          pair?.standardLabel === calculation.selectedStandardPreparationLabel &&
+          pair?.sampleLabel === calculation.selectedSamplePreparationLabel
       );
     }
   }, [
-    calculation.selectedStandardPrepLabel,
-    calculation.selectedSamplePrepLabel,
+    calculation.selectedStandardPreparationLabel,
+    calculation.selectedSamplePreparationLabel,
     preparationPairs,
   ]);
 
@@ -158,17 +158,17 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
     if (selectedPair) {
       onFieldChange(
         calculation.id,
-        "selectedStandardPrepLabel",
+        "selectedStandardPreparationLabel",
         selectedPair.standardLabel
       );
       onFieldChange(
         calculation.id,
-        "selectedSamplePrepLabel",
+        "selectedSamplePreparationLabel",
         selectedPair.sampleLabel
       );
     } else {
-      onFieldChange(calculation.id, "selectedStandardPrepLabel", null);
-      onFieldChange(calculation.id, "selectedSamplePrepLabel", null);
+      onFieldChange(calculation.id, "selectedStandardPreparationLabel", null);
+      onFieldChange(calculation.id, "selectedSamplePreparationLabel", null);
     }
   };
 
@@ -336,6 +336,9 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
     } else {
       if (!isValueValid(smpWeighing.value1)) {
         errors.push("Sample Preparation - Weighing: Weight value is required");
+      }
+      if (!smpWeighing.solventChemical || smpWeighing.solventChemical.trim() === "") {
+        errors.push("Sample Preparation - Weighing: solventChemical is required");
       }
       if (!smpWeighing.logBookID || smpWeighing.logBookID.trim() === "") {
         errors.push("Sample Preparation - Weighing: Logbook ID is required");
@@ -752,7 +755,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
     onFieldChange(calculation.id, "v11", (splVols.V11 || 0).toString());
     onFieldChange(calculation.id, "v12", (splVols.V12 || 0).toString());
     onFieldChange(calculation.id, "v13", (splVols.V13 || 0).toString());
-     onFieldChange(calculation.id, "v14", (splVols.V14 || 0).toString());
+    onFieldChange(calculation.id, "v14", (splVols.V14 || 0).toString());
 
     const allVols = { ...stdVols, ...splVols };
     console.log(
@@ -891,7 +894,9 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
     console.log("5. Final Calculation Formula:", formulaDebugString);
     console.log(`6. Final Result: ${FinalResult.toString()} ${unit}`);
 
-    onFieldChange(calculation.id, "calculationResult", FinalResult.toFixedNoRound(4).toString());
+    FinalResult = FinalResult.toFixedNoRound(4);
+
+    onFieldChange(calculation.id, "calculationResult", FinalResult.toFixed(3).toString());
     onFieldChange(calculation.id, "calculationResultUnit", unit);
 
     if (
@@ -903,11 +908,11 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
         const labelClaimPercentage = (
           (FinalResult / labelClaim) *
           100
-        ).toString();
+        );
         onFieldChange(
           calculation.id,
           "labelClaimPercent",
-          `${labelClaimPercentage}%`
+          `${labelClaimPercentage.toFixedNoRound(3).toFixed(2)}%`
         );
         console.log(
           `7. Label Claim %: (${FinalResult} / ${labelClaim}) * 100 = ${labelClaimPercentage}%`
@@ -1711,7 +1716,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                               Standard Prep
                             </p>
                             <p className="text-gray-900 font-semibold">
-                              {calculation.selectedStandardPrepLabel || "N/A"}
+                              {calculation.selectedStandardPreparationLabel || "N/A"}
                             </p>
                           </div>
                           <div>
@@ -1719,7 +1724,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                               Sample Prep
                             </p>
                             <p className="text-gray-900 font-semibold">
-                              {calculation.selectedSamplePrepLabel || "N/A"}
+                              {calculation.selectedSamplePreparationLabel || "N/A"}
                             </p>
                           </div>
                         </div>

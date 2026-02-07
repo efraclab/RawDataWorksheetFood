@@ -90,11 +90,11 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
 
   // Get selected preparations
   const selectedStandardPrep = standardPreparations.find(
-    (prep) => prep.label === calculation.selectedStandardPrepLabel
+    (prep) => prep.label === calculation.selectedStandardPreparationLabel
   );
 
   const selectedSamplePrep = samplePreparations.find(
-    (prep) => prep.label === calculation.selectedSamplePrepLabel
+    (prep) => prep.label === calculation.selectedSamplePreparationLabel
   );
 
   // Create preparation pair options
@@ -122,18 +122,18 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
 
   useEffect(() => {
     if (
-      calculation.selectedStandardPrepLabel &&
-      calculation.selectedSamplePrepLabel
+      calculation.selectedStandardPreparationLabel &&
+      calculation.selectedSamplePreparationLabel
     ) {
       preparationPairs.find(
         (pair) =>
-          pair?.standardLabel === calculation.selectedStandardPrepLabel &&
-          pair?.sampleLabel === calculation.selectedSamplePrepLabel
+          pair?.standardLabel === calculation.selectedStandardPreparationLabel &&
+          pair?.sampleLabel === calculation.selectedSamplePreparationLabel
       );
     }
   }, [
-    calculation.selectedStandardPrepLabel,
-    calculation.selectedSamplePrepLabel,
+    calculation.selectedStandardPreparationLabel,
+    calculation.selectedSamplePreparationLabel,
     preparationPairs,
   ]);
 
@@ -143,17 +143,17 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
     if (selectedPair) {
       onFieldChange(
         calculation.id,
-        "selectedStandardPrepLabel",
+        "selectedStandardPreparationLabel",
         selectedPair.standardLabel
       );
       onFieldChange(
         calculation.id,
-        "selectedSamplePrepLabel",
+        "selectedSamplePreparationLabel",
         selectedPair.sampleLabel
       );
     } else {
-      onFieldChange(calculation.id, "selectedStandardPrepLabel", null);
-      onFieldChange(calculation.id, "selectedSamplePrepLabel", null);
+      onFieldChange(calculation.id, "selectedStandardPreparationLabel", null);
+      onFieldChange(calculation.id, "selectedSamplePreparationLabel", null);
     }
   };
 
@@ -515,7 +515,7 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
         "Error: Result is NaN or Infinite. Check console for details."
       );
     } else {
-      const result = `${FinalResult.toFixedNoRound(4)}`;
+      const result = FinalResult.toFixedNoRound(4).toFixed(3);
       onFieldChange(calculation.id, "calculationResult", result);
       onFieldChange(calculation.id, "calculationResultUnit", "ppm");
     }
@@ -864,7 +864,7 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                               Standard Prep
                             </p>
                             <p className="text-gray-900 font-semibold">
-                              {calculation.selectedStandardPrepLabel || "N/A"}
+                              {calculation.selectedStandardPreparationLabel || "N/A"}
                             </p>
                           </div>
                           <div>
@@ -872,7 +872,7 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
                               Sample Prep
                             </p>
                             <p className="text-gray-900 font-semibold">
-                              {calculation.selectedSamplePrepLabel || "N/A"}
+                              {calculation.selectedSamplePreparationLabel || "N/A"}
                             </p>
                           </div>
                         </div>

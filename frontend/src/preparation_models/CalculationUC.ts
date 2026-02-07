@@ -1,8 +1,8 @@
 export interface CalculationUC {
   id: number;
   label: string;
-  selectedStandardPrepLabel: string | null;
-  selectedSamplePrepLabel: string | null;
+  selectedStandardPreparationLabel: string | null;
+  selectedSamplePreparationLabel: string | null;
   areaOfStandard: string | null;
   areaOfSample1: string | null;
   areaOfSample2: string | null;

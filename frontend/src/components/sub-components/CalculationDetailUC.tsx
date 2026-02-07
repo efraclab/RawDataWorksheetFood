@@ -103,11 +103,11 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
   );
 
   const selectedStandardPrep = standardPreparations.find(
-    (prep) => prep.label === calculation.selectedStandardPrepLabel
+    (prep) => prep.label === calculation.selectedStandardPreparationLabel
   );
 
   const selectedSamplePrepUC = samplePreparationsUC.find(
-    (prep) => prep.label === calculation.selectedSamplePrepLabel
+    (prep) => prep.label === calculation.selectedSamplePreparationLabel
   );
 
   // Create preparation pair options
@@ -133,24 +133,24 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
   }[];
 
   const currentPrepLabel =
-    calculation.selectedStandardPrepLabel && calculation.selectedSamplePrepLabel
-      ? `${calculation.selectedStandardPrepLabel}-${calculation.selectedSamplePrepLabel}`
+    calculation.selectedStandardPreparationLabel && calculation.selectedSamplePreparationLabel
+      ? `${calculation.selectedStandardPreparationLabel}-${calculation.selectedSamplePreparationLabel}`
       : "";
 
   useEffect(() => {
     if (
-      calculation.selectedStandardPrepLabel &&
-      calculation.selectedSamplePrepLabel
+      calculation.selectedStandardPreparationLabel &&
+      calculation.selectedSamplePreparationLabel
     ) {
       preparationPairs.find(
         (pair) =>
-          pair?.standardLabel === calculation.selectedStandardPrepLabel &&
-          pair?.sampleLabel === calculation.selectedSamplePrepLabel
+          pair?.standardLabel === calculation.selectedStandardPreparationLabel &&
+          pair?.sampleLabel === calculation.selectedSamplePreparationLabel
       );
     }
   }, [
-    calculation.selectedStandardPrepLabel,
-    calculation.selectedSamplePrepLabel,
+    calculation.selectedStandardPreparationLabel,
+    calculation.selectedSamplePreparationLabel,
     preparationPairs,
   ]);
 
@@ -171,15 +171,16 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
     ];
 
     resultFields.forEach(({ num, value }) => {
-      if (value && value.trim() !== "") {
-        const numericValue = parseFloat(value);
-        existingResults.push({
-          tabletNumber: num,
-          result: isNaN(numericValue) ? value : numericValue,
-          unit: calculation.calculationResultUnit || "mg/tablet",
-        });
-      }
-    });
+    if (value !== null && value !== undefined && String(value).trim() !== "") {
+      const numericValue = Number(value);
+
+      existingResults.push({
+        tabletNumber: num,
+        result: isNaN(numericValue) ? String(value) : numericValue,
+        unit: calculation.calculationResultUnit || "mg/Tablet",
+      });
+    }
+  });
 
     if (existingResults.length > 0) {
       setTabletResults(existingResults);
@@ -198,7 +199,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
           min: parseFloat(min.toFixed(4)),
           max: parseFloat(max.toFixed(4)),
           avg: parseFloat(avg.toFixed(4)),
-          unit: calculation.calculationResultUnit || "mg/tablet",
+          unit: calculation.calculationResultUnit || "mg/Tablet",
         });
       }
     }
@@ -210,17 +211,17 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
     if (selectedPair) {
       onFieldChange(
         calculation.id,
-        "selectedStandardPrepLabel",
+        "selectedStandardPreparationLabel",
         selectedPair.standardLabel
       );
       onFieldChange(
         calculation.id,
-        "selectedSamplePrepLabel",
+        "selectedSamplePreparationLabel",
         selectedPair.sampleLabel
       );
     } else {
-      onFieldChange(calculation.id, "selectedStandardPrepLabel", null);
-      onFieldChange(calculation.id, "selectedSamplePrepLabel", null);
+      onFieldChange(calculation.id, "selectedStandardPreparationLabel", null);
+      onFieldChange(calculation.id, "selectedSamplePreparationLabel", null);
     }
   };
 
@@ -772,7 +773,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
     onFieldChange(calculation.id, "v15", V15.toString());
     onFieldChange(calculation.id, "v16", V16.toString());
 
-    return parseFloat(result.toFixed(4));
+    return result.toFixedNoRound(4);
   };
 
   const performCalculation = () => {
@@ -822,11 +823,14 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
           results.push({
             tabletNumber: index + 1,
             result: result,
-            unit: "mg/tablet",
+            unit: "mg/Tablet",
           });
           validResults.push(result);
 
-          onFieldChange(calculation.id, resultFields[index], result.toFixed(4));
+          const truncated = result.toFixedNoRound(4);
+          const finalValue = parseFloat(truncated.toFixed(3));
+
+          onFieldChange(calculation.id, resultFields[index], finalValue);
         } else {
           results.push({
             tabletNumber: index + 1,
@@ -849,11 +853,15 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
       const sum = validResults.reduce((acc, val) => acc + val, 0);
       const avg = sum / validResults.length;
 
+      const minTruncated = min.toFixedNoRound(4);
+      const maxTruncated = max.toFixedNoRound(4);
+      const avgTruncated = avg.toFixedNoRound(4);
+
       const summaryData = {
-        min: parseFloat(min.toFixed(4)),
-        max: parseFloat(max.toFixed(4)),
-        avg: parseFloat(avg.toFixed(4)),
-        unit: "mg/tablet",
+        min: parseFloat(minTruncated.toFixed(3)),
+        max: parseFloat(maxTruncated.toFixed(3)),
+        avg: parseFloat(avgTruncated.toFixed(3)),
+        unit: "mg/Tablet",
       };
 
       setSummaryResults(summaryData);
@@ -862,7 +870,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
         "calculationResult",
         `Min: ${summaryData.min}, Max: ${summaryData.max}, Avg: ${summaryData.avg}`
       );
-      onFieldChange(calculation.id, "calculationResultUnit", "mg/tablet");
+      onFieldChange(calculation.id, "calculationResultUnit", "mg/Tablet");
 
       console.log("Summary Results:", summaryData);
     } else {
@@ -1287,7 +1295,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                                 >
                                   <div className="text-lg font-bold text-gray-800">
                                     {typeof result.result === "number"
-                                      ? result.result.toFixed(4)
+                                      ? result.result.toFixedNoRound(4).toFixed(3)
                                       : result.result}
                                   </div>
                                   {typeof result.result === "number" && (
@@ -1330,7 +1338,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                               <tr className="bg-white">
                                 <td className="px-6 py-4 text-center border-r border-gray-200">
                                   <div className="text-xl font-bold text-gray-800">
-                                    {summaryResults.min.toFixed(4)}
+                                    {summaryResults.min.toFixed(3)}
                                   </div>
                                   <div className="text-xs text-gray-600 mt-1">
                                     {summaryResults.unit}
@@ -1338,7 +1346,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                                 </td>
                                 <td className="px-6 py-4 text-center border-r border-gray-200">
                                   <div className="text-xl font-bold text-emerald-800">
-                                    {summaryResults.avg.toFixed(4)}
+                                    {summaryResults.avg.toFixed(3)}
                                   </div>
                                   <div className="text-xs text-gray-600 mt-1">
                                     {summaryResults.unit}
@@ -1346,7 +1354,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                   <div className="text-xl font-bold text-gray-800">
-                                    {summaryResults.max.toFixed(4)}
+                                    {summaryResults.max.toFixed(3)}
                                   </div>
                                   <div className="text-xs text-gray-600 mt-1">
                                     {summaryResults.unit}
@@ -1367,7 +1375,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                             Standard Preparation
                           </p>
                           <p className="text-gray-900 font-semibold">
-                            {calculation.selectedStandardPrepLabel || "N/A"}
+                            {calculation.selectedStandardPreparationLabel || "N/A"}
                           </p>
                         </div>
                         <div>
@@ -1375,7 +1383,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                             Sample Preparation
                           </p>
                           <p className="text-gray-900 font-semibold">
-                            {calculation.selectedSamplePrepLabel || "N/A"}
+                            {calculation.selectedSamplePreparationLabel || "N/A"}
                           </p>
                         </div>
                       </div>

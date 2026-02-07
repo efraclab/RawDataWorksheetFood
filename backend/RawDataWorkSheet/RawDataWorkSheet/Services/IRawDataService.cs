@@ -1,4 +1,5 @@
 ﻿using RawDataWorkSheet.Models;
+using RawDataWorkSheet.Models.Requests;
 
 namespace RawDataWorkSheet.Services
 {
@@ -6,7 +7,7 @@ namespace RawDataWorkSheet.Services
     {
         //Task<IEnumerable<Chemicals>> GetChemicalsAsync();
         //Task<IEnumerable<Instruments>> GetInstrumentsAsync();
-        Task<IEnumerable<SampleDetails>> GetSampleDetailsByIdAsync(string regNo);
+        Task<IEnumerable<SampleDetails>> GetSampleDetailsByIdAsync(SampleDetailsRequest request);
         //Task<IEnumerable<Standard>> GetStandardsAsync();
         Task<IEnumerable<Columns>> GetCloumnsAsync();
     }

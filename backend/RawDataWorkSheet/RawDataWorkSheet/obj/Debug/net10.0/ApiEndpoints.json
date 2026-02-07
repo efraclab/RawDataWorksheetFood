@@ -166,8 +166,8 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "regNo",
-        "Type": "System.String",
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.Requests.SampleDetailsRequest",
         "IsRequired": true
       }
     ],

@@ -2,7 +2,7 @@
 export interface CalculationSulphatedAsh {
   id: number;
   label: string;
-  selectedSamplePrepLabel: string | null;
+  selectedSamplePreparationLabel: string | null;
   
   w1_emptyCrucible: string;
   w2_crucibleWithSample: string;

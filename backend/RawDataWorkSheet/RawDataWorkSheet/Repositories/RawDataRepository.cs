@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
 using RawDataWorkSheet.Models;
+using RawDataWorkSheet.Models.Requests;
 
 namespace RawDataWorkSheet.Repositories
 {
@@ -13,7 +14,7 @@ namespace RawDataWorkSheet.Repositories
             _connectionString = configuration["Connnectionstrings:Connection1"];
         }
 
-        public async Task<IEnumerable<SampleDetails>> GetSampleDetailsByIdAsync(string regNo)
+        public async Task<IEnumerable<SampleDetails>> GetSampleDetailsByIdAsync(SampleDetailsRequest request)
         {
 
             var query = @"
@@ -149,9 +150,22 @@ namespace RawDataWorkSheet.Repositories
                 LEFT JOIN RegisBase r ON t2.TRN2REFNO = r.RegisNo
                 LEFT JOIN SampleCount s ON t2.TRN2REFNO = s.TRN2REFNO
                 WHERE 
-                    t1.TRN1PLANTCD = 'P001' 
-                    AND t1.TRN1DATE BETWEEN '2025-04-01 00:00:00.000' AND '2026-03-31 00:00:00.000'
+                    t1.TRN1PLANTCD = 'P001'
+                    AND t1.TRN1DATE BETWEEN '2025-04-01 00:00:00.000' AND '2028-03-31 00:00:00.000'
                     AND (@RegNo IS NULL OR t1.TRN1REFNO = @RegNo)
+                    AND (
+                        @Lab IS NULL
+                        OR EXISTS (
+                            SELECT 1
+                            FROM dbo.SplitStrings(
+                                REPLACE(REPLACE(UPPER(@Lab), '&', ' '), 'AND', ' '),
+                                ' '
+                            ) S
+                            WHERE
+                                S.[Value] <> ''
+                                AND UPPER(L.CODEDESC) LIKE '%' + S.[Value] + '%'
+                        )
+                    )
                 ORDER BY 
                     t1.TRN1REFNO, t2.TRN2PRODALIAS;
             ";
@@ -164,7 +178,8 @@ namespace RawDataWorkSheet.Repositories
 
                 return await connection.QueryAsync<SampleDetails>(query, new
                 {
-                    RegNo = regNo
+                    request.RegNo,
+                    request.Lab
                 }, commandTimeout: commandTimeout);
             }
         }

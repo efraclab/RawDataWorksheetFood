@@ -1,5 +1,5 @@
 import React from "react";
-import { Printer, X, FileText, ArrowLeft } from "lucide-react";
+import { Printer, X, ArrowLeft } from "lucide-react";
 import type { SampleData } from "../preparation_models/SampleData";
 import type { WorksheetDetail } from "../models/WorksheetDetail";
 import type { Analyst } from "../models/Analyst";
@@ -87,7 +87,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
             )} (SW1) of ${standards.find((s) => s.serialNo === assignedStandard)?.name || assignedStandard || `_____________`} ${
               step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
             }.`;
-          } else if (type === "mobile_phase" || type === "dissolution_media") {
+          } else if (type === "mobile_phase") {
             stepText = `Weigh accurately ${boldValue(
               step.value1,
               step.unit1,
@@ -283,6 +283,15 @@ const PrintReport: React.FC<PrintReportProps> = ({
           )} (W3).`;
           break;
 
+        case "Weighing/Pipetting":
+          stepText = `${["ml", "L", "µL"].includes(step.unit1!) ? "Pipette out accurately" : "Weigh accurately"} ${boldValue(
+              step.value1,
+              step.unit1,
+            )} of ${step.solventChemical || `_____________`}${
+              step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
+            }.`;
+          break;
+
         default:
           const val1 = step.value1 ? boldValue(step.value1, step.unit1) : "";
           const val2 = step.value2 ? boldValue(step.value2, step.unit2) : "";
@@ -429,7 +438,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                 </td>
                 <td className="w-1/3 px-4 py-3 border-r border-black">
                   Sample Particulars (All relevant information received with
-                  sample to be entered):
+                  sample to be entered)
                 </td>
                 <td className="px-3 py-3">
                   {worksheetInfo.sample.sampleName || "---"}
@@ -440,7 +449,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   2
                 </td>
                 <td className="w-1/3 px-4 py-3 border-r border-black">
-                  Test(s) required (all tests and condition to be entered):
+                  Test(s) required (all tests and condition to be entered)
                 </td>
                 <td className="px-3 py-3">{param.parameterName}</td>
               </tr>
@@ -517,9 +526,9 @@ const PrintReport: React.FC<PrintReportProps> = ({
         isFinite(nr6)
       ) {
         return {
-          average: ((nr1 + nr2 + nr3 + nr4 + nr5 + nr6) / 6).toFixed(4),
-          minimum: Math.min(nr1, nr2, nr3, nr4, nr5, nr6).toFixed(4),
-          maximum: Math.max(nr1, nr2, nr3, nr4, nr5, nr6).toFixed(4),
+          average: ((nr1 + nr2 + nr3 + nr4 + nr5 + nr6) / 6).toFixedNoRound(4).toFixed(3),
+          minimum: Math.min(nr1, nr2, nr3, nr4, nr5, nr6).toFixedNoRound(4).toFixed(3),
+          maximum: Math.max(nr1, nr2, nr3, nr4, nr5, nr6).toFixedNoRound(4).toFixed(3),
           unit: resultUnit,
           results: [nr1, nr2, nr3, nr4, nr5, nr6],
           areas: [
@@ -575,9 +584,9 @@ const PrintReport: React.FC<PrintReportProps> = ({
         !isNaN(nr10) && isFinite(nr10)
       ) {
         return {
-          average: ((nr1 + nr2 + nr3 + nr4 + nr5 + nr6 + nr7 + nr8 + nr9 + nr10) / 10).toFixed(4),
-          minimum: Math.min(nr1, nr2, nr3, nr4, nr5, nr6, nr7, nr8, nr9, nr10).toFixed(4),
-          maximum: Math.max(nr1, nr2, nr3, nr4, nr5, nr6, nr7, nr8, nr9, nr10).toFixed(4),
+          average: ((nr1 + nr2 + nr3 + nr4 + nr5 + nr6 + nr7 + nr8 + nr9 + nr10) / 10).toFixedNoRound(4).toFixed(3),
+          minimum: Math.min(nr1, nr2, nr3, nr4, nr5, nr6, nr7, nr8, nr9, nr10).toFixedNoRound(4).toFixed(3),
+          maximum: Math.max(nr1, nr2, nr3, nr4, nr5, nr6, nr7, nr8, nr9, nr10).toFixedNoRound(4).toFixed(3),
           unit: resultUnit,
           results: [nr1, nr2, nr3, nr4, nr5, nr6, nr7, nr8, nr9, nr10],
           areas: [
@@ -770,7 +779,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
         ...smpVolsNumValues,
         mwBase,
         purity,
-      ].join(" × ");
+      ].filter(v => v !== "___").join(" × ");
 
       const denominatorValues = [
         areaStd,
@@ -779,11 +788,11 @@ const PrintReport: React.FC<PrintReportProps> = ({
         ...smpVolsDenomValues,
         mwSalt,
         "100",
-      ].join(" × ");
+      ].filter(v => v !== "___").join(" × ");
 
       return (
         <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
-          <p className="font-bold text-sm mb-2">Formula (Symbolic):</p>
+          <p className="font-bold text-sm mb-2">Formula :</p>
           {renderMathFormula(
             numeratorSymbolic,
             denominatorSymbolic,
@@ -791,7 +800,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
           )}
 
           <p className="font-bold text-sm mb-2 mt-4">
-            Derivation (With Values):
+            Derivation :
           </p>
           {renderMathFormula(numeratorValues, denominatorValues)}
 
@@ -869,19 +878,19 @@ const PrintReport: React.FC<PrintReportProps> = ({
         ...numVolsValues,
         purity,
         "1000000",
-      ].join(" × ");
+      ].filter(v => v !== "___").join(" × ");
 
-      const denominatorValues = [areaStd, ...denVolsValues, sw2, "100"].join(
+      const denominatorValues = [areaStd, ...denVolsValues, sw2, "100"].filter(v => v !== "___").join(
         " × ",
       );
 
       return (
         <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
-          <p className="font-bold text-sm mb-2">Formula (Symbolic):</p>
+          <p className="font-bold text-sm mb-2">Formula :</p>
           {renderMathFormula(numeratorSymbolic, denominatorSymbolic, "ppm")}
 
           <p className="font-bold text-sm mb-2 mt-4">
-            Derivation (With Values):
+            Derivation :
           </p>
           {renderMathFormula(numeratorValues, denominatorValues)}
 
@@ -1009,11 +1018,11 @@ const PrintReport: React.FC<PrintReportProps> = ({
       return (
         <div className="mb-3">
           <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
-            <p className="font-bold text-sm mb-2">Formula (Symbolic):</p>
+            <p className="font-bold text-sm mb-2">Formula :</p>
             {renderMathFormula(
               numeratorSymbolic,
               denominatorSymbolic,
-              "mg/tablet",
+              "mg/Tablet",
             )}
           </div>
 
@@ -1029,7 +1038,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   mwBase,
                   purity,
                   "100",
-                ].join(" × ");
+                ].filter(v => v !== "___").join(" × ");
 
                 const denominatorValues = [
                   areaStd,
@@ -1038,7 +1047,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   ...smpVolsDenomValues,
                   mwSalt,
                   "100",
-                ].join(" × ");
+                ].filter(v => v !== "___").join(" × ");
 
                 return (
                   <div
@@ -1046,11 +1055,11 @@ const PrintReport: React.FC<PrintReportProps> = ({
                     className="bg-gray-100 border border-black p-3 mb-3 keep-together"
                   >
                     <p className="font-bold text-sm  mb-2">
-                      Derivation (Tablet {idx + 1}):
+                      Derivation (Tablet {idx + 1}) :
                     </p>
                     {renderMathFormula(numeratorValues, denominatorValues)}
                     <p className="text-center font-bold text-xs mt-2">
-                      Result = {result.toFixed(4)} mg/tablet
+                      Result = {result.toFixedNoRound(4).toFixed(3)} mg/Tablet
                     </p>
                   </div>
                 );
@@ -1062,22 +1071,22 @@ const PrintReport: React.FC<PrintReportProps> = ({
                     <tr className="bg-gray-100">
                       <td colSpan={3} className="p-3 border-b border-black">
                         <p className="font-bold text-sm">
-                          Statistical Summary:
+                          Calculation Summary
                         </p>
                       </td>
                     </tr>
                     <tr className="">
                       <td className="text-center p-3 border-r border-black">
                         <p className="font-semibold text-xs">Minimum</p>
-                        <p className="text-lg font-bold">{stats.minimum}</p>
+                        <p className="text-lg font-bold">{stats.minimum} {stats.unit}</p>
                       </td>
                       <td className="text-center p-3 border-r border-black">
                         <p className="font-semibold text-xs">Average</p>
-                        <p className="text-lg font-bold">{stats.average}</p>
+                        <p className="text-lg font-bold">{stats.average} {stats.unit}</p>
                       </td>
                       <td className="text-center p-3">
                         <p className="font-semibold text-xs">Maximum</p>
-                        <p className="text-lg font-bold">{stats.maximum}</p>
+                        <p className="text-lg font-bold">{stats.maximum} {stats.unit}</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1100,12 +1109,12 @@ const PrintReport: React.FC<PrintReportProps> = ({
       const numeratorSymbolic = "(W2 - W3)";
       const denominatorSymbolic = "(W2 - W1)";
 
-      const numeratorValues = `(${w2} - ${w3})`;
-      const denominatorValues = `(${w2} - ${w1})`;
+      const numeratorValues = w2 !== "___" && w3 !== "___" ? `(${w2} - ${w3})` : "";
+      const denominatorValues = w2 !== "___" && w1 !== "___" ? `(${w2} - ${w1})` : "";
 
       return (
         <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
-          <p className="font-bold text-sm mb-2">Formula (Symbolic):</p>
+          <p className="font-bold text-sm mb-2">Formula :</p>
           <div className="rounded p-3 mb-3">
             <div className="flex items-center justify-center gap-2">
               <span className="text-xs font-mono">
@@ -1115,7 +1124,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
           </div>
 
           <p className="font-bold text-sm mb-2 mt-4">
-            Derivation (With Values):
+            Derivation :
           </p>
           <div className="bg-gray-100 rounded p-3">
             <div className="flex items-center justify-center gap-2">
@@ -1259,11 +1268,11 @@ const PrintReport: React.FC<PrintReportProps> = ({
       return (
         <div className="mb-3">
           <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
-            <p className="font-bold text-sm mb-2">Formula (Symbolic):</p>
+            <p className="font-bold text-sm mb-2">Formula :</p>
             {renderMathFormula(
               numeratorSymbolic,
               denominatorSymbolic,
-              "mg/tablet",
+              "mg/Tablet",
             )}
           </div>
 
@@ -1279,7 +1288,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   mwBase,
                   purity,
                   claim,
-                ].join(" × ");
+                ].filter(v => v !== "___").join(" × ");
 
                 const denominatorValues = [
                   areaStd,
@@ -1288,7 +1297,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   ...smpVolsDenomValues,
                   mwSalt,
                   "100",
-                ].join(" × ");
+                ].filter(v => v !== "___").join(" × ");
 
                 return (
                   <div
@@ -1296,11 +1305,11 @@ const PrintReport: React.FC<PrintReportProps> = ({
                     className="bg-gray-100 border border-black p-3 mb-3 keep-together"
                   >
                     <p className="font-bold text-sm  mb-2">
-                      Derivation (Tablet {idx + 1}):
+                      Derivation (Tablet {idx + 1}) :
                     </p>
                     {renderMathFormula(numeratorValues, denominatorValues)}
                     <p className="text-center font-bold text-xs mt-2">
-                      Result = {result.toFixed(4)} mg/tablet
+                      Result = {result.toFixedNoRound(4).toFixed(3)} mg/Tablet
                     </p>
                   </div>
                 );
@@ -1312,22 +1321,22 @@ const PrintReport: React.FC<PrintReportProps> = ({
                     <tr className="bg-gray-100">
                       <td colSpan={3} className="p-3 border-b border-black">
                         <p className="font-bold text-sm">
-                          Statistical Summary:
+                          Calculation Summary
                         </p>
                       </td>
                     </tr>
                     <tr className="">
                       <td className="text-center p-3 border-r border-black">
                         <p className="font-semibold text-xs">Minimum</p>
-                        <p className="text-lg font-bold">{stats.minimum}</p>
+                        <p className="text-lg font-bold">{stats.minimum} {stats.unit}</p>
                       </td>
                       <td className="text-center p-3 border-r border-black">
                         <p className="font-semibold text-xs">Average</p>
-                        <p className="text-lg font-bold">{stats.average}</p>
+                        <p className="text-lg font-bold">{stats.average} {stats.unit}</p>
                       </td>
                       <td className="text-center p-3">
                         <p className="font-semibold text-xs">Maximum</p>
-                        <p className="text-lg font-bold">{stats.maximum}</p>
+                        <p className="text-lg font-bold">{stats.maximum} {stats.unit}</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1822,46 +1831,6 @@ const PrintReport: React.FC<PrintReportProps> = ({
                         <h4 className="text-md uppercase font-bold mb-2">
                           Standard Preparations
                         </h4>
-                        {/* Old structure - standardPreparations array */}
-                        {param.standardPreparations &&
-                          param.standardPreparations.map(
-                            (prep: any, idx: number) => {
-                              const steps = safeJSONParse(prep.steps, []);
-                              const stepsTable = renderPreparationStepsTable(
-                                steps,
-                                "standard",
-                                prep.preparationType,
-                                prep.assignedStandardId,
-                              );
-
-                              if (!stepsTable) return null;
-
-                              return (
-                                <div key={`old-${idx}`} className="section-container mb-3">
-                                  <div className="mb-1">
-                                    <p className="font-bold text-sm">
-                                      {prep.label} (
-                                      {prep.preparationType === "roi"
-                                        ? "ROI"
-                                        : prep.preparationType === "lod"
-                                          ? "LOD"
-                                          : prep.preparationType
-                                              ?.split("_")
-                                              .filter(Boolean)
-                                              .map(
-                                                (word: string | any[]) =>
-                                                  word[0].toUpperCase() +
-                                                  word.slice(1),
-                                              )
-                                              .join(" ")}
-                                      )
-                                    </p>
-                                  </div>
-                                  <div className="p-0">{stepsTable}</div>
-                                </div>
-                              );
-                            },
-                          )}
                         {/* New structure - preparations array filtered by category */}
                         {param.preparations &&
                           safeJSONParse(param.preparations, [])
@@ -1896,7 +1865,8 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                                   word[0].toUpperCase() +
                                                   word.slice(1),
                                               )
-                                              .join(" ")}
+                                              .join(" ")
+                                              .replace(/\bOf\b/g, "of")}
                                       )
                                     </p>
                                   </div>
@@ -1918,46 +1888,6 @@ const PrintReport: React.FC<PrintReportProps> = ({
                         <h4 className="text-md uppercase font-bold mb-2">
                           Sample Preparations
                         </h4>
-                        {/* Old structure - samplePreparations array */}
-                        {param.samplePreparations &&
-                          param.samplePreparations.map(
-                            (prep: any, idx: number) => {
-                              const steps = safeJSONParse(prep.steps, []);
-                              const stepsTable = renderPreparationStepsTable(
-                                steps,
-                                "sample",
-                                prep.preparationType,
-                                prep.solventChemical,
-                              );
-
-                              if (!stepsTable) return null;
-
-                              return (
-                                <div key={`old-${idx}`} className="section-container mb-3">
-                                  <div className="mb-1">
-                                    <p className="font-bold text-sm">
-                                      {prep.label} (
-                                      {prep.preparationType === "roi"
-                                        ? "ROI"
-                                        : prep.preparationType === "lod"
-                                          ? "LOD"
-                                          : prep.preparationType
-                                              ?.split("_")
-                                              .filter(Boolean)
-                                              .map(
-                                                (word: string | any[]) =>
-                                                  word[0].toUpperCase() +
-                                                  word.slice(1),
-                                              )
-                                              .join(" ")}
-                                      )
-                                    </p>
-                                  </div>
-                                  <div className="p-0">{stepsTable}</div>
-                                </div>
-                              );
-                            },
-                          )}
                         {/* New structure - preparations array filtered by category */}
                         {param.preparations &&
                           safeJSONParse(param.preparations, [])
@@ -1992,7 +1922,8 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                                   word[0].toUpperCase() +
                                                   word.slice(1),
                                               )
-                                              .join(" ")}
+                                              .join(" ")
+                                              .replace(/\bOf\b/g, "of")}
                                       )
                                     </p>
                                   </div>
@@ -2038,7 +1969,8 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                             word[0].toUpperCase() +
                                             word.slice(1),
                                         )
-                                        .join(" ")}
+                                        .join(" ")
+                                        .replace(/\bOf\b/g, "of")} {/* Change "Of" to "of" */}
                                 )
                               </p>
                             </div>
@@ -2092,7 +2024,10 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                       let displayKey = key
                                         .replace(/([A-Z])/g, " $1")
                                         .replace(/^./, (c) => c.toUpperCase())
-                                        .trim();
+                                        .trim()
+                                        .replace(/(\d+)/g, " $1") // Add space before digit groups (handles multi-digit numbers)
+                                        .replace(/\s+/g, " ") // Clean up multiple spaces
+                                        .replace(/\bOf\b/g, "of"); // Change "Of" to "of"
 
                                       const unit = findUnitForKey(
                                         calcData,
@@ -2101,6 +2036,11 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                       let displayValue = String(value);
                                       if (unit) {
                                         displayValue = `${value} ${unit}`;
+                                      }
+                                      
+                                      // Add % for purity values
+                                      if (key.toLowerCase() === "purity") {
+                                        displayValue = unit ? displayValue : `${value} %`;
                                       }
 
                                       return (
@@ -2165,6 +2105,64 @@ const PrintReport: React.FC<PrintReportProps> = ({
                             
                             if (!steps || steps.length === 0) return null;
 
+                            // Helper function to get limit prefix
+                            const getLimitPrefix = (stepName: string, limitType?: string) => {
+                              // For custom steps with limitType, use that
+                              if (limitType) {
+                                return limitType;
+                              }
+                              
+                              // For default steps, use hardcoded values
+                              switch (stepName) {
+                                case "RSD Area":
+                                case "RSD Retention time":
+                                case "Tailing factor":
+                                  return "NMT";
+                                case "Resolution":
+                                case "Theorital Plate count":
+                                case "Peak to Valley ratio":
+                                  return "NLT";
+                                default:
+                                  return "NLT"; // Default for unknown steps
+                              }
+                            };
+
+                            // Helper function to check if step uses two values (Peak A and Peak B)
+                            const isTwoValueStep = (stepName: string) => {
+                              return stepName === "Resolution" || stepName === "Peak to Valley ratio";
+                            };
+
+                            // Helper function to check if step has any values
+                            const stepHasAnyValue = (step: any) => {
+                              return !!(step.value1 || step.value2 || step.value3);
+                            };
+
+                            // Filter steps with at least one value
+                            const validSteps = steps.filter(stepHasAnyValue);
+                            
+                            // If no valid steps after filtering, don't render this suitability
+                            if (validSteps.length === 0) return null;
+
+                            // Helper function to get step description
+                            const getStepDescription = (stepName: string) => {
+                              switch (stepName) {
+                                case "RSD Area":
+                                  return "The RSD of area of";
+                                case "RSD Retention time":
+                                  return "The RSD of Retention time of";
+                                case "Tailing factor":
+                                  return "The Tailing factor of";
+                                case "Resolution":
+                                  return "The Resolution between";
+                                case "Peak to Valley ratio":
+                                  return "The Peak to Valley ratio between";
+                                case "Theorital Plate count":
+                                  return "The Theoretical Plate count of";
+                                default:
+                                  return stepName; // For custom steps, use the step name as is
+                              }
+                            };
+
                             return (
                               <div key={idx} className="section-container mb-3">
                                 <div className="mb-1">
@@ -2174,40 +2172,46 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                 </div>
                                 <div className="overflow-x-auto">
                                   <table className="w-full border-collapse border border-black text-sm">
-                                    <thead>
-                                      <tr className="bg-purple-50">
-                                        <th className="border border-black px-4 py-2 text-left font-semibold">
-                                          System Suitability
-                                        </th>
-                                        <th className="border border-black px-4 py-2 text-center font-semibold w-48">
-                                          Value
-                                        </th>
-                                        <th className="border border-black px-4 py-2 text-center font-semibold w-64">
-                                          Limit
-                                        </th>
-                                      </tr>
-                                    </thead>
                                     <tbody>
-                                      {steps.map((step: any, stepIdx: number) => {
-                                        // Determine limit prefix based on parameter name
-                                        let limitPrefix = "(Limit: ";
-                                        if (step.name === "RSD Area") limitPrefix = "(Limit: NMT: ";
-                                        else if (step.name === "RSD Retention time") limitPrefix = "(Limit: NMT: ";
-                                        else if (step.name === "Tailing factor") limitPrefix = "(Limit: NMT: ";
-                                        else if (step.name === "Resolution") limitPrefix = "(Limit: NLT: ";
-                                        else if (step.name === "Theorital Plate count") limitPrefix = "(Limit: NLT: ";
+                                      {validSteps.map((step: any, stepIdx: number) => {
+                                        const limitPrefix = getLimitPrefix(step.name, step.limitType);
+                                        const stepDesc = getStepDescription(step.name);
+                                        const needsTwoValues = isTwoValueStep(step.name);
+                                        
+                                        // Build the specification text
+                                        let specification = stepDesc;
+                                        
+                                        // Add Peak A
+                                        if (step.value1) {
+                                          specification += ` <strong>${step.value1}</strong>`;
+                                        } else {
+                                          specification += ` ___________`;
+                                        }
+                                        
+                                        // Add Peak B if needed
+                                        if (needsTwoValues) {
+                                          specification += " and";
+                                          if (step.value2) {
+                                            specification += ` <strong>${step.value2}</strong>`;
+                                          } else {
+                                            specification += ` ___________`;
+                                          }
+                                        }
+                                        
+                                        // Add limit only if value3 exists
+                                        if (step.value3) {
+                                          specification += ` should ${limitPrefix} <strong>${step.value3}</strong>`;
+                                        }
 
                                         return (
-                                          <tr key={stepIdx} className="hover:bg-purple-50/30">
-                                            <td className="border border-black px-4 py-2 font-medium">
+                                          <tr key={stepIdx}>
+                                            <td className="bg-purple-100 border border-black px-4 py-2 font-medium">
                                               {step.name}
                                             </td>
-                                            <td className="border border-black px-4 py-2 text-center">
-                                              {step.value1 || "___"}
-                                            </td>
-                                            <td className="border border-black px-4 py-2 text-center">
-                                              {step.value2 ? `${limitPrefix}${step.value2})` : "___"}
-                                            </td>
+                                            <td 
+                                              className="border border-black px-4 py-2"
+                                              dangerouslySetInnerHTML={{ __html: specification }}
+                                            />
                                           </tr>
                                         );
                                       })}

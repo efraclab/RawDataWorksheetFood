@@ -180,7 +180,7 @@ const StandardPreparationDetail: React.FC<StandardPreparationDetailProps> = ({
                   {`${standardPreparation.label}`}
                 </h4>
                 <p className={`text-xs ${colors.textColor}`}>
-                  Standard Preparation Details {colors.label}
+                  Standard Preparation Details
                 </p>
               </div>
             </div>

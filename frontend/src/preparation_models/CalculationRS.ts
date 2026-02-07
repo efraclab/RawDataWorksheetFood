@@ -1,8 +1,8 @@
 export interface CalculationRS {
   id: number;
   label: string;
-  selectedStandardPrepLabel: string | null;
-  selectedSamplePrepLabel: string | null;
+  selectedStandardPreparationLabel: string | null;
+  selectedSamplePreparationLabel: string | null;
   
   // Area/ABS values
   areaOfSample: string;

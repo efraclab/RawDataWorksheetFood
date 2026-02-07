@@ -61,23 +61,23 @@ const CalculationDetailSulphatedAsh: React.FC<
   });
 
   const selectedSamplePrep = samplePreparations.find(
-    (prep) => prep.label === calculation.selectedSamplePrepLabel
+    (prep) => prep.label === calculation.selectedSamplePreparationLabel
   );
 
   useEffect(() => {
-    if (calculation.selectedSamplePrepLabel) {
+    if (calculation.selectedSamplePreparationLabel) {
       const exists = samplePreparations.some(
-        (prep) => prep.label === calculation.selectedSamplePrepLabel
+        (prep) => prep.label === calculation.selectedSamplePreparationLabel
       );
 
       if (!exists) {
         console.warn(
           "⚠️ Selected Sample Prep label not found:",
-          calculation.selectedSamplePrepLabel
+          calculation.selectedSamplePreparationLabel
         );
       }
     }
-  }, [calculation.selectedSamplePrepLabel, samplePreparations]);
+  }, [calculation.selectedSamplePreparationLabel, samplePreparations]);
 
   const getSampleWeights = () => {
     if (!selectedSamplePrep) {
@@ -344,7 +344,7 @@ const CalculationDetailSulphatedAsh: React.FC<
       onFieldChange(
         calculation.id,
         "calculationResult",
-        AshContent_Percentage.toFixed(4)
+        AshContent_Percentage.toFixedNoRound(4).toFixed(3)
       );
       onFieldChange(calculation.id, "calculationResultUnit", "%");
     }
@@ -486,11 +486,11 @@ const CalculationDetailSulphatedAsh: React.FC<
                       value: prep.label,
                       label: prep.label,
                     }))}
-                    value={calculation.selectedSamplePrepLabel || ""}
+                    value={calculation.selectedSamplePreparationLabel || ""}
                     onChange={(value) =>
                       onFieldChange(
                         calculation.id,
-                        "selectedSamplePrepLabel",
+                        "selectedSamplePreparationLabel",
                         value
                       )
                     }
@@ -589,7 +589,7 @@ const CalculationDetailSulphatedAsh: React.FC<
                               Sample Prep
                             </p>
                             <p className="text-gray-900 font-semibold">
-                              {calculation.selectedSamplePrepLabel || "N/A"}
+                              {calculation.selectedSamplePreparationLabel || "N/A"}
                             </p>
                           </div>
                         </div>

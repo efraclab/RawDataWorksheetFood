@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RawDataWorkSheet.Models.Requests;
 using RawDataWorkSheet.Services;
 
 namespace RawDataWorkSheet.Controllers
@@ -15,11 +16,11 @@ namespace RawDataWorkSheet.Controllers
         }
 
         [HttpPost("sample-details")]
-        public async Task<IActionResult> GetSampleDetailsById([FromBody] string regNo)
+        public async Task<IActionResult> GetSampleDetailsById([FromBody] SampleDetailsRequest request)
         {
             try
             {
-                var response = await _rawDataService.GetSampleDetailsByIdAsync(regNo);
+                var response = await _rawDataService.GetSampleDetailsByIdAsync(request);
                 return Ok(response);
             }
             catch (Exception ex)

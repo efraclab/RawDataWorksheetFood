@@ -1,18 +1,33 @@
 import React, { useState } from "react";
-import { Search, X, FileSpreadsheet, CheckCircle, ArrowRight, Beaker, ClipboardList, Loader2, Hash } from "lucide-react";
+import {
+  Search,
+  X,
+  FileSpreadsheet,
+  CheckCircle,
+  ArrowRight,
+  Beaker,
+  ClipboardList,
+  Loader2,
+  Hash,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchSample, createWorksheet } from "../services/api";
 import type { SampleData } from "../preparation_models/SampleData";
 import type { WorksheetRequest } from "../models/WorksheetRequest";
+import type { SmapleDetailsRequest } from "../models/SmapleDetailsRequest";
 
 interface CreateWorksheetProps {
   employeeId: string;
+  department: string;
+  role: string;
   onWorksheetCreated: (worksheetId: string, registrationNo: string) => void;
   onCancel: () => void;
 }
 
 const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
   employeeId,
+  department,
+  role,
   onWorksheetCreated,
   onCancel,
 }) => {
@@ -25,7 +40,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    
+
     if (!registrationNo.trim()) {
       setSearchError("Please enter a registration number");
       return;
@@ -37,8 +52,12 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
     setCreationError(null);
 
     try {
-      const data = await fetchSample(registrationNo);
-      
+      const request: SmapleDetailsRequest = {
+        regNo: registrationNo,
+        lab: department,
+      };
+      const data = await fetchSample(request);
+
       if (data && Array.isArray(data) && data.length > 0) {
         setSampleData(data);
       } else {
@@ -80,11 +99,12 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
         },
         documentInfo: {
           preparedBy: employeeId,
-        }
+        },
+        role: role,
       };
 
       const response = await createWorksheet(worksheetData);
-      
+
       if (response && response.worksheetId) {
         console.log("Worksheet created with ID:", response.worksheetId);
         onWorksheetCreated(response.worksheetId, firstSample.registrationNo);
@@ -107,7 +127,8 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
   };
 
   // Get display data from first sample
-  const displayData = sampleData && sampleData.length > 0 ? sampleData[0] : null;
+  const displayData =
+    sampleData && sampleData.length > 0 ? sampleData[0] : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 py-10 px-6">
@@ -124,7 +145,6 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
       `}</style>
 
       <div className="max-w-4xl mx-auto">
-
         {/* Main Card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
@@ -143,7 +163,11 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
               <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30 shadow-lg">
-                    <FileSpreadsheet size={22} className="text-white" strokeWidth={2} />
+                    <FileSpreadsheet
+                      size={22}
+                      className="text-white"
+                      strokeWidth={2}
+                    />
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold text-white tracking-tight">
@@ -181,23 +205,29 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                     {/* Step Indicator */}
                     <div className="flex items-center gap-3">
                       <div className="flex items-center justify-center w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full shadow-md">
-                        <span className="text-white font-bold text-base">1</span>
+                        <span className="text-white font-bold text-base">
+                          1
+                        </span>
                       </div>
                       <div>
-                        <h3 className="text-base font-bold text-slate-800">Search Registration</h3>
-                        <p className="text-sm text-slate-500">Enter registration number to verify sample details</p>
+                        <h3 className="text-base font-bold text-slate-800">
+                          Search Registration
+                        </h3>
+                        <p className="text-sm text-slate-500">
+                          Enter registration number to verify sample details
+                        </p>
                       </div>
                     </div>
 
                     {/* Input Group */}
                     <div className="space-y-4">
-                      <label 
-                        htmlFor="registrationNo" 
+                      <label
+                        htmlFor="registrationNo"
                         className="block text-sm font-bold text-slate-700 uppercase tracking-wider"
                       >
                         Registration Number
                       </label>
-                      
+
                       <div className="relative group">
                         <div className="relative flex items-center">
                           <input
@@ -206,7 +236,11 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                             value={registrationNo}
                             onChange={(e) => setRegistrationNo(e.target.value)}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter' && registrationNo && !isSearching) {
+                              if (
+                                e.key === "Enter" &&
+                                registrationNo &&
+                                !isSearching
+                              ) {
                                 handleSearch(e);
                               }
                             }}
@@ -218,12 +252,14 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                             placeholder="e.g., EFRAC/DRG/RG/250413001"
                             disabled={isSearching}
                           />
-                          
+
                           <div className="absolute right-5 pointer-events-none">
                             {isSearching ? (
                               <Loader2 className="w-5 h-5 text-emerald-600 animate-spin" />
                             ) : (
-                              <Search className={`w-5 h-5 transition-all ${registrationNo ? 'text-emerald-600' : 'text-slate-400'}`} />
+                              <Search
+                                className={`w-5 h-5 transition-all ${registrationNo ? "text-emerald-600" : "text-slate-400"}`}
+                              />
                             )}
                           </div>
                         </div>
@@ -268,7 +304,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                                  overflow-hidden"
                       >
                         <div className="absolute inset-0 animate-shimmer"></div>
-                        
+
                         <span className="relative flex items-center justify-center gap-2">
                           {isSearching ? (
                             <>
@@ -295,8 +331,12 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                         <div className="flex items-start gap-2">
                           <X className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
                           <div>
-                            <h4 className="text-sm font-bold text-red-900">Search Error</h4>
-                            <p className="text-sm text-red-700 mt-0.5">{searchError}</p>
+                            <h4 className="text-sm font-bold text-red-900">
+                              Search Error
+                            </h4>
+                            <p className="text-sm text-red-700 mt-0.5">
+                              {searchError}
+                            </p>
                           </div>
                         </div>
                       </motion.div>
@@ -317,8 +357,12 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                         <CheckCircle className="text-white" size={18} />
                       </div>
                       <div>
-                        <h3 className="text-base font-bold text-slate-800">Registration Found</h3>
-                        <p className="text-sm text-slate-500">Review the sample details and create the worksheet</p>
+                        <h3 className="text-base font-bold text-slate-800">
+                          Registration Found
+                        </h3>
+                        <p className="text-sm text-slate-500">
+                          Review the sample details and create the worksheet
+                        </p>
                       </div>
                     </div>
 
@@ -333,7 +377,8 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                             Verification Successful
                           </h3>
                           <p className="text-emerald-100 text-sm">
-                            Sample details have been retrieved for worksheet creation
+                            Sample details have been retrieved for worksheet
+                            creation
                           </p>
                         </div>
                       </div>
@@ -366,7 +411,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                             </p>
                           </div>
                         </div>
-                        
+
                         <div className="bg-white rounded-xl p-4 border border-slate-200">
                           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                             Sample Name / Description
@@ -375,17 +420,16 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                             {displayData?.sampleName}
                           </p>
                         </div>
-                        
-                        <div className="bg-white rounded-xl p-4 border border-slate-200">
-                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                            Laboratory
-                          </p>
-                          <p className="text-base font-bold text-slate-800">
-                            {displayData?.lab}
-                          </p>
-                        </div>
 
                         <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-white rounded-xl p-4 border border-slate-200">
+                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                              Laboratory
+                            </p>
+                            <p className="text-base font-bold text-slate-800">
+                              {displayData?.lab}
+                            </p>
+                          </div>
                           <div className="bg-white rounded-xl p-4 border border-slate-200">
                             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                               <Hash className="w-4 h-4" />
@@ -394,17 +438,6 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                             <p className="text-base font-bold text-slate-800">
                               {sampleData.length}
                             </p>
-                          </div>
-                          <div className="bg-white rounded-xl p-4 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                              Status
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                              <p className="text-base font-bold text-emerald-600">
-                                {displayData?.status}
-                              </p>
-                            </div>
                           </div>
                         </div>
 
@@ -462,7 +495,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                                  overflow-hidden"
                       >
                         <div className="absolute inset-0 animate-shimmer"></div>
-                        
+
                         <span className="relative flex items-center justify-center gap-2">
                           {isCreating ? (
                             <>
@@ -490,8 +523,12 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                         <div className="flex items-start gap-2">
                           <X className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
                           <div>
-                            <h4 className="text-sm font-bold text-red-900">Creation Error</h4>
-                            <p className="text-sm text-red-700 mt-0.5">{creationError}</p>
+                            <h4 className="text-sm font-bold text-red-900">
+                              Creation Error
+                            </h4>
+                            <p className="text-sm text-red-700 mt-0.5">
+                              {creationError}
+                            </p>
                           </div>
                         </div>
                       </motion.div>

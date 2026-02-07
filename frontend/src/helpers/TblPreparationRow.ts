@@ -4,7 +4,7 @@
 export interface TblPreparationRow {
   WorksheetId: string;
   ParameterCode: string;
-  PrepCategory: "STANDARD" | "SAMPLE" | "MOBILE_PHASE" | "DISSOLUTION_MEDIA";
+  PrepCategory: "STANDARD" | "SAMPLE" | "MOBILE_PHASE" | "DISSOLUTION_MEDIA" | "SYSTEM_SUITABILITY";
   PrepLabel: string;
   PreparationType: string;
   AssignedStandardId?: string | null;
@@ -19,4 +19,5 @@ export interface TblPreparationRow {
   // Need to add these attributes in database as well
   SolventChemical?: string | null;
   LogBookID?: string | null;
+  LimitType?: string | null;
 }

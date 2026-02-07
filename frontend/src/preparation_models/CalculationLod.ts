@@ -1,7 +1,7 @@
 export interface CalculationLod {
   id: number;
   label: string;
-  selectedSamplePrepLabel: string | null;
+  selectedSamplePreparationLabel: string | null;
   
   w1_emptyDish: string;
   w2_dishWithSample: string;

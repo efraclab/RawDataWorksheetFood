@@ -65,23 +65,23 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
   });
 
   const selectedSamplePrep = samplePreparations.find(
-    (prep) => prep.label === calculation.selectedSamplePrepLabel
+    (prep) => prep.label === calculation.selectedSamplePreparationLabel
   );
 
   useEffect(() => {
-    if (calculation.selectedSamplePrepLabel) {
+    if (calculation.selectedSamplePreparationLabel) {
       const exists = samplePreparations.some(
-        (prep) => prep.label === calculation.selectedSamplePrepLabel
+        (prep) => prep.label === calculation.selectedSamplePreparationLabel
       );
 
       if (!exists) {
         console.warn(
           "⚠️ Selected Sample Prep label not found:",
-          calculation.selectedSamplePrepLabel
+          calculation.selectedSamplePreparationLabel
         );
       }
     }
-  }, [calculation.selectedSamplePrepLabel, samplePreparations]);
+  }, [calculation.selectedSamplePreparationLabel, samplePreparations]);
 
   const getSampleWeights = () => {
     if (!selectedSamplePrep) {
@@ -333,7 +333,7 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
     const Lod_Percentage = (numerator / denominator) * 100;
 
     console.log(`4. FINAL FORMULA: [(${W2} - ${W3}) / (${W2} - ${W1})] x 100`);
-    console.log(`Calculated LOD Result: ${Lod_Percentage.toFixed(4)} %`);
+    console.log(`Calculated LOD Result: ${Lod_Percentage.toFixedNoRound(4).toFixed(3)} %`);
     console.groupEnd();
 
     if (isNaN(Lod_Percentage) || !isFinite(Lod_Percentage)) {
@@ -346,7 +346,7 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
       onFieldChange(
         calculation.id,
         "calculationResult",
-        Lod_Percentage.toFixed(4)
+        Lod_Percentage.toFixedNoRound(4).toFixed(3)
       );
       onFieldChange(calculation.id, "calculationResultUnit", "%");
     }
@@ -487,11 +487,11 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
                         value: prep.label,
                         label: prep.label,
                       }))}
-                      value={calculation.selectedSamplePrepLabel || ""}
+                      value={calculation.selectedSamplePreparationLabel || ""}
                       onChange={(value) =>
                         onFieldChange(
                           calculation.id,
-                          "selectedSamplePrepLabel",
+                          "selectedSamplePreparationLabel",
                           value
                         )
                       }
@@ -590,7 +590,7 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
                                 Sample Prep
                               </p>
                               <p className="text-gray-900 font-semibold">
-                                {calculation.selectedSamplePrepLabel || "N/A"}
+                                {calculation.selectedSamplePreparationLabel || "N/A"}
                               </p>
                             </div>
                           </div>

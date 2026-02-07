@@ -9,8 +9,8 @@ export type CalculationType =
 export interface CalculationAssay {
   id: number;
   label: string;
-  selectedStandardPrepLabel: string | null;
-  selectedSamplePrepLabel: string | null;
+  selectedStandardPreparationLabel: string | null;
+  selectedSamplePreparationLabel: string | null;
   calculationFor: CalculationType | "";
 
   areaOfSample: string;

@@ -290,22 +290,22 @@
           "content": {
             "application/json-patch+json": {
               "schema": {
-                "type": "string"
+                "$ref": "#/components/schemas/SampleDetailsRequest"
               }
             },
             "application/json": {
               "schema": {
-                "type": "string"
+                "$ref": "#/components/schemas/SampleDetailsRequest"
               }
             },
             "text/json": {
               "schema": {
-                "type": "string"
+                "$ref": "#/components/schemas/SampleDetailsRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "type": "string"
+                "$ref": "#/components/schemas/SampleDetailsRequest"
               }
             }
           }
@@ -1427,6 +1427,24 @@
           "dueDate": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SampleDetailsRequest": {
+        "required": [
+          "lab",
+          "regNo"
+        ],
+        "type": "object",
+        "properties": {
+          "regNo": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "lab": {
+            "minLength": 1,
+            "type": "string"
           }
         },
         "additionalProperties": false

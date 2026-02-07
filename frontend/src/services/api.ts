@@ -13,6 +13,7 @@ import type { Analyst } from '../models/Analyst';
 import type { FetchWorksheetRequest } from '../models/FetchWorksheetRequest';
 import type { ParameterDetail } from '../models/ParameterDetail';
 import type { WorksheetDbPayload } from '../helpers/WorksheetDbPayload';
+import type { SmapleDetailsRequest } from '../models/SmapleDetailsRequest';
 
 
 const API_BASE_URL = 'http://192.168.3.116:5076/api';
@@ -44,13 +45,13 @@ export async function login(
 }
 
 
-export const fetchSample = async (regNo: string): Promise<SampleData[]> => {
-  if (!regNo) {
+export const fetchSample = async (request: SmapleDetailsRequest): Promise<SampleData[]> => {
+  if (!request || !request.regNo) {
     throw new Error("Registration Number is required.");
   }
   
   try {
-    const response = await axios.post(`${API_BASE_URL}/sample-details`, regNo,
+    const response = await axios.post(`${API_BASE_URL}/sample-details`, request,
     { headers: { "Content-Type": "application/json" } });
     const data = response.data;
     console.log(data)
@@ -58,7 +59,7 @@ export const fetchSample = async (regNo: string): Promise<SampleData[]> => {
     return [];
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.error || `Failed to fetch samples for ${regNo}: ${error.message}`);
+      throw new Error(error.response?.data?.error || `Failed to fetch samples for ${request.regNo}: ${error.message}`);
     } else {
       throw new Error(`An unexpected error occurred: ${error.message}`);
     }

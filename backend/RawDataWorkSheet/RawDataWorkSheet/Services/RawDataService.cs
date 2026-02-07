@@ -1,4 +1,5 @@
 ﻿using RawDataWorkSheet.Models;
+using RawDataWorkSheet.Models.Requests;
 using RawDataWorkSheet.Repositories;
 
 namespace RawDataWorkSheet.Services
@@ -13,12 +14,15 @@ namespace RawDataWorkSheet.Services
             _rawDataRepository = rawDataRepository;
         }
 
-        public async Task<IEnumerable<SampleDetails>> GetSampleDetailsByIdAsync(string regNo)
+        public async Task<IEnumerable<SampleDetails>> GetSampleDetailsByIdAsync(SampleDetailsRequest request)
         {
-            if (string.IsNullOrWhiteSpace(regNo))
-                throw new ArgumentNullException(nameof(regNo));
+            if (string.IsNullOrWhiteSpace(request.RegNo))
+                throw new ArgumentNullException(nameof(request.RegNo));
 
-            return await _rawDataRepository.GetSampleDetailsByIdAsync(regNo);
+            if (string.IsNullOrWhiteSpace(request.Lab))
+                throw new ArgumentNullException(nameof(request.Lab));
+
+            return await _rawDataRepository.GetSampleDetailsByIdAsync(request);
         }
 
         //public async Task<IEnumerable<Instruments>> GetInstrumentsAsync()

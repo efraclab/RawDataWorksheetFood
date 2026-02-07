@@ -65,23 +65,23 @@ const CalculationDetailROI: React.FC<CalculationDetailROIProps> = ({
   });
 
   const selectedSamplePrep = samplePreparations.find(
-    (prep) => prep.label === calculation.selectedSamplePrepLabel
+    (prep) => prep.label === calculation.selectedSamplePreparationLabel
   );
 
   useEffect(() => {
-    if (calculation.selectedSamplePrepLabel) {
+    if (calculation.selectedSamplePreparationLabel) {
       const exists = samplePreparations.some(
-        (prep) => prep.label === calculation.selectedSamplePrepLabel
+        (prep) => prep.label === calculation.selectedSamplePreparationLabel
       );
 
       if (!exists) {
         console.warn(
           "⚠️ Selected Sample Prep label not found:",
-          calculation.selectedSamplePrepLabel
+          calculation.selectedSamplePreparationLabel
         );
       }
     }
-  }, [calculation.selectedSamplePrepLabel, samplePreparations]);
+  }, [calculation.selectedSamplePreparationLabel, samplePreparations]);
 
   const getSampleWeights = () => {
     if (!selectedSamplePrep) {
@@ -333,7 +333,7 @@ const CalculationDetailROI: React.FC<CalculationDetailROIProps> = ({
     const ROI_Percentage = (numerator / denominator) * 100;
 
     console.log(`4. FINAL FORMULA: [(${W3} - ${W1}) / (${W2} - ${W1})] x 100`);
-    console.log(`Calculated ROI Result: ${ROI_Percentage.toFixed(4)} %`);
+    console.log(`Calculated ROI Result: ${ROI_Percentage.toFixedNoRound(4)} %`);
     console.groupEnd();
 
     if (isNaN(ROI_Percentage) || !isFinite(ROI_Percentage)) {
@@ -346,7 +346,7 @@ const CalculationDetailROI: React.FC<CalculationDetailROIProps> = ({
       onFieldChange(
         calculation.id,
         "calculationResult",
-        ROI_Percentage.toFixed(4)
+        ROI_Percentage.toFixedNoRound(4).toFixed(3)
       );
       onFieldChange(calculation.id, "calculationResultUnit", "%");
     }
@@ -487,11 +487,11 @@ const CalculationDetailROI: React.FC<CalculationDetailROIProps> = ({
                         value: prep.label,
                         label: prep.label,
                       }))}
-                      value={calculation.selectedSamplePrepLabel || ""}
+                      value={calculation.selectedSamplePreparationLabel || ""}
                       onChange={(value) =>
                         onFieldChange(
                           calculation.id,
-                          "selectedSamplePrepLabel",
+                          "selectedSamplePreparationLabel",
                           value
                         )
                       }
@@ -590,7 +590,7 @@ const CalculationDetailROI: React.FC<CalculationDetailROIProps> = ({
                                 Sample Prep
                               </p>
                               <p className="text-gray-900 font-semibold">
-                                {calculation.selectedSamplePrepLabel || "N/A"}
+                                {calculation.selectedSamplePreparationLabel || "N/A"}
                               </p>
                             </div>
                           </div>

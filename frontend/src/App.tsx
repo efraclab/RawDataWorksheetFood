@@ -34,8 +34,6 @@ import {
 import type { Analyst } from "./models/Analyst";
 import type { SampleData } from "./preparation_models/SampleData";
 
-/* ------------------ Auth Helpers ------------------ */
-
 const isTokenExpired = (token: string) => {
   try {
     const base64Url = token.split(".")[1];
@@ -44,7 +42,7 @@ const isTokenExpired = (token: string) => {
       atob(base64)
         .split("")
         .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
+        .join(""),
     );
     const decoded = JSON.parse(jsonPayload);
     if (!decoded?.exp) return true;
@@ -85,7 +83,7 @@ function DashboardPage({
 
   const handleNavigation = (
     screen: "create" | "worksheet" | "reference-data",
-    worksheetId?: string
+    worksheetId?: string,
   ) => {
     if (screen === "create") navigate("/worksheets/new");
     else if (screen === "reference-data") navigate("/reference-data");
@@ -116,13 +114,23 @@ function ReferenceDataPage() {
   );
 }
 
-function CreateWorksheetPage({ employeeId }: { employeeId: string }) {
+function CreateWorksheetPage({
+  employeeId,
+  department,
+  role,
+}: {
+  employeeId: string;
+  department: string;
+  role: string;
+}) {
   const navigate = useNavigate();
 
   return (
     <motion.div variants={pageVariants} initial="initial" animate="animate">
       <CreateWorksheet
+        role={role}
         employeeId={employeeId}
+        department={department}
         onWorksheetCreated={(id) => navigate(`/worksheets/${id}`)}
         onCancel={() => navigate("/")}
       />
@@ -139,7 +147,12 @@ function WorksheetPreviewPage(props: {
   referenceDataError: string | null;
   employeeId: string;
   role: string;
-  onPrintRequest: (data: WorksheetDetail, analysts: Analyst[], sampleData: SampleData) => void;
+  department: string;
+  onPrintRequest: (
+    data: WorksheetDetail,
+    analysts: Analyst[],
+    sampleData: SampleData,
+  ) => void;
 }) {
   const { worksheetId } = useParams<{ worksheetId: string }>();
   const navigate = useNavigate();
@@ -147,10 +160,14 @@ function WorksheetPreviewPage(props: {
 
   if (!worksheetId) return null;
 
-  const handlePrint = (worksheetInfo: WorksheetDetail, analysts: Analyst[], sampleData: SampleData) => {
+  const handlePrint = (
+    worksheetInfo: WorksheetDetail,
+    analysts: Analyst[],
+    sampleData: SampleData,
+  ) => {
     props.onPrintRequest(worksheetInfo, analysts, sampleData);
 
-    console.log("sample received:", sampleData)
+    console.log("sample received:", sampleData);
 
     sessionStorage.setItem("printPrevPath", location.pathname);
 
@@ -173,18 +190,23 @@ function WorksheetPreviewPage(props: {
           className="group relative inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-          
-          <svg 
-            className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-300" 
-            fill="none" 
-            viewBox="0 0 24 24" 
+
+          <svg
+            className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-300"
+            fill="none"
+            viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
           </svg>
-          
+
           <span className="relative z-10">Back to Dashboard</span>
-          
+
           <div className="absolute inset-0 rounded-xl bg-emerald-400/20 blur-xl group-hover:bg-emerald-400/30 transition-all duration-300" />
         </button>
       </div>
@@ -199,6 +221,7 @@ function WorksheetPreviewPage(props: {
         referenceDataError={props.referenceDataError}
         employeeId={props.employeeId}
         role={props.role}
+        department={props.department}
         onPrint={handlePrint}
       />
     </motion.div>
@@ -263,9 +286,10 @@ function AuthenticatedApp({
   const [columns, setColumns] = useState<Column[]>([]);
   const [isReferenceDataLoading, setIsReferenceDataLoading] = useState(true);
   const [referenceDataError, setReferenceDataError] = useState<string | null>(
-    null
+    null,
   );
-  const [activeWorksheetData, setActiveWorksheetData] = useState<WorksheetDetail | null>(null);
+  const [activeWorksheetData, setActiveWorksheetData] =
+    useState<WorksheetDetail | null>(null);
 
   useEffect(() => {
     const loadReferenceData = async () => {
@@ -305,13 +329,16 @@ function AuthenticatedApp({
               />
             }
           />
-          <Route
-            path="/reference-data"
-            element={<ReferenceDataPage />}
-          />
+          <Route path="/reference-data" element={<ReferenceDataPage />} />
           <Route
             path="/worksheets/new"
-            element={<CreateWorksheetPage employeeId={employeeId} />}
+            element={
+              <CreateWorksheetPage
+                role={role}
+                department={department}
+                employeeId={employeeId}
+              />
+            }
           />
           <Route
             path="/worksheets/:worksheetId"
@@ -325,8 +352,12 @@ function AuthenticatedApp({
                 referenceDataError={referenceDataError}
                 employeeId={employeeId}
                 role={role}
-                onPrintRequest={(worksheetInfo, analyst, sampleData) => 
-                  {setActiveWorksheetData(worksheetInfo); setAnalysts(analyst); setSampleData(sampleData)}}
+                department={department}
+                onPrintRequest={(worksheetInfo, analyst, sampleData) => {
+                  setActiveWorksheetData(worksheetInfo);
+                  setAnalysts(analyst);
+                  setSampleData(sampleData);
+                }}
               />
             }
           />

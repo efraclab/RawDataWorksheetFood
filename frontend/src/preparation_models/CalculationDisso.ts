@@ -1,8 +1,8 @@
 export interface CalculationDisso {
   id: number;
   label: string;
-  selectedStandardPrepLabel: string | null;
-  selectedSamplePrepLabel: string | null;
+  selectedStandardPreparationLabel: string | null;
+  selectedSamplePreparationLabel: string | null;
   areaOfSample1: string;
   areaOfSample2: string;
   areaOfSample3: string;

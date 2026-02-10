@@ -9,6 +9,7 @@
         public string? Label { get; set; }
         public string? AssignedStandardId { get; set; }
         public string? Steps { get; set; }
+        public string? Content { get; set; }
     }
 
 }

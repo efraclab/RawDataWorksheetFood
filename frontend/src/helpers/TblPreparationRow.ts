@@ -4,12 +4,12 @@
 export interface TblPreparationRow {
   WorksheetId: string;
   ParameterCode: string;
-  PrepCategory: "STANDARD" | "SAMPLE" | "MOBILE_PHASE" | "DISSOLUTION_MEDIA" | "SYSTEM_SUITABILITY";
+  PrepCategory: "STANDARD" | "SAMPLE" | "MOBILE_PHASE" | "DISSOLUTION_MEDIA" | "SYSTEM_SUITABILITY" | "BLANK";
   PrepLabel: string;
   PreparationType: string;
   AssignedStandardId?: string | null;
-  StepName: string;
-  StepOrder: number;
+  StepName: string | null;
+  StepOrder: number | null;
   Value1?: string | null;
   Unit1?: string | null;
   Value2?: string | null;
@@ -20,4 +20,5 @@ export interface TblPreparationRow {
   SolventChemical?: string | null;
   LogBookID?: string | null;
   LimitType?: string | null;
+  Content?: any | null;
 }

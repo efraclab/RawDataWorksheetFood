@@ -8,8 +8,8 @@
         public string PrepLabel { get; set; }
         public string? PreparationType { get; set; }
         public string? AssignedStandardId { get; set; }
-        public string StepName { get; set; }
-        public int StepOrder { get; set; }
+        public string? StepName { get; set; }
+        public int? StepOrder { get; set; }
         public string? Value1 { get; set; }
         public string? Unit1 { get; set; }
         public string? Value2 { get; set; }
@@ -18,6 +18,7 @@
         public string? Unit3 { get; set; }
         public string? SolventChemical { get; set; }
         public string? LogBookID { get; set; }
+        public string? Content { get; set; }
     }
 
 }

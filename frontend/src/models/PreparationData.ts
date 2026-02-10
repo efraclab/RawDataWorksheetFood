@@ -4,7 +4,7 @@ export interface PreparationData {
     preparationCategory: "standard" |
     "sample" |
     "dissolution_media" |
-    "mobile_phase";
+    "mobile_phase" | "blank";
     preparationType: "assay" |
     "residual_solvent" |
     "dissolution" |
@@ -15,4 +15,5 @@ export interface PreparationData {
     null;
     assignedStandardId: string | null;
     steps: any;
+    content: any;
 }

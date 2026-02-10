@@ -85,6 +85,9 @@ import CalculationDetailUC from "./sub-components/CalculationDetailUC";
 import type { SystemSuitability } from "../preparation_models/SystemSuitability";
 import SystemSuitabilityDetail from "./sub-components/SystemSuitabilityDetail";
 import type { SmapleDetailsRequest } from "../models/SmapleDetailsRequest";
+import BlankPreparation from "./sub-components/BlankPreparation";
+import BlankPreparationDetail from "./sub-components/BlankPreparationDetail";
+import type { BlankPreparation as BlankPreparationModel } from "../preparation_models/BlankPreparation";
 
 // SVG Icons
 const Target: React.FC<{ className: string }> = ({ className }) => (
@@ -661,6 +664,11 @@ const PREPARATION_GROUPS = {
     label: "Dissolution Media Preparations",
     color: "emerald",
   },
+  blankPreparation: {
+    id: "blankPreparation",
+    label: "Blank Preparation",
+    color: "emerald",
+  },
 } as const;
 
 const Worksheet: React.FC<WorksheetProps> = ({
@@ -865,6 +873,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const [systemSuitabilityPerParam, setSystemSuitabilityPerParam] = useState<
     Record<number, SystemSuitability[]>
   >({});
+  const [blankPreparationPerParam, setBlankPreparationPerParam] = useState<
+    Record<number, BlankPreparationModel[]>
+  >({});
+  const [showBlankPreparationDialog, setShowBlankPreparationDialog] = useState<
+    Record<number, boolean>
+  >({});
+  const [editingBlankPrepId, setEditingBlankPrepId] = useState<string | null>(null);
 
   const [isAddingRSStandard, setIsAddingRSStandard] = useState(false);
   const [isAddingDissoStandard, setIsAddingDissoStandard] = useState(false);
@@ -1020,7 +1035,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         setWorksheetInfo(worksheetData);
         setRegistrationNo(worksheetData.sample.registrationNo);
 
-        //        console.log(WorksheetDbMapper.mapAll(worksheetData));
+        console.log('map', WorksheetDbMapper.mapAll(worksheetData));
 
         const request: SmapleDetailsRequest = {
           regNo: worksheetData.sample.registrationNo,
@@ -1044,11 +1059,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const restoreWorksheetToState = (worksheetData: WorksheetDetail) => {
     const { parameters } = worksheetData;
 
-    console.log("Restoring parameters:", parameters);
-
-    // ============================================================================
-    // STEP 1: Restore Parameters (Basic Info)
-    // ============================================================================
     const restoredParams = parameters.map((param, index) => {
       const matchingParameter = parameters.find(
         (s) => s.paraCode === param.paraCode,
@@ -1088,28 +1098,15 @@ const Worksheet: React.FC<WorksheetProps> = ({
       return data;
     };
 
-    // ============================================================================
-    // STEP 2: Process Each Parameter
-    // ============================================================================
     parameters.forEach((param, idx) => {
       const paramId = restoredParams[idx].id;
 
-      console.log(
-        `\n=== Processing Parameter ${paramId} (${param.parameterName}) ===`,
-      );
-      console.log("Raw preparations from DB:", param.preparations);
 
-      // ------------------------------------------------------------------------
-      // 2.1: System Suitability (Special Category)
-      // ------------------------------------------------------------------------
       const systemSuitabilityPreps = (param.preparations || []).filter(
         (p: any) => p.preparationCategory === "system_suitability",
       );
 
       if (systemSuitabilityPreps.length > 0) {
-        console.log(
-          `  → Found ${systemSuitabilityPreps.length} system suitability prep(s)`,
-        );
 
         setShowSystemSuitability((prev) => ({
           ...prev,
@@ -1324,6 +1321,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
           // Special category preparations
           dissoMedia: [] as any[],
           mobilePhase: [] as any[],
+          blank: [] as any[],
         };
 
         // Process each preparation
@@ -1362,14 +1360,14 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 preparationCollections.ucStd.push(newPrep);
                 break;
               default:
-                // ⚠️ CRITICAL FIX: Log unrecognized types but DON'T add them
+                // [WARNING] CRITICAL FIX: Log unrecognized types but DON'T add them
                 if (prepType) {
                   console.warn(
-                    `  ⚠️  Unrecognized standard preparationType: "${prepType}" for prep: "${prep.label}"`,
+                    `  [WARNING]  Unrecognized standard preparationType: "${prepType}" for prep: "${prep.label}"`,
                   );
                 } else {
                   console.warn(
-                    `  ⚠️  Standard preparation with NULL preparationType: "${prep.label}" - SKIPPED`,
+                    `  [WARNING]  Standard preparation with NULL preparationType: "${prep.label}" - SKIPPED`,
                   );
                 }
                 break;
@@ -1402,14 +1400,14 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 preparationCollections.ucSpl.push(newPrep);
                 break;
               default:
-                // ⚠️ CRITICAL FIX: Log unrecognized types but DON'T add them
+                // [WARNING] CRITICAL FIX: Log unrecognized types but DON'T add them
                 if (prepType) {
                   console.warn(
-                    `  ⚠️  Unrecognized sample preparationType: "${prepType}" for prep: "${prep.label}"`,
+                    `  [WARNING]  Unrecognized sample preparationType: "${prepType}" for prep: "${prep.label}"`,
                   );
                 } else {
                   console.warn(
-                    `  ⚠️  Sample preparation with NULL preparationType: "${prep.label}" - SKIPPED`,
+                    `  [WARNING]  Sample preparation with NULL preparationType: "${prep.label}" - SKIPPED`,
                   );
                 }
                 break;
@@ -1418,35 +1416,20 @@ const Worksheet: React.FC<WorksheetProps> = ({
             preparationCollections.dissoMedia.push(newPrep);
           } else if (prepCategory === "mobile_phase") {
             preparationCollections.mobilePhase.push(newPrep);
+          } else if (prepCategory === "blank") {
+            // Blank preparation - store label and content
+            preparationCollections.blank.push({
+              id: newPrep.id,
+              label: prep.label || "Blank Preparation",
+              content: prep.content || "",
+            });
           } else {
             console.warn(
-              `  ⚠️  Unrecognized preparationCategory: "${prepCategory}" for prep: "${prep.label}"`,
+              `  [WARNING]  Unrecognized preparationCategory: "${prepCategory}" for prep: "${prep.label}"`,
             );
           }
         });
 
-        // Debug: Log what was actually categorized
-        console.log("  Categorized preparations:", {
-          assayStd: preparationCollections.assayStd.length,
-          assaySpl: preparationCollections.assaySpl.length,
-          dissoStd: preparationCollections.dissoStd.length,
-          dissoSpl: preparationCollections.dissoSpl.length,
-          lodSpl: preparationCollections.lodSpl.length,
-          roiSpl: preparationCollections.roiSpl.length,
-          ashSpl: preparationCollections.ashSpl.length,
-          rsSpl: preparationCollections.rsSpl.length,
-          rsStd: preparationCollections.rsStd.length,
-          titrationSpl: preparationCollections.titrationSpl.length,
-          ucStd: preparationCollections.ucStd.length,
-          ucSpl: preparationCollections.ucSpl.length,
-          dissoMedia: preparationCollections.dissoMedia.length,
-          mobilePhase: preparationCollections.mobilePhase.length,
-        });
-
-        // ✅ CRITICAL FIX: ONLY set state if arrays have items
-        // This prevents empty arrays from being created in state
-
-        // Standard preparations
         if (preparationCollections.assayStd.length > 0) {
           setStandardPreparationPerParam((prev) => ({
             ...prev,
@@ -1549,6 +1532,19 @@ const Worksheet: React.FC<WorksheetProps> = ({
           setShowMobilePhasePreparation((prev) => ({
             ...prev,
             [paramId]: true,
+          }));
+        }
+
+        // Blank preparations
+        if (preparationCollections.blank.length > 0) {
+          setBlankPreparationPerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.blank,
+          }));
+          // Auto-enable the blank preparation group when data exists
+          setActivePreparationGroups((prev) => ({
+            ...prev,
+            [paramId]: [...(prev[paramId] || []), "blankPreparation"],
           }));
         }
       }
@@ -1833,7 +1829,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
               default:
                 console.warn(
-                  `  ⚠️  Unrecognized calculationType: "${calcType}"`,
+                  `Unrecognized calculationType: "${calcType}"`,
                 );
                 break;
             }
@@ -1893,16 +1889,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
       }
 
-      // ------------------------------------------------------------------------
-      // 2.8: ACTIVE PREPARATION GROUPS (FIXED - More Precise)
-      // ------------------------------------------------------------------------
       const activeGroups: string[] = [];
 
       if (param.preparations && Array.isArray(param.preparations)) {
-        // ✅ FIXED: Only check for preparations that actually have explicit types
-        // Don't include null or undefined preparationType in assay check
 
-        // Check for assay preparations (explicit assay type only)
         if (
           param.preparations.some(
             (p: any) =>
@@ -1986,10 +1976,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
       }
 
-      console.log(
-        `  Active preparation groups for param ${paramId}:`,
-        activeGroups,
-      );
 
       if (activeGroups.length > 0) {
         setActivePreparationGroups((prev) => ({
@@ -1999,15 +1985,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
       }
     });
 
-    // ============================================================================
-    // STEP 3: Auto-expand all parameters for viewing
-    // ============================================================================
     setSelectedParamsForDetail(restoredParams.map((p) => p.id));
 
-    console.log("\n✅ Worksheet restoration complete");
   };
 
-  // Resolve per-parameter cached ids to full objects when parent lists become available
   useEffect(() => {
     if (!instruments || !Object.keys(addedInstrumentIdsPerParam).length) return;
     Object.entries(addedInstrumentIdsPerParam).forEach(([paramId, idList]) => {
@@ -2199,6 +2180,15 @@ const Worksheet: React.FC<WorksheetProps> = ({
             assignedStandardId: null,
             steps: JSON.stringify(ss.steps),
           })),
+          // Blank Preparations
+          ...(blankPreparationPerParam[param.id] || []).map((bp) => ({
+            label: bp.label,
+            preparationCategory: "blank",
+            preparationType: null,
+            assignedStandardId: null,
+            steps: null,
+            content: bp.content,
+          })),
         ];
 
         // Collect all calculations with their types
@@ -2352,8 +2342,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
     setIsSaving(true);
     const worksheetData = collectFormDataForAPI();
 
-    console.log("Saving draft with data:", worksheetData);
-
     try {
       if (role === "Reviewer") {
         const response = await updateWorksheet(worksheetId, worksheetData);
@@ -2461,7 +2449,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         );
 
         if (response && response.worksheetId) {
-          // ✅ FIX: Update local state correctly
           setWorksheetInfo((prev) =>
             prev
               ? {
@@ -2954,7 +2941,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
           setShowToast(true);
           setTimeout(() => setShowToast(false), 3000);
         } catch (error) {
-          console.error("❌ Error adding parameter:");
+          console.error("Error adding parameter:");
           console.error(
             "Error type:",
             error instanceof Error ? error.constructor.name : typeof error,
@@ -3068,7 +3055,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
               setShowToast(true);
               setTimeout(() => setShowToast(false), 3000);
             } else {
-              console.error("❌ Update failed: Invalid response from server");
+              console.error("Update failed: Invalid response from server");
               console.error("Response received:", response);
 
               setToastMessage(
@@ -3078,7 +3065,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
               setTimeout(() => setShowToast(false), 4000);
             }
           } catch (error) {
-            console.error("❌ Error updating parameter:");
+            console.error("Error updating parameter:");
             console.error(
               "Error type:",
               error instanceof Error ? error.constructor.name : typeof error,
@@ -3094,7 +3081,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
             setTimeout(() => setShowToast(false), 4000);
           }
         } else {
-          console.error("❌ Parameter not found for reassignment");
+          console.error("Parameter not found for reassignment");
           console.error("Parameter ID:", paramId);
           console.error(
             "Available parameters:",
@@ -3108,7 +3095,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       setShowAnalystDialog(false);
       setShowParameterDropdown(false);
     } catch (error) {
-      console.error("❌ Error in handleAnalystSelected:");
+      console.error("Error in handleAnalystSelected:");
       console.error(
         "Error type:",
         error instanceof Error ? error.constructor.name : typeof error,
@@ -3329,7 +3316,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         ...parameterForApproval,
         status: "Approved",
         approvedBy: employeeId,
-        approvedAt: new Date().toISOString().split("T")[0],
+        approvedAt: new Date().toISOString(),
       };
 
       const response = await updateParameter(
@@ -3387,7 +3374,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         ...parameterForApproval,
         status: "Disapproved",
         approvedBy: employeeId,
-        approvedAt: new Date().toISOString().split("T")[0],
+        approvedAt: new Date().toISOString(),
       };
 
       const response = await updateParameter(
@@ -3504,7 +3491,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const updatedParam = {
         ...parameterForAnalysis,
         status: "Analysis Started",
-        analysisStartDate: new Date().toISOString().split("T")[0], // Current date
+        analysisStartDate: new Date().toISOString(), // Current date
       };
 
       const response = await updateParameter(
@@ -3573,7 +3560,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const updatedParam = {
         ...parameterForAnalysis,
         status: "Analysis Completed",
-        analysisCompletionDate: new Date().toISOString().split("T")[0],
+        analysisCompletionDate: new Date().toISOString(),
       };
 
       const response = await updateParameter(
@@ -3647,7 +3634,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
           ...worksheetData?.documentInfo,
           status: "Approved",
           approvedBy: employeeId,
-          approvedAt: new Date().toISOString().split("T")[0],
+          approvedAt: new Date().toISOString(),
         },
       };
 
@@ -5025,6 +5012,63 @@ const Worksheet: React.FC<WorksheetProps> = ({
     });
   };
 
+
+  // Blank Preparation Handlers
+  const handleAddBlankPreparation = (parameterId: number) => {
+    setShowBlankPreparationDialog((prev) => ({
+      ...prev,
+      [parameterId]: true,
+    }));
+    setEditingBlankPrepId(null);
+  };
+
+  const handleEditBlankPreparation = (parameterId: number, blankPrepId: string) => {
+    setEditingBlankPrepId(blankPrepId);
+    setShowBlankPreparationDialog((prev) => ({
+      ...prev,
+      [parameterId]: true,
+    }));
+  };
+
+  const handleSaveBlankPreparation = (parameterId: number, label: string, content: string) => {
+    if (editingBlankPrepId) {
+      // Update existing blank preparation
+      setBlankPreparationPerParam((prev) => ({
+        ...prev,
+        [parameterId]: (prev[parameterId] || []).map((prep) =>
+          prep.id === editingBlankPrepId
+            ? { ...prep, label, content }
+            : prep
+        ),
+      }));
+    } else {
+      // Add new blank preparation
+      const newBlankPrep: BlankPreparationModel = {
+        id: `blank_${Date.now()}`,
+        label,
+        content,
+      };
+      
+      setBlankPreparationPerParam((prev) => ({
+        ...prev,
+        [parameterId]: [...(prev[parameterId] || []), newBlankPrep],
+      }));
+    }
+    
+    setShowBlankPreparationDialog((prev) => ({
+      ...prev,
+      [parameterId]: false,
+    }));
+    setEditingBlankPrepId(null);
+  };
+
+  const handleRemoveBlankPreparation = (parameterId: number, blankPrepId: string) => {
+    setBlankPreparationPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).filter((prep) => prep.id !== blankPrepId),
+    }));
+  };
+
   const handleSamplePrepTitrationStepChange = (
     parameterId: number,
     samplePrepId: number,
@@ -5281,10 +5325,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
     ).values(),
   ];
   const allMethods = uniqueMethods.map((item) => item.methodName);
-  const testsRequiredDisplay =
-    allParameters.join(", ") + (allParameters.length > 0 ? "," : "");
-  const methodsRequiredDisplay =
-    allMethods.join(", ") + (allMethods.length > 0 ? "," : "");
+const testsRequiredDisplay = allParameters.join(", ").replace(/,\s*$/, "");
+const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
+
 
   const animationProps = {
     initial: { opacity: 0, scale: 0.9 },
@@ -5408,6 +5451,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
             return rest;
           });
         }
+        else if (group.id === "blankPreparation") {
+          setBlankPreparationPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
 
         return {
           ...prev,
@@ -5421,6 +5470,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
       };
     });
     setShowPreparationDropdown({});
+    
+    // If adding blankPreparation, open the dialog
+    // If adding blankPreparation, open the dialog
+    if (groupId === "blankPreparation" && !(activePreparationGroups[parameterId] || []).includes(groupId)) {
+      handleAddBlankPreparation(parameterId);
+    }
   };
 
   const getAvailablePreparationGroups = () => {
@@ -5451,6 +5506,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
       {
         id: "titration",
         label: "Preparation for Titration",
+        color: "emerald",
+      },
+      {
+        id: "blankPreparation",
+        label: "Blank Preparation",
         color: "emerald",
       },
     ];
@@ -7947,7 +8007,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 Parameters Management
               </h3>
 
-              {/* ✅ Only show Add Parameter button for reviewer */}
+              {/* Only show Add Parameter button for reviewer */}
               {role === "Reviewer" &&
                 worksheetInfo?.sample.status !== "Approved" && (
                   <div className="relative">
@@ -8036,42 +8096,42 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         border: "border-emerald-300",
                         text: "text-emerald-700",
                         label: "ANALYSIS PENDING",
-                        icon: "⏳",
+                        icon: "○",
                       },
                       "analysis started": {
                         bg: "bg-emerald-100",
                         border: "border-emerald-300",
                         text: "text-emerald-700",
                         label: "ANALYSIS STARTED",
-                        icon: "🔬",
+                        icon: "▶",
                       },
                       "analysis completed": {
                         bg: "bg-emerald-100",
                         border: "border-emerald-300",
                         text: "text-emerald-700",
                         label: "ANALYSIS COMPLETED",
-                        icon: "✅",
+                        icon: "✓",
                       },
                       approved: {
                         bg: "bg-emerald-100",
                         border: "border-emerald-300",
                         text: "text-emerald-700",
                         label: "APPROVED",
-                        icon: "🎉",
+                        icon: "✓",
                       },
                       "analysis revision": {
                         bg: "bg-emerald-100",
                         border: "border-emerald-300",
                         text: "text-emerald-700",
                         label: "REVISION REQUESTED",
-                        icon: "🔄",
+                        icon: "↻",
                       },
                       disapproved: {
                         bg: "bg-red-100",
                         border: "border-red-300",
                         text: "text-red-700",
                         label: "DISAPPROVED",
-                        icon: "❌",
+                        icon: "✗",
                       },
                     };
 
@@ -9625,7 +9685,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                               }
                               placeholder="Enter diluent preparation details..."
                               className="w-full min-h-[100px] border border-emerald-300 rounded-lg p-3 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                              readOnly={role !== "Reviewer"}
                             />
                           </motion.div>
                         )}
@@ -10025,6 +10084,177 @@ const Worksheet: React.FC<WorksheetProps> = ({
                           </div>
                         </motion.div>
                       )}
+
+
+                      {/* ============= BLANK PREPARATION CARD ============= */}
+                      {(
+                        activePreparationGroups[selectedParam.id] || []
+                      ).includes("blankPreparation") && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
+                        >
+                          {/* Decorative elements */}
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                          {/* Card Header */}
+                          <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                  <svg
+                                    className="w-6 h-6 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                    />
+                                  </svg>
+                                </div>
+                              </div>
+                              <div>
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
+                                  Blank Preparation
+                                </h2>
+                                <p className="text-sm text-emerald-600/80 font-medium">
+                                  Custom Document Preparation
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
+                                {
+                                  (
+                                    blankPreparationPerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).length
+                                }{" "}
+                                Items
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Blank Preparation Documents */}
+                          <div>
+                            <div className="flex items-center justify-between mb-4 px-2">
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                Preparation Documents
+                              </h3>
+                              <button
+                                onClick={() =>
+                                  handleAddBlankPreparation(selectedParam.id)
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Document
+                              </button>
+                            </div>
+
+                            <AnimatePresence>
+                              {(
+                                blankPreparationPerParam[selectedParam.id] ||
+                                []
+                              ).map((blankPrep) => (
+                                <div key={blankPrep.id}>
+                                  <BlankPreparationDetail
+                                    blankPreparation={blankPrep}
+                                    onEdit={(id) =>
+                                      handleEditBlankPreparation(
+                                        selectedParam.id,
+                                        id
+                                      )
+                                    }
+                                    onRemove={(id) =>
+                                      handleRemoveBlankPreparation(
+                                        selectedParam.id,
+                                        id
+                                      )
+                                    }
+                                  />
+                                </div>
+                              ))}
+                            </AnimatePresence>
+
+                            {(
+                              blankPreparationPerParam[selectedParam.id] ||
+                              []
+                            ).length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                              >
+                                <div className="absolute inset-0 opacity-5">
+                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                </div>
+
+                                <div className="relative z-10">
+                                  <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                                    <Target className="w-14 h-14 text-emerald-400" />
+                                  </div>
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
+                                    No documents added yet
+                                  </p>
+                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
+                                    Click "Add Document" to create a blank preparation document
+                                  </p>
+                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                    <span className="text-xs font-semibold text-emerald-700">
+                                      Ready to start
+                                    </span>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* ============= BLANK PREPARATION DIALOG ============= */}
+                      <AnimatePresence>
+                        {showBlankPreparationDialog[selectedParam.id] && (
+                          <BlankPreparation
+                            onClose={() =>
+                              setShowBlankPreparationDialog((prev) => ({
+                                ...prev,
+                                [selectedParam.id]: false,
+                              }))
+                            }
+                            onSave={(label, content) => {
+                              handleSaveBlankPreparation(selectedParam.id, label, content);
+                            }}
+                            existingContent={
+                              editingBlankPrepId
+                                ? (blankPreparationPerParam[selectedParam.id] || []).find(
+                                    (prep) => prep.id === editingBlankPrepId
+                                  )?.content || ""
+                                : ""
+                            }
+                            existingLabel={
+                              editingBlankPrepId
+                                ? (blankPreparationPerParam[selectedParam.id] || []).find(
+                                    (prep) => prep.id === editingBlankPrepId
+                                  )?.label || ""
+                                : ""
+                            }
+                            isEditing={editingBlankPrepId !== null}
+                          />
+                        )}
+                      </AnimatePresence>
 
                       {/* ============= ASSAY GROUP CARD ============= */}
                       {(

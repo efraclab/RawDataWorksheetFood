@@ -6,6 +6,7 @@ import type { Analyst } from "../models/Analyst";
 import type { Instrument } from "../preparation_models/Instrument";
 import type { Chemical } from "../preparation_models/Chemical";
 import type { Standard } from "../preparation_models/Standard";
+import type { ParameterDetail } from "../models/ParameterDetail";
 
 interface PrintReportProps {
   worksheetInfo: WorksheetDetail;
@@ -230,7 +231,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
           stepText = `Filter the solution through ${boldValue(
             step.value1,
             step.unit1 || "µm",
-          )} syringe filter.`;
+          )} Syringe filter.`;
           break;
 
         case "Instrument Details":
@@ -285,11 +286,11 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
         case "Weighing/Pipetting":
           stepText = `${["ml", "L", "µL"].includes(step.unit1!) ? "Pipette out accurately" : "Weigh accurately"} ${boldValue(
-              step.value1,
-              step.unit1,
-            )} of ${step.solventChemical || `_____________`}${
-              step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
-            }.`;
+            step.value1,
+            step.unit1,
+          )} of ${step.solventChemical || `_____________`}${
+            step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
+          }.`;
           break;
 
         default:
@@ -395,8 +396,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                     Registration No: {worksheetInfo.sample.registrationNo}
                   </td>
                   <td className="border border-black px-3 py-2" colSpan={2}>
-                    Date of Receipt:{" "}
-                    {sampleData.recieptDate || ""}
+                    Date of Receipt: {sampleData.recieptDate || ""}
                   </td>
                 </tr>
 
@@ -405,8 +405,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                     Sample Name: {worksheetInfo.sample.sampleName}
                   </td>
                   <td className="border border-black px-3 py-2" colSpan={2}>
-                    Due Date:{" "}
-                    {sampleData.tatDate || ""}
+                    Due Date: {sampleData.tatDate || ""}
                   </td>
                 </tr>
 
@@ -469,26 +468,86 @@ const PrintReport: React.FC<PrintReportProps> = ({
     );
   };
 
-  const renderSignatureSection = () => {
+  const renderSignatureSection = (param: ParameterDetail) => {
     return (
-      <div className="footer-section mt-20 mb-6">
-        <table className="signature-table w-full text-sm">
-          <thead>
-            <tr className="bg-white">
-              <th className="px-4 py-3 text-center font-bold">
-                ANALYZED BY
-                <div className="font-normal text-xs mt-0.5">(Sign & Date)</div>
-              </th>
-              <th className="px-4 py-3 text-center font-bold">
-                REVIEWED BY (QC)
-                <div className="font-normal text-xs mt-0.5">(Sign & Date)</div>
-              </th>
-              <th className="px-4 py-3 text-center font-bold">
-                APPROVED BY (QA)
-                <div className="font-normal text-xs mt-0.5">(Sign & Date)</div>
-              </th>
+      <div className="mb-6">
+        <table className="w-full border border-black text-sm">
+          <tbody>
+            <tr className="border-b border-black">
+              <td className="px-3 py-1 border-r border-black">Analyzed By</td>
+              <td className="px-3 py-1 font-bold">{param.analyzedByName || "---"}</td>
+              <td className="px-3 py-1 border-r border-black">Analysis Completed On</td>
+              <td className="px-3 py-1 font-bold">
+                {param.analysisCompletionDate
+                  ? (() => {
+                      const value = param.analysisCompletionDate as string;
+
+                      const parts = value.split(" ");
+                      const datePart = parts[0];
+                      const timePart = parts[1];
+
+                      const isoDate = datePart.split("-").reverse().join("-");
+
+                      const date = new Date(
+                        timePart
+                          ? `${isoDate}T${timePart}`
+                          : `${isoDate}T00:00:00`,
+                      );
+
+                      if (isNaN(date.getTime())) return "N/A";
+
+                      return timePart
+                        ? date.toLocaleString("en-GB", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })
+                        : date.toLocaleDateString("en-GB");
+                    })()
+                  : "N/A"}
+              </td>
             </tr>
-          </thead>
+            <tr className="border-b border-black">
+              <td className="px-3 py-1 border-r border-black">Approved By</td>
+              <td className="px-3 py-1 font-bold">{param.approvedByName || "---"}</td>
+              <td className="px-3 py-1 border-r border-black">Approved On</td>
+              <td className="px-3 py-1 font-bold">
+                {param.approvedAt
+                  ? (() => {
+                      const value = param.approvedAt as string;
+
+                      const parts = value.split(" ");
+                      const datePart = parts[0];
+                      const timePart = parts[1];
+
+                      const isoDate = datePart.split("-").reverse().join("-");
+
+                      const date = new Date(
+                        timePart
+                          ? `${isoDate}T${timePart}`
+                          : `${isoDate}T00:00:00`,
+                      );
+
+                      if (isNaN(date.getTime())) return "N/A";
+
+                      return timePart
+                        ? date.toLocaleString("en-GB", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })
+                        : date.toLocaleDateString("en-GB");
+                    })()
+                  : "N/A"}
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     );
@@ -526,9 +585,15 @@ const PrintReport: React.FC<PrintReportProps> = ({
         isFinite(nr6)
       ) {
         return {
-          average: ((nr1 + nr2 + nr3 + nr4 + nr5 + nr6) / 6).toFixedNoRound(4).toFixed(3),
-          minimum: Math.min(nr1, nr2, nr3, nr4, nr5, nr6).toFixedNoRound(4).toFixed(3),
-          maximum: Math.max(nr1, nr2, nr3, nr4, nr5, nr6).toFixedNoRound(4).toFixed(3),
+          average: ((nr1 + nr2 + nr3 + nr4 + nr5 + nr6) / 6)
+            .toFixedNoRound(4)
+            .toFixed(3),
+          minimum: Math.min(nr1, nr2, nr3, nr4, nr5, nr6)
+            .toFixedNoRound(4)
+            .toFixed(3),
+          maximum: Math.max(nr1, nr2, nr3, nr4, nr5, nr6)
+            .toFixedNoRound(4)
+            .toFixed(3),
           unit: resultUnit,
           results: [nr1, nr2, nr3, nr4, nr5, nr6],
           areas: [
@@ -559,7 +624,18 @@ const PrintReport: React.FC<PrintReportProps> = ({
     const result10 = calcData.calculationResultTablet10;
     const resultUnit = calcData.calculationResultUnit || "";
 
-    if (result1 && result2 && result3 && result4 && result5 && result6 && result7 && result8 && result9 && result10) {
+    if (
+      result1 &&
+      result2 &&
+      result3 &&
+      result4 &&
+      result5 &&
+      result6 &&
+      result7 &&
+      result8 &&
+      result9 &&
+      result10
+    ) {
       const nr1 = parseFloat(result1);
       const nr2 = parseFloat(result2);
       const nr3 = parseFloat(result3);
@@ -572,21 +648,40 @@ const PrintReport: React.FC<PrintReportProps> = ({
       const nr10 = parseFloat(result10);
 
       if (
-        !isNaN(nr1) && isFinite(nr1) &&
-        !isNaN(nr2) && isFinite(nr2) &&
-        !isNaN(nr3) && isFinite(nr3) &&
-        !isNaN(nr4) && isFinite(nr4) &&
-        !isNaN(nr5) && isFinite(nr5) &&
-        !isNaN(nr6) && isFinite(nr6) &&
-        !isNaN(nr7) && isFinite(nr7) &&
-        !isNaN(nr8) && isFinite(nr8) &&
-        !isNaN(nr9) && isFinite(nr9) &&
-        !isNaN(nr10) && isFinite(nr10)
+        !isNaN(nr1) &&
+        isFinite(nr1) &&
+        !isNaN(nr2) &&
+        isFinite(nr2) &&
+        !isNaN(nr3) &&
+        isFinite(nr3) &&
+        !isNaN(nr4) &&
+        isFinite(nr4) &&
+        !isNaN(nr5) &&
+        isFinite(nr5) &&
+        !isNaN(nr6) &&
+        isFinite(nr6) &&
+        !isNaN(nr7) &&
+        isFinite(nr7) &&
+        !isNaN(nr8) &&
+        isFinite(nr8) &&
+        !isNaN(nr9) &&
+        isFinite(nr9) &&
+        !isNaN(nr10) &&
+        isFinite(nr10)
       ) {
         return {
-          average: ((nr1 + nr2 + nr3 + nr4 + nr5 + nr6 + nr7 + nr8 + nr9 + nr10) / 10).toFixedNoRound(4).toFixed(3),
-          minimum: Math.min(nr1, nr2, nr3, nr4, nr5, nr6, nr7, nr8, nr9, nr10).toFixedNoRound(4).toFixed(3),
-          maximum: Math.max(nr1, nr2, nr3, nr4, nr5, nr6, nr7, nr8, nr9, nr10).toFixedNoRound(4).toFixed(3),
+          average: (
+            (nr1 + nr2 + nr3 + nr4 + nr5 + nr6 + nr7 + nr8 + nr9 + nr10) /
+            10
+          )
+            .toFixedNoRound(4)
+            .toFixed(3),
+          minimum: Math.min(nr1, nr2, nr3, nr4, nr5, nr6, nr7, nr8, nr9, nr10)
+            .toFixedNoRound(4)
+            .toFixed(3),
+          maximum: Math.max(nr1, nr2, nr3, nr4, nr5, nr6, nr7, nr8, nr9, nr10)
+            .toFixedNoRound(4)
+            .toFixed(3),
           unit: resultUnit,
           results: [nr1, nr2, nr3, nr4, nr5, nr6, nr7, nr8, nr9, nr10],
           areas: [
@@ -779,7 +874,9 @@ const PrintReport: React.FC<PrintReportProps> = ({
         ...smpVolsNumValues,
         mwBase,
         purity,
-      ].filter(v => v !== "___").join(" × ");
+      ]
+        .filter((v) => v !== "___")
+        .join(" × ");
 
       const denominatorValues = [
         areaStd,
@@ -788,7 +885,9 @@ const PrintReport: React.FC<PrintReportProps> = ({
         ...smpVolsDenomValues,
         mwSalt,
         "100",
-      ].filter(v => v !== "___").join(" × ");
+      ]
+        .filter((v) => v !== "___")
+        .join(" × ");
 
       return (
         <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
@@ -799,9 +898,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
             calcData.calculationResultUnit,
           )}
 
-          <p className="font-bold text-sm mb-2 mt-4">
-            Derivation :
-          </p>
+          <p className="font-bold text-sm mb-2 mt-4">Derivation :</p>
           {renderMathFormula(numeratorValues, denominatorValues)}
 
           {calcData.calculationResult && (
@@ -878,20 +975,20 @@ const PrintReport: React.FC<PrintReportProps> = ({
         ...numVolsValues,
         purity,
         "1000000",
-      ].filter(v => v !== "___").join(" × ");
+      ]
+        .filter((v) => v !== "___")
+        .join(" × ");
 
-      const denominatorValues = [areaStd, ...denVolsValues, sw2, "100"].filter(v => v !== "___").join(
-        " × ",
-      );
+      const denominatorValues = [areaStd, ...denVolsValues, sw2, "100"]
+        .filter((v) => v !== "___")
+        .join(" × ");
 
       return (
         <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
           <p className="font-bold text-sm mb-2">Formula :</p>
           {renderMathFormula(numeratorSymbolic, denominatorSymbolic, "ppm")}
 
-          <p className="font-bold text-sm mb-2 mt-4">
-            Derivation :
-          </p>
+          <p className="font-bold text-sm mb-2 mt-4">Derivation :</p>
           {renderMathFormula(numeratorValues, denominatorValues)}
 
           {calcData.calculationResult && (
@@ -1038,7 +1135,9 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   mwBase,
                   purity,
                   "100",
-                ].filter(v => v !== "___").join(" × ");
+                ]
+                  .filter((v) => v !== "___")
+                  .join(" × ");
 
                 const denominatorValues = [
                   areaStd,
@@ -1047,7 +1146,9 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   ...smpVolsDenomValues,
                   mwSalt,
                   "100",
-                ].filter(v => v !== "___").join(" × ");
+                ]
+                  .filter((v) => v !== "___")
+                  .join(" × ");
 
                 return (
                   <div
@@ -1065,28 +1166,32 @@ const PrintReport: React.FC<PrintReportProps> = ({
                 );
               })}
 
-              <div className="mt-4 border border-black keep-together">
+              <div className="mt-4 keep-together">
                 <table className="w-full">
                   <tbody>
                     <tr className="bg-gray-100">
                       <td colSpan={3} className="p-3 border-b border-black">
-                        <p className="font-bold text-sm">
-                          Calculation Summary
-                        </p>
+                        <p className="font-bold text-sm">Calculation Summary</p>
                       </td>
                     </tr>
                     <tr className="">
                       <td className="text-center p-3 border-r border-black">
                         <p className="font-semibold text-xs">Minimum</p>
-                        <p className="text-lg font-bold">{stats.minimum} {stats.unit}</p>
+                        <p className="text-lg font-bold">
+                          {stats.minimum} {stats.unit}
+                        </p>
                       </td>
                       <td className="text-center p-3 border-r border-black">
                         <p className="font-semibold text-xs">Average</p>
-                        <p className="text-lg font-bold">{stats.average} {stats.unit}</p>
+                        <p className="text-lg font-bold">
+                          {stats.average} {stats.unit}
+                        </p>
                       </td>
                       <td className="text-center p-3">
                         <p className="font-semibold text-xs">Maximum</p>
-                        <p className="text-lg font-bold">{stats.maximum} {stats.unit}</p>
+                        <p className="text-lg font-bold">
+                          {stats.maximum} {stats.unit}
+                        </p>
                       </td>
                     </tr>
                   </tbody>
@@ -1109,8 +1214,10 @@ const PrintReport: React.FC<PrintReportProps> = ({
       const numeratorSymbolic = "(W2 - W3)";
       const denominatorSymbolic = "(W2 - W1)";
 
-      const numeratorValues = w2 !== "___" && w3 !== "___" ? `(${w2} - ${w3})` : "";
-      const denominatorValues = w2 !== "___" && w1 !== "___" ? `(${w2} - ${w1})` : "";
+      const numeratorValues =
+        w2 !== "___" && w3 !== "___" ? `(${w2} - ${w3})` : "";
+      const denominatorValues =
+        w2 !== "___" && w1 !== "___" ? `(${w2} - ${w1})` : "";
 
       return (
         <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
@@ -1123,9 +1230,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
             </div>
           </div>
 
-          <p className="font-bold text-sm mb-2 mt-4">
-            Derivation :
-          </p>
+          <p className="font-bold text-sm mb-2 mt-4">Derivation :</p>
           <div className="bg-gray-100 rounded p-3">
             <div className="flex items-center justify-center gap-2">
               <span className="text-xs font-mono">
@@ -1288,7 +1393,9 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   mwBase,
                   purity,
                   claim,
-                ].filter(v => v !== "___").join(" × ");
+                ]
+                  .filter((v) => v !== "___")
+                  .join(" × ");
 
                 const denominatorValues = [
                   areaStd,
@@ -1297,7 +1404,9 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   ...smpVolsDenomValues,
                   mwSalt,
                   "100",
-                ].filter(v => v !== "___").join(" × ");
+                ]
+                  .filter((v) => v !== "___")
+                  .join(" × ");
 
                 return (
                   <div
@@ -1315,28 +1424,32 @@ const PrintReport: React.FC<PrintReportProps> = ({
                 );
               })}
 
-              <div className="mt-4 border border-black keep-together">
+              <div className="mt-4 keep-together">
                 <table className="w-full">
                   <tbody>
                     <tr className="bg-gray-100">
                       <td colSpan={3} className="p-3 border-b border-black">
-                        <p className="font-bold text-sm">
-                          Calculation Summary
-                        </p>
+                        <p className="font-bold text-sm">Calculation Summary</p>
                       </td>
                     </tr>
                     <tr className="">
                       <td className="text-center p-3 border-r border-black">
                         <p className="font-semibold text-xs">Minimum</p>
-                        <p className="text-lg font-bold">{stats.minimum} {stats.unit}</p>
+                        <p className="text-lg font-bold">
+                          {stats.minimum} {stats.unit}
+                        </p>
                       </td>
                       <td className="text-center p-3 border-r border-black">
                         <p className="font-semibold text-xs">Average</p>
-                        <p className="text-lg font-bold">{stats.average} {stats.unit}</p>
+                        <p className="text-lg font-bold">
+                          {stats.average} {stats.unit}
+                        </p>
                       </td>
                       <td className="text-center p-3">
                         <p className="font-semibold text-xs">Maximum</p>
-                        <p className="text-lg font-bold">{stats.maximum} {stats.unit}</p>
+                        <p className="text-lg font-bold">
+                          {stats.maximum} {stats.unit}
+                        </p>
                       </td>
                     </tr>
                   </tbody>
@@ -1484,6 +1597,24 @@ const PrintReport: React.FC<PrintReportProps> = ({
               page-break-inside: avoid;
               break-inside: avoid;
             }
+            
+            /* Table page break handling */
+            table {
+              page-break-inside: auto;
+            }
+            
+            tr {
+              page-break-inside: avoid;
+              page-break-after: auto;
+            }
+            
+            thead {
+              display: table-header-group;
+            }
+            
+            tfoot {
+              display: table-footer-group;
+            }
           }
           
           @media screen {
@@ -1505,50 +1636,61 @@ const PrintReport: React.FC<PrintReportProps> = ({
             min-width: 200px;
             text-align: center;
           }
+          
+          /* Styles for tables in HTML content (like blank preparation) */
+          table {
+            border-collapse: collapse;
+            width: 100%;
+          }
+          
+          table td {
+            border: 1px solid black;
+            padding: 8px;
+          }
         `}
       </style>
 
       <div className="min-h-screen">
-  <div className="no-print bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
-    <div className="max-w-[1900px] mx-auto px-8 py-5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onClose}
-            className="p-2 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-              Worksheet Print Preview
-            </h1>
-            <p className="text-sm text-slate-500 mt-0.5">
-              Review before printing
-            </p>
+        <div className="no-print bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
+          <div className="max-w-[1900px] mx-auto px-8 py-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={onClose}
+                  className="p-2 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <div>
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                    Worksheet Print Preview
+                  </h1>
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    Review before printing
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handlePrint}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/30"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print
+                </button>
+
+                <button
+                  onClick={onClose}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-all"
+                >
+                  <X className="w-4 h-4" />
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/30"
-          >
-            <Printer className="w-4 h-4" />
-            Print
-          </button>
-
-          <button
-            onClick={onClose}
-            className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-all"
-          >
-            <X className="w-4 h-4" />
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
         <div className="print-container">
           {worksheetInfo.parameters.map((param: any, paramIdx: number) => {
@@ -1590,16 +1732,16 @@ const PrintReport: React.FC<PrintReportProps> = ({
                         <thead>
                           <tr className="bg-gray-100">
                             <th className="border border-black px-3 py-2 text-left font-bold">
-                              Instrument Tag
+                              Instrument Id
                             </th>
                             <th className="border border-black px-3 py-2 text-left font-bold">
                               Instrument Name
                             </th>
                             <th className="border border-black px-3 py-2 text-left font-bold">
-                              Calibration Done
+                              Calibration Done On
                             </th>
                             <th className="border border-black px-3 py-2 text-left font-bold">
-                              Calibration Due
+                              Calibration Due On
                             </th>
                           </tr>
                         </thead>
@@ -1754,7 +1896,8 @@ const PrintReport: React.FC<PrintReportProps> = ({
                         </h4>
                         {safeJSONParse(param.preparations, [])
                           .filter(
-                            (p: any) => p.preparationCategory === "mobile_phase",
+                            (p: any) =>
+                              p.preparationCategory === "mobile_phase",
                           )
                           .map((prep: any, idx: number) => {
                             const steps = safeJSONParse(prep.steps, []);
@@ -1827,55 +1970,58 @@ const PrintReport: React.FC<PrintReportProps> = ({
                       safeJSONParse(param.preparations, []).filter(
                         (p: any) => p.preparationCategory === "standard",
                       ).length > 0)) && (
-                      <div className="mb-6">
-                        <h4 className="text-md uppercase font-bold mb-2">
-                          Standard Preparations
-                        </h4>
-                        {/* New structure - preparations array filtered by category */}
-                        {param.preparations &&
-                          safeJSONParse(param.preparations, [])
-                            .filter(
-                              (p: any) => p.preparationCategory === "standard",
-                            )
-                            .map((prep: any, idx: number) => {
-                              const steps = safeJSONParse(prep.steps, []);
-                              const stepsTable = renderPreparationStepsTable(
-                                steps,
-                                "standard",
-                                prep.preparationType,
-                                prep.assignedStandardId,
-                              );
+                    <div className="mb-6">
+                      <h4 className="text-md uppercase font-bold mb-2">
+                        Standard Preparations
+                      </h4>
+                      {/* New structure - preparations array filtered by category */}
+                      {param.preparations &&
+                        safeJSONParse(param.preparations, [])
+                          .filter(
+                            (p: any) => p.preparationCategory === "standard",
+                          )
+                          .map((prep: any, idx: number) => {
+                            const steps = safeJSONParse(prep.steps, []);
+                            const stepsTable = renderPreparationStepsTable(
+                              steps,
+                              "standard",
+                              prep.preparationType,
+                              prep.assignedStandardId,
+                            );
 
-                              if (!stepsTable) return null;
+                            if (!stepsTable) return null;
 
-                              return (
-                                <div key={`new-${idx}`} className="section-container mb-3">
-                                  <div className="mb-1">
-                                    <p className="font-bold text-sm">
-                                      {prep.label} (
-                                      {prep.preparationType === "roi"
-                                        ? "ROI"
-                                        : prep.preparationType === "lod"
-                                          ? "LOD"
-                                          : prep.preparationType
-                                              ?.split("_")
-                                              .filter(Boolean)
-                                              .map(
-                                                (word: string | any[]) =>
-                                                  word[0].toUpperCase() +
-                                                  word.slice(1),
-                                              )
-                                              .join(" ")
-                                              .replace(/\bOf\b/g, "of")}
-                                      )
-                                    </p>
-                                  </div>
-                                  <div className="p-0">{stepsTable}</div>
+                            return (
+                              <div
+                                key={`new-${idx}`}
+                                className="section-container mb-3"
+                              >
+                                <div className="mb-1">
+                                  <p className="font-bold text-sm">
+                                    {prep.label} (
+                                    {prep.preparationType === "roi"
+                                      ? "ROI"
+                                      : prep.preparationType === "lod"
+                                        ? "LOD"
+                                        : prep.preparationType
+                                            ?.split("_")
+                                            .filter(Boolean)
+                                            .map(
+                                              (word: string | any[]) =>
+                                                word[0].toUpperCase() +
+                                                word.slice(1),
+                                            )
+                                            .join(" ")
+                                            .replace(/\bOf\b/g, "of")}
+                                    )
+                                  </p>
                                 </div>
-                              );
-                            })}
-                      </div>
-                    )}
+                                <div className="p-0">{stepsTable}</div>
+                              </div>
+                            );
+                          })}
+                    </div>
+                  )}
 
                   {/* Sample Preparations */}
                   {((param.samplePreparations &&
@@ -1884,55 +2030,58 @@ const PrintReport: React.FC<PrintReportProps> = ({
                       safeJSONParse(param.preparations, []).filter(
                         (p: any) => p.preparationCategory === "sample",
                       ).length > 0)) && (
-                      <div className="mb-6">
-                        <h4 className="text-md uppercase font-bold mb-2">
-                          Sample Preparations
-                        </h4>
-                        {/* New structure - preparations array filtered by category */}
-                        {param.preparations &&
-                          safeJSONParse(param.preparations, [])
-                            .filter(
-                              (p: any) => p.preparationCategory === "sample",
-                            )
-                            .map((prep: any, idx: number) => {
-                              const steps = safeJSONParse(prep.steps, []);
-                              const stepsTable = renderPreparationStepsTable(
-                                steps,
-                                "sample",
-                                prep.preparationType,
-                                prep.solventChemical,
-                              );
+                    <div className="mb-6">
+                      <h4 className="text-md uppercase font-bold mb-2">
+                        Sample Preparations
+                      </h4>
+                      {/* New structure - preparations array filtered by category */}
+                      {param.preparations &&
+                        safeJSONParse(param.preparations, [])
+                          .filter(
+                            (p: any) => p.preparationCategory === "sample",
+                          )
+                          .map((prep: any, idx: number) => {
+                            const steps = safeJSONParse(prep.steps, []);
+                            const stepsTable = renderPreparationStepsTable(
+                              steps,
+                              "sample",
+                              prep.preparationType,
+                              prep.solventChemical,
+                            );
 
-                              if (!stepsTable) return null;
+                            if (!stepsTable) return null;
 
-                              return (
-                                <div key={`new-${idx}`} className="section-container mb-3">
-                                  <div className="mb-1">
-                                    <p className="font-bold text-sm">
-                                      {prep.label} (
-                                      {prep.preparationType === "roi"
-                                        ? "ROI"
-                                        : prep.preparationType === "lod"
-                                          ? "LOD"
-                                          : prep.preparationType
-                                              ?.split("_")
-                                              .filter(Boolean)
-                                              .map(
-                                                (word: string | any[]) =>
-                                                  word[0].toUpperCase() +
-                                                  word.slice(1),
-                                              )
-                                              .join(" ")
-                                              .replace(/\bOf\b/g, "of")}
-                                      )
-                                    </p>
-                                  </div>
-                                  <div className="p-0">{stepsTable}</div>
+                            return (
+                              <div
+                                key={`new-${idx}`}
+                                className="section-container mb-3"
+                              >
+                                <div className="mb-1">
+                                  <p className="font-bold text-sm">
+                                    {prep.label} (
+                                    {prep.preparationType === "roi"
+                                      ? "ROI"
+                                      : prep.preparationType === "lod"
+                                        ? "LOD"
+                                        : prep.preparationType
+                                            ?.split("_")
+                                            .filter(Boolean)
+                                            .map(
+                                              (word: string | any[]) =>
+                                                word[0].toUpperCase() +
+                                                word.slice(1),
+                                            )
+                                            .join(" ")
+                                            .replace(/\bOf\b/g, "of")}
+                                    )
+                                  </p>
                                 </div>
-                              );
-                            })}
-                      </div>
-                    )}
+                                <div className="p-0">{stepsTable}</div>
+                              </div>
+                            );
+                          })}
+                    </div>
+                  )}
 
                   {/* Calculations */}
                   {param.calculations && param.calculations.length > 0 && (
@@ -1950,116 +2099,117 @@ const PrintReport: React.FC<PrintReportProps> = ({
                           .includes("uniformity_of_content");
 
                         return (
-                          <div
-                            key={idx}
-                            className="section-container mb-4 page-break-inside-avoid"
-                          >
-                            <div className="mb-1">
-                              <p className="font-bold text-sm">
-                                {calc.label} (
-                                {calc.calculationType === "roi"
-                                  ? "ROI"
-                                  : calc.calculationType === "lod"
-                                    ? "LOD"
-                                    : calc.calculationType
-                                        .split("_")
-                                        .filter(Boolean)
-                                        .map(
-                                          (word: string | any[]) =>
-                                            word[0].toUpperCase() +
-                                            word.slice(1),
+                          <div key={idx}>
+                            <div className="section-container mb-4 page-break-inside-avoid">
+                              <div className="mb-1">
+                                <p className="font-bold text-sm">
+                                  {calc.label} (
+                                  {calc.calculationType === "roi"
+                                    ? "ROI"
+                                    : calc.calculationType === "lod"
+                                      ? "LOD"
+                                      : calc.calculationType
+                                          .split("_")
+                                          .filter(Boolean)
+                                          .map(
+                                            (word: string | any[]) =>
+                                              word[0].toUpperCase() +
+                                              word.slice(1),
+                                          )
+                                          .join(" ")
+                                          .replace(/\bOf\b/g, "of")}{" "}
+                                  {/* Change "Of" to "of" */})
+                                </p>
+                              </div>
+
+                              {/* Calculation Details Table */}
+                              <div>
+                                <table className="w-full text-sm">
+                                  <tbody>
+                                    {Object.entries(calcData).map(
+                                      ([key, value]: [string, any]) => {
+                                        // Skip these fields
+                                        if (
+                                          key === "id" ||
+                                          key === "label" ||
+                                          value === null ||
+                                          value === "" ||
+                                          key.toLowerCase().includes("unit") ||
+                                          (isDissoCalc &&
+                                            key === "calculationResult") ||
+                                          // For UC, show calculationResult summary (min, max, avg) but not individual tablet results
+                                          (isUCCalc &&
+                                            key === "calculationResult") ||
+                                          // Skip stored preparation values (used only in formulas)
+                                          key === "sw1" ||
+                                          key === "sw2" ||
+                                          key === "w1" ||
+                                          key === "w2" ||
+                                          key === "w3" ||
+                                          key === "v1" ||
+                                          key === "v2" ||
+                                          key === "v3" ||
+                                          key === "v4" ||
+                                          key === "v5" ||
+                                          key === "v6" ||
+                                          key === "v7" ||
+                                          key === "v8" ||
+                                          key === "v9" ||
+                                          key === "v10" ||
+                                          key === "v11" ||
+                                          key === "v12" ||
+                                          key === "v13" ||
+                                          key === "v14" ||
+                                          key === "v15" ||
+                                          key === "v16" ||
+                                          key === "claim" ||
+                                          key === "mediaVol" ||
+                                          key === "dilutedVol"
                                         )
-                                        .join(" ")
-                                        .replace(/\bOf\b/g, "of")} {/* Change "Of" to "of" */}
-                                )
-                              </p>
-                            </div>
+                                          return null;
 
-                            {/* Calculation Details Table */}
-                            <div className="border border-black">
-                              <table className="w-full text-sm">
-                                <tbody>
-                                  {Object.entries(calcData).map(
-                                    ([key, value]: [string, any]) => {
-                                      // Skip these fields
-                                      if (
-                                        key === "id" ||
-                                        key === "label" ||
-                                        value === null ||
-                                        value === "" ||
-                                        key.toLowerCase().includes("unit") ||
-                                        (isDissoCalc &&
-                                          key === "calculationResult") ||
-                                        // For UC, show calculationResult summary (min, max, avg) but not individual tablet results
-                                        (isUCCalc &&
-                                          key === "calculationResult") ||
-                                        // Skip stored preparation values (used only in formulas)
-                                        key === "sw1" ||
-                                        key === "sw2" ||
-                                        key === "w1" ||
-                                        key === "w2" ||
-                                        key === "w3" ||
-                                        key === "v1" ||
-                                        key === "v2" ||
-                                        key === "v3" ||
-                                        key === "v4" ||
-                                        key === "v5" ||
-                                        key === "v6" ||
-                                        key === "v7" ||
-                                        key === "v8" ||
-                                        key === "v9" ||
-                                        key === "v10" ||
-                                        key === "v11" ||
-                                        key === "v12" ||
-                                        key === "v13" ||
-                                        key === "v14" ||
-                                        key === "v15" ||
-                                        key === "v16" ||
-                                        key === "claim" ||
-                                        key === "mediaVol" ||
-                                        key === "dilutedVol"
-                                      )
-                                        return null;
+                                        let displayKey = key
+                                          .replace(/([A-Z])/g, " $1")
+                                          .replace(/^./, (c) => c.toUpperCase())
+                                          .trim()
+                                          .replace(/(\d+)/g, " $1") // Add space before digit groups (handles multi-digit numbers)
+                                          .replace(/\s+/g, " ") // Clean up multiple spaces
+                                          .replace(/\bOf\b/g, "of"); // Change "Of" to "of"
 
-                                      let displayKey = key
-                                        .replace(/([A-Z])/g, " $1")
-                                        .replace(/^./, (c) => c.toUpperCase())
-                                        .trim()
-                                        .replace(/(\d+)/g, " $1") // Add space before digit groups (handles multi-digit numbers)
-                                        .replace(/\s+/g, " ") // Clean up multiple spaces
-                                        .replace(/\bOf\b/g, "of"); // Change "Of" to "of"
+                                        const unit = findUnitForKey(
+                                          calcData,
+                                          key,
+                                        );
+                                        let displayValue = String(value);
+                                        if (unit) {
+                                          displayValue = `${value} ${unit}`;
+                                        }
 
-                                      const unit = findUnitForKey(
-                                        calcData,
-                                        key,
-                                      );
-                                      let displayValue = String(value);
-                                      if (unit) {
-                                        displayValue = `${value} ${unit}`;
-                                      }
-                                      
-                                      // Add % for purity values
-                                      if (key.toLowerCase() === "purity") {
-                                        displayValue = unit ? displayValue : `${value} %`;
-                                      }
+                                        // Add % for purity values
+                                        if (key.toLowerCase() === "purity") {
+                                          displayValue = unit
+                                            ? displayValue
+                                            : `${value} %`;
+                                        }
 
-                                      return (
-                                        <tr
-                                          key={key}
-                                          className="border-b border-black last:border-b-0"
-                                        >
-                                          <td className="w-2/5 px-3 py-2 font-bold bg-gray-100 border-r border-black">
-                                            {displayKey}
-                                          </td>
-                                          <td className="px-3 py-2">
-                                            {displayValue}
-                                          </td>
-                                        </tr>
-                                      );
-                                    },
-                                  )}
-                                </tbody>
-                              </table>
+                                        return (
+                                          <tr
+                                            key={key}
+                                            className="border-b border-black last:border-b-0"
+                                          >
+                                            <td className="w-2/5 px-3 py-2 font-bold bg-gray-100 border-r border-black">
+                                              {displayKey}
+                                            </td>
+                                            <td className="px-3 py-2">
+                                              {displayValue}
+                                            </td>
+                                          </tr>
+                                        );
+                                      },
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
                             </div>
 
                             {/* Mathematical Derivation Section */}
@@ -2081,16 +2231,43 @@ const PrintReport: React.FC<PrintReportProps> = ({
                       <h4 className="text-md uppercase font-bold mb-2">
                         Diluent Preparation
                       </h4>
-                      <div className="text-sm">
-                        {param.diluentPreparation}
-                      </div>
+                      <div className="text-sm">{param.diluentPreparation}</div>
                     </div>
                   )}
+
+                  {/* Blank Preparation */}
+                  {param.preparations &&
+                    safeJSONParse(param.preparations, []).filter(
+                      (p: any) => p.preparationCategory === "blank",
+                    ).length > 0 && (
+                      <div className="mb-6">
+                        {safeJSONParse(param.preparations, [])
+                          .filter((p: any) => p.preparationCategory === "blank")
+                          .map((prep: any, idx: number) => {
+                            return (
+                              <div key={idx} className="section-container mb-3">
+                                <div className="mb-1">
+                                  <p className="text-md uppercase font-bold mb-2">
+                                    {prep.label}
+                                  </p>
+                                </div>
+                                <div
+                                  className="text-sm"
+                                  dangerouslySetInnerHTML={{
+                                    __html: prep.content || "",
+                                  }}
+                                />
+                              </div>
+                            );
+                          })}
+                      </div>
+                    )}
 
                   {/* System Suitability */}
                   {param.preparations &&
                     safeJSONParse(param.preparations, []).filter(
-                      (p: any) => p.preparationCategory === "system_suitability",
+                      (p: any) =>
+                        p.preparationCategory === "system_suitability",
                     ).length > 0 && (
                       <div className="mb-6">
                         <h4 className="text-md uppercase font-bold mb-2">
@@ -2098,20 +2275,24 @@ const PrintReport: React.FC<PrintReportProps> = ({
                         </h4>
                         {safeJSONParse(param.preparations, [])
                           .filter(
-                            (p: any) => p.preparationCategory === "system_suitability",
+                            (p: any) =>
+                              p.preparationCategory === "system_suitability",
                           )
                           .map((suitability: any, idx: number) => {
                             const steps = safeJSONParse(suitability.steps, []);
-                            
+
                             if (!steps || steps.length === 0) return null;
 
                             // Helper function to get limit prefix
-                            const getLimitPrefix = (stepName: string, limitType?: string) => {
+                            const getLimitPrefix = (
+                              stepName: string,
+                              limitType?: string,
+                            ) => {
                               // For custom steps with limitType, use that
                               if (limitType) {
                                 return limitType;
                               }
-                              
+
                               // For default steps, use hardcoded values
                               switch (stepName) {
                                 case "RSD Area":
@@ -2129,17 +2310,24 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
                             // Helper function to check if step uses two values (Peak A and Peak B)
                             const isTwoValueStep = (stepName: string) => {
-                              return stepName === "Resolution" || stepName === "Peak to Valley ratio";
+                              return (
+                                stepName === "Resolution" ||
+                                stepName === "Peak to Valley ratio"
+                              );
                             };
 
                             // Helper function to check if step has any values
                             const stepHasAnyValue = (step: any) => {
-                              return !!(step.value1 || step.value2 || step.value3);
+                              return !!(
+                                step.value1 ||
+                                step.value2 ||
+                                step.value3
+                              );
                             };
 
                             // Filter steps with at least one value
                             const validSteps = steps.filter(stepHasAnyValue);
-                            
+
                             // If no valid steps after filtering, don't render this suitability
                             if (validSteps.length === 0) return null;
 
@@ -2173,48 +2361,59 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                 <div className="overflow-x-auto">
                                   <table className="w-full border-collapse border border-black text-sm">
                                     <tbody>
-                                      {validSteps.map((step: any, stepIdx: number) => {
-                                        const limitPrefix = getLimitPrefix(step.name, step.limitType);
-                                        const stepDesc = getStepDescription(step.name);
-                                        const needsTwoValues = isTwoValueStep(step.name);
-                                        
-                                        // Build the specification text
-                                        let specification = stepDesc;
-                                        
-                                        // Add Peak A
-                                        if (step.value1) {
-                                          specification += ` <strong>${step.value1}</strong>`;
-                                        } else {
-                                          specification += ` ___________`;
-                                        }
-                                        
-                                        // Add Peak B if needed
-                                        if (needsTwoValues) {
-                                          specification += " and";
-                                          if (step.value2) {
-                                            specification += ` <strong>${step.value2}</strong>`;
+                                      {validSteps.map(
+                                        (step: any, stepIdx: number) => {
+                                          const limitPrefix = getLimitPrefix(
+                                            step.name,
+                                            step.limitType,
+                                          );
+                                          const stepDesc = getStepDescription(
+                                            step.name,
+                                          );
+                                          const needsTwoValues = isTwoValueStep(
+                                            step.name,
+                                          );
+
+                                          // Build the specification text
+                                          let specification = stepDesc;
+
+                                          // Add Peak A
+                                          if (step.value1) {
+                                            specification += ` <strong>${step.value1}</strong>`;
                                           } else {
                                             specification += ` ___________`;
                                           }
-                                        }
-                                        
-                                        // Add limit only if value3 exists
-                                        if (step.value3) {
-                                          specification += ` should ${limitPrefix} <strong>${step.value3}</strong>`;
-                                        }
 
-                                        return (
-                                          <tr key={stepIdx}>
-                                            <td className="bg-purple-100 border border-black px-4 py-2 font-medium">
-                                              {step.name}
-                                            </td>
-                                            <td 
-                                              className="border border-black px-4 py-2"
-                                              dangerouslySetInnerHTML={{ __html: specification }}
-                                            />
-                                          </tr>
-                                        );
-                                      })}
+                                          // Add Peak B if needed
+                                          if (needsTwoValues) {
+                                            specification += " and";
+                                            if (step.value2) {
+                                              specification += ` <strong>${step.value2}</strong>`;
+                                            } else {
+                                              specification += ` ___________`;
+                                            }
+                                          }
+
+                                          // Add limit only if value3 exists
+                                          if (step.value3) {
+                                            specification += ` should ${limitPrefix} <strong>${step.value3}</strong>`;
+                                          }
+
+                                          return (
+                                            <tr key={stepIdx}>
+                                              <td className="bg-purple-100 border border-black px-4 py-2 font-medium">
+                                                {step.name}
+                                              </td>
+                                              <td
+                                                className="border border-black px-4 py-2"
+                                                dangerouslySetInnerHTML={{
+                                                  __html: specification,
+                                                }}
+                                              />
+                                            </tr>
+                                          );
+                                        },
+                                      )}
                                     </tbody>
                                   </table>
                                 </div>
@@ -2237,7 +2436,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   )}
                 </div>
 
-                {renderSignatureSection()}
+                {renderSignatureSection(param)}
               </div>
             );
           })}

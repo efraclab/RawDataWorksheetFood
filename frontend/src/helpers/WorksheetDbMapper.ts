@@ -91,40 +91,66 @@ export class WorksheetDbMapper {
     const rows: TblPreparationRow[] = [];
 
     detail.parameters.forEach((p) => {
-      const mapPrep = (prep: any, category: "STANDARD" | "SAMPLE" | "MOBILE_PHASE" | "DISSOLUTION_MEDIA" | "SYSTEM_SUITABILITY") => {
+      const mapPrep = (prep: any, category: "STANDARD" | "SAMPLE" | "MOBILE_PHASE" | "DISSOLUTION_MEDIA" | "SYSTEM_SUITABILITY" | "BLANK") => {
         const steps = JSON.parse(prep.steps || "[]");
 
-        steps.forEach((step: any, idx: number) => {
-          const v1 = nv(step.value1);
-          const v2 = nv(step.value2);
-          const v3 = nv(step.value3);
-
-          if (!v1 && !v2 && !v3) return;
+        if(category === "BLANK") {
 
           rows.push({
-            WorksheetId: detail.sample.worksheetId,
-            ParameterCode: p.paraCode,
-            PrepCategory: category,
-            PrepLabel: prep.label,
-            PreparationType: prep.preparationType,
-            AssignedStandardId: nv(prep.assignedStandardId),
-            StepName: step.name,
-            StepOrder: idx + 1,
+              WorksheetId: detail.sample.worksheetId,
+              ParameterCode: p.paraCode,
+              PrepCategory: category,
+              PrepLabel: prep.label,
+              PreparationType: prep.preparationType,
+              AssignedStandardId: nv(prep.assignedStandardId),
+              StepName: null,
+              StepOrder: null,
 
-            Value1: v1,
-            Unit1: v1 ? nv(step.unit ?? step.unit1 ?? step.tempUnit) : null,
+              Value1: null,
+              Unit1: null,
+              Value2: null,
+              Unit2: null,
 
-            Value2: v2,
-            Unit2: v2 ? nv(step.unit2) : null,
+              SolventChemical: null,
+              LogBookID: null,
+              LimitType: null,
+              Content: nv(prep.content),
+            });
 
-            Value3: v3,
-            Unit3: v3 ? nv(step.unit3) : null,
+        } else {
+          steps.forEach((step: any, idx: number) => {
+            const v1 = nv(step.value1);
+            const v2 = nv(step.value2);
+            const v3 = nv(step.value3);
 
-            SolventChemical: nv(step.solventChemical),
-            LogBookID: nv(step.logBookID),
-            LimitType: category === "SYSTEM_SUITABILITY" ? nv(step.limitType) : null,
+            if (!v1 && !v2 && !v3) return;
+
+            rows.push({
+              WorksheetId: detail.sample.worksheetId,
+              ParameterCode: p.paraCode,
+              PrepCategory: category,
+              PrepLabel: prep.label,
+              PreparationType: prep.preparationType,
+              AssignedStandardId: nv(prep.assignedStandardId),
+              StepName: step.name,
+              StepOrder: idx + 1,
+
+              Value1: v1,
+              Unit1: v1 ? nv(step.unit ?? step.unit1 ?? step.tempUnit) : null,
+
+              Value2: v2,
+              Unit2: v2 ? nv(step.unit2) : null,
+
+              Value3: v3,
+              Unit3: v3 ? nv(step.unit3) : null,
+
+              SolventChemical: nv(step.solventChemical),
+              LogBookID: nv(step.logBookID),
+              LimitType: category === "SYSTEM_SUITABILITY" ? nv(step.limitType) : null,
+              Content: null,
+            });
           });
-        });
+        }
       };
 
       if (p.preparations) {
@@ -144,6 +170,8 @@ export class WorksheetDbMapper {
             mapPrep(prep, "SAMPLE");
           } else if (category === "system_suitability") {
             mapPrep(prep, "SYSTEM_SUITABILITY");
+          } else if (category === "blank") {
+            mapPrep(prep, "BLANK");
           }
         });
       }

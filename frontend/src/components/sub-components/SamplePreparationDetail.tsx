@@ -14,7 +14,6 @@ const weightUnitOptions = [
 
 const filtrationUnitOptions = [
   { value: "micron", label: "micron" },
-  { value: "µm", label: "µm" },
   { value: "mm", label: "mm" },
 ];
 
@@ -573,7 +572,7 @@ const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
                                   />
                                 </div>
                                 <span className="text-gray-600 font-medium">
-                                  syringe filter
+                                  Syringe filter
                                 </span>
                               </div>
                             )}

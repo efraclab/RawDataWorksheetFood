@@ -912,10 +912,10 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
         onFieldChange(
           calculation.id,
           "labelClaimPercent",
-          `${labelClaimPercentage.toFixedNoRound(3).toFixed(2)}%`
+          `${labelClaimPercentage.toFixedNoRound(3).toFixed(2)} %`
         );
         console.log(
-          `7. Label Claim %: (${FinalResult} / ${labelClaim}) * 100 = ${labelClaimPercentage}%`
+          `7. Label Claim %: (${FinalResult} / ${labelClaim}) * 100 = ${labelClaimPercentage} %`
         );
       }
     } else {

@@ -180,7 +180,8 @@ namespace RawDataWorkSheet.Repositories
             Value3,
             Unit3,
             SolventChemical,
-            LogBookID
+            LogBookID,
+            content
         )
         VALUES (
             @PreparationId,
@@ -199,7 +200,8 @@ namespace RawDataWorkSheet.Repositories
             @Value3,
             @Unit3,
             @SolventChemical,
-            @LogBookID
+            @LogBookID,
+            @Content
         )
     """;
 
@@ -238,7 +240,8 @@ namespace RawDataWorkSheet.Repositories
                         p.Value3,
                         p.Unit3,
                         p.SolventChemical,
-                        p.LogBookID
+                        p.LogBookID,
+                        p.Content
                     },
                     tx
                 );

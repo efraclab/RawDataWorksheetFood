@@ -79,7 +79,7 @@ namespace RawDataWorkSheet.Repositories
                 request.RegistrationInfo.SampleName,
                 request.RegistrationInfo.NumberOfParameters,
                 request.DocumentInfo!.PreparedBy,
-                DueDate = ParseDate(request.RegistrationInfo!.DueDate)
+                DueDate = ParseDateTime(request.RegistrationInfo!.DueDate)
             });
         }
 
@@ -106,7 +106,7 @@ namespace RawDataWorkSheet.Repositories
                     new
                     {
                         ApprovedAt = request.DocumentInfo?.ApprovedAt != null
-                            ? ParseDate(request.DocumentInfo.ApprovedAt)
+                            ? ParseDateTime(request.DocumentInfo.ApprovedAt)
                             : null,
                         request.RegistrationInfo.NumberOfParameters,
                         request.WorksheetId,
@@ -519,9 +519,9 @@ namespace RawDataWorkSheet.Repositories
                     param.OtherInfo,
                     param.AnalyzedBy,
                     param.ApprovedBy,
-                    AnalysisStartDate = ParseDate(param.AnalysisStartDate!),
-                    AnalysisCompletionDate = ParseDate(param.AnalysisCompletionDate!),
-                    ApprovedAt = ParseDate(param.ApprovedAt!),
+                    AnalysisStartDate = ParseDateTime(param.AnalysisStartDate!),
+                    AnalysisCompletionDate = ParseDateTime(param.AnalysisCompletionDate!),
+                    ApprovedAt = ParseDateTime(param.ApprovedAt!),
                     param.Status
                 },
                 transaction);
@@ -570,9 +570,9 @@ namespace RawDataWorkSheet.Repositories
                     param.OtherInfo,
                     param.AnalyzedBy,
                     param.ApprovedBy,
-                    AnalysisStartDate = ParseDate(param.AnalysisStartDate!),
-                    AnalysisCompletionDate = ParseDate(param.AnalysisCompletionDate!),
-                    ApprovedAt = ParseDate(param.ApprovedAt!),
+                    AnalysisStartDate = ParseDateTime(param.AnalysisStartDate!),
+                    AnalysisCompletionDate = ParseDateTime(param.AnalysisCompletionDate!),
+                    ApprovedAt = ParseDateTime(param.ApprovedAt!),
                     param.Status
                 },
                 transaction);
@@ -584,7 +584,6 @@ namespace RawDataWorkSheet.Repositories
             int parameterId,
             List<string> instrumentIds)
         {
-            // Get existing instruments
             var existing = await connection.QueryAsync<string>(
                 "SELECT instrument_id FROM worksheet_instruments WHERE parameter_id = @ParameterId",
                 new { ParameterId = parameterId },
@@ -593,7 +592,6 @@ namespace RawDataWorkSheet.Repositories
             var existingSet = existing.ToHashSet();
             var newSet = (instrumentIds ?? new List<string>()).ToHashSet();
 
-            // Delete removed instruments
             var toDelete = existingSet.Except(newSet).ToList();
             if (toDelete.Any())
             {
@@ -603,7 +601,6 @@ namespace RawDataWorkSheet.Repositories
                     transaction);
             }
 
-            // Insert new instruments (ones that don't exist)
             var toInsert = newSet.Except(existingSet).ToList();
             foreach (var instrumentId in toInsert)
             {
@@ -689,7 +686,6 @@ namespace RawDataWorkSheet.Repositories
             if (preparations == null)
                 preparations = new List<PreparationDto>();
 
-            // Get existing preparations with their IDs
             var existing = await connection.QueryAsync<(int Id, string Label, string PreparationType, string PreparationCategory)>(
                 @"SELECT id, label, preparation_type, preparation_category 
                   FROM worksheet_preparations 
@@ -697,7 +693,6 @@ namespace RawDataWorkSheet.Repositories
                 new { ParameterId = parameterId },
                 transaction);
 
-            // Create lookup by composite key (Label + PreparationType + PreparationCategory)
             var existingDict = existing.ToDictionary(
                 x => $"{x.Label}_{x.PreparationType ?? ""}_{x.PreparationCategory}",
                 x => x.Id
@@ -708,7 +703,6 @@ namespace RawDataWorkSheet.Repositories
                 .ToHashSet();
             var existingKeys = existingDict.Keys.ToHashSet();
 
-            // Delete preparations that no longer exist
             var toDelete = existingKeys.Except(newKeys).ToList();
             if (toDelete.Any())
             {
@@ -719,18 +713,17 @@ namespace RawDataWorkSheet.Repositories
                     transaction);
             }
 
-            // Update existing or insert new
             foreach (var prep in preparations)
             {
                 var key = $"{prep.Label}_{prep.PreparationType ?? ""}_{prep.PreparationCategory}";
 
                 if (existingDict.TryGetValue(key, out var existingId))
                 {
-                    // Update existing
                     await connection.ExecuteAsync(
                         @"UPDATE worksheet_preparations 
                           SET assigned_standard_id = @AssignedStandardId,
                               steps = @Steps,
+                              content = @Content,
                               preparation_type = @PreparationType,
                               preparation_category = @PreparationCategory
                           WHERE id = @Id",
@@ -739,6 +732,7 @@ namespace RawDataWorkSheet.Repositories
                             Id = existingId,
                             prep.AssignedStandardId,
                             prep.Steps,
+                            prep.Content,
                             prep.PreparationType,
                             prep.PreparationCategory
                         },
@@ -746,11 +740,10 @@ namespace RawDataWorkSheet.Repositories
                 }
                 else
                 {
-                    // Insert new
                     await connection.ExecuteAsync(
                         @"INSERT INTO worksheet_preparations 
-                          (parameter_id, preparation_category, preparation_type, label, assigned_standard_id, steps)
-                          VALUES (@ParameterId, @PreparationCategory, @PreparationType, @Label, @AssignedStandardId, @Steps)",
+                          (parameter_id, preparation_category, preparation_type, label, assigned_standard_id, steps, content)
+                          VALUES (@ParameterId, @PreparationCategory, @PreparationType, @Label, @AssignedStandardId, @Steps, @Content)",
                         new
                         {
                             ParameterId = parameterId,
@@ -758,7 +751,8 @@ namespace RawDataWorkSheet.Repositories
                             prep.PreparationType,
                             prep.Label,
                             prep.AssignedStandardId,
-                            prep.Steps
+                            prep.Steps,
+                            prep.Content
                         },
                         transaction);
                 }
@@ -774,7 +768,6 @@ namespace RawDataWorkSheet.Repositories
             if (calculations == null)
                 calculations = new List<CalculationDto>();
 
-            // Get existing calculations with their IDs
             var existing = await connection.QueryAsync<(int Id, string Label, string CalculationType)>(
                 @"SELECT id, label, calculation_type 
                   FROM worksheet_calculations 
@@ -782,7 +775,6 @@ namespace RawDataWorkSheet.Repositories
                 new { ParameterId = parameterId },
                 transaction);
 
-            // Create lookup by composite key (Label + CalculationType)
             var existingDict = existing.ToDictionary(
                 x => $"{x.Label}_{x.CalculationType}",
                 x => x.Id
@@ -791,7 +783,6 @@ namespace RawDataWorkSheet.Repositories
             var newKeys = calculations.Select(c => $"{c.Label}_{c.CalculationType}").ToHashSet();
             var existingKeys = existingDict.Keys.ToHashSet();
 
-            // Delete calculations that no longer exist
             var toDelete = existingKeys.Except(newKeys).ToList();
             if (toDelete.Any())
             {
@@ -802,14 +793,12 @@ namespace RawDataWorkSheet.Repositories
                     transaction);
             }
 
-            // Update existing or insert new
             foreach (var calc in calculations)
             {
                 var key = $"{calc.Label}_{calc.CalculationType}";
 
                 if (existingDict.TryGetValue(key, out var existingId))
                 {
-                    // Update existing
                     await connection.ExecuteAsync(
                         @"UPDATE worksheet_calculations 
                           SET calculation_data = @CalculationData
@@ -823,7 +812,6 @@ namespace RawDataWorkSheet.Repositories
                 }
                 else
                 {
-                    // Insert new
                     await connection.ExecuteAsync(
                         @"INSERT INTO worksheet_calculations 
                           (parameter_id, calculation_type, label, calculation_data)
@@ -912,11 +900,11 @@ namespace RawDataWorkSheet.Repositories
                     ColumnId = param.ColumnId,
                     DiluentPreparation = param.DiluentPreparation,
                     OtherInfo = param.OtherInfo,
-                    AnalysisStartDate = param.AnalysisStartDate?.ToString("dd/MM/yyyy"),
-                    AnalysisCompletionDate = param.AnalysisCompletionDate?.ToString("dd/MM/yyyy"),
+                    AnalysisStartDate = FormatDateTime(param.AnalysisStartDate),
+                    AnalysisCompletionDate = FormatDateTime(param.AnalysisCompletionDate),
                     AnalyzedBy = param.AnalyzedBy,
                     ApprovedBy = param.ApprovedBy,
-                    ApprovedAt = param.ApprovedAt?.ToString("dd/MM/yyyy"),
+                    ApprovedAt = FormatDateTime(param.ApprovedAt),
                     Status = param.Status,
                 };
                 if (param.ApprovedBy != null)
@@ -962,11 +950,11 @@ namespace RawDataWorkSheet.Repositories
                     new { ParameterId = param.Id });
                 paramDetail.StandardIds = standards.Select(s => s.StandardId).ToList();
 
-                // Fetch all preparations from unified table
                 var preparations = await connection.QueryAsync<WorksheetPreparation>(
                     @"SELECT 
                     label AS Label,
                     steps AS Steps,
+                    content AS Content,
                     assigned_standard_id AS AssignedStandardId,
                     preparation_type AS PreparationType,
                     preparation_category AS PreparationCategory
@@ -978,6 +966,7 @@ namespace RawDataWorkSheet.Repositories
                     Label = p.Label,
                     AssignedStandardId = p.AssignedStandardId,
                     Steps = p.Steps,
+                    Content = p.Content,
                     PreparationType = p.PreparationType,
                     PreparationCategory = p.PreparationCategory
                 }).ToList();
@@ -1006,39 +995,109 @@ namespace RawDataWorkSheet.Repositories
                 RegistrationNo = worksheet.RegistrationNo,
                 SampleName = worksheet.SampleName,
                 NumberOfParameters = worksheet.NumberOfParameters,
-                DueDate = worksheet.DueDate?.ToString("dd/MM/yyyy"),
+                DueDate = FormatDateTime(worksheet.DueDate, dateOnly: true),
                 PreparedBy = worksheet.PreparedBy,
                 PreparedByName = worksheet.PreparedByName,
-                RevisionDate = worksheet.RevisionDate?.ToString("dd/MM/yyyy"),
+                RevisionDate = FormatDateTime(worksheet.RevisionDate, dateOnly: true),
                 Status = worksheet.Status,
-                ApprovedAt = worksheet.ApprovedAt?.ToString("dd/MM/yyyy"),
-                CreatedAt = worksheet.CreatedAt.ToString("dd/MM/yyyy"),
-                UpdatedAt = worksheet.UpdatedAt?.ToString("dd/MM/yyyy")
+                ApprovedAt = FormatDateTime(worksheet.ApprovedAt),
+                CreatedAt = FormatDateTime(worksheet.CreatedAt, dateOnly: true),
+                UpdatedAt = FormatDateTime(worksheet.UpdatedAt)
             };
         }
 
-        private DateTime? ParseDate(string dateString)
+
+        private DateTime? ParseDateTime(string dateTimeString)
         {
-            if (string.IsNullOrWhiteSpace(dateString))
+            if (string.IsNullOrWhiteSpace(dateTimeString))
                 return null;
 
-            string[] formats = { "dd/MM/yyyy", "yyyy-MM-dd", "MM/dd/yyyy" };
+            dateTimeString = dateTimeString.Trim();
+
+            string[] formats =
+            { 
+                "dd/MM/yyyy",
+                "dd-MM-yyyy",
+                "yyyy-MM-dd",
+                "MM/dd/yyyy",
+                "yyyy/MM/dd",
+                "dd.MM.yyyy",
+                
+                "dd/MM/yyyy HH:mm:ss",
+                "dd-MM-yyyy HH:mm:ss",
+                "yyyy-MM-dd HH:mm:ss",
+                "MM/dd/yyyy HH:mm:ss",
+                "yyyy/MM/dd HH:mm:ss",
+                "dd.MM.yyyy HH:mm:ss",
+
+                "dd/MM/yyyy HH:mm",
+                "dd-MM-yyyy HH:mm",
+                "yyyy-MM-dd HH:mm",
+                "MM/dd/yyyy HH:mm",
+                "yyyy/MM/dd HH:mm",
+                "dd.MM.yyyy HH:mm",
+                
+                "dd/MM/yyyy hh:mm:ss tt",
+                "dd-MM-yyyy hh:mm:ss tt",
+                "yyyy-MM-dd hh:mm:ss tt",
+                "MM/dd/yyyy hh:mm:ss tt",
+
+                "dd/MM/yyyy hh:mm tt",
+                "dd-MM-yyyy hh:mm tt",
+                "yyyy-MM-dd hh:mm tt",
+                "MM/dd/yyyy hh:mm tt",
+                
+                "yyyy-MM-ddTHH:mm:ss",
+                "yyyy-MM-ddTHH:mm:ssZ",
+                "yyyy-MM-ddTHH:mm:ss.fff",
+                "yyyy-MM-ddTHH:mm:ss.fffZ"
+            };
 
             foreach (var format in formats)
             {
-                if (DateTime.TryParseExact(dateString, format, null,
-                    System.Globalization.DateTimeStyles.None, out DateTime result))
+                if (DateTime.TryParseExact(
+                    dateTimeString,
+                    format,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None,
+                    out DateTime result))
                 {
                     return result;
                 }
             }
 
-            if (DateTime.TryParse(dateString, out DateTime generalResult))
+            // Fall back to general parsing
+            if (DateTime.TryParse(dateTimeString, out DateTime generalResult))
             {
                 return generalResult;
             }
 
             return null;
+        }
+
+        private string FormatDateTime(DateTime? dateTime, bool dateOnly = false)
+        {
+            if (dateTime == null)
+                return null;
+
+            if (dateOnly)
+            {
+                return dateTime.Value.ToString("dd-MM-yyyy");
+            }
+            else
+            {
+                // Check if time component exists (not midnight)
+                if (dateTime.Value.TimeOfDay.TotalSeconds > 0)
+                {
+                    // Has time component - return full datetime
+                    return dateTime.Value.ToString("dd-MM-yyyy HH:mm:ss");
+                }
+                else
+                {
+                    // No time component - return only date
+                    return dateTime.Value.ToString("dd-MM-yyyy");
+                }
+            }
         }
     }
 }

@@ -13,7 +13,6 @@ const weightUnitOptions = [
 
 const filtrationUnitOptions = [
   { value: "micron", label: "micron" },
-  { value: "µm", label: "µm" },
   { value: "mm", label: "mm" },
 ];
 

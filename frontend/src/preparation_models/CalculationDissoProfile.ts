@@ -177,7 +177,6 @@ export interface CalculationDissoProfile {
   v8TimePoint9: string | null;
   v8TimePoint10: string | null;
 
-  // ── Per-time-point acceptance limits (range: min to max) ─────────────────
   acceptanceLimitMin1: string | null;
   acceptanceLimitMax1: string | null;
   acceptanceLimitMin2: string | null;
@@ -198,7 +197,4 @@ export interface CalculationDissoProfile {
   acceptanceLimitMax9: string | null;
   acceptanceLimitMin10: string | null;
   acceptanceLimitMax10: string | null;
-
-  /** @deprecated Use acceptanceLimitMin1/Max1 etc. – kept for backward-compat */
-  acceptanceLimit: string | null;
 }

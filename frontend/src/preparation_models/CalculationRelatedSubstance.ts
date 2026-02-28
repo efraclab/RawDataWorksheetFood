@@ -36,7 +36,7 @@ export interface CalculationRelatedSubstance {
   doseVolumeUnit: string;
 
   calculationResult: string | null;
-  calculationResultUnit: string | null;
+  calculationResultUnit: string;
 
   sw1: string | null;
   sw2: string | null;

@@ -511,6 +511,28 @@ const CalculationDetailRelatedSubstance: React.FC<
         <p className="text-xs text-right text-gray-600 mt-2 font-semibold">
           = %
         </p>
+        {calculation.calculationResultUnit === "ppm" && (
+          <div className="mt-3 border-t border-emerald-200 pt-3">
+            <p className="text-xs font-bold text-emerald-700 mb-1">
+              ppm Conversion
+            </p>
+            <div className="bg-emerald-50 rounded p-2 flex items-center gap-2 text-xs font-mono text-gray-800">
+              <span>Result (ppm)</span>
+              <span>=</span>
+              <span>Result (%)</span>
+              <span>&times; 1000</span>
+              {calculation.calculationResult &&
+                !calculation.calculationResult.startsWith("Error") && (
+                  <>
+                    <span>=</span>
+                    <span className="font-bold text-emerald-700">
+                      {calculation.calculationResult} ppm
+                    </span>
+                  </>
+                )}
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -675,8 +697,12 @@ const CalculationDetailRelatedSubstance: React.FC<
         FinalResult = 0;
     }
 
-    onFieldChange(calculation.id, "calculationResult", FinalResult.toFixed(4));
-    onFieldChange(calculation.id, "calculationResultUnit", "%");
+    const isPpm = calculation.calculationResultUnit === "ppm";
+    const displayResult = isPpm ? FinalResult * 1000 : FinalResult;
+    onFieldChange(calculation.id, "calculationResult", displayResult.toFixed(4));
+    if (!calculation.calculationResultUnit) {
+      onFieldChange(calculation.id, "calculationResultUnit", "%");
+    }
   };
 
   // ── Shared styles ────────────────────────────────────────────────────────────
@@ -1426,7 +1452,7 @@ const CalculationDetailRelatedSubstance: React.FC<
                         </h5>
                         <div>
                           <label className="block text-xs font-semibold text-gray-600 mb-1">
-                            Acceptance Limit (%)
+                            Acceptance Limit
                           </label>
                           <input
                             type="number"
@@ -1449,10 +1475,33 @@ const CalculationDetailRelatedSubstance: React.FC<
                               }
                             }}
                             onWheel={(e) => e.currentTarget.blur()}
-                            placeholder="e.g. 80"
+                            placeholder="Enter limit value"
                             className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
                           />
                         </div>
+                      </div>
+
+                      {/* Required Unit of Result */}
+                      <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 rounded-lg p-4 border-2 border-emerald-200">
+                        <label className="block text-sm font-bold text-gray-700 mb-2">
+                          Required Unit of Result
+                        </label>
+                        <CustomDropdown
+                          options={[
+                            { value: "%", label: "%" },
+                            { value: "ppm", label: "ppm" },
+                          ]}
+                          value={calculation.calculationResultUnit ?? "%"}
+                          onChange={(value) =>
+                            onFieldChange(
+                              calculation.id,
+                              "calculationResultUnit",
+                              value,
+                            )
+                          }
+                          placeholder="Select unit..."
+                          colorScheme="emerald"
+                        />
                       </div>
 
                       {/* Calculate Button */}

@@ -297,8 +297,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Requests\\SampleDetailsRequest.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-24T12:10:00.495Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-24T12:10:00.495Z"
             },
             {
               "$type": "Document",
@@ -310,8 +309,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\WorksheetDetailDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAqwAgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-13T08:54:48.635Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-13T08:54:48.635Z"
             },
             {
               "$type": "Document",
@@ -323,8 +321,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Responses\\WorksheetResponse.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-13T09:01:15.839Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-13T09:01:15.839Z"
             },
             {
               "$type": "Document",
@@ -334,7 +331,7 @@
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Repositories\\WorksheetRepository.cs",
               "ToolTip": "D:\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\WorksheetRepository.cs",
               "RelativeToolTip": "RawDataWorkSheet\\Repositories\\WorksheetRepository.cs",
-              "ViewState": "AgIAAEsDAAAAAAAAAAAQwFIDAABDAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAA4AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-12T05:22:01.095Z",
               "EditorCaption": ""
@@ -349,8 +346,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\FetchWorksheetsRequest.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T04:35:25.852Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-23T04:35:25.852Z"
             },
             {
               "$type": "Document",
@@ -362,8 +358,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\ParameterDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-01T05:55:36.547Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-01T05:55:36.547Z"
             },
             {
               "$type": "Document",
@@ -375,8 +370,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\FinalRawData\\RawDataParameterDto.cs",
               "ViewState": "AgIAAAIAAAAAAAAAAAAxwBMAAAA4AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-08T12:32:17.659Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-08T12:32:17.659Z"
             },
             {
               "$type": "Document",
@@ -388,8 +382,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Requests\\SaveWorksheetRequest.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAqwAoAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-12T05:41:44.995Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-12T05:41:44.995Z"
             },
             {
               "$type": "Document",
@@ -401,8 +394,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Repositories\\FinalRawDataRepository.cs",
               "ViewState": "AgIAAEcAAAAAAAAAAAAIwGEAAABLAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-01T06:43:19.831Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-01T06:43:19.831Z"
             },
             {
               "$type": "Document",
@@ -414,8 +406,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\FinalRawData\\RawDataCalculationDto.cs",
               "ViewState": "AgIAACYAAAAAAAAAAAAkwDQAAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-01T07:07:14.223Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-01T07:07:14.223Z"
             },
             {
               "$type": "Document",

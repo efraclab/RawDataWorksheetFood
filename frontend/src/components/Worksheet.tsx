@@ -248,7 +248,8 @@ const createNewCalculationDisso = (index: number): CalculationDisso => ({
   v12: null,
   v13: null,
   v14: null,
-  acceptanceLimit: null,
+  acceptanceLimitMin: "",
+  acceptanceLimitMax: ""
 });
 
 const createNewCalculationDissoProfile = (
@@ -482,6 +483,8 @@ const createNewCalculationAssay = (index: number): CalculationAssay => ({
   v12: null,
   v13: null,
   v14: null,
+  acceptanceLimitMin: "",
+  acceptanceLimitMax: ""
 });
 
 const createNewCalculationLod = (index: number): CalculationLod => ({
@@ -496,6 +499,8 @@ const createNewCalculationLod = (index: number): CalculationLod => ({
   w1: null,
   w2: null,
   w3: null,
+  acceptanceLimitMin: "",
+  acceptanceLimitMax: ""
 });
 
 const createNewCalculationROI = (index: number): CalculationROI => ({
@@ -510,6 +515,8 @@ const createNewCalculationROI = (index: number): CalculationROI => ({
   w1: null,
   w2: null,
   w3: null,
+  acceptanceLimitMin: "",
+  acceptanceLimitMax: ""
 });
 
 const createNewCalculationSulphatedAsh = (
@@ -526,6 +533,8 @@ const createNewCalculationSulphatedAsh = (
   w1: null,
   w2: null,
   w3: null,
+  acceptanceLimitMin: "",
+  acceptanceLimitMax: ""
 });
 
 const createNewStandardPreparation = (index: number): StandardPreparation => ({
@@ -686,6 +695,8 @@ const createNewCalculationRS = (index: number): CalculationRS => ({
   v4: null,
   v5: null,
   v6: null,
+  acceptanceLimitMin: "",
+  acceptanceLimitMax: ""
 });
 
 const createNewCalculationRelatedSubstance = (
@@ -709,7 +720,7 @@ const createNewCalculationRelatedSubstance = (
   doseVolume: "",
   doseVolumeUnit: "ml",
   calculationResult: null,
-  calculationResultUnit: null,
+  calculationResultUnit: "%",
   sw1: null,
   sw2: null,
   v1: null,
@@ -729,7 +740,8 @@ const createNewCalculationRelatedSubstance = (
   responseFactorUnit: "mg",
   labelClaim: "",
   labelClaimUnit: "mg",
-  acceptanceLimit: null
+  acceptanceLimitMin: "",
+  acceptanceLimitMax: ""
 });
 
 const createNewDissoMediaPreparation = (
@@ -817,7 +829,8 @@ const createNewCalculationFerrousFumarate = (
   factorUnit: "",
   avgWeightUnit: "",
   labelClaimUnit: "",
-  acceptanceLimit: null
+  acceptanceLimitMin: "",
+  acceptanceLimitMax: ""
 });
 
 const createNewCalculationDissoFerrousFumarate = (
@@ -846,8 +859,9 @@ const createNewCalculationDissoFerrousFumarate = (
   calculationResult: null,
   calculationResultUnit: null,
   sampleTaken: null,
-  acceptanceLimit: null,
-  factorUnit: "mg"
+  factorUnit: "mg",
+  acceptanceLimitMin: "",
+  acceptanceLimitMax: ""
 });
 
 const createNewSamplePreparationUC = (index: number): SamplePreparationUC => ({
@@ -927,6 +941,8 @@ const createNewCalculationUC = (index: number): CalculationUC => ({
   mgPerTabletResultTablet9: null,
   mgPerTabletResultTablet10: null,
   mgPerTabletResultUnit: "mg",
+  acceptanceLimitMin: "",
+  acceptanceLimitMax: ""
 });
 
 const createNewSystemSuitability = (index: number): SystemSuitability => ({
@@ -2187,6 +2203,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   v12: parsedData.v12 || null,
                   v13: parsedData.v13 || null,
                   v14: parsedData.v14 || null,
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax || ""
                 };
                 restoredCalculations.uniformityOfContent.push(ucCalc);
                 break;
@@ -2213,7 +2231,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   lodWaterType: parsedData.lodWaterType || "",
                   lodWaterValue: parsedData.lodWaterValue || "",
                   calculationResult: parsedData.calculationResult || null,
-                  calculationResultUnit: parsedData.calculationResultUnit || null,
+                  calculationResultUnit:
+                    parsedData.calculationResultUnit || null,
                   labelClaimPercent: parsedData.labelClaimPercent || null,
                   lodWaterBasisResult: parsedData.lodWaterBasisResult || null,
                   sw1: parsedData.sw1 || null,
@@ -2232,6 +2251,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   v12: parsedData.v12 || null,
                   v13: parsedData.v13 || null,
                   v14: parsedData.v14 || null,
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax || ""
                 };
                 restoredCalculations.assay.push(assayCalc);
                 break;
@@ -2249,6 +2270,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   w1: parsedData.w1 || null,
                   w2: parsedData.w2 || null,
                   w3: parsedData.w3 || null,
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax || ""
                 };
                 restoredCalculations.lod.push(lodCalc);
                 break;
@@ -2266,6 +2289,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   w1: parsedData.w1 || null,
                   w2: parsedData.w2 || null,
                   w3: parsedData.w3 || null,
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax || ""
                 };
                 restoredCalculations.roi.push(roiCalc);
                 break;
@@ -2283,6 +2308,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   w1: parsedData.w1 || null,
                   w2: parsedData.w2 || null,
                   w3: parsedData.w3 || null,
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax || ""
                 };
                 restoredCalculations.sulphatedAsh.push(ashCalc);
                 break;
@@ -2306,6 +2333,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   v4: parsedData.v4 || null,
                   v5: parsedData.v5 || null,
                   v6: parsedData.v6 || null,
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax || ""
                 };
                 restoredCalculations.residualSolvent.push(rsCalc);
                 break;
@@ -2323,7 +2352,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   mWSalt: parsedData.mWSalt || "",
                   mWBase: parsedData.mWBase || "",
                   responseFactor: parsedData.responseFactor || "",
-                  responseFactorUnit: parsedData.responseFactorUnit || "",
+                  responseFactorUnit: parsedData.responseFactorUnit || "mg",
                   labelClaim: parsedData.labelClaim || "",
                   avgWeight: parsedData.avgWeight || "",
                   avgWeightUnit: parsedData.avgWeightUnit || "mg",
@@ -2332,7 +2361,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   doseVolume: parsedData.doseVolume || "",
                   doseVolumeUnit: parsedData.doseVolumeUnit || "ml",
                   calculationResult: parsedData.calculationResult || null,
-                  calculationResultUnit: parsedData.calculationResultUnit || null,
+                  calculationResultUnit:
+                    parsedData.calculationResultUnit || null,
                   sw1: parsedData.sw1 || null,
                   sw2: parsedData.sw2 || null,
                   v1: parsedData.v1 || null,
@@ -2350,7 +2380,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   v13: parsedData.v13 || null,
                   v14: parsedData.v14 || null,
                   labelClaimUnit: parsedData.labelClaimUnit || null,
-                  acceptanceLimit: parsedData.acceptanceLimit || null
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax || null,
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin || null,
                 };
                 restoredCalculations.relatedSubstance.push(relSubCalc);
                 break;
@@ -2384,7 +2415,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     parsedData.calculationResultTablet5 || null,
                   calculationResultTablet6:
                     parsedData.calculationResultTablet6 || null,
-                  calculationResultUnit: parsedData.calculationResultUnit || null,
+                  calculationResultUnit:
+                    parsedData.calculationResultUnit || null,
                   sw1: parsedData.sw1 || null,
                   claim: parsedData.claim || null,
                   mediaVol: parsedData.mediaVol || null,
@@ -2402,7 +2434,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   v12: parsedData.v12 || null,
                   v13: parsedData.v13 || null,
                   v14: parsedData.v14 || null,
-                  acceptanceLimit: parsedData.acceptanceLimit || null,
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax || ""
                 };
                 restoredCalculations.dissolution.push(dissoCalc);
                 break;
@@ -2735,7 +2768,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   factorUnit: parsedData.factorUnit || "",
                   avgWeightUnit: parsedData.avgWeightUnit || "",
                   labelClaimUnit: parsedData.labelClaimUnit || "",
-                  acceptanceLimit: parsedData.acceptanceLimit || null
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax || ""
                 };
                 restoredCalculations.ferrousFumarate.push(ffCalc);
                 break;
@@ -2775,7 +2809,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   calculationResultUnit:
                     parsedData.calculationResultUnit || null,
                   sampleTaken: parsedData.sampleTaken || null,
-                  acceptanceLimit: parsedData.acceptanceLimit || null,
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax || ""
                 };
                 restoredCalculations.dissoFerrousFumarate.push(dffCalc);
                 break;
@@ -7443,8 +7478,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
-        }
-        else if (group.id === "assayFerrousFumarate") {
+        } else if (group.id === "assayFerrousFumarate") {
           setSamplePrepAssayFerrousFumaratePerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
@@ -11398,6 +11432,188 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         )}
                       </div>
 
+                      {/* ============= BUFFER PREPARATION TOGGLE ============= */}
+                      <div className="mb-6 mt-4">
+                        <label className="flex items-center gap-4 cursor-pointer group relative">
+                          <div className="relative flex items-center justify-center">
+                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
+                            <input
+                              type="checkbox"
+                              checked={
+                                showBufferPreparation[selectedParam.id] || false
+                              }
+                              onChange={(e) => {
+                                setShowBufferPreparation((prev) => ({
+                                  ...prev,
+                                  [selectedParam.id]: e.target.checked,
+                                }));
+                                if (!e.target.checked) {
+                                  setBufferPreparationPerParam((prev) => ({
+                                    ...prev,
+                                    [selectedParam.id]: [],
+                                  }));
+                                }
+                              }}
+                              className="peer sr-only"
+                            />
+                            <div className="relative w-14 h-7 rounded-full border-2 border-emerald-200 bg-gray-200 peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-emerald-600 peer-checked:border-emerald-600 transition-all duration-300 shadow-inner group-hover:border-emerald-300">
+                              <motion.div
+                                className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
+                                animate={{
+                                  x: showBufferPreparation[selectedParam.id]
+                                    ? 28
+                                    : 0,
+                                }}
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 500,
+                                  damping: 30,
+                                }}
+                              >
+                                {showBufferPreparation[selectedParam.id] ? (
+                                  <svg
+                                    className="w-3 h-3 text-emerald-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                ) : (
+                                  <svg
+                                    className="w-3 h-3 text-gray-400"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M6 18L18 6M6 6l12 12"
+                                    />
+                                  </svg>
+                                )}
+                              </motion.div>
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base font-bold text-emerald-700 group-hover:text-emerald-700 transition-colors duration-200">
+                                Buffer Preparation
+                              </span>
+                              <motion.span
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className={`px-2 py-0.5 text-[10px] font-medium rounded-full transition-all duration-200 ${
+                                  showBufferPreparation[selectedParam.id]
+                                    ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                                    : "bg-gray-100 text-gray-500 border border-gray-200"
+                                }`}
+                              >
+                                {showBufferPreparation[selectedParam.id]
+                                  ? "Active"
+                                  : "Inactive"}
+                              </motion.span>
+                            </div>
+                            <p className="text-xs text-emerald-600/70">
+                              Toggle buffer preparation section
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+
+                      {/* ============= BUFFER PREPARATION SECTION ============= */}
+                      <AnimatePresence>
+                        {showBufferPreparation[selectedParam.id] && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 0 }}
+                            className="mb-6 p-6 bg-white rounded-xl border-2 border-emerald-200 shadow-lg"
+                          >
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="flex items-center gap-4">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                <div>
+                                  <h2 className="text-lg font-bold text-emerald-700 tracking-tight">
+                                    Buffer Preparations
+                                  </h2>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <button
+                                  onClick={() =>
+                                    handleAddBufferPreparation(selectedParam.id)
+                                  }
+                                  className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                  Add Buffer Preparation
+                                </button>
+                              </div>
+                            </div>
+
+                            <AnimatePresence>
+                              {(
+                                bufferPreparationPerParam[selectedParam.id] ||
+                                []
+                              ).map((bufferPrep) => (
+                                <div key={bufferPrep.id}>
+                                  <BufferPreparationDetail
+                                    buffer={bufferPrep}
+                                    onStepChange={(
+                                      bufferPrepId,
+                                      stepName,
+                                      field,
+                                      newValue,
+                                    ) =>
+                                      handleBufferPreparationStepChange(
+                                        selectedParam.id,
+                                        bufferPrepId,
+                                        stepName,
+                                        field,
+                                        newValue,
+                                      )
+                                    }
+                                    onRemove={() =>
+                                      handleRemoveBufferPreparation(
+                                        selectedParam.id,
+                                        bufferPrep.id,
+                                      )
+                                    }
+                                  />
+                                </div>
+                              ))}
+                            </AnimatePresence>
+
+                            {(bufferPreparationPerParam[selectedParam.id] || [])
+                              .length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="text-center py-10 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl"
+                              >
+                                <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                  <Target className="w-10 h-10 text-emerald-400" />
+                                </div>
+                                <p className="text-base font-bold text-emerald-700 mb-1">
+                                  No buffer preparations added yet
+                                </p>
+                                <p className="text-sm text-emerald-600/80">
+                                  Click "Add Buffer Preparation" to begin
+                                </p>
+                              </motion.div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
                       {/* Mobile Phase Preparation Toggle */}
                       <div className="mb-6 mt-4">
                         <label className="flex items-center gap-4 cursor-pointer group relative">
@@ -11609,188 +11825,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 : undefined
                             }
                           />
-                        )}
-                      </AnimatePresence>
-
-                      {/* ============= BUFFER PREPARATION TOGGLE ============= */}
-                      <div className="mb-6 mt-4">
-                        <label className="flex items-center gap-4 cursor-pointer group relative">
-                          <div className="relative flex items-center justify-center">
-                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
-                            <input
-                              type="checkbox"
-                              checked={
-                                showBufferPreparation[selectedParam.id] || false
-                              }
-                              onChange={(e) => {
-                                setShowBufferPreparation((prev) => ({
-                                  ...prev,
-                                  [selectedParam.id]: e.target.checked,
-                                }));
-                                if (!e.target.checked) {
-                                  setBufferPreparationPerParam((prev) => ({
-                                    ...prev,
-                                    [selectedParam.id]: [],
-                                  }));
-                                }
-                              }}
-                              className="peer sr-only"
-                            />
-                            <div className="relative w-14 h-7 rounded-full border-2 border-emerald-200 bg-gray-200 peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-emerald-600 peer-checked:border-emerald-600 transition-all duration-300 shadow-inner group-hover:border-emerald-300">
-                              <motion.div
-                                className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
-                                animate={{
-                                  x: showBufferPreparation[selectedParam.id]
-                                    ? 28
-                                    : 0,
-                                }}
-                                transition={{
-                                  type: "spring",
-                                  stiffness: 500,
-                                  damping: 30,
-                                }}
-                              >
-                                {showBufferPreparation[selectedParam.id] ? (
-                                  <svg
-                                    className="w-3 h-3 text-emerald-600"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth="3"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M5 13l4 4L19 7"
-                                    />
-                                  </svg>
-                                ) : (
-                                  <svg
-                                    className="w-3 h-3 text-gray-400"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth="3"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M6 18L18 6M6 6l12 12"
-                                    />
-                                  </svg>
-                                )}
-                              </motion.div>
-                            </div>
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-base font-bold text-emerald-700 group-hover:text-emerald-700 transition-colors duration-200">
-                                Buffer Preparation
-                              </span>
-                              <motion.span
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className={`px-2 py-0.5 text-[10px] font-medium rounded-full transition-all duration-200 ${
-                                  showBufferPreparation[selectedParam.id]
-                                    ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                                    : "bg-gray-100 text-gray-500 border border-gray-200"
-                                }`}
-                              >
-                                {showBufferPreparation[selectedParam.id]
-                                  ? "Active"
-                                  : "Inactive"}
-                              </motion.span>
-                            </div>
-                            <p className="text-xs text-emerald-600/70">
-                              Toggle buffer preparation section
-                            </p>
-                          </div>
-                        </label>
-                      </div>
-
-                      {/* ============= BUFFER PREPARATION SECTION ============= */}
-                      <AnimatePresence>
-                        {showBufferPreparation[selectedParam.id] && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 0 }}
-                            className="mb-6 p-6 bg-white rounded-xl border-2 border-emerald-200 shadow-lg"
-                          >
-                            <div className="flex items-center justify-between mb-6">
-                              <div className="flex items-center gap-4">
-                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
-                                <div>
-                                  <h2 className="text-lg font-bold text-emerald-700 tracking-tight">
-                                    Buffer Preparations
-                                  </h2>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <button
-                                  onClick={() =>
-                                    handleAddBufferPreparation(selectedParam.id)
-                                  }
-                                  className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                  Add Buffer Preparation
-                                </button>
-                              </div>
-                            </div>
-
-                            <AnimatePresence>
-                              {(
-                                bufferPreparationPerParam[selectedParam.id] ||
-                                []
-                              ).map((bufferPrep) => (
-                                <div key={bufferPrep.id}>
-                                  <BufferPreparationDetail
-                                    buffer={bufferPrep}
-                                    onStepChange={(
-                                      bufferPrepId,
-                                      stepName,
-                                      field,
-                                      newValue,
-                                    ) =>
-                                      handleBufferPreparationStepChange(
-                                        selectedParam.id,
-                                        bufferPrepId,
-                                        stepName,
-                                        field,
-                                        newValue,
-                                      )
-                                    }
-                                    onRemove={() =>
-                                      handleRemoveBufferPreparation(
-                                        selectedParam.id,
-                                        bufferPrep.id,
-                                      )
-                                    }
-                                  />
-                                </div>
-                              ))}
-                            </AnimatePresence>
-
-                            {(bufferPreparationPerParam[selectedParam.id] || [])
-                              .length === 0 && (
-                              <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="text-center py-10 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl"
-                              >
-                                <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
-                                  <Target className="w-10 h-10 text-emerald-400" />
-                                </div>
-                                <p className="text-base font-bold text-emerald-700 mb-1">
-                                  No buffer preparations added yet
-                                </p>
-                                <p className="text-sm text-emerald-600/80">
-                                  Click "Add Buffer Preparation" to begin
-                                </p>
-                              </motion.div>
-                            )}
-                          </motion.div>
                         )}
                       </AnimatePresence>
 
@@ -12586,9 +12620,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
                             )}
                           </div>
 
-                          {(samplePrepAssayFerrousFumaratePerParam[
-                            selectedParam.id
-                          ] || []).length > 0 && (
+                          {(
+                            samplePrepAssayFerrousFumaratePerParam[
+                              selectedParam.id
+                            ] || []
+                          ).length > 0 && (
                             <>
                               {/* ── Ferrous Fumarate Calculations separator ── */}
                               <div className="flex items-center gap-4 my-8">
@@ -14688,7 +14724,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                             <div className="flex items-center justify-between mb-4 px-2">
                               <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
                                 <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
-                                Standard & Sample Preparations for Dissolution
+                                Media, Standard & Sample Preparations for Dissolution
                               </h3>
                               <button
                                 onClick={() =>
@@ -14732,6 +14768,34 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                     key={standardPreparation.id}
                                     className="mb-6"
                                   >
+                                    {correspondingDissoMedia && (
+                                      <div className="mt-4">
+                                        <DissoMediaPreparationDetail
+                                          dissoMedia={correspondingDissoMedia}
+                                          onStepChange={(
+                                            dissoMediaId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          ) =>
+                                            handleDissoMediaStepChange(
+                                              selectedParam.id,
+                                              dissoMediaId,
+                                              stepName,
+                                              field,
+                                              newValue,
+                                            )
+                                          }
+                                          onRemove={() =>
+                                            handleRemoveDissoMedia(
+                                              selectedParam.id,
+                                              correspondingDissoMedia.id,
+                                            )
+                                          }
+                                        />
+                                      </div>
+                                    )}
+
                                     <StandardPreparationDetail
                                       standardPreparation={standardPreparation}
                                       assignedStandard={
@@ -14791,34 +14855,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                             )
                                           }
                                           role={role}
-                                        />
-                                      </div>
-                                    )}
-
-                                    {correspondingDissoMedia && (
-                                      <div className="mt-4">
-                                        <DissoMediaPreparationDetail
-                                          dissoMedia={correspondingDissoMedia}
-                                          onStepChange={(
-                                            dissoMediaId,
-                                            stepName,
-                                            field,
-                                            newValue,
-                                          ) =>
-                                            handleDissoMediaStepChange(
-                                              selectedParam.id,
-                                              dissoMediaId,
-                                              stepName,
-                                              field,
-                                              newValue,
-                                            )
-                                          }
-                                          onRemove={() =>
-                                            handleRemoveDissoMedia(
-                                              selectedParam.id,
-                                              correspondingDissoMedia.id,
-                                            )
-                                          }
                                         />
                                       </div>
                                     )}
@@ -15091,6 +15127,34 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                     key={standardPreparation.id}
                                     className="mb-6"
                                   >
+                                                                        {correspondingDissoMedia && (
+                                      <div className="mt-4">
+                                        <DissoMediaPreparationDetail
+                                          dissoMedia={correspondingDissoMedia}
+                                          onStepChange={(
+                                            dissoMediaId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          ) =>
+                                            handleDissoMediaProfileStepChange(
+                                              selectedParam.id,
+                                              dissoMediaId,
+                                              stepName,
+                                              field,
+                                              newValue,
+                                            )
+                                          }
+                                          onRemove={() =>
+                                            handleRemoveDissoMediaProfile(
+                                              selectedParam.id,
+                                              correspondingDissoMedia.id,
+                                            )
+                                          }
+                                        />
+                                      </div>
+                                    )}
+
                                     <StandardPreparationDetail
                                       standardPreparation={standardPreparation}
                                       assignedStandard={
@@ -15150,34 +15214,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                             )
                                           }
                                           role={role}
-                                        />
-                                      </div>
-                                    )}
-
-                                    {correspondingDissoMedia && (
-                                      <div className="mt-4">
-                                        <DissoMediaPreparationDetail
-                                          dissoMedia={correspondingDissoMedia}
-                                          onStepChange={(
-                                            dissoMediaId,
-                                            stepName,
-                                            field,
-                                            newValue,
-                                          ) =>
-                                            handleDissoMediaProfileStepChange(
-                                              selectedParam.id,
-                                              dissoMediaId,
-                                              stepName,
-                                              field,
-                                              newValue,
-                                            )
-                                          }
-                                          onRemove={() =>
-                                            handleRemoveDissoMediaProfile(
-                                              selectedParam.id,
-                                              correspondingDissoMedia.id,
-                                            )
-                                          }
                                         />
                                       </div>
                                     )}

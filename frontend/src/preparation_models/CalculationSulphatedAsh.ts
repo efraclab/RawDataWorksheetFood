@@ -1,5 +1,7 @@
 
 export interface CalculationSulphatedAsh {
+  acceptanceLimitMin: string;
+  acceptanceLimitMax: string;
   id: number;
   label: string;
   selectedSamplePreparationLabel: string | null;

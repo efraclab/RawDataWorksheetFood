@@ -1114,7 +1114,6 @@ const CalculationDetailDissoProfile: React.FC<
                                   placeholder="Max %"
                                   className="w-full px-2 py-1.5 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
                                 />
-                                <span className="text-xs text-gray-400 shrink-0">%</span>
                               </div>
                             </div>
                           );

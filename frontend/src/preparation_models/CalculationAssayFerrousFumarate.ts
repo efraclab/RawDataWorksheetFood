@@ -1,6 +1,8 @@
 export type FFCalculationType = "Finish Product" | "Raw Product";
 
 export interface CalculationAssayFerrousFumarate {
+  acceptanceLimitMin: string;
+  acceptanceLimitMax: string;
   id: number;
   label: string;
 
@@ -25,5 +27,4 @@ export interface CalculationAssayFerrousFumarate {
   calculationResultUnit: string | null;
   labelClaimPercent: string | null;
   dryBasisResult: string | null;
-  acceptanceLimit: string | null;
 }

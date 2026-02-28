@@ -1,4 +1,6 @@
 export interface CalculationRS {
+  acceptanceLimitMin: string;
+  acceptanceLimitMax: string;
   id: number;
   label: string;
   selectedStandardPreparationLabel: string | null;

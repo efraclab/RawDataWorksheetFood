@@ -1448,35 +1448,47 @@ const CalculationDetailRelatedSubstance: React.FC<
                       {/* Acceptance Limit */}
                       <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 rounded-lg p-4 border-2 border-emerald-200">
                         <h5 className="text-sm font-bold text-gray-700 mb-3">
-                          Acceptance Criterion
+                          Acceptance Limit
                         </h5>
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-600 mb-1">
-                            Acceptance Limit
-                          </label>
+                        <div className="flex items-center gap-2">
                           <input
                             type="number"
                             min="0"
                             step="any"
-                            value={calculation.acceptanceLimit ?? ""}
+                            value={calculation.acceptanceLimitMin ?? ""}
                             onChange={(e) =>
                               onFieldChange(
                                 calculation.id,
-                                "acceptanceLimit",
+                                "acceptanceLimitMin",
                                 e.target.value === "" ? null : e.target.value,
                               )
                             }
                             onKeyDown={(e) => {
-                              if (
-                                e.key === "ArrowUp" ||
-                                e.key === "ArrowDown"
-                              ) {
-                                e.preventDefault();
-                              }
+                              if (e.key === "ArrowUp" || e.key === "ArrowDown") e.preventDefault();
                             }}
                             onWheel={(e) => e.currentTarget.blur()}
-                            placeholder="Enter limit value"
-                            className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
+                            placeholder="Enter min limit"
+                            className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                          />
+                          <span className="text-xs font-semibold text-gray-500 shrink-0">to</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={calculation.acceptanceLimitMax ?? ""}
+                            onChange={(e) =>
+                              onFieldChange(
+                                calculation.id,
+                                "acceptanceLimitMax",
+                                e.target.value === "" ? null : e.target.value,
+                              )
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "ArrowUp" || e.key === "ArrowDown") e.preventDefault();
+                            }}
+                            onWheel={(e) => e.currentTarget.blur()}
+                            placeholder="Enter max limit"
+                            className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
                           />
                         </div>
                       </div>
@@ -1567,18 +1579,27 @@ const CalculationDetailRelatedSubstance: React.FC<
                               : ""}
                           </p>
                           {(() => {
-                            const limit =
-                              calculation.acceptanceLimit != null &&
-                              calculation.acceptanceLimit !== ""
-                                ? parseFloat(calculation.acceptanceLimit)
+                            const limitMin =
+                              calculation.acceptanceLimitMin != null &&
+                              calculation.acceptanceLimitMin !== ""
+                                ? parseFloat(calculation.acceptanceLimitMin as string)
                                 : null;
-                            if (limit === null || isNaN(limit)) return null;
+                            const limitMax =
+                              calculation.acceptanceLimitMax != null &&
+                              calculation.acceptanceLimitMax !== ""
+                                ? parseFloat(calculation.acceptanceLimitMax as string)
+                                : null;
+                            const hasMin = limitMin !== null && !isNaN(limitMin);
+                            const hasMax = limitMax !== null && !isNaN(limitMax);
+                            if (!hasMin && !hasMax) return null;
 
                             const val =
                               typeof calculation.calculationResult === "string"
                                 ? parseFloat(calculation.calculationResult)
                                 : null;
-                            const pass = val !== null && val >= limit;
+                            const pass = val !== null &&
+                              (hasMin ? val >= limitMin! : true) &&
+                              (hasMax ? val <= limitMax! : true);
 
                             return (
                               <span

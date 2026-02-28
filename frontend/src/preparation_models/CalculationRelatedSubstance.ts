@@ -7,6 +7,8 @@ export type RelatedSubstanceCalculationType =
   | "Raw Material";
 
 export interface CalculationRelatedSubstance {
+  acceptanceLimitMin: string;
+  acceptanceLimitMax: string;
   id: number;
   label: string;
   selectedStandardPreparationLabel: string | null;
@@ -55,5 +57,4 @@ export interface CalculationRelatedSubstance {
   v13: string | null;
   v14: string | null;
 
-  acceptanceLimit: string | null;
 }

@@ -644,21 +644,18 @@ const CalculationDetailDissoFerrousFumarate: React.FC<
                     {/* ── Acceptance Criterion ──────────────────────────────── */}
                     <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 rounded-lg p-4 border-2 border-emerald-200">
                       <h5 className="text-sm font-bold text-gray-700 mb-3">
-                        Acceptance Criterion
+                        Acceptance Limit
                       </h5>
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-600 mb-1">
-                          Acceptance Limit (%)
-                        </label>
+                      <div className="flex items-center gap-2">
                         <input
                           type="number"
                           min="0"
                           step="any"
-                          value={calculation.acceptanceLimit ?? ""}
+                          value={calculation.acceptanceLimitMin ?? ""}
                           onChange={(e) =>
                             onFieldChange(
                               calculation.id,
-                              "acceptanceLimit",
+                              "acceptanceLimitMin",
                               e.target.value === "" ? null : e.target.value
                             )
                           }
@@ -666,8 +663,28 @@ const CalculationDetailDissoFerrousFumarate: React.FC<
                             if (e.key === "ArrowUp" || e.key === "ArrowDown") e.preventDefault();
                           }}
                           onWheel={(e) => e.currentTarget.blur()}
-                          placeholder="e.g. 80"
-                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
+                          placeholder="Enter min limit"
+                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                        />
+                        <span className="text-xs font-semibold text-gray-500 shrink-0">to</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="any"
+                          value={calculation.acceptanceLimitMax ?? ""}
+                          onChange={(e) =>
+                            onFieldChange(
+                              calculation.id,
+                              "acceptanceLimitMax",
+                              e.target.value === "" ? null : e.target.value
+                            )
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "ArrowUp" || e.key === "ArrowDown") e.preventDefault();
+                          }}
+                          onWheel={(e) => e.currentTarget.blur()}
+                          placeholder="Enter max limit"
+                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
                         />
                       </div>
                     </div>
@@ -763,21 +780,34 @@ const CalculationDetailDissoFerrousFumarate: React.FC<
 
                             {/* Pass/Fail row — shown only when acceptance limit is set */}
                             {(() => {
-                              const limit =
-                                calculation.acceptanceLimit != null &&
-                                calculation.acceptanceLimit !== ""
-                                  ? parseFloat(calculation.acceptanceLimit)
+                              const limitMin =
+                                calculation.acceptanceLimitMin != null &&
+                                calculation.acceptanceLimitMin !== ""
+                                  ? parseFloat(calculation.acceptanceLimitMin as string)
                                   : null;
-                              if (limit === null || isNaN(limit)) return null;
+                              const limitMax =
+                                calculation.acceptanceLimitMax != null &&
+                                calculation.acceptanceLimitMax !== ""
+                                  ? parseFloat(calculation.acceptanceLimitMax as string)
+                                  : null;
+                              const hasMin = limitMin !== null && !isNaN(limitMin);
+                              const hasMax = limitMax !== null && !isNaN(limitMax);
+                              if (!hasMin && !hasMax) return null;
                               return (
                                 <tr className="bg-gray-50 border-t-2 border-emerald-200">
                                   <td className="px-4 py-3 text-xs font-semibold text-gray-500 border-r border-gray-200">
                                     Pass/Fail
-                                    <div className="text-gray-400 font-normal">≥ {limit.toFixed(1)}%</div>
+                                    <div className="text-gray-400 font-normal">
+                                      {hasMin ? `≥ ${limitMin!.toFixed(1)}%` : ""}
+                                      {hasMin && hasMax ? " – " : ""}
+                                      {hasMax ? `≤ ${limitMax!.toFixed(1)}%` : ""}
+                                    </div>
                                   </td>
                                   {tabletResults.map((r) => {
                                     const val = typeof r.result === "number" ? r.result : null;
-                                    const pass = val !== null && val >= limit;
+                                    const pass = val !== null &&
+                                      (hasMin ? val >= limitMin! : true) &&
+                                      (hasMax ? val <= limitMax! : true);
                                     return (
                                       <td
                                         key={r.tabletNumber}

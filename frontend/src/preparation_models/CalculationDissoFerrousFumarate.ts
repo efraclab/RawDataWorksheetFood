@@ -1,5 +1,7 @@
 
 export interface CalculationDissoFerrousFumarate {
+  acceptanceLimitMin: string;
+  acceptanceLimitMax: string;
   id: number;
   label: string;
 
@@ -29,6 +31,5 @@ export interface CalculationDissoFerrousFumarate {
   calculationResultUnit: string | null;
 
   sampleTaken: string | null;
-  acceptanceLimit: string | null;
   factorUnit: string;
 }

@@ -1,4 +1,6 @@
 export interface CalculationLod {
+  acceptanceLimitMin: string;
+  acceptanceLimitMax: string;
   id: number;
   label: string;
   selectedSamplePreparationLabel: string | null;

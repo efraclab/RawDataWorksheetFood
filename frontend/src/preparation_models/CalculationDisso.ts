@@ -1,4 +1,6 @@
 export interface CalculationDisso {
+  acceptanceLimitMin: string;
+  acceptanceLimitMax: string;
   id: number;
   label: string;
   selectedStandardPreparationLabel: string | null;
@@ -41,7 +43,5 @@ export interface CalculationDisso {
   v12: string | null;
   v13: string | null;
   v14: string | null;
-
-  acceptanceLimit: string | null;
 }
 

@@ -7,6 +7,8 @@ export type CalculationType =
   | "Raw Material";
 
 export interface CalculationAssay {
+  acceptanceLimitMin: string;
+  acceptanceLimitMax: string;
   id: number;
   label: string;
   selectedStandardPreparationLabel: string | null;

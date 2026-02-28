@@ -101,6 +101,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
   const [summaryResults, setSummaryResults] = useState<SummaryResults | null>(
     null
   );
+  const [mgPerTabletResults, setMgPerTabletResults] = useState<(number | null)[]>([]);
 
   const selectedStandardPrep = standardPreparations.find(
     (prep) => prep.label === calculation.selectedStandardPreparationLabel
@@ -177,7 +178,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
       existingResults.push({
         tabletNumber: num,
         result: isNaN(numericValue) ? String(value) : numericValue,
-        unit: calculation.calculationResultUnit || "mg/Tablet",
+        unit: calculation.calculationResultUnit || "% of LC",
       });
     }
   });
@@ -199,11 +200,58 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
           min: parseFloat(min.toFixed(4)),
           max: parseFloat(max.toFixed(4)),
           avg: parseFloat(avg.toFixed(4)),
-          unit: calculation.calculationResultUnit || "mg/Tablet",
+          unit: calculation.calculationResultUnit || "% of LC",
         });
       }
     }
-  }, [calculation.id]);
+
+    // Load existing mgPerTablet results
+    const mgFields = [
+      calculation.mgPerTabletResultTablet1,
+      calculation.mgPerTabletResultTablet2,
+      calculation.mgPerTabletResultTablet3,
+      calculation.mgPerTabletResultTablet4,
+      calculation.mgPerTabletResultTablet5,
+      calculation.mgPerTabletResultTablet6,
+      calculation.mgPerTabletResultTablet7,
+      calculation.mgPerTabletResultTablet8,
+      calculation.mgPerTabletResultTablet9,
+      calculation.mgPerTabletResultTablet10,
+    ];
+
+    console.log("Loading mg/Tablet results:", calculation);
+    const loadedMgResults: (number | null)[] = mgFields.map((v) => {
+      if (v !== null && v !== undefined && String(v).trim() !== "") {
+        const n = parseFloat(String(v));
+        return isNaN(n) ? null : n;
+      }
+      return null;
+    });
+    setMgPerTabletResults(loadedMgResults);
+  }, [
+    calculation.id,
+    calculation.calculationResultTablet1,
+    calculation.calculationResultTablet2,
+    calculation.calculationResultTablet3,
+    calculation.calculationResultTablet4,
+    calculation.calculationResultTablet5,
+    calculation.calculationResultTablet6,
+    calculation.calculationResultTablet7,
+    calculation.calculationResultTablet8,
+    calculation.calculationResultTablet9,
+    calculation.calculationResultTablet10,
+    calculation.calculationResultUnit,
+    calculation.mgPerTabletResultTablet1,
+    calculation.mgPerTabletResultTablet2,
+    calculation.mgPerTabletResultTablet3,
+    calculation.mgPerTabletResultTablet4,
+    calculation.mgPerTabletResultTablet5,
+    calculation.mgPerTabletResultTablet6,
+    calculation.mgPerTabletResultTablet7,
+    calculation.mgPerTabletResultTablet8,
+    calculation.mgPerTabletResultTablet9,
+    calculation.mgPerTabletResultTablet10,
+  ]);
 
   const handlePreparationChange = (value: string) => {
     const selectedPair = preparationPairs.find((pair) => pair.value === value);
@@ -283,7 +331,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
 
   const getTabletDetails = () => {
     if (!selectedSamplePrepUC)
-      return { claim: "", claimUnit: "mg", dilutedVol: "", unit: "ml" };
+      return { claim: "", claimUnit: "mg"};
     const stepsArr = Array.isArray(selectedSamplePrepUC.steps)
       ? selectedSamplePrepUC.steps
       : [];
@@ -483,11 +531,6 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
     const smpVolsNumValues: string[] = [];
     const smpVolsDenomValues: string[] = [];
 
-    const dilutedVol = tabletDetails.dilutedVol
-      ? convertVolumeToMl(tabletDetails.dilutedVol, tabletDetails.unit).toString()
-      : "0";
-    smpVolsNumSymbolic.push("V8");
-    smpVolsNumValues.push(dilutedVol);
 
     sampleDilutions.forEach((dil, idx) => {
       if (idx === 0) {
@@ -526,117 +569,175 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
       ...smpVolsNumSymbolic.map((v) => `X ${v}`),
       "X MW Base",
       "X Purity %",
-      "X 100",
     ];
 
     const denominatorSymbolic = [
       "Area/ABS of Standard",
       ...stdVolsDenomSymbolic.map((v) => `X ${v}`),
-      "X Claim",
       ...smpVolsDenomSymbolic.map((v) => `X ${v}`),
       "X MW salt",
       "X 100",
     ];
 
-    const tabletAreas = [
-      calculation.areaOfSample1 || "0",
-      calculation.areaOfSample2 || "0",
-      calculation.areaOfSample3 || "0",
-      calculation.areaOfSample4 || "0",
-      calculation.areaOfSample5 || "0",
-      calculation.areaOfSample6 || "0",
-      calculation.areaOfSample7 || "0",
-      calculation.areaOfSample8 || "0",
-      calculation.areaOfSample9 || "0",
-      calculation.areaOfSample10 || "0",
+    const allTabletAreas = [
+      calculation.areaOfSample1,
+      calculation.areaOfSample2,
+      calculation.areaOfSample3,
+      calculation.areaOfSample4,
+      calculation.areaOfSample5,
+      calculation.areaOfSample6,
+      calculation.areaOfSample7,
+      calculation.areaOfSample8,
+      calculation.areaOfSample9,
+      calculation.areaOfSample10,
     ];
 
+    // Only render derivation rows for tablets that have an area entered
+    const tabletAreas = allTabletAreas
+      .map((area, idx) => ({ area, idx }))
+      .filter(({ area }) => area !== null && area !== undefined && String(area).trim() !== "");
+
     return (
-      <div className="bg-white rounded-lg p-4 border-2 border-emerald-200 shadow-sm mt-4">
-        <h4 className="text-sm font-bold text-gray-900 mb-3">
-          Formula for Capsules/Tablets (Uniformity of Content)
+      <div className="bg-white rounded-lg p-4 border-2 border-emerald-200 shadow-sm mt-4 space-y-5">
+        <h4 className="text-sm font-bold text-gray-900">
+          Formula for Capsules/Tablets
         </h4>
 
-        {/* Main Symbolic Formula */}
-        <div className="bg-gray-50 rounded p-3 mb-3">
-          <div className="flex flex-col items-center">
-            <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
-              <p className="text-xs font-mono text-black break-words">
-                {numeratorSymbolic.join(" ")}
-              </p>
-            </div>
-            <div className="text-center px-2 w-full">
-              <p className="text-xs font-mono text-black break-words">
-                {denominatorSymbolic.join(" ")}
-              </p>
+        <div>
+          <p className="text-xs font-bold text-emerald-700 mb-2">
+            Step 1 : Result (mg/Tablet)
+          </p>
+          <div className="bg-gray-50 rounded p-3 mb-3 flex justify-center">
+            <div className="inline-flex flex-col items-center">
+              <div className="text-center border-b-2 border-black pb-2 mb-2 px-4">
+                <p className="text-xs font-mono text-black whitespace-nowrap">
+                  {numeratorSymbolic.join(" ")}
+                </p>
+              </div>
+              <div className="text-center px-4">
+                <p className="text-xs font-mono text-black whitespace-nowrap">
+                  {denominatorSymbolic.join(" ")}
+                </p>
+              </div>
             </div>
           </div>
+          <p className="text-xs text-right text-gray-600 font-semibold">mg/Tablet</p>
         </div>
 
-        {/* Individual Tablet Formulas */}
-        <div className="space-y-3 mt-4">
-          {tabletAreas.map((area, idx) => {
-            const numeratorValues = [
-              area || "0",
-              stdWeightMg.toString(),
-              ...stdVolsNumValues,
-              ...smpVolsNumValues,
-              mwBase,
-              purity,
-              "100",
-            ];
+        {/* ── STEP 2: % of LC formula ── */}
+        <div>
+          <p className="text-xs font-bold text-emerald-700 mb-2">
+            Step 2 : Label Claim (% of LC)
+          </p>
+          <div className="bg-gray-50 rounded p-3 flex justify-center">
+            <div className="inline-flex flex-col items-center">
+              <div className="text-center border-b-2 border-black pb-2 mb-2 px-4">
+                <p className="text-xs font-mono text-black whitespace-nowrap">
+                  Result (mg/Tablet) × 100
+                </p>
+              </div>
+              <div className="text-center px-4">
+                <p className="text-xs font-mono text-black whitespace-nowrap">
+                  Claim (mg)
+                </p>
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-right text-gray-600 font-semibold">% of LC</p>
+        </div>
 
-            const denominatorValues = [
-              areaStd,
-              ...stdVolsDenomValues,
-              claim,
-              ...smpVolsDenomValues,
-              mwSalt,
-              "100",
-            ];
+        {/* Individual Tablet Formulas with derivation */}
+        <div>
+          <p className="text-xs font-bold text-emerald-700 mb-2">
+            Derivations
+          </p>
+          <div className="space-y-3">
+            {tabletAreas.map(({ area, idx }) => {
+              const numeratorValues = [
+                area || "0",
+                stdWeightMg.toString(),
+                ...stdVolsNumValues,
+                ...smpVolsNumValues,
+                mwBase,
+                purity
+              ];
 
-            return (
-              <div
-                key={idx}
-                className="bg-emerald-50 rounded p-3 border border-emerald-300"
-              >
-                <div className="flex items-start gap-2">
-                  <span className="text-xs font-bold text-emerald-700 min-w-[70px]">
-                    Tablet {idx + 1}:
-                  </span>
-                  <div className="flex-1 flex items-center gap-2">
-                    <span className="text-sm font-bold text-black">=</span>
-                    <div className="flex-1 flex flex-col items-center">
-                      <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
-                        <p className="text-xs font-mono text-black break-words">
-                          {numeratorValues.join(" X ")}
-                        </p>
+              const denominatorValues = [
+                areaStd,
+                ...stdVolsDenomValues,
+                ...smpVolsDenomValues,
+                mwSalt,
+                "100",
+              ];
+
+              const claimVal = claim;
+              const mgResult = mgPerTabletResults[idx];
+
+              return (
+                <div
+                  key={idx}
+                  className="bg-emerald-50 rounded p-3 border border-emerald-300"
+                >
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs font-bold text-emerald-700 min-w-[70px]">
+                      Tablet {idx + 1}:
+                    </span>
+                    <div className="flex-1 space-y-2">
+                      {/* Step 1 derivation */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs text-gray-500 min-w-[90px]">Result (mg/Tablet) =</span>
+                        <div className="inline-flex flex-col items-center">
+                          <div className="text-center border-b-2 border-black pb-1 mb-1 px-4">
+                            <p className="text-xs font-mono text-black whitespace-nowrap">
+                              {numeratorValues.join(" × ")}
+                            </p>
+                          </div>
+                          <div className="text-center px-4">
+                            <p className="text-xs font-mono text-black whitespace-nowrap">
+                              {denominatorValues.join(" × ")}
+                            </p>
+                          </div>
+                        </div>
+                        {mgResult != null && (
+                          <span className="text-xs font-bold text-emerald-700 whitespace-nowrap">
+                            = {mgResult} mg/Tablet
+                          </span>
+                        )}
                       </div>
-                      <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black break-words">
-                          {denominatorValues.join(" X ")}
-                        </p>
+                      {/* Step 2 derivation */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs text-gray-500 min-w-[90px]">Result (% of LC) =</span>
+                        <div className="inline-flex flex-col items-center">
+                          <div className="text-center border-b-2 border-black pb-1 mb-1 px-4">
+                            <p className="text-xs font-mono text-black whitespace-nowrap">
+                              {mgResult != null
+                                ? `${mgResult} × 100`
+                                : "Result (mg/Tablet) × 100"}
+                            </p>
+                          </div>
+                          <div className="text-center px-4">
+                            <p className="text-xs font-mono text-black whitespace-nowrap">
+                              {claimVal}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-
-        <p className="text-xs text-right text-gray-600 mt-2 font-semibold">
-          = mg / tablets
-        </p>
       </div>
     );
   };
 
   const canCalculate = selectedStandardPrep && selectedSamplePrepUC;
 
-  const calculateSingleTablet = (sampleAreaValue: string): number | string => {
+  const calculateSingleTablet = (sampleAreaValue: string): { percentLC: number | string; mgPerTablet: number | null } => {
     if (!canCalculate) {
-      return "Missing preparations";
+      return { percentLC: "Missing preparations", mgPerTablet: null };
     }
 
     const AreaOfSample = parseFloat(sampleAreaValue);
@@ -644,7 +745,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
       parseFloat(calculation.areaOfStandard as string) || 1;
 
     if (isNaN(AreaOfSample) || isNaN(AreaOfStandard)) {
-      return "Invalid Input";
+      return { percentLC: "Invalid Input", mgPerTablet: null };
     }
 
     const SW1_Standard = convertMassToMg(
@@ -680,54 +781,46 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
       ? convertVolumeToMl(standardDilutions[3].vol2, standardDilutions[3].unit2)
       : 1;
 
-    const DilutedVol = convertVolumeToMl(
-      tabletDetails.dilutedVol,
-      tabletDetails.unit
-    );
     const Claim = convertMassToMg(tabletDetails.claim, tabletDetails.claimUnit);
 
-    const V9 = sampleDilutions[0]
+    const V8 = sampleDilutions[0]
       ? convertVolumeToMl(sampleDilutions[0].vol1, sampleDilutions[0].unit1)
       : 0;
-    const V10 = sampleDilutions[0]
-      ? convertVolumeToMl(sampleDilutions[0].vol2, sampleDilutions[0].unit2)
-      : 0;
 
-    const V11 = sampleDilutions[1]
+    const V9 = sampleDilutions[1]
       ? convertVolumeToMl(sampleDilutions[1].vol1, sampleDilutions[1].unit1)
       : 0;
-    const V12 = sampleDilutions[1]
+    const V10 = sampleDilutions[1]
       ? convertVolumeToMl(sampleDilutions[1].vol2, sampleDilutions[1].unit2)
       : 0;
 
-    const V13 = sampleDilutions[2]
+    const V11 = sampleDilutions[2]
       ? convertVolumeToMl(sampleDilutions[2].vol1, sampleDilutions[2].unit1)
       : 0;
-    const V14 = sampleDilutions[2]
+    const V12 = sampleDilutions[2]
       ? convertVolumeToMl(sampleDilutions[2].vol2, sampleDilutions[2].unit2)
       : 0;
 
-    const V15 = sampleDilutions[3]
+    const V13 = sampleDilutions[3]
       ? convertVolumeToMl(sampleDilutions[3].vol1, sampleDilutions[3].unit1)
       : 0;
-    const V16 = sampleDilutions[3]
+    const V14 = sampleDilutions[3]
       ? convertVolumeToMl(sampleDilutions[3].vol2, sampleDilutions[3].unit2)
       : 0;
 
+    // Step 1: Calculate result in mg/Tablet (Claim is NOT in denominator)
     const numerator =
       AreaOfSample *
       SW1_Standard *
       V2 *
       V4 *
       V6 *
-      DilutedVol *
+      V8 *
       V10 *
       V12 *
       V14 *
-      V16 *
       MWBase *
-      Purity *
-      100;
+      Purity;
 
     const denominator =
       AreaOfStandard *
@@ -735,27 +828,42 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
       V3 *
       V5 *
       V7 *
-      Claim *
       V9 *
       V11 *
       V13 *
-      V15 *
       MWSalt *
       100;
 
     if (denominator === 0) {
-      return "Error: Division by zero";
+      return { percentLC: "Error: Division by zero", mgPerTablet: null };
     }
 
-    const result = numerator / denominator;
+    const result_mg_per_tablet_raw = numerator / denominator;
+
+    console.log(`Step 1 - mg/Tablet: ${numerator} / ${denominator} = ${result_mg_per_tablet_raw}`);
+
+    if (isNaN(result_mg_per_tablet_raw) || !isFinite(result_mg_per_tablet_raw)) {
+      return { percentLC: "Error: Invalid calculation", mgPerTablet: null };
+    }
+
+    // Round mg/tablet: toFixedNoRound(4) then toFixed(3)
+    const result_mg_per_tablet = result_mg_per_tablet_raw.toFixedNoRound(4);
+
+    // Step 2: Calculate % of LC = Result (mg/Tablet) * 100 / Claim
+    if (Claim === 0) {
+      return { percentLC: "Error: Claim is zero", mgPerTablet: result_mg_per_tablet };
+    }
+
+    const result = (result_mg_per_tablet * 100) / Claim;
+
+    console.log(`Step 2 - % of LC: ${result_mg_per_tablet} x 100 / ${Claim} = ${result}`);
 
     if (isNaN(result) || !isFinite(result)) {
-      return "Error: Invalid calculation";
+      return { percentLC: "Error: Invalid calculation", mgPerTablet: result_mg_per_tablet };
     }
 
     onFieldChange(calculation.id, "sw1", SW1_Standard.toString());
     onFieldChange(calculation.id, "claim", Claim.toString());
-    onFieldChange(calculation.id, "dilutedVol", DilutedVol.toString());
     onFieldChange(calculation.id, "v1", V1.toString());
     onFieldChange(calculation.id, "v2", V2.toString());
     onFieldChange(calculation.id, "v3", V3.toString());
@@ -763,17 +871,15 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
     onFieldChange(calculation.id, "v5", V5.toString());
     onFieldChange(calculation.id, "v6", V6.toString());
     onFieldChange(calculation.id, "v7", V7.toString());
-    onFieldChange(calculation.id, "v8", DilutedVol.toString());
+    onFieldChange(calculation.id, "v8", V8.toString());
     onFieldChange(calculation.id, "v9", V9.toString());
     onFieldChange(calculation.id, "v10", V10.toString());
     onFieldChange(calculation.id, "v11", V11.toString());
     onFieldChange(calculation.id, "v12", V12.toString());
     onFieldChange(calculation.id, "v13", V13.toString());
     onFieldChange(calculation.id, "v14", V14.toString());
-    onFieldChange(calculation.id, "v15", V15.toString());
-    onFieldChange(calculation.id, "v16", V16.toString());
 
-    return result.toFixedNoRound(4);
+    return { percentLC: result.toFixedNoRound(4), mgPerTablet: result_mg_per_tablet };
   };
 
   const performCalculation = () => {
@@ -802,6 +908,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
 
     const results: TabletResult[] = [];
     const validResults: number[] = [];
+    const mgResults: (number | null)[] = [];
     const resultFields: Array<keyof CalculationUC> = [
       "calculationResultTablet1",
       "calculationResultTablet2",
@@ -814,38 +921,64 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
       "calculationResultTablet9",
       "calculationResultTablet10",
     ];
+    const mgResultFields: Array<keyof CalculationUC> = [
+      "mgPerTabletResultTablet1",
+      "mgPerTabletResultTablet2",
+      "mgPerTabletResultTablet3",
+      "mgPerTabletResultTablet4",
+      "mgPerTabletResultTablet5",
+      "mgPerTabletResultTablet6",
+      "mgPerTabletResultTablet7",
+      "mgPerTabletResultTablet8",
+      "mgPerTabletResultTablet9",
+      "mgPerTabletResultTablet10",
+    ];
 
     sampleAreas.forEach((area, index) => {
       if (area && area.trim() !== "") {
-        const result = calculateSingleTablet(area);
+        const calcResult = calculateSingleTablet(area);
+        const { percentLC, mgPerTablet } = calcResult;
 
-        if (typeof result === "number") {
+        mgResults.push(mgPerTablet);
+
+        // Save mg/tablet result
+        if (mgPerTablet !== null) {
+          const mgFinal = mgPerTablet.toFixedNoRound(4);
+          onFieldChange(calculation.id, mgResultFields[index], mgFinal);
+        } else {
+          onFieldChange(calculation.id, mgResultFields[index], null);
+        }
+
+        if (typeof percentLC === "number") {
           results.push({
             tabletNumber: index + 1,
-            result: result,
-            unit: "mg/Tablet",
+            result: percentLC,
+            unit: "% of LC",
           });
-          validResults.push(result);
+          validResults.push(percentLC);
 
-          const truncated = result.toFixedNoRound(4);
+          const truncated = percentLC.toFixedNoRound(4);
           const finalValue = parseFloat(truncated.toFixed(3));
 
           onFieldChange(calculation.id, resultFields[index], finalValue);
         } else {
           results.push({
             tabletNumber: index + 1,
-            result: result,
+            result: percentLC,
             unit: "",
           });
 
-          onFieldChange(calculation.id, resultFields[index], result);
+          onFieldChange(calculation.id, resultFields[index], percentLC);
         }
       } else {
+        mgResults.push(null);
         onFieldChange(calculation.id, resultFields[index], null);
+        onFieldChange(calculation.id, mgResultFields[index], null);
       }
     });
 
     setTabletResults(results);
+    setMgPerTabletResults(mgResults);
 
     if (validResults.length > 0) {
       const min = Math.min(...validResults);
@@ -861,21 +994,16 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
         min: parseFloat(minTruncated.toFixed(3)),
         max: parseFloat(maxTruncated.toFixed(3)),
         avg: parseFloat(avgTruncated.toFixed(3)),
-        unit: "mg/Tablet",
+        unit: "% of LC",
       };
 
       setSummaryResults(summaryData);
-      onFieldChange(
-        calculation.id,
-        "calculationResult",
-        `Min: ${summaryData.min}, Max: ${summaryData.max}, Avg: ${summaryData.avg}`
-      );
-      onFieldChange(calculation.id, "calculationResultUnit", "mg/Tablet");
+      onFieldChange(calculation.id, "calculationResultUnit", "% of LC");
+      onFieldChange(calculation.id, "mgPerTabletResultUnit", "mg/Tablet");
 
       console.log("Summary Results:", summaryData);
     } else {
       setSummaryResults(null);
-      onFieldChange(calculation.id, "calculationResult", null);
       onFieldChange(calculation.id, "calculationResultUnit", null);
     }
 
@@ -1171,7 +1299,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                           </label>
                           <input
                             type="number"
-                            value={calculation.mWBase}
+                            value={calculation.mWBase!}
                             onChange={(e) =>
                               onFieldChange(
                                 calculation.id,
@@ -1199,7 +1327,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                           </label>
                           <input
                             type="number"
-                            value={calculation.mWSalt}
+                            value={calculation.mWSalt!}
                             onChange={(e) =>
                               onFieldChange(
                                 calculation.id,
@@ -1218,7 +1346,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                             }}
                             onWheel={(e) => e.currentTarget.blur()}
                             placeholder="MW Salt"
-                            className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
+                            className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
                           />
                         </div>
                       </div>
@@ -1279,9 +1407,9 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                               {tabletResults.map((result) => (
                                 <th
                                   key={result.tabletNumber}
-                                  className="px-4 py-3 text-center text-sm font-bold text-emerald-900 border-r border-emerald-200 last:border-r-0"
+                                  className="px-4 py-3 text-center text-xs font-bold text-emerald-900 border-r border-emerald-200 last:border-r-0"
                                 >
-                                  T{result.tabletNumber}
+                                  Tablet {result.tabletNumber}
                                 </th>
                               ))}
                             </tr>
@@ -1295,7 +1423,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                                 >
                                   <div className="text-lg font-bold text-gray-800">
                                     {typeof result.result === "number"
-                                      ? result.result.toFixedNoRound(4).toFixed(3)
+                                      ? result.result.toFixedNoRound(3).toFixed(2)
                                       : result.result}
                                   </div>
                                   {typeof result.result === "number" && (
@@ -1338,7 +1466,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                               <tr className="bg-white">
                                 <td className="px-6 py-4 text-center border-r border-gray-200">
                                   <div className="text-xl font-bold text-gray-800">
-                                    {summaryResults.min.toFixed(3)}
+                                    {summaryResults.min.toFixedNoRound(3).toFixed(2)}
                                   </div>
                                   <div className="text-xs text-gray-600 mt-1">
                                     {summaryResults.unit}
@@ -1346,7 +1474,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                                 </td>
                                 <td className="px-6 py-4 text-center border-r border-gray-200">
                                   <div className="text-xl font-bold text-emerald-800">
-                                    {summaryResults.avg.toFixed(3)}
+                                    {summaryResults.avg.toFixedNoRound(3).toFixed(2)}
                                   </div>
                                   <div className="text-xs text-gray-600 mt-1">
                                     {summaryResults.unit}
@@ -1354,7 +1482,7 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                   <div className="text-xl font-bold text-gray-800">
-                                    {summaryResults.max.toFixed(3)}
+                                    {summaryResults.max.toFixedNoRound(3).toFixed(2)}
                                   </div>
                                   <div className="text-xs text-gray-600 mt-1">
                                     {summaryResults.unit}

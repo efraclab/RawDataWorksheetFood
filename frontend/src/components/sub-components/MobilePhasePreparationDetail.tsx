@@ -1,434 +1,103 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Droplets, Trash } from "lucide-react";
+import React from "react";
+import { motion } from "framer-motion";
+import { Target } from "lucide-react";
 import type { MobilePhasePreparation } from "../../preparation_models/MobilePhasePreparation";
-import type { MobilePhasePreparationStep } from "../../preparation_models/MobilePhasePreparationStep";
-import CustomDropdown from "../shared/CustomDropdown";
-
-const weightUnitOptions = [
-  { value: "mg", label: "mg" },
-  { value: "g", label: "g" },
-  { value: "kg", label: "kg" },
-];
-
-const filtrationUnitOptions = [
-  { value: "micron", label: "micron" },
-  { value: "mm", label: "mm" },
-];
-
-const timeUnitOptions = [
-  { value: "min", label: "min" },
-  { value: "hr", label: "hr" },
-  { value: "sec", label: "sec" },
-];
 
 interface MobilePhasePreparationDetailProps {
-  mobilePhase: MobilePhasePreparation;
-  onStepChange: (
-    mobilePhaseId: number,
-    stepName: MobilePhasePreparationStep["name"],
-    field:
-      | "value1"
-      | "logBookID"
-      | "mobilePhaseID"
-      | "unit1"
-      | "solventChemical",
-    newValue: string,
-  ) => void;
-  onRemove: () => void;
+  mobilePhasePreparation: MobilePhasePreparation;
+  onEdit: (id: string) => void;
+  onRemove: (id: string) => void;
 }
 
 const MobilePhasePreparationDetail: React.FC<
   MobilePhasePreparationDetailProps
-> = ({ mobilePhase, onStepChange, onRemove }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+> = ({ mobilePhasePreparation, onEdit, onRemove }) => {
+  if (!mobilePhasePreparation) return null;
 
-  const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
+  const getPlainTextLength = (html: string) =>
+    html.replace(/<[^>]*>/g, "").length;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="relative group z-20"
+      className="mb-4 bg-white/80 backdrop-blur-sm border-2 border-emerald-300/50 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden"
     >
-      {/* Glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-emerald-400/20 rounded-xl blur-xl group-hover:blur-xl transition-all duration-300" />
-
-      <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-emerald-200/50 transition-all duration-300 mb-4">
-        {/* Elegant Header */}
-        <div
-          className={`relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-500 ${headerRoundingClass}`}
-        >
-          <div className="relative flex items-center justify-between px-4 py-3">
-            <div
-              className="flex items-center gap-4 flex-1 cursor-pointer select-none"
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              <motion.div
-                animate={{ rotate: isExpanded ? 0 : 360 }}
-                transition={{ duration: 0.5 }}
-                className="relative"
-              >
-                <div className="absolute inset-0 bg-white/30 rounded-lg blur-md" />
-                <div className="relative p-2 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
-                  <Droplets className="w-5 h-5 text-white" />
-                </div>
-              </motion.div>
-
-              <div>
-                <h4 className="text-sm font-semibold text-white tracking-wide">
-                  {mobilePhase.label}
-                </h4>
-                <p className="text-xs text-emerald-100">
-                  Mobile Phase Preparation Details
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <motion.button
-                onClick={() => setIsExpanded(!isExpanded)}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-              >
-                <motion.div
-                  animate={{ rotate: isExpanded ? 180 : 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                >
-                  <ChevronDown className="w-5 h-5 text-white" />
-                </motion.div>
-              </motion.button>
-
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove();
-                }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${mobilePhase.label}`}
-              >
-                <Trash className="w-4 h-4 text-white" />
-              </motion.button>
-            </div>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 px-4 py-3 border-b border-emerald-200/50 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center shadow-sm">
+            <Target className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-emerald-700">
+              {mobilePhasePreparation.label}
+            </h4>
+            <p className="text-xs text-emerald-600/70">
+              {getPlainTextLength(mobilePhasePreparation.content || "")}{" "}
+              characters
+            </p>
           </div>
         </div>
 
-        {/* Content */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onEdit(mobilePhasePreparation.id)}
+            className="px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300/50 rounded-lg transition-colors flex items-center gap-1.5"
+            title="Edit document"
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <div className="p-5 space-y-3 bg-gradient-to-br from-emerald-50/50 to-emerald-50/30">
-                {mobilePhase.steps.map((step, index) => {
-                  const isWeighing = step.name === "Weighing";
-                  const isPH = step.name === "PH";
-                  const isSonication = step.name === "Sonication";
-                  const isFiltration = step.name === "Filtration";
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+            Edit
+          </button>
+          <button
+            onClick={() => onRemove(mobilePhasePreparation.id)}
+            className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-300/50 rounded-lg transition-colors flex items-center gap-1.5"
+            title="Delete document"
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            Delete
+          </button>
+        </div>
+      </div>
 
-                  return (
-                    <motion.div
-                      key={step.name}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="group/item relative"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/0 via-emerald-400/5 to-emerald-400/0 rounded-xl opacity-0 group-hover/item:opacity-100 transition-opacity" />
-
-                      <div className="relative bg-white rounded-xl border border-emerald-200/60 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all duration-200 p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-emerald-500 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
-                            <span className="text-white text-xs font-bold">
-                              {index + 1}
-                            </span>
-                          </div>
-
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="font-bold text-emerald-900 text-sm">
-                                {step.name}
-                              </div>
-                              <div className="h-px flex-1 bg-gradient-to-r from-emerald-200 to-transparent" />
-                            </div>
-
-                            {isWeighing && (
-                              <div className="space-y-2">
-                                <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">
-                                    Weigh accurately
-                                  </span>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    inputMode="decimal"
-                                    value={step.value1}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        mobilePhase.id,
-                                        step.name,
-                                        "value1",
-                                        e.target.value,
-                                      )
-                                    }
-                                    onKeyDown={(e) => {
-                                      if (
-                                        e.key === "ArrowUp" ||
-                                        e.key === "ArrowDown"
-                                      ) {
-                                        e.preventDefault();
-                                      }
-                                    }}
-                                    onWheel={(e) => e.currentTarget.blur()}
-                                    placeholder="Enter Weight"
-                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
-                                  />
-                                  <CustomDropdown
-                                    options={weightUnitOptions}
-                                    value={step.unit1}
-                                    onChange={(newValue) =>
-                                      onStepChange(
-                                        mobilePhase.id,
-                                        step.name,
-                                        "unit1",
-                                        newValue,
-                                      )
-                                    }
-                                    placeholder="Unit"
-                                    colorScheme="emerald"
-                                  />
-                                  <span className="text-gray-600 font-medium">
-                                    of
-                                  </span>
-                                  <input
-                                    type="text"
-                                    value={step.solventChemical || ""}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        mobilePhase.id,
-                                        step.name,
-                                        "solventChemical",
-                                        e.target.value,
-                                      )
-                                    }
-                                    placeholder="Solvent/Chemical"
-                                    className="flex-1 min-w-[110px] px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
-                                  />
-                                  <span className="text-gray-500 text-xs">
-                                    (Log ID:
-                                  </span>
-                                  <input
-                                    type="text"
-                                    value={step.logBookID}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        mobilePhase.id,
-                                        step.name,
-                                        "logBookID",
-                                        e.target.value,
-                                      )
-                                    }
-                                    placeholder="Enter ID"
-                                    className="w-28 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
-                                  />
-                                  <span className="text-gray-500 text-xs">
-                                    )
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-
-                            {isPH && (
-                              <div className="space-y-2">
-                                <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">
-                                    Adjust pH to
-                                  </span>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    inputMode="decimal"
-                                    value={step.value1}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        mobilePhase.id,
-                                        step.name,
-                                        "value1",
-                                        e.target.value,
-                                      )
-                                    }
-                                    onKeyDown={(e) => {
-                                      if (
-                                        e.key === "ArrowUp" ||
-                                        e.key === "ArrowDown"
-                                      ) {
-                                        e.preventDefault();
-                                      }
-                                    }}
-                                    onWheel={(e) => e.currentTarget.blur()}
-                                    placeholder="Enter pH value"
-                                    className="w-40 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
-                                  />
-                                  <span className="text-gray-500 text-xs">
-                                    (Log ID:
-                                  </span>
-                                  <input
-                                    type="text"
-                                    value={step.logBookID}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        mobilePhase.id,
-                                        step.name,
-                                        "logBookID",
-                                        e.target.value,
-                                      )
-                                    }
-                                    placeholder="Enter ID"
-                                    className="flex-1 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
-                                  />
-                                  <span className="text-gray-500 text-xs">
-                                    )
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-
-                            {isFiltration && (
-                              <div className="flex flex-wrap items-center gap-2 text-xs">
-                                <span className="text-gray-600 font-medium">
-                                  Filter from
-                                </span>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  inputMode="decimal"
-                                  value={step.value1}
-                                  onChange={(e) =>
-                                    onStepChange(
-                                      mobilePhase.id,
-                                      step.name,
-                                      "value1",
-                                      e.target.value,
-                                    )
-                                  }
-                                  onKeyDown={(e) => {
-                                    if (
-                                      e.key === "ArrowUp" ||
-                                      e.key === "ArrowDown"
-                                    ) {
-                                      e.preventDefault();
-                                    }
-                                  }}
-                                  onWheel={(e) => e.currentTarget.blur()}
-                                  placeholder="Enter Size"
-                                  className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
-                                />
-                                <CustomDropdown
-                                  options={filtrationUnitOptions}
-                                  value={step.unit1}
-                                  onChange={(newValue) =>
-                                    onStepChange(
-                                      mobilePhase.id,
-                                      step.name,
-                                      "unit1",
-                                      newValue,
-                                    )
-                                  }
-                                  placeholder="Unit"
-                                  colorScheme="emerald"
-                                />
-                                <span className="text-gray-600 font-medium">
-                                  filter
-                                </span>
-                              </div>
-                            )}
-
-                            {isSonication && (
-                              <div className="space-y-2">
-                                <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">
-                                    Sonicate for
-                                  </span>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="1"
-                                    inputMode="numeric"
-                                    value={step.value1}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        mobilePhase.id,
-                                        step.name,
-                                        "value1",
-                                        e.target.value,
-                                      )
-                                    }
-                                    onKeyDown={(e) => {
-                                      if (
-                                        e.key === "ArrowUp" ||
-                                        e.key === "ArrowDown"
-                                      ) {
-                                        e.preventDefault();
-                                      }
-                                    }}
-                                    onWheel={(e) => e.currentTarget.blur()}
-                                    placeholder="Enter Time"
-                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
-                                  />
-                                  <CustomDropdown
-                                    options={timeUnitOptions}
-                                    value={step.unit1}
-                                    onChange={(newValue) =>
-                                      onStepChange(
-                                        mobilePhase.id,
-                                        step.name,
-                                        "unit1",
-                                        newValue,
-                                      )
-                                    }
-                                    placeholder="Unit"
-                                    colorScheme="emerald"
-                                  />
-                                  <span className="text-gray-600">
-                                    (Mobile Phase ID:
-                                  </span>
-                                  <input
-                                    type="text"
-                                    value={step.mobilePhaseID}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        mobilePhase.id,
-                                        step.name,
-                                        "mobilePhaseID",
-                                        e.target.value,
-                                      )
-                                    }
-                                    placeholder="Enter ID"
-                                    className="flex-1 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
-                                  />
-                                  <span className="text-gray-600">)</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* Content Preview */}
+      <div className="px-4 py-4">
+        {mobilePhasePreparation.content ? (
+          <div
+            className="prose prose-sm max-w-none prose-emerald"
+            dangerouslySetInnerHTML={{ __html: mobilePhasePreparation.content }}
+            style={{ lineHeight: "1.6", fontSize: "14px" }}
+          />
+        ) : (
+          <div className="text-center py-8 text-gray-400">
+            <p className="text-sm">No content available</p>
+          </div>
+        )}
       </div>
     </motion.div>
   );

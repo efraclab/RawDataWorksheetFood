@@ -4,7 +4,7 @@
 export interface TblPreparationRow {
   WorksheetId: string;
   ParameterCode: string;
-  PrepCategory: "STANDARD" | "SAMPLE" | "MOBILE_PHASE" | "DISSOLUTION_MEDIA" | "SYSTEM_SUITABILITY" | "BLANK";
+  PrepCategory: "STANDARD" | "SAMPLE" | "MOBILE_PHASE" | "DILUENT" | "DISSOLUTION_MEDIA" | "SYSTEM_SUITABILITY" | "BLANK";
   PrepLabel: string;
   PreparationType: string;
   AssignedStandardId?: string | null;

@@ -1,5 +1,5 @@
 export interface DissoMediaPreparationStep {
-  name: "Weighing/Pipetting" | "PH" | "Filtration" | "Sonication";
+  name: "Weighing/Measuring" | "PH" | "Filtration" | "Sonication";
   value1: string;
   unit1?: string;
   logBookID?: string;

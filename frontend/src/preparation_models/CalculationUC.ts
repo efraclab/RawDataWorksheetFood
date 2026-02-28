@@ -15,9 +15,8 @@ export interface CalculationUC {
   areaOfSample9: string | null;
   areaOfSample10: string | null;
   purity: string;
-  mWBase: string;
-  mWSalt: string;
-  calculationResult: string | null;
+  mWBase: string | null;
+  mWSalt: string | null;
   calculationResultUnit: string | null;
   calculationResultTablet1: string | null;
   calculationResultTablet2: string | null;
@@ -31,7 +30,6 @@ export interface CalculationUC {
   calculationResultTablet10: string | null;
   sw1: string | null;
   claim: string | null;
-  dilutedVol: string | null;
   v1: string | null;
   v2: string | null;
   v3: string | null;
@@ -46,6 +44,15 @@ export interface CalculationUC {
   v12: string | null;
   v13: string | null;
   v14: string | null;
-  v15: string | null;
-  v16: string | null;
+  mgPerTabletResultTablet1: string | null;
+  mgPerTabletResultTablet2: string | null;
+  mgPerTabletResultTablet3: string | null;
+  mgPerTabletResultTablet4: string | null;
+  mgPerTabletResultTablet5: string | null;
+  mgPerTabletResultTablet6: string | null;
+  mgPerTabletResultTablet7: string | null;
+  mgPerTabletResultTablet8: string | null;
+  mgPerTabletResultTablet9: string | null;
+  mgPerTabletResultTablet10: string | null;
+  mgPerTabletResultUnit: string | null;
 }

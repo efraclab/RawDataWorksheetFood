@@ -36,7 +36,6 @@ export interface CalculationAssay {
   labelClaimPercent: string | null;
   lodWaterBasisResult: string | null;
 
-  // Stored preparation values
   sw1: string | null;
   sw2: string | null;
   v1: string | null;

@@ -37,8 +37,12 @@ import type { CalculationLod } from "../preparation_models/CalculationLod";
 import CalculationDetailLod from "./sub-components/CalculationDetailLod";
 import type { CalculationRS } from "../preparation_models/CalculationRS";
 import CalculationDetailRS from "./sub-components/CalculationDetailRS";
+import type { CalculationRelatedSubstance } from "../preparation_models/CalculationRelatedSubstance";
+import CalculationDetailRelatedSubstance from "./sub-components/CalculationDetailRelatedSubstance";
 import type { CalculationDisso } from "../preparation_models/CalculationDisso";
 import CalculationDetailDisso from "./sub-components/CalculationDetailDisso";
+import type { CalculationDissoProfile } from "../preparation_models/CalculationDissoProfile";
+import CalculationDetailDissoProfile from "./sub-components/CalculationDetailDissoProfile";
 import AnalystSelectionDialog from "./shared/AnalystSelectionDialog";
 import {
   fetchWorksheetById,
@@ -70,12 +74,15 @@ import { WorksheetDbMapper } from "../helpers/WorksheetDbMapper";
 import { MdDone } from "react-icons/md";
 import type { SamplePreparationTitration } from "../preparation_models/SamplePreparationTitration";
 import type { DissoMediaPreparation } from "../preparation_models/DissoMediaPreparation";
-import type { MobilePhasePreparation } from "../preparation_models/MobilePhasePreparation";
 import type { SamplePreparationTitrationStep } from "../preparation_models/SamplePreparationTitrationStep";
 import type { DissoMediaPreparationStep } from "../preparation_models/DissoMediaPreparationStep";
-import type { MobilePhasePreparationStep } from "../preparation_models/MobilePhasePreparationStep";
 import SamplePreparationTitrationDetail from "./sub-components/SamplePreparationTitrationDetail";
+import type { CalculationAssayFerrousFumarate } from "../preparation_models/CalculationAssayFerrousFumarate";
+import CalculationDetailAssayFerrousFumarate from "./sub-components/CalculationDetailAssayFerrousFumarate";
+import type { CalculationDissoFerrousFumarate } from "../preparation_models/CalculationDissoFerrousFumarate";
+import CalculationDetailDissoFerrousFumarate from "./sub-components/CalculationDetailDissoFerrousFumarate";
 import MobilePhasePreparationDetail from "./sub-components/MobilePhasePreparationDetail";
+import DiluentPreparationDetail from "./sub-components/DiluentPreparationDetail";
 import DissoMediaPreparationDetail from "./sub-components/DissoMediaPreparationDetail";
 import type { CalculationUC } from "../preparation_models/CalculationUC";
 import type { SamplePreparationUC } from "../preparation_models/SamplePreparationUC";
@@ -86,8 +93,13 @@ import type { SystemSuitability } from "../preparation_models/SystemSuitability"
 import SystemSuitabilityDetail from "./sub-components/SystemSuitabilityDetail";
 import type { SmapleDetailsRequest } from "../models/SmapleDetailsRequest";
 import BlankPreparation from "./sub-components/BlankPreparation";
+import PreparationEditorDialog from "./sub-components/PreparationEditorDialog";
 import BlankPreparationDetail from "./sub-components/BlankPreparationDetail";
 import type { BlankPreparation as BlankPreparationModel } from "../preparation_models/BlankPreparation";
+import BufferPreparationDetail from "./sub-components/BufferPreparationDetail";
+import type { BufferPreparation as BufferPreparationModel } from "../preparation_models/BufferPreparation";
+import type { MobilePhasePreparation } from "../preparation_models/MobilePhasePreparation";
+import type { DiluentPreparation } from "../preparation_models/DiluentPreparation";
 
 // SVG Icons
 const Target: React.FC<{ className: string }> = ({ className }) => (
@@ -236,6 +248,199 @@ const createNewCalculationDisso = (index: number): CalculationDisso => ({
   v12: null,
   v13: null,
   v14: null,
+  acceptanceLimit: null,
+});
+
+const createNewCalculationDissoProfile = (
+  index: number,
+): CalculationDissoProfile => ({
+  id: Date.now() + index,
+  label: `Calculation ${index + 1}`,
+  selectedStandardPreparationLabel: null,
+  selectedSamplePreparationLabel: null,
+  areaOfStandard: "",
+  numberOfTimePoints: 2,
+  volumeWithdraw: "",
+  volumeReplaced: "",
+  timePointDetail1: null,
+  timePointDetail2: null,
+  timePointDetail3: null,
+  timePointDetail4: null,
+  timePointDetail5: null,
+  timePointDetail6: null,
+  timePointDetail7: null,
+  timePointDetail8: null,
+  timePointDetail9: null,
+  timePointDetail10: null,
+  areaOfSampleT1S1: null,
+  areaOfSampleT1S2: null,
+  areaOfSampleT1S3: null,
+  areaOfSampleT1S4: null,
+  areaOfSampleT1S5: null,
+  areaOfSampleT1S6: null,
+  areaOfSampleT2S1: null,
+  areaOfSampleT2S2: null,
+  areaOfSampleT2S3: null,
+  areaOfSampleT2S4: null,
+  areaOfSampleT2S5: null,
+  areaOfSampleT2S6: null,
+  areaOfSampleT3S1: null,
+  areaOfSampleT3S2: null,
+  areaOfSampleT3S3: null,
+  areaOfSampleT3S4: null,
+  areaOfSampleT3S5: null,
+  areaOfSampleT3S6: null,
+  areaOfSampleT4S1: null,
+  areaOfSampleT4S2: null,
+  areaOfSampleT4S3: null,
+  areaOfSampleT4S4: null,
+  areaOfSampleT4S5: null,
+  areaOfSampleT4S6: null,
+  areaOfSampleT5S1: null,
+  areaOfSampleT5S2: null,
+  areaOfSampleT5S3: null,
+  areaOfSampleT5S4: null,
+  areaOfSampleT5S5: null,
+  areaOfSampleT5S6: null,
+  areaOfSampleT6S1: null,
+  areaOfSampleT6S2: null,
+  areaOfSampleT6S3: null,
+  areaOfSampleT6S4: null,
+  areaOfSampleT6S5: null,
+  areaOfSampleT6S6: null,
+  areaOfSampleT7S1: null,
+  areaOfSampleT7S2: null,
+  areaOfSampleT7S3: null,
+  areaOfSampleT7S4: null,
+  areaOfSampleT7S5: null,
+  areaOfSampleT7S6: null,
+  areaOfSampleT8S1: null,
+  areaOfSampleT8S2: null,
+  areaOfSampleT8S3: null,
+  areaOfSampleT8S4: null,
+  areaOfSampleT8S5: null,
+  areaOfSampleT8S6: null,
+  areaOfSampleT9S1: null,
+  areaOfSampleT9S2: null,
+  areaOfSampleT9S3: null,
+  areaOfSampleT9S4: null,
+  areaOfSampleT9S5: null,
+  areaOfSampleT9S6: null,
+  areaOfSampleT10S1: null,
+  areaOfSampleT10S2: null,
+  areaOfSampleT10S3: null,
+  areaOfSampleT10S4: null,
+  areaOfSampleT10S5: null,
+  areaOfSampleT10S6: null,
+  purity: "",
+  mWSalt: "",
+  mWBase: "",
+  claim: "",
+  claimUnit: "",
+  sampleResultsT1: null,
+  sampleResultsT2: null,
+  sampleResultsT3: null,
+  sampleResultsT4: null,
+  sampleResultsT5: null,
+  sampleResultsT6: null,
+  sampleResultsT7: null,
+  sampleResultsT8: null,
+  sampleResultsT9: null,
+  sampleResultsT10: null,
+  correctionFactorsT2: null,
+  correctionFactorsT3: null,
+  correctionFactorsT4: null,
+  correctionFactorsT5: null,
+  correctionFactorsT6: null,
+  correctionFactorsT7: null,
+  correctionFactorsT8: null,
+  correctionFactorsT9: null,
+  correctionFactorsT10: null,
+  resultsAfterCorrectionT2: null,
+  resultsAfterCorrectionT3: null,
+  resultsAfterCorrectionT4: null,
+  resultsAfterCorrectionT5: null,
+  resultsAfterCorrectionT6: null,
+  resultsAfterCorrectionT7: null,
+  resultsAfterCorrectionT8: null,
+  resultsAfterCorrectionT9: null,
+  resultsAfterCorrectionT10: null,
+  minT1: null,
+  avgT1: null,
+  maxT1: null,
+  minT2: null,
+  avgT2: null,
+  maxT2: null,
+  minT3: null,
+  avgT3: null,
+  maxT3: null,
+  minT4: null,
+  avgT4: null,
+  maxT4: null,
+  minT5: null,
+  avgT5: null,
+  maxT5: null,
+  minT6: null,
+  avgT6: null,
+  maxT6: null,
+  minT7: null,
+  avgT7: null,
+  maxT7: null,
+  minT8: null,
+  avgT8: null,
+  maxT8: null,
+  minT9: null,
+  avgT9: null,
+  maxT9: null,
+  minT10: null,
+  avgT10: null,
+  maxT10: null,
+  sw1: null,
+  v1: null,
+  v2: null,
+  v3: null,
+  v4: null,
+  v5: null,
+  v6: null,
+  v7: null,
+  v8: null,
+  v9: null,
+  v10: null,
+  v11: null,
+  v12: null,
+  v13: null,
+  v14: null,
+  v8TimePoint1: null,
+  v8TimePoint2: null,
+  v8TimePoint3: null,
+  v8TimePoint4: null,
+  v8TimePoint5: null,
+  v8TimePoint6: null,
+  v8TimePoint7: null,
+  v8TimePoint8: null,
+  v8TimePoint9: null,
+  v8TimePoint10: null,
+  acceptanceLimit: null,
+  acceptanceLimitMin1: null,
+  acceptanceLimitMax1: null,
+  acceptanceLimitMin2: null,
+  acceptanceLimitMax2: null,
+  acceptanceLimitMin3: null,
+  acceptanceLimitMax3: null,
+  acceptanceLimitMin4: null,
+  acceptanceLimitMax4: null,
+  acceptanceLimitMin5: null,
+  acceptanceLimitMax5: null,
+  acceptanceLimitMin6: null,
+  acceptanceLimitMax6: null,
+  acceptanceLimitMin7: null,
+  acceptanceLimitMax7: null,
+  acceptanceLimitMin8: null,
+  acceptanceLimitMax8: null,
+  acceptanceLimitMin9: null,
+  acceptanceLimitMax9: null,
+  acceptanceLimitMin10: null,
+  acceptanceLimitMax10: null,
 });
 
 const createNewCalculationAssay = (index: number): CalculationAssay => ({
@@ -484,23 +689,48 @@ const createNewCalculationRS = (index: number): CalculationRS => ({
   v6: null,
 });
 
-const createNewMobilePhasePreparation = (
+const createNewCalculationRelatedSubstance = (
   index: number,
-): MobilePhasePreparation => ({
+): CalculationRelatedSubstance => ({
   id: Date.now() + index,
-  label: `Mobile Phase Preparation ${index + 1}`,
-  steps: [
-    {
-      name: "Weighing",
-      value1: "",
-      unit1: "g",
-      logBookID: "",
-      solventChemical: "",
-    },
-    { name: "PH", value1: "", unit1: "", logBookID: "" },
-    { name: "Sonication", value1: "", unit1: "min", mobilePhaseID: "" },
-    { name: "Filtration", value1: "", unit1: "micron" },
-  ],
+  label: `Calculation ${index + 1}`,
+  selectedStandardPreparationLabel: null,
+  selectedSamplePreparationLabel: null,
+  calculationFor: "",
+  areaOfSample: "",
+  areaOfStandard: "",
+  purity: "",
+  mWSalt: "",
+  mWBase: "",
+  responseFactor: "",
+  avgWeight: "",
+  avgWeightUnit: "mg",
+  weightPerMl: "",
+  weightPerMlUnit: "mg",
+  doseVolume: "",
+  doseVolumeUnit: "ml",
+  calculationResult: null,
+  calculationResultUnit: null,
+  sw1: null,
+  sw2: null,
+  v1: null,
+  v2: null,
+  v3: null,
+  v4: null,
+  v5: null,
+  v6: null,
+  v7: null,
+  v8: null,
+  v9: null,
+  v10: null,
+  v11: null,
+  v12: null,
+  v13: null,
+  v14: null,
+  responseFactorUnit: "mg",
+  labelClaim: "",
+  labelClaimUnit: "mg",
+  acceptanceLimit: null
 });
 
 const createNewDissoMediaPreparation = (
@@ -510,7 +740,7 @@ const createNewDissoMediaPreparation = (
   label: `Dissolution Media Preparation ${index + 1}`,
   steps: [
     {
-      name: "Weighing/Pipetting",
+      name: "Weighing/Measuring",
       value1: "",
       unit1: "g",
       logBookID: "",
@@ -519,6 +749,21 @@ const createNewDissoMediaPreparation = (
     { name: "PH", value1: "", unit1: "", logBookID: "" },
     { name: "Sonication", value1: "", unit1: "min" },
     { name: "Filtration", value1: "", unit1: "micron" },
+  ],
+});
+
+const createNewBufferPreparation = (index: number): BufferPreparationModel => ({
+  id: Date.now() + index,
+  label: `Buffer Preparation ${index + 1}`,
+  steps: [
+    {
+      name: "Weighing/Measuring",
+      value1: "",
+      unit1: "g",
+      logBookID: "",
+      solventChemical: "",
+    },
+    { name: "PH", value1: "", unit1: "", logBookID: "" },
   ],
 });
 
@@ -535,9 +780,75 @@ const createNewSamplePreparationTitration = (
       logBookID: "",
       solventChemical: "",
     },
+    {
+      name: "Tablet Details",
+      value1: "",
+      unit1: "mg",
+      value2: "",
+      unit2: "ml",
+      value3: "",
+      unit3: "min",
+      logBookID: "",
+      solventChemical: "",
+    },
     { name: "1st Dilution", value1: "", unit1: "ml" },
     { name: "End Point Determination", value1: "", unit1: "" },
   ],
+});
+
+const createNewCalculationFerrousFumarate = (
+  index: number,
+): CalculationAssayFerrousFumarate => ({
+  id: Date.now() + index,
+  label: `Calculation ${index + 1}`,
+  selectedSamplePreparationLabel: null,
+  calculationFor: "",
+  buretteReading: "",
+  theoreticalMolarity: "",
+  actualMolarity: "",
+  factor: "",
+  avgWeight: "",
+  labelClaim: "",
+  lodWaterType: "water",
+  lodWaterValue: "",
+  calculationResult: null,
+  calculationResultUnit: null,
+  labelClaimPercent: null,
+  dryBasisResult: null,
+  factorUnit: "",
+  avgWeightUnit: "",
+  labelClaimUnit: "",
+  acceptanceLimit: null
+});
+
+const createNewCalculationDissoFerrousFumarate = (
+  index: number,
+): CalculationDissoFerrousFumarate => ({
+  id: Date.now() + index,
+  label: `Calculation ${index + 1}`,
+  selectedSamplePreparationLabel: null,
+  buretteReading1: "",
+  buretteReading2: "",
+  buretteReading3: "",
+  buretteReading4: "",
+  buretteReading5: "",
+  buretteReading6: "",
+  theoreticalMolarity: "",
+  actualMolarity: "",
+  factor: "",
+  dissoMediaVolume: "",
+  labelClaim: "",
+  calculationResultTablet1: null,
+  calculationResultTablet2: null,
+  calculationResultTablet3: null,
+  calculationResultTablet4: null,
+  calculationResultTablet5: null,
+  calculationResultTablet6: null,
+  calculationResult: null,
+  calculationResultUnit: null,
+  sampleTaken: null,
+  acceptanceLimit: null,
+  factorUnit: "mg"
 });
 
 const createNewSamplePreparationUC = (index: number): SamplePreparationUC => ({
@@ -579,7 +890,6 @@ const createNewCalculationUC = (index: number): CalculationUC => ({
   purity: "",
   mWBase: "",
   mWSalt: "",
-  calculationResult: null,
   calculationResultUnit: null,
   calculationResultTablet1: null,
   calculationResultTablet2: null,
@@ -593,7 +903,6 @@ const createNewCalculationUC = (index: number): CalculationUC => ({
   calculationResultTablet10: null,
   sw1: null,
   claim: null,
-  dilutedVol: null,
   v1: null,
   v2: null,
   v3: null,
@@ -608,8 +917,17 @@ const createNewCalculationUC = (index: number): CalculationUC => ({
   v12: null,
   v13: null,
   v14: null,
-  v15: null,
-  v16: null,
+  mgPerTabletResultTablet1: null,
+  mgPerTabletResultTablet2: null,
+  mgPerTabletResultTablet3: null,
+  mgPerTabletResultTablet4: null,
+  mgPerTabletResultTablet5: null,
+  mgPerTabletResultTablet6: null,
+  mgPerTabletResultTablet7: null,
+  mgPerTabletResultTablet8: null,
+  mgPerTabletResultTablet9: null,
+  mgPerTabletResultTablet10: null,
+  mgPerTabletResultUnit: "mg",
 });
 
 const createNewSystemSuitability = (index: number): SystemSuitability => ({
@@ -639,9 +957,19 @@ const PREPARATION_GROUPS = {
     label: "Preparations for Residual Solvent",
     color: "emerald",
   },
+  relatedSubstance: {
+    id: "relatedSubstance",
+    label: "Preparations for Related Substance",
+    color: "emerald",
+  },
   dissolution: {
     id: "dissolution",
     label: "Preparations for Dissolution",
+    color: "emerald",
+  },
+  dissolutionProfile: {
+    id: "dissolutionProfile",
+    label: "Preparations for Dissolution (Profile)",
     color: "emerald",
   },
   uniformityOfContent: {
@@ -649,9 +977,14 @@ const PREPARATION_GROUPS = {
     label: "Preparations for Uniformity of Content",
     color: "emerald",
   },
-  titration: {
-    id: "titration",
-    label: "Preparation for Titration",
+  assayFerrousFumarate: {
+    id: "assayFerrousFumarate",
+    label: "Preparation for Assay (Ferrous Fumarate)",
+    color: "emerald",
+  },
+  dissolutionFerrousFumarate: {
+    id: "dissolutionFerrousFumarate",
+    label: "Preparation for Dissolution (Ferrous Fumarate)",
     color: "emerald",
   },
   mobilePhase: {
@@ -667,6 +1000,11 @@ const PREPARATION_GROUPS = {
   blankPreparation: {
     id: "blankPreparation",
     label: "Blank Preparation",
+    color: "emerald",
+  },
+  bufferPreparation: {
+    id: "bufferPreparation",
+    label: "Buffer Preparations",
     color: "emerald",
   },
 } as const;
@@ -749,8 +1087,22 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const [dissoMediaPerParam, setDissoMediaPerParam] = useState<
     Record<number, DissoMediaPreparation[]>
   >({});
-  const [samplePrepTitrationPerParam, setSamplePrepTitrationPerParam] =
-    useState<Record<number, SamplePreparationTitration[]>>({});
+  const [
+    samplePrepAssayFerrousFumaratePerParam,
+    setSamplePrepAssayFerrousFumaratePerParam,
+  ] = useState<Record<number, SamplePreparationTitration[]>>({});
+  const [
+    calculationsAssayFerrousFumaratePerParam,
+    setCalculationsAssayFerrousFumaratePerParam,
+  ] = useState<Record<number, CalculationAssayFerrousFumarate[]>>({});
+  const [
+    calculationsDissoFerrousFumaratePerParam,
+    setCalculationsDissoFerrousFumaratePerParam,
+  ] = useState<Record<number, CalculationDissoFerrousFumarate[]>>({});
+  const [
+    samplePrepDissoFerrousFumaratePerParam,
+    setSamplePrepDissoFerrousFumaratePerParam,
+  ] = useState<Record<number, SamplePreparationTitration[]>>({});
 
   const [samplePreparationUCPerParam, setSamplePreparationUCPerParam] =
     useState<Record<number, SamplePreparationUC[]>>({});
@@ -767,8 +1119,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const [calculationsAssayPerParam, setCalculationsAssayPerParam] = useState<
     Record<number, CalculationAssay[]>
   >({});
-  const [standardPreparationPerParam, setStandardPreparationPerParam] =
-    useState<Record<number, StandardPreparation[]>>({});
+  const [
+    standardPreparationAssayPerParam,
+    setStandardPreparationAssayPerParam,
+  ] = useState<Record<number, StandardPreparation[]>>({});
   const [samplePreparationPerParam, setSamplePreparationPerParam] = useState<
     Record<number, SamplePreparation[]>
   >({});
@@ -850,15 +1204,45 @@ const Worksheet: React.FC<WorksheetProps> = ({
     calculationsSulphatedAshPerParam,
     setCalculationsSulphatedAshPerParam,
   ] = useState<Record<number, CalculationSulphatedAsh[]>>({});
-  const [standardPreparationRSPerParam, setStandardPreparationRSPerParam] =
-    useState<Record<number, StandardPreparation[]>>({});
+  const [
+    standardPreparationResidualSolventPerParam,
+    setStandardPreparationResidualSolventPerParam,
+  ] = useState<Record<number, StandardPreparation[]>>({});
   const [samplePreparationRSPerParam, setSamplePreparationRSPerParam] =
     useState<Record<number, SamplePreparation[]>>({});
   const [calculationsRSPerParam, setCalculationsRSPerParam] = useState<
     Record<number, CalculationRS[]>
   >({});
+  const [
+    standardPreparationRelatedSubstancePerParam,
+    setStandardPreparationRelatedSubstancePerParam,
+  ] = useState<Record<number, StandardPreparation[]>>({});
+  const [
+    samplePreparationRelatedSubstancePerParam,
+    setSamplePreparationRelatedSubstancePerParam,
+  ] = useState<Record<number, SamplePreparation[]>>({});
+  const [
+    calculationsRelatedSubstancePerParam,
+    setCalculationsRelatedSubstancePerParam,
+  ] = useState<Record<number, CalculationRelatedSubstance[]>>({});
   const [calculationsDissoPerParam, setCalculationsDissoPerParam] = useState<
     Record<number, CalculationDisso[]>
+  >({});
+
+  const [
+    calculationsDissoProfilePerParam,
+    setCalculationsDissoProfilePerParam,
+  ] = useState<Record<number, CalculationDissoProfile[]>>({});
+  const [
+    standardPreparationDissoProfilePerParam,
+    setStandardPreparationDissoProfilePerParam,
+  ] = useState<Record<number, StandardPreparation[]>>({});
+  const [
+    samplePreparationDissoProfilePerParam,
+    setSamplePreparationDissoProfilePerParam,
+  ] = useState<Record<number, SamplePreparationDisso[]>>({});
+  const [dissoMediaProfilePerParam, setDissoMediaProfilePerParam] = useState<
+    Record<number, DissoMediaPreparation[]>
   >({});
 
   const [showDiluentPreparation, setShowDiluentPreparation] = useState<
@@ -870,6 +1254,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const [showMobilePhasePreparation, setShowMobilePhasePreparation] = useState<
     Record<number, boolean>
   >({});
+  const [showMobilePhaseDialog, setShowMobilePhaseDialog] = useState<
+    Record<number, boolean>
+  >({});
+  const [editingMobilePhasePrepId, setEditingMobilePhasePrepId] = useState<
+    string | null
+  >(null);
   const [systemSuitabilityPerParam, setSystemSuitabilityPerParam] = useState<
     Record<number, SystemSuitability[]>
   >({});
@@ -879,11 +1269,34 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const [showBlankPreparationDialog, setShowBlankPreparationDialog] = useState<
     Record<number, boolean>
   >({});
-  const [editingBlankPrepId, setEditingBlankPrepId] = useState<string | null>(null);
+  const [editingBlankPrepId, setEditingBlankPrepId] = useState<string | null>(
+    null,
+  );
+  const [bufferPreparationPerParam, setBufferPreparationPerParam] = useState<
+    Record<number, BufferPreparationModel[]>
+  >({});
+  const [showBufferPreparation, setShowBufferPreparation] = useState<
+    Record<number, boolean>
+  >({});
+  // Diluent uses the BlankPreparation sheet (multiple items)
+  const [diluentPreparationsPerParam, setDiluentPreparationsPerParam] =
+    useState<Record<number, DiluentPreparation[]>>({});
+  const [showDiluentPrepDialog, setShowDiluentPrepDialog] = useState<
+    Record<number, boolean>
+  >({});
+  const [editingDiluentPrepId, setEditingDiluentPrepId] = useState<
+    string | null
+  >(null);
 
   const [isAddingRSStandard, setIsAddingRSStandard] = useState(false);
   const [isAddingDissoStandard, setIsAddingDissoStandard] = useState(false);
   const [isAddingUCStandard, setIsAddingUCStandard] = useState(false);
+  const [isAddingDissoProfileStandard, setIsAddingDissoProfileStandard] =
+    useState(false);
+  const [
+    isAddingRelatedSubstanceStandard,
+    setIsAddingRelatedSubstanceStandard,
+  ] = useState(false);
 
   // Dropdown control states
   const [showInstrumentDropdown, setShowInstrumentDropdown] = useState(false);
@@ -1035,7 +1448,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         setWorksheetInfo(worksheetData);
         setRegistrationNo(worksheetData.sample.registrationNo);
 
-        console.log('map', WorksheetDbMapper.mapAll(worksheetData));
+        console.log("map", WorksheetDbMapper.mapAll(worksheetData));
 
         const request: SmapleDetailsRequest = {
           regNo: worksheetData.sample.registrationNo,
@@ -1101,13 +1514,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
     parameters.forEach((param, idx) => {
       const paramId = restoredParams[idx].id;
 
-
       const systemSuitabilityPreps = (param.preparations || []).filter(
         (p: any) => p.preparationCategory === "system_suitability",
       );
 
       if (systemSuitabilityPreps.length > 0) {
-
         setShowSystemSuitability((prev) => ({
           ...prev,
           [paramId]: true,
@@ -1133,23 +1544,20 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }));
       }
 
-      // ------------------------------------------------------------------------
-      // 2.2: Column, Diluent, Other Info, Analyst Info
-      // ------------------------------------------------------------------------
       if (param.columnId) {
         setColumnsPerParam((prev) => ({ ...prev, [paramId]: param.columnId! }));
       }
 
-      if (param.diluentPreparation) {
-        setDiluentPerParam((prev) => ({
-          ...prev,
-          [paramId]: param.diluentPreparation!,
-        }));
-        setShowDiluentPreparation((prev) => ({
-          ...prev,
-          [paramId]: true,
-        }));
-      }
+      // if (param.diluentPreparation) {
+      //   setDiluentPerParam((prev) => ({
+      //     ...prev,
+      //     [paramId]: param.diluentPreparation!,
+      //   }));
+      //   setShowDiluentPreparation((prev) => ({
+      //     ...prev,
+      //     [paramId]: true,
+      //   }));
+      // }
 
       if (param.otherInfo) {
         setOtherInfoPerParam((prev) => ({
@@ -1307,6 +1715,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
           rsStd: [] as any[],
           dissoStd: [] as any[],
           ucStd: [] as any[],
+          relatedSubstanceStd: [] as any[],
 
           // Sample preparations by type
           assaySpl: [] as any[],
@@ -1315,13 +1724,20 @@ const Worksheet: React.FC<WorksheetProps> = ({
           ashSpl: [] as any[],
           rsSpl: [] as any[],
           dissoSpl: [] as any[],
-          titrationSpl: [] as any[],
+          assayFerrousFumarateSpl: [] as any[],
+          dissolutionFerrousFumarateSpl: [] as any[],
           ucSpl: [] as any[],
+          relatedSubstanceSpl: [] as any[],
 
           // Special category preparations
           dissoMedia: [] as any[],
           mobilePhase: [] as any[],
           blank: [] as any[],
+          bufferPrep: [] as any[],
+          diluentPrep: [] as any[],
+          dissoProfileStd: [] as any[],
+          dissoProfileSpl: [] as any[],
+          dissoMediaProfile: [] as any[],
         };
 
         // Process each preparation
@@ -1353,11 +1769,17 @@ const Worksheet: React.FC<WorksheetProps> = ({
               case "residual_solvent":
                 preparationCollections.rsStd.push(newPrep);
                 break;
+              case "related_substance":
+                preparationCollections.relatedSubstanceStd.push(newPrep);
+                break;
               case "dissolution":
                 preparationCollections.dissoStd.push(newPrep);
                 break;
               case "uniformity_of_content":
                 preparationCollections.ucStd.push(newPrep);
+                break;
+              case "dissolution_profile":
+                preparationCollections.dissoProfileStd.push(newPrep);
                 break;
               default:
                 // [WARNING] CRITICAL FIX: Log unrecognized types but DON'T add them
@@ -1390,14 +1812,26 @@ const Worksheet: React.FC<WorksheetProps> = ({
               case "residual_solvent":
                 preparationCollections.rsSpl.push(newPrep);
                 break;
+              case "related_substance":
+                preparationCollections.relatedSubstanceSpl.push(newPrep);
+                break;
               case "dissolution":
                 preparationCollections.dissoSpl.push(newPrep);
                 break;
-              case "titration":
-                preparationCollections.titrationSpl.push(newPrep);
+              case "assay_ferrous_fumarate":
+                preparationCollections.assayFerrousFumarateSpl.push(newPrep);
+                break;
+
+              case "dissolution_ferrous_fumarate":
+                preparationCollections.dissolutionFerrousFumarateSpl.push(
+                  newPrep,
+                );
                 break;
               case "uniformity_of_content":
                 preparationCollections.ucSpl.push(newPrep);
+                break;
+              case "dissolution_profile":
+                preparationCollections.dissoProfileSpl.push(newPrep);
                 break;
               default:
                 // [WARNING] CRITICAL FIX: Log unrecognized types but DON'T add them
@@ -1413,14 +1847,33 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 break;
             }
           } else if (prepCategory === "dissolution_media") {
-            preparationCollections.dissoMedia.push(newPrep);
+            if (prepType === "dissolution_media") {
+              preparationCollections.dissoMedia.push(newPrep);
+            } else {
+              preparationCollections.dissoMediaProfile.push(newPrep);
+            }
           } else if (prepCategory === "mobile_phase") {
-            preparationCollections.mobilePhase.push(newPrep);
+            preparationCollections.mobilePhase.push({
+              id: String(newPrep.id),
+              label: prep.label || "Mobile Phase Preparation",
+              content: prep.content || "",
+            });
           } else if (prepCategory === "blank") {
-            // Blank preparation - store label and content
             preparationCollections.blank.push({
               id: newPrep.id,
               label: prep.label || "Blank Preparation",
+              content: prep.content || "",
+            });
+          } else if (prepCategory === "buffer") {
+            preparationCollections.bufferPrep.push({
+              id: newPrep.id,
+              label: prep.label || "Buffer Preparation",
+              steps: newPrep.steps,
+            });
+          } else if (prepCategory === "diluent") {
+            preparationCollections.diluentPrep.push({
+              id: String(newPrep.id),
+              label: prep.label || "Diluent Preparation",
               content: prep.content || "",
             });
           } else {
@@ -1431,14 +1884,14 @@ const Worksheet: React.FC<WorksheetProps> = ({
         });
 
         if (preparationCollections.assayStd.length > 0) {
-          setStandardPreparationPerParam((prev) => ({
+          setStandardPreparationAssayPerParam((prev) => ({
             ...prev,
             [paramId]: preparationCollections.assayStd,
           }));
         }
 
         if (preparationCollections.rsStd.length > 0) {
-          setStandardPreparationRSPerParam((prev) => ({
+          setStandardPreparationResidualSolventPerParam((prev) => ({
             ...prev,
             [paramId]: preparationCollections.rsStd,
           }));
@@ -1494,6 +1947,20 @@ const Worksheet: React.FC<WorksheetProps> = ({
           }));
         }
 
+        if (preparationCollections.relatedSubstanceStd.length > 0) {
+          setStandardPreparationRelatedSubstancePerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.relatedSubstanceStd,
+          }));
+        }
+
+        if (preparationCollections.relatedSubstanceSpl.length > 0) {
+          setSamplePreparationRelatedSubstancePerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.relatedSubstanceSpl,
+          }));
+        }
+
         if (preparationCollections.dissoSpl.length > 0) {
           setSamplePreparationDissoPerParam((prev) => ({
             ...prev,
@@ -1501,10 +1968,17 @@ const Worksheet: React.FC<WorksheetProps> = ({
           }));
         }
 
-        if (preparationCollections.titrationSpl.length > 0) {
-          setSamplePrepTitrationPerParam((prev) => ({
+        if (preparationCollections.assayFerrousFumarateSpl.length > 0) {
+          setSamplePrepAssayFerrousFumaratePerParam((prev) => ({
             ...prev,
-            [paramId]: preparationCollections.titrationSpl,
+            [paramId]: preparationCollections.assayFerrousFumarateSpl,
+          }));
+        }
+
+        if (preparationCollections.dissolutionFerrousFumarateSpl.length > 0) {
+          setSamplePrepDissoFerrousFumaratePerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.dissolutionFerrousFumarateSpl,
           }));
         }
 
@@ -1520,6 +1994,27 @@ const Worksheet: React.FC<WorksheetProps> = ({
           setDissoMediaPerParam((prev) => ({
             ...prev,
             [paramId]: preparationCollections.dissoMedia,
+          }));
+        }
+
+        if (preparationCollections.dissoProfileStd.length > 0) {
+          setStandardPreparationDissoProfilePerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.dissoProfileStd,
+          }));
+        }
+
+        if (preparationCollections.dissoProfileSpl.length > 0) {
+          setSamplePreparationDissoProfilePerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.dissoProfileSpl,
+          }));
+        }
+
+        if (preparationCollections.dissoMediaProfile.length > 0) {
+          setDissoMediaProfilePerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.dissoMediaProfile,
           }));
         }
 
@@ -1547,6 +2042,24 @@ const Worksheet: React.FC<WorksheetProps> = ({
             [paramId]: [...(prev[paramId] || []), "blankPreparation"],
           }));
         }
+
+        // Buffer preparations
+        if (preparationCollections.bufferPrep.length > 0) {
+          setBufferPreparationPerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.bufferPrep,
+          }));
+          setShowBufferPreparation((prev) => ({ ...prev, [paramId]: true }));
+        }
+
+        // Diluent preparations (blank-sheet style)
+        if (preparationCollections.diluentPrep.length > 0) {
+          setDiluentPreparationsPerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.diluentPrep,
+          }));
+          setShowDiluentPreparation((prev) => ({ ...prev, [paramId]: true }));
+        }
       }
 
       // ------------------------------------------------------------------------
@@ -1571,8 +2084,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
           roi: [] as any[],
           sulphatedAsh: [] as any[],
           residualSolvent: [] as any[],
+          relatedSubstance: [] as any[],
           dissolution: [] as any[],
           uniformityOfContent: [] as any[],
+          dissolutionProfile: [] as any[],
+          ferrousFumarate: [] as CalculationAssayFerrousFumarate[],
+          dissoFerrousFumarate: [] as CalculationDissoFerrousFumarate[],
         };
 
         param.calculations.forEach((calc: any, i: number) => {
@@ -1597,21 +2114,20 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     parsedData.selectedStandardPreparationLabel,
                   selectedSamplePreparationLabel:
                     parsedData.selectedSamplePreparationLabel,
-                  areaOfStandard: parsedData.areaOfStandard || "",
-                  areaOfSample1: parsedData.areaOfSample1 || "",
-                  areaOfSample2: parsedData.areaOfSample2 || "",
-                  areaOfSample3: parsedData.areaOfSample3 || "",
-                  areaOfSample4: parsedData.areaOfSample4 || "",
-                  areaOfSample5: parsedData.areaOfSample5 || "",
-                  areaOfSample6: parsedData.areaOfSample6 || "",
-                  areaOfSample7: parsedData.areaOfSample7 || "",
-                  areaOfSample8: parsedData.areaOfSample8 || "",
-                  areaOfSample9: parsedData.areaOfSample9 || "",
-                  areaOfSample10: parsedData.areaOfSample10 || "",
+                  areaOfStandard: parsedData.areaOfStandard ?? null,
+                  areaOfSample1: parsedData.areaOfSample1 ?? null,
+                  areaOfSample2: parsedData.areaOfSample2 ?? null,
+                  areaOfSample3: parsedData.areaOfSample3 ?? null,
+                  areaOfSample4: parsedData.areaOfSample4 ?? null,
+                  areaOfSample5: parsedData.areaOfSample5 ?? null,
+                  areaOfSample6: parsedData.areaOfSample6 ?? null,
+                  areaOfSample7: parsedData.areaOfSample7 ?? null,
+                  areaOfSample8: parsedData.areaOfSample8 ?? null,
+                  areaOfSample9: parsedData.areaOfSample9 ?? null,
+                  areaOfSample10: parsedData.areaOfSample10 ?? null,
                   purity: parsedData.purity || "",
-                  mWBase: parsedData.mWBase || "",
-                  mWSalt: parsedData.mWSalt || "",
-                  calculationResult: parsedData.calculationResult || null,
+                  mWBase: parsedData.mWBase ?? null,
+                  mWSalt: parsedData.mWSalt ?? null,
                   calculationResultUnit:
                     parsedData.calculationResultUnit || null,
                   calculationResultTablet1:
@@ -1634,9 +2150,30 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     parsedData.calculationResultTablet9 || null,
                   calculationResultTablet10:
                     parsedData.calculationResultTablet10 || null,
+                  mgPerTabletResultUnit:
+                    parsedData.mgPerTabletResultUnit || null,
+                  mgPerTabletResultTablet1:
+                    parsedData.mgPerTabletResultTablet1 || null,
+                  mgPerTabletResultTablet2:
+                    parsedData.mgPerTabletResultTablet2 || null,
+                  mgPerTabletResultTablet3:
+                    parsedData.mgPerTabletResultTablet3 || null,
+                  mgPerTabletResultTablet4:
+                    parsedData.mgPerTabletResultTablet4 || null,
+                  mgPerTabletResultTablet5:
+                    parsedData.mgPerTabletResultTablet5 || null,
+                  mgPerTabletResultTablet6:
+                    parsedData.mgPerTabletResultTablet6 || null,
+                  mgPerTabletResultTablet7:
+                    parsedData.mgPerTabletResultTablet7 || null,
+                  mgPerTabletResultTablet8:
+                    parsedData.mgPerTabletResultTablet8 || null,
+                  mgPerTabletResultTablet9:
+                    parsedData.mgPerTabletResultTablet9 || null,
+                  mgPerTabletResultTablet10:
+                    parsedData.mgPerTabletResultTablet10 || null,
                   sw1: parsedData.sw1 || null,
                   claim: parsedData.claim || null,
-                  dilutedVol: parsedData.dilutedVol || null,
                   v1: parsedData.v1 || null,
                   v2: parsedData.v2 || null,
                   v3: parsedData.v3 || null,
@@ -1651,8 +2188,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   v12: parsedData.v12 || null,
                   v13: parsedData.v13 || null,
                   v14: parsedData.v14 || null,
-                  v15: parsedData.v15 || null,
-                  v16: parsedData.v16 || null,
                 };
                 restoredCalculations.uniformityOfContent.push(ucCalc);
                 break;
@@ -1675,13 +2210,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   mWBase: parsedData.mWBase || "",
                   claim: parsedData.claim || "",
                   claimUnit: parsedData.claimUnit || "",
-                  labelClaim: parsedData.labelClaim || "",
-                  lodwaterType: parsedData.lodwaterType || "",
-                  lodwaterValue: parsedData.lodwaterValue || "",
-                  calculationResult: parsedData.calculationResult || "",
-                  calculationResultUnit: parsedData.calculationResultUnit || "",
-                  labelClaimPercent: parsedData.labelClaimPercent || "",
-                  lodWaterBasisResult: parsedData.lodWaterBasisResult || "",
+                  labelClaim: parsedData.labelClaim || null,
+                  lodWaterType: parsedData.lodWaterType || "",
+                  lodWaterValue: parsedData.lodWaterValue || "",
+                  calculationResult: parsedData.calculationResult || null,
+                  calculationResultUnit: parsedData.calculationResultUnit || null,
+                  labelClaimPercent: parsedData.labelClaimPercent || null,
+                  lodWaterBasisResult: parsedData.lodWaterBasisResult || null,
                   sw1: parsedData.sw1 || null,
                   sw2: parsedData.sw2 || null,
                   v1: parsedData.v1 || null,
@@ -1776,6 +2311,51 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 restoredCalculations.residualSolvent.push(rsCalc);
                 break;
 
+              case "related_substance":
+                const relSubCalc: CalculationRelatedSubstance = {
+                  id: baseId + 7100,
+                  label: parsedData.label || calc.label,
+                  selectedStandardPreparationLabel: stdLabel,
+                  selectedSamplePreparationLabel: splLabel,
+                  calculationFor: parsedData.calculationFor || "",
+                  areaOfSample: parsedData.areaOfSample || "",
+                  areaOfStandard: parsedData.areaOfStandard || "",
+                  purity: parsedData.purity || "",
+                  mWSalt: parsedData.mWSalt || "",
+                  mWBase: parsedData.mWBase || "",
+                  responseFactor: parsedData.responseFactor || "",
+                  responseFactorUnit: parsedData.responseFactorUnit || "",
+                  labelClaim: parsedData.labelClaim || "",
+                  avgWeight: parsedData.avgWeight || "",
+                  avgWeightUnit: parsedData.avgWeightUnit || "mg",
+                  weightPerMl: parsedData.weightPerMl || "",
+                  weightPerMlUnit: parsedData.weightPerMlUnit || "mg",
+                  doseVolume: parsedData.doseVolume || "",
+                  doseVolumeUnit: parsedData.doseVolumeUnit || "ml",
+                  calculationResult: parsedData.calculationResult || null,
+                  calculationResultUnit: parsedData.calculationResultUnit || null,
+                  sw1: parsedData.sw1 || null,
+                  sw2: parsedData.sw2 || null,
+                  v1: parsedData.v1 || null,
+                  v2: parsedData.v2 || null,
+                  v3: parsedData.v3 || null,
+                  v4: parsedData.v4 || null,
+                  v5: parsedData.v5 || null,
+                  v6: parsedData.v6 || null,
+                  v7: parsedData.v7 || null,
+                  v8: parsedData.v8 || null,
+                  v9: parsedData.v9 || null,
+                  v10: parsedData.v10 || null,
+                  v11: parsedData.v11 || null,
+                  v12: parsedData.v12 || null,
+                  v13: parsedData.v13 || null,
+                  v14: parsedData.v14 || null,
+                  labelClaimUnit: parsedData.labelClaimUnit || null,
+                  acceptanceLimit: null
+                };
+                restoredCalculations.relatedSubstance.push(relSubCalc);
+                break;
+
               case "dissolution":
                 const dissoCalc = {
                   id: baseId + 8000,
@@ -1792,20 +2372,20 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   mWBase: parsedData.mWBase || "",
                   mWSalt: parsedData.mWSalt || "",
                   purity: parsedData.purity || "",
-                  calculationResult: parsedData.calculationResult || "",
+                  calculationResult: parsedData.calculationResult || null,
                   calculationResultTablet1:
-                    parsedData.calculationResultTablet1 || "",
+                    parsedData.calculationResultTablet1 || null,
                   calculationResultTablet2:
-                    parsedData.calculationResultTablet2 || "",
+                    parsedData.calculationResultTablet2 || null,
                   calculationResultTablet3:
-                    parsedData.calculationResultTablet3 || "",
+                    parsedData.calculationResultTablet3 || null,
                   calculationResultTablet4:
-                    parsedData.calculationResultTablet4 || "",
+                    parsedData.calculationResultTablet4 || null,
                   calculationResultTablet5:
-                    parsedData.calculationResultTablet5 || "",
+                    parsedData.calculationResultTablet5 || null,
                   calculationResultTablet6:
-                    parsedData.calculationResultTablet6 || "",
-                  calculationResultUnit: parsedData.calculationResultUnit || "",
+                    parsedData.calculationResultTablet6 || null,
+                  calculationResultUnit: parsedData.calculationResultUnit || null,
                   sw1: parsedData.sw1 || null,
                   claim: parsedData.claim || null,
                   mediaVol: parsedData.mediaVol || null,
@@ -1823,14 +2403,388 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   v12: parsedData.v12 || null,
                   v13: parsedData.v13 || null,
                   v14: parsedData.v14 || null,
+                  acceptanceLimit: parsedData.acceptanceLimit || null,
                 };
                 restoredCalculations.dissolution.push(dissoCalc);
                 break;
 
+              case "dissolution_profile":
+                const dissoProfileCalc = {
+                  id: baseId + 8500,
+                  label: parsedData.label || calc.label,
+                  selectedStandardPreparationLabel: stdLabel,
+                  selectedSamplePreparationLabel: splLabel,
+                  areaOfStandard: parsedData.areaOfStandard || "",
+                  numberOfTimePoints: parsedData.numberOfTimePoints || 2,
+                  volumeWithdraw: parsedData.volumeWithdraw || "",
+                  volumeReplaced: parsedData.volumeReplaced || "",
+                  timePointDetail1: parsedData.timePointDetail1 || null,
+                  timePointDetail2: parsedData.timePointDetail2 || null,
+                  timePointDetail3: parsedData.timePointDetail3 || null,
+                  timePointDetail4: parsedData.timePointDetail4 || null,
+                  timePointDetail5: parsedData.timePointDetail5 || null,
+                  timePointDetail6: parsedData.timePointDetail6 || null,
+                  timePointDetail7: parsedData.timePointDetail7 || null,
+                  timePointDetail8: parsedData.timePointDetail8 || null,
+                  timePointDetail9: parsedData.timePointDetail9 || null,
+                  timePointDetail10: parsedData.timePointDetail10 || null,
+                  areaOfSampleT1S1: parsedData.areaOfSampleT1S1 || null,
+                  areaOfSampleT1S2: parsedData.areaOfSampleT1S2 || null,
+                  areaOfSampleT1S3: parsedData.areaOfSampleT1S3 || null,
+                  areaOfSampleT1S4: parsedData.areaOfSampleT1S4 || null,
+                  areaOfSampleT1S5: parsedData.areaOfSampleT1S5 || null,
+                  areaOfSampleT1S6: parsedData.areaOfSampleT1S6 || null,
+                  areaOfSampleT2S1: parsedData.areaOfSampleT2S1 || null,
+                  areaOfSampleT2S2: parsedData.areaOfSampleT2S2 || null,
+                  areaOfSampleT2S3: parsedData.areaOfSampleT2S3 || null,
+                  areaOfSampleT2S4: parsedData.areaOfSampleT2S4 || null,
+                  areaOfSampleT2S5: parsedData.areaOfSampleT2S5 || null,
+                  areaOfSampleT2S6: parsedData.areaOfSampleT2S6 || null,
+                  areaOfSampleT3S1: parsedData.areaOfSampleT3S1 || null,
+                  areaOfSampleT3S2: parsedData.areaOfSampleT3S2 || null,
+                  areaOfSampleT3S3: parsedData.areaOfSampleT3S3 || null,
+                  areaOfSampleT3S4: parsedData.areaOfSampleT3S4 || null,
+                  areaOfSampleT3S5: parsedData.areaOfSampleT3S5 || null,
+                  areaOfSampleT3S6: parsedData.areaOfSampleT3S6 || null,
+                  areaOfSampleT4S1: parsedData.areaOfSampleT4S1 || null,
+                  areaOfSampleT4S2: parsedData.areaOfSampleT4S2 || null,
+                  areaOfSampleT4S3: parsedData.areaOfSampleT4S3 || null,
+                  areaOfSampleT4S4: parsedData.areaOfSampleT4S4 || null,
+                  areaOfSampleT4S5: parsedData.areaOfSampleT4S5 || null,
+                  areaOfSampleT4S6: parsedData.areaOfSampleT4S6 || null,
+                  areaOfSampleT5S1: parsedData.areaOfSampleT5S1 || null,
+                  areaOfSampleT5S2: parsedData.areaOfSampleT5S2 || null,
+                  areaOfSampleT5S3: parsedData.areaOfSampleT5S3 || null,
+                  areaOfSampleT5S4: parsedData.areaOfSampleT5S4 || null,
+                  areaOfSampleT5S5: parsedData.areaOfSampleT5S5 || null,
+                  areaOfSampleT5S6: parsedData.areaOfSampleT5S6 || null,
+                  areaOfSampleT6S1: parsedData.areaOfSampleT6S1 || null,
+                  areaOfSampleT6S2: parsedData.areaOfSampleT6S2 || null,
+                  areaOfSampleT6S3: parsedData.areaOfSampleT6S3 || null,
+                  areaOfSampleT6S4: parsedData.areaOfSampleT6S4 || null,
+                  areaOfSampleT6S5: parsedData.areaOfSampleT6S5 || null,
+                  areaOfSampleT6S6: parsedData.areaOfSampleT6S6 || null,
+                  areaOfSampleT7S1: parsedData.areaOfSampleT7S1 || null,
+                  areaOfSampleT7S2: parsedData.areaOfSampleT7S2 || null,
+                  areaOfSampleT7S3: parsedData.areaOfSampleT7S3 || null,
+                  areaOfSampleT7S4: parsedData.areaOfSampleT7S4 || null,
+                  areaOfSampleT7S5: parsedData.areaOfSampleT7S5 || null,
+                  areaOfSampleT7S6: parsedData.areaOfSampleT7S6 || null,
+                  areaOfSampleT8S1: parsedData.areaOfSampleT8S1 || null,
+                  areaOfSampleT8S2: parsedData.areaOfSampleT8S2 || null,
+                  areaOfSampleT8S3: parsedData.areaOfSampleT8S3 || null,
+                  areaOfSampleT8S4: parsedData.areaOfSampleT8S4 || null,
+                  areaOfSampleT8S5: parsedData.areaOfSampleT8S5 || null,
+                  areaOfSampleT8S6: parsedData.areaOfSampleT8S6 || null,
+                  areaOfSampleT9S1: parsedData.areaOfSampleT9S1 || null,
+                  areaOfSampleT9S2: parsedData.areaOfSampleT9S2 || null,
+                  areaOfSampleT9S3: parsedData.areaOfSampleT9S3 || null,
+                  areaOfSampleT9S4: parsedData.areaOfSampleT9S4 || null,
+                  areaOfSampleT9S5: parsedData.areaOfSampleT9S5 || null,
+                  areaOfSampleT9S6: parsedData.areaOfSampleT9S6 || null,
+                  areaOfSampleT10S1: parsedData.areaOfSampleT10S1 || null,
+                  areaOfSampleT10S2: parsedData.areaOfSampleT10S2 || null,
+                  areaOfSampleT10S3: parsedData.areaOfSampleT10S3 || null,
+                  areaOfSampleT10S4: parsedData.areaOfSampleT10S4 || null,
+                  areaOfSampleT10S5: parsedData.areaOfSampleT10S5 || null,
+                  areaOfSampleT10S6: parsedData.areaOfSampleT10S6 || null,
+                  purity: parsedData.purity || "",
+                  mWSalt: parsedData.mWSalt || "",
+                  mWBase: parsedData.mWBase || "",
+                  claim: parsedData.claim || "",
+                  claimUnit: parsedData.claimUnit || "",
+                  sampleResultsT1: parsedData.sampleResultsT1
+                    ? typeof parsedData.sampleResultsT1 === "string"
+                      ? JSON.parse(parsedData.sampleResultsT1)
+                      : parsedData.sampleResultsT1
+                    : null,
+                  sampleResultsT2: parsedData.sampleResultsT2
+                    ? typeof parsedData.sampleResultsT2 === "string"
+                      ? JSON.parse(parsedData.sampleResultsT2)
+                      : parsedData.sampleResultsT2
+                    : null,
+                  sampleResultsT3: parsedData.sampleResultsT3
+                    ? typeof parsedData.sampleResultsT3 === "string"
+                      ? JSON.parse(parsedData.sampleResultsT3)
+                      : parsedData.sampleResultsT3
+                    : null,
+                  sampleResultsT4: parsedData.sampleResultsT4
+                    ? typeof parsedData.sampleResultsT4 === "string"
+                      ? JSON.parse(parsedData.sampleResultsT4)
+                      : parsedData.sampleResultsT4
+                    : null,
+                  sampleResultsT5: parsedData.sampleResultsT5
+                    ? typeof parsedData.sampleResultsT5 === "string"
+                      ? JSON.parse(parsedData.sampleResultsT5)
+                      : parsedData.sampleResultsT5
+                    : null,
+                  sampleResultsT6: parsedData.sampleResultsT6
+                    ? typeof parsedData.sampleResultsT6 === "string"
+                      ? JSON.parse(parsedData.sampleResultsT6)
+                      : parsedData.sampleResultsT6
+                    : null,
+                  sampleResultsT7: parsedData.sampleResultsT7
+                    ? typeof parsedData.sampleResultsT7 === "string"
+                      ? JSON.parse(parsedData.sampleResultsT7)
+                      : parsedData.sampleResultsT7
+                    : null,
+                  sampleResultsT8: parsedData.sampleResultsT8
+                    ? typeof parsedData.sampleResultsT8 === "string"
+                      ? JSON.parse(parsedData.sampleResultsT8)
+                      : parsedData.sampleResultsT8
+                    : null,
+                  sampleResultsT9: parsedData.sampleResultsT9
+                    ? typeof parsedData.sampleResultsT9 === "string"
+                      ? JSON.parse(parsedData.sampleResultsT9)
+                      : parsedData.sampleResultsT9
+                    : null,
+                  sampleResultsT10: parsedData.sampleResultsT10
+                    ? typeof parsedData.sampleResultsT10 === "string"
+                      ? JSON.parse(parsedData.sampleResultsT10)
+                      : parsedData.sampleResultsT10
+                    : null,
+                  correctionFactorsT2: parsedData.correctionFactorsT2
+                    ? typeof parsedData.correctionFactorsT2 === "string"
+                      ? JSON.parse(parsedData.correctionFactorsT2)
+                      : parsedData.correctionFactorsT2
+                    : null,
+                  correctionFactorsT3: parsedData.correctionFactorsT3
+                    ? typeof parsedData.correctionFactorsT3 === "string"
+                      ? JSON.parse(parsedData.correctionFactorsT3)
+                      : parsedData.correctionFactorsT3
+                    : null,
+                  correctionFactorsT4: parsedData.correctionFactorsT4
+                    ? typeof parsedData.correctionFactorsT4 === "string"
+                      ? JSON.parse(parsedData.correctionFactorsT4)
+                      : parsedData.correctionFactorsT4
+                    : null,
+                  correctionFactorsT5: parsedData.correctionFactorsT5
+                    ? typeof parsedData.correctionFactorsT5 === "string"
+                      ? JSON.parse(parsedData.correctionFactorsT5)
+                      : parsedData.correctionFactorsT5
+                    : null,
+                  correctionFactorsT6: parsedData.correctionFactorsT6
+                    ? typeof parsedData.correctionFactorsT6 === "string"
+                      ? JSON.parse(parsedData.correctionFactorsT6)
+                      : parsedData.correctionFactorsT6
+                    : null,
+                  correctionFactorsT7: parsedData.correctionFactorsT7
+                    ? typeof parsedData.correctionFactorsT7 === "string"
+                      ? JSON.parse(parsedData.correctionFactorsT7)
+                      : parsedData.correctionFactorsT7
+                    : null,
+                  correctionFactorsT8: parsedData.correctionFactorsT8
+                    ? typeof parsedData.correctionFactorsT8 === "string"
+                      ? JSON.parse(parsedData.correctionFactorsT8)
+                      : parsedData.correctionFactorsT8
+                    : null,
+                  correctionFactorsT9: parsedData.correctionFactorsT9
+                    ? typeof parsedData.correctionFactorsT9 === "string"
+                      ? JSON.parse(parsedData.correctionFactorsT9)
+                      : parsedData.correctionFactorsT9
+                    : null,
+                  correctionFactorsT10: parsedData.correctionFactorsT10
+                    ? typeof parsedData.correctionFactorsT10 === "string"
+                      ? JSON.parse(parsedData.correctionFactorsT10)
+                      : parsedData.correctionFactorsT10
+                    : null,
+                  // ── Results after correction per time point ──────────────
+                  resultsAfterCorrectionT2: parsedData.resultsAfterCorrectionT2
+                    ? typeof parsedData.resultsAfterCorrectionT2 === "string"
+                      ? JSON.parse(parsedData.resultsAfterCorrectionT2)
+                      : parsedData.resultsAfterCorrectionT2
+                    : null,
+                  resultsAfterCorrectionT3: parsedData.resultsAfterCorrectionT3
+                    ? typeof parsedData.resultsAfterCorrectionT3 === "string"
+                      ? JSON.parse(parsedData.resultsAfterCorrectionT3)
+                      : parsedData.resultsAfterCorrectionT3
+                    : null,
+                  resultsAfterCorrectionT4: parsedData.resultsAfterCorrectionT4
+                    ? typeof parsedData.resultsAfterCorrectionT4 === "string"
+                      ? JSON.parse(parsedData.resultsAfterCorrectionT4)
+                      : parsedData.resultsAfterCorrectionT4
+                    : null,
+                  resultsAfterCorrectionT5: parsedData.resultsAfterCorrectionT5
+                    ? typeof parsedData.resultsAfterCorrectionT5 === "string"
+                      ? JSON.parse(parsedData.resultsAfterCorrectionT5)
+                      : parsedData.resultsAfterCorrectionT5
+                    : null,
+                  resultsAfterCorrectionT6: parsedData.resultsAfterCorrectionT6
+                    ? typeof parsedData.resultsAfterCorrectionT6 === "string"
+                      ? JSON.parse(parsedData.resultsAfterCorrectionT6)
+                      : parsedData.resultsAfterCorrectionT6
+                    : null,
+                  resultsAfterCorrectionT7: parsedData.resultsAfterCorrectionT7
+                    ? typeof parsedData.resultsAfterCorrectionT7 === "string"
+                      ? JSON.parse(parsedData.resultsAfterCorrectionT7)
+                      : parsedData.resultsAfterCorrectionT7
+                    : null,
+                  resultsAfterCorrectionT8: parsedData.resultsAfterCorrectionT8
+                    ? typeof parsedData.resultsAfterCorrectionT8 === "string"
+                      ? JSON.parse(parsedData.resultsAfterCorrectionT8)
+                      : parsedData.resultsAfterCorrectionT8
+                    : null,
+                  resultsAfterCorrectionT9: parsedData.resultsAfterCorrectionT9
+                    ? typeof parsedData.resultsAfterCorrectionT9 === "string"
+                      ? JSON.parse(parsedData.resultsAfterCorrectionT9)
+                      : parsedData.resultsAfterCorrectionT9
+                    : null,
+                  resultsAfterCorrectionT10:
+                    parsedData.resultsAfterCorrectionT10
+                      ? typeof parsedData.resultsAfterCorrectionT10 === "string"
+                        ? JSON.parse(parsedData.resultsAfterCorrectionT10)
+                        : parsedData.resultsAfterCorrectionT10
+                      : null,
+                  // ── Stats per time point ─────────────────────────────────
+                  minT1: parsedData.minT1 ?? null,
+                  avgT1: parsedData.avgT1 ?? null,
+                  maxT1: parsedData.maxT1 ?? null,
+                  minT2: parsedData.minT2 ?? null,
+                  avgT2: parsedData.avgT2 ?? null,
+                  maxT2: parsedData.maxT2 ?? null,
+                  minT3: parsedData.minT3 ?? null,
+                  avgT3: parsedData.avgT3 ?? null,
+                  maxT3: parsedData.maxT3 ?? null,
+                  minT4: parsedData.minT4 ?? null,
+                  avgT4: parsedData.avgT4 ?? null,
+                  maxT4: parsedData.maxT4 ?? null,
+                  minT5: parsedData.minT5 ?? null,
+                  avgT5: parsedData.avgT5 ?? null,
+                  maxT5: parsedData.maxT5 ?? null,
+                  minT6: parsedData.minT6 ?? null,
+                  avgT6: parsedData.avgT6 ?? null,
+                  maxT6: parsedData.maxT6 ?? null,
+                  minT7: parsedData.minT7 ?? null,
+                  avgT7: parsedData.avgT7 ?? null,
+                  maxT7: parsedData.maxT7 ?? null,
+                  minT8: parsedData.minT8 ?? null,
+                  avgT8: parsedData.avgT8 ?? null,
+                  maxT8: parsedData.maxT8 ?? null,
+                  minT9: parsedData.minT9 ?? null,
+                  avgT9: parsedData.avgT9 ?? null,
+                  maxT9: parsedData.maxT9 ?? null,
+                  minT10: parsedData.minT10 ?? null,
+                  avgT10: parsedData.avgT10 ?? null,
+                  maxT10: parsedData.maxT10 ?? null,
+                  sw1: parsedData.sw1 || null,
+                  v1: parsedData.v1 || null,
+                  v2: parsedData.v2 || null,
+                  v3: parsedData.v3 || null,
+                  v4: parsedData.v4 || null,
+                  v5: parsedData.v5 || null,
+                  v6: parsedData.v6 || null,
+                  v7: parsedData.v7 || null,
+                  v8: parsedData.v8 || null,
+                  v9: parsedData.v9 || null,
+                  v10: parsedData.v10 || null,
+                  v11: parsedData.v11 || null,
+                  v12: parsedData.v12 || null,
+                  v13: parsedData.v13 || null,
+                  v14: parsedData.v14 || null,
+                  v8TimePoint1: parsedData.v8TimePoint1 || null,
+                  v8TimePoint2: parsedData.v8TimePoint2 || null,
+                  v8TimePoint3: parsedData.v8TimePoint3 || null,
+                  v8TimePoint4: parsedData.v8TimePoint4 || null,
+                  v8TimePoint5: parsedData.v8TimePoint5 || null,
+                  v8TimePoint6: parsedData.v8TimePoint6 || null,
+                  v8TimePoint7: parsedData.v8TimePoint7 || null,
+                  v8TimePoint8: parsedData.v8TimePoint8 || null,
+                  v8TimePoint9: parsedData.v8TimePoint9 || null,
+                  v8TimePoint10: parsedData.v8TimePoint10 || null,
+                  acceptanceLimitMin1: parsedData.acceptanceLimitMin1 || null,
+                  acceptanceLimitMax1: parsedData.acceptanceLimitMax1 || null,
+                  acceptanceLimitMin2: parsedData.acceptanceLimitMin2 || null,
+                  acceptanceLimitMax2: parsedData.acceptanceLimitMax2 || null,
+                  acceptanceLimitMin3: parsedData.acceptanceLimitMin3 || null,
+                  acceptanceLimitMax3: parsedData.acceptanceLimitMax3 || null,
+                  acceptanceLimitMin4: parsedData.acceptanceLimitMin4 || null,
+                  acceptanceLimitMax4: parsedData.acceptanceLimitMax4 || null,
+                  acceptanceLimitMin5: parsedData.acceptanceLimitMin5 || null,
+                  acceptanceLimitMax5: parsedData.acceptanceLimitMax5 || null,
+                  acceptanceLimitMin6: parsedData.acceptanceLimitMin6 || null,
+                  acceptanceLimitMax6: parsedData.acceptanceLimitMax6 || null,
+                  acceptanceLimitMin7: parsedData.acceptanceLimitMin7 || null,
+                  acceptanceLimitMax7: parsedData.acceptanceLimitMax7 || null,
+                  acceptanceLimitMin8: parsedData.acceptanceLimitMin8 || null,
+                  acceptanceLimitMax8: parsedData.acceptanceLimitMax8 || null,
+                  acceptanceLimitMin9: parsedData.acceptanceLimitMin9 || null,
+                  acceptanceLimitMax9: parsedData.acceptanceLimitMax9 || null,
+                  acceptanceLimitMin10: parsedData.acceptanceLimitMin10 || null,
+                  acceptanceLimitMax10: parsedData.acceptanceLimitMax10 || null,
+                  acceptanceLimit: parsedData.acceptanceLimit || null,
+                };
+                restoredCalculations.dissolutionProfile.push(dissoProfileCalc);
+                break;
+
+              case "assay_ferrous_fumarate": {
+                const ffCalc: CalculationAssayFerrousFumarate = {
+                  id: baseId + 8700,
+                  label: parsedData.label || calc.label,
+                  selectedSamplePreparationLabel: parsedData.selectedSamplePreparationLabel || null,
+                  calculationFor: parsedData.calculationFor || "",
+                  buretteReading: parsedData.buretteReading || "",
+                  theoreticalMolarity: parsedData.theoreticalMolarity || "",
+                  actualMolarity: parsedData.actualMolarity || "",
+                  factor: parsedData.factor || "",
+                  avgWeight: parsedData.avgWeight || "",
+                  labelClaim: parsedData.labelClaim || "",
+                  lodWaterType: parsedData.lodWaterType || "",
+                  lodWaterValue: parsedData.lodWaterValue || "",
+                  calculationResult: parsedData.calculationResult || null,
+                  calculationResultUnit: parsedData.calculationResultUnit || null,
+                  labelClaimPercent: parsedData.labelClaimPercent || null,
+                  dryBasisResult: parsedData.dryBasisResult || null,
+                  factorUnit: parsedData.factorUnit || "",
+                  avgWeightUnit: parsedData.avgWeightUnit || "",
+                  labelClaimUnit: parsedData.labelClaimUnit || "",
+                  acceptanceLimit: parsedData.acceptanceLimit || null
+                };
+                restoredCalculations.ferrousFumarate.push(ffCalc);
+                break;
+              }
+
+              case "dissolution_ferrous_fumarate": {
+                const dffCalc: CalculationDissoFerrousFumarate = {
+                  id: baseId + 8800,
+                  label: parsedData.label || calc.label,
+                  selectedSamplePreparationLabel:
+                    parsedData.selectedSamplePreparationLabel || null,
+                  buretteReading1: parsedData.buretteReading1 || "",
+                  buretteReading2: parsedData.buretteReading2 || "",
+                  buretteReading3: parsedData.buretteReading3 || "",
+                  buretteReading4: parsedData.buretteReading4 || "",
+                  buretteReading5: parsedData.buretteReading5 || "",
+                  buretteReading6: parsedData.buretteReading6 || "",
+                  theoreticalMolarity: parsedData.theoreticalMolarity || "",
+                  actualMolarity: parsedData.actualMolarity || "",
+                  factor: parsedData.factor || "",
+                  factorUnit: parsedData.factorUnit || null,
+                  dissoMediaVolume: parsedData.dissoMediaVolume || "",
+                  labelClaim: parsedData.labelClaim || "",
+                  calculationResultTablet1:
+                    parsedData.calculationResultTablet1 || null,
+                  calculationResultTablet2:
+                    parsedData.calculationResultTablet2 || null,
+                  calculationResultTablet3:
+                    parsedData.calculationResultTablet3 || null,
+                  calculationResultTablet4:
+                    parsedData.calculationResultTablet4 || null,
+                  calculationResultTablet5:
+                    parsedData.calculationResultTablet5 || null,
+                  calculationResultTablet6:
+                    parsedData.calculationResultTablet6 || null,
+                  calculationResult: parsedData.calculationResult || null,
+                  calculationResultUnit:
+                    parsedData.calculationResultUnit || null,
+                  sampleTaken: parsedData.sampleTaken || null,
+                  acceptanceLimit: parsedData.acceptanceLimit || null,
+                };
+                restoredCalculations.dissoFerrousFumarate.push(dffCalc);
+                break;
+              }
+
               default:
-                console.warn(
-                  `Unrecognized calculationType: "${calcType}"`,
-                );
+                console.warn(`Unrecognized calculationType: "${calcType}"`);
                 break;
             }
           } catch (e) {
@@ -1874,10 +2828,24 @@ const Worksheet: React.FC<WorksheetProps> = ({
           }));
         }
 
+        if (restoredCalculations.relatedSubstance.length > 0) {
+          setCalculationsRelatedSubstancePerParam((prev) => ({
+            ...prev,
+            [paramId]: restoredCalculations.relatedSubstance,
+          }));
+        }
+
         if (restoredCalculations.dissolution.length > 0) {
           setCalculationsDissoPerParam((prev) => ({
             ...prev,
             [paramId]: restoredCalculations.dissolution,
+          }));
+        }
+
+        if (restoredCalculations.dissolutionProfile.length > 0) {
+          setCalculationsDissoProfilePerParam((prev) => ({
+            ...prev,
+            [paramId]: restoredCalculations.dissolutionProfile,
           }));
         }
 
@@ -1887,12 +2855,25 @@ const Worksheet: React.FC<WorksheetProps> = ({
             [paramId]: restoredCalculations.uniformityOfContent,
           }));
         }
+
+        if (restoredCalculations.ferrousFumarate.length > 0) {
+          setCalculationsAssayFerrousFumaratePerParam((prev) => ({
+            ...prev,
+            [paramId]: restoredCalculations.ferrousFumarate,
+          }));
+        }
+
+        if (restoredCalculations.dissoFerrousFumarate.length > 0) {
+          setCalculationsDissoFerrousFumaratePerParam((prev) => ({
+            ...prev,
+            [paramId]: restoredCalculations.dissoFerrousFumarate,
+          }));
+        }
       }
 
       const activeGroups: string[] = [];
 
       if (param.preparations && Array.isArray(param.preparations)) {
-
         if (
           param.preparations.some(
             (p: any) =>
@@ -1932,6 +2913,15 @@ const Worksheet: React.FC<WorksheetProps> = ({
           activeGroups.push("residualSolvent");
         }
 
+        // Check for Related Substance preparations
+        if (
+          param.preparations.some(
+            (p: any) => p.preparationType === "related_substance",
+          )
+        ) {
+          activeGroups.push("relatedSubstance");
+        }
+
         // Check for Dissolution preparations
         if (
           param.preparations.some(
@@ -1939,6 +2929,15 @@ const Worksheet: React.FC<WorksheetProps> = ({
           )
         ) {
           activeGroups.push("dissolution");
+        }
+
+        // Check for Dissolution Profile preparations
+        if (
+          param.preparations.some(
+            (p: any) => p.preparationType === "dissolution_profile",
+          )
+        ) {
+          activeGroups.push("dissolutionProfile");
         }
 
         // Check for Mobile Phase preparations (based on preparationCategory)
@@ -1959,11 +2958,35 @@ const Worksheet: React.FC<WorksheetProps> = ({
           activeGroups.push("dissoMedia");
         }
 
-        // Check for Sample Titration preparations
+        // Check for Sample Titration preparations or Ferrous Fumarate calculations
         if (
-          param.preparations.some((p: any) => p.preparationType === "titration")
+          param.preparations.some(
+            (p: any) => p.preparationType === "assay_ferrous_fumarate",
+          )
         ) {
-          activeGroups.push("titration");
+          activeGroups.push("assayFerrousFumarate");
+        } else if (
+          param.calculations &&
+          Array.isArray(param.calculations) &&
+          param.calculations.some(
+            (c: any) => c.calculationType === "assay_ferrous_fumarate",
+          )
+        ) {
+          activeGroups.push("assayFerrousFumarate");
+        }
+
+        // Check for Dissolution Ferrous Fumarate
+        if (
+          param.preparations.some(
+            (p: any) => p.preparationType === "dissolution_ferrous_fumarate",
+          ) ||
+          (param.calculations &&
+            Array.isArray(param.calculations) &&
+            param.calculations.some(
+              (c: any) => c.calculationType === "dissolution_ferrous_fumarate",
+            ))
+        ) {
+          activeGroups.push("dissolutionFerrousFumarate");
         }
 
         // Check for Uniformity of Content preparations
@@ -1976,7 +2999,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
       }
 
-
       if (activeGroups.length > 0) {
         setActivePreparationGroups((prev) => ({
           ...prev,
@@ -1986,7 +3008,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
     });
 
     setSelectedParamsForDetail(restoredParams.map((p) => p.id));
-
   };
 
   useEffect(() => {
@@ -2076,7 +3097,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
             steps: JSON.stringify(sp.steps),
           })),
           // Standard Preparations for ASSAY
-          ...(standardPreparationPerParam[param.id] || []).map((sp) => ({
+          ...(standardPreparationAssayPerParam[param.id] || []).map((sp) => ({
             label: sp.label,
             preparationCategory: "standard",
             preparationType: "assay",
@@ -2084,13 +3105,25 @@ const Worksheet: React.FC<WorksheetProps> = ({
             steps: JSON.stringify(sp.steps),
           })),
           // Standard Preparations for RESIDUAL SOLVENT
-          ...(standardPreparationRSPerParam[param.id] || []).map((sp) => ({
-            label: sp.label,
-            preparationCategory: "standard",
-            preparationType: "residual_solvent",
-            assignedStandardId: (sp as any).assignedStandardId || "",
-            steps: JSON.stringify(sp.steps),
-          })),
+          ...(standardPreparationResidualSolventPerParam[param.id] || []).map(
+            (sp) => ({
+              label: sp.label,
+              preparationCategory: "standard",
+              preparationType: "residual_solvent",
+              assignedStandardId: (sp as any).assignedStandardId || "",
+              steps: JSON.stringify(sp.steps),
+            }),
+          ),
+          // Standard Preparations for RELATED SUBSTANCE
+          ...(standardPreparationRelatedSubstancePerParam[param.id] || []).map(
+            (sp) => ({
+              label: sp.label,
+              preparationCategory: "standard",
+              preparationType: "related_substance",
+              assignedStandardId: (sp as any).assignedStandardId || "",
+              steps: JSON.stringify(sp.steps),
+            }),
+          ),
           // Standard Preparations for DISSOLUTION
           ...(standardPreparationDissoPerParam[param.id] || []).map((sp) => ({
             label: sp.label,
@@ -2141,6 +3174,16 @@ const Worksheet: React.FC<WorksheetProps> = ({
             assignedStandardId: null,
             steps: JSON.stringify(sp.steps),
           })),
+          // Sample Preparations for RELATED SUBSTANCE
+          ...(samplePreparationRelatedSubstancePerParam[param.id] || []).map(
+            (sp) => ({
+              label: sp.label,
+              preparationCategory: "sample",
+              preparationType: "related_substance",
+              assignedStandardId: null,
+              steps: JSON.stringify(sp.steps),
+            }),
+          ),
           // Sample Preparations for DISSOLUTION
           ...(samplePreparationDissoPerParam[param.id] || []).map((spd) => ({
             label: spd.label,
@@ -2153,7 +3196,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
           ...(dissoMediaPerParam[param.id] || []).map((dm) => ({
             label: dm.label,
             preparationCategory: "dissolution_media",
-            preparationType: null,
+            preparationType: "dissolution",
             assignedStandardId: null,
             steps: JSON.stringify(dm.steps),
           })),
@@ -2163,16 +3206,47 @@ const Worksheet: React.FC<WorksheetProps> = ({
             preparationCategory: "mobile_phase",
             preparationType: null,
             assignedStandardId: null,
-            steps: JSON.stringify(mp.steps),
+            steps: null,
+            content: mp.content,
           })),
-          // Sample Preparation for Titration
-          ...(samplePrepTitrationPerParam[param.id] || []).map((spt) => ({
-            label: spt.label,
-            preparationCategory: "sample",
-            preparationType: "titration",
+          // Buffer Preparations
+          ...(bufferPreparationPerParam[param.id] || []).map((bp) => ({
+            label: bp.label,
+            preparationCategory: "buffer",
+            preparationType: null,
             assignedStandardId: null,
-            steps: JSON.stringify(spt.steps),
+            steps: JSON.stringify(bp.steps),
+            content: null,
           })),
+          // Diluent Preparations (blank-sheet style)
+          ...(diluentPreparationsPerParam[param.id] || []).map((dp) => ({
+            label: dp.label,
+            preparationCategory: "diluent",
+            preparationType: null,
+            assignedStandardId: null,
+            steps: null,
+            content: dp.content,
+          })),
+          // Sample Preparation for Assay (Ferrous Fumarate)
+          ...(samplePrepAssayFerrousFumaratePerParam[param.id] || []).map(
+            (spt) => ({
+              label: spt.label,
+              preparationCategory: "sample",
+              preparationType: "assay_ferrous_fumarate",
+              assignedStandardId: null,
+              steps: JSON.stringify(spt.steps),
+            }),
+          ),
+          // Sample Preparation for Dissolution (Ferrous Fumarate)
+          ...(samplePrepDissoFerrousFumaratePerParam[param.id] || []).map(
+            (spt) => ({
+              label: spt.label,
+              preparationCategory: "sample",
+              preparationType: "dissolution_ferrous_fumarate",
+              assignedStandardId: null,
+              steps: JSON.stringify(spt.steps),
+            }),
+          ),
           ...(systemSuitabilityPerParam[param.id] || []).map((ss) => ({
             label: ss.label,
             preparationCategory: "system_suitability",
@@ -2188,6 +3262,34 @@ const Worksheet: React.FC<WorksheetProps> = ({
             assignedStandardId: null,
             steps: null,
             content: bp.content,
+          })),
+          // Standard Preparations for DISSOLUTION PROFILE
+          ...(standardPreparationDissoProfilePerParam[param.id] || []).map(
+            (sp) => ({
+              label: sp.label,
+              preparationCategory: "standard",
+              preparationType: "dissolution_profile",
+              assignedStandardId: (sp as any).assignedStandardId || "",
+              steps: JSON.stringify(sp.steps),
+            }),
+          ),
+          // Sample Preparations for DISSOLUTION PROFILE
+          ...(samplePreparationDissoProfilePerParam[param.id] || []).map(
+            (spd) => ({
+              label: spd.label,
+              preparationCategory: "sample",
+              preparationType: "dissolution_profile",
+              assignedStandardId: null,
+              steps: JSON.stringify(spd.steps),
+            }),
+          ),
+          // Dissolution Media for DISSOLUTION PROFILE
+          ...(dissoMediaProfilePerParam[param.id] || []).map((dm) => ({
+            label: dm.label,
+            preparationCategory: "dissolution_media",
+            preparationType: "dissolution_profile",
+            assignedStandardId: null,
+            steps: JSON.stringify(dm.steps),
           })),
         ];
 
@@ -2250,6 +3352,18 @@ const Worksheet: React.FC<WorksheetProps> = ({
               data: JSON.stringify(dataObj),
             };
           }),
+          ...(calculationsRelatedSubstancePerParam[param.id] || []).map(
+            (calc) => {
+              const dataObj = { ...calc } as any;
+              delete dataObj.selectedStandardPrepId;
+              delete dataObj.selectedSamplePrepId;
+              return {
+                label: calc.label,
+                calculationType: "related_substance",
+                data: JSON.stringify(dataObj),
+              };
+            },
+          ),
           ...(calculationsDissoPerParam[param.id] || []).map((calc) => {
             const dataObj = { ...calc } as any;
             delete dataObj.selectedStandardPrepId;
@@ -2260,6 +3374,30 @@ const Worksheet: React.FC<WorksheetProps> = ({
               data: JSON.stringify(dataObj),
             };
           }),
+          ...(calculationsDissoProfilePerParam[param.id] || []).map((calc) => {
+            const dataObj = { ...calc } as any;
+            delete dataObj.selectedStandardPrepId;
+            delete dataObj.selectedSamplePrepId;
+            return {
+              label: calc.label,
+              calculationType: "dissolution_profile",
+              data: JSON.stringify(dataObj),
+            };
+          }),
+          ...(calculationsAssayFerrousFumaratePerParam[param.id] || []).map(
+            (calc) => ({
+              label: calc.label,
+              calculationType: "assay_ferrous_fumarate",
+              data: JSON.stringify({ ...calc }),
+            }),
+          ),
+          ...(calculationsDissoFerrousFumaratePerParam[param.id] || []).map(
+            (calc) => ({
+              label: calc.label,
+              calculationType: "dissolution_ferrous_fumarate",
+              data: JSON.stringify({ ...calc }),
+            }),
+          ),
         ];
 
         return {
@@ -2309,7 +3447,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         return;
       }
 
-      //console.log(WorksheetDbMapper.mapAll(worksheetData));
+      console.log(WorksheetDbMapper.mapAll(worksheetData));
 
       setWorksheetInfo(worksheetData);
       setRegistrationNo(worksheetData.sample.registrationNo);
@@ -2599,20 +3737,31 @@ const Worksheet: React.FC<WorksheetProps> = ({
             ),
             preparations: [
               // Standard Preparations
-              ...(standardPreparationPerParam[newId] || []).map((sp) => ({
+              ...(standardPreparationAssayPerParam[newId] || []).map((sp) => ({
                 label: sp.label,
                 preparationCategory: "standard",
                 preparationType: "assay",
                 assignedStandardId: sp.assignedStandardId || "",
                 steps: JSON.stringify(sp.steps),
               })),
-              ...(standardPreparationRSPerParam[newId] || []).map((sp) => ({
-                label: sp.label,
-                preparationCategory: "standard",
-                preparationType: "residual_solvent",
-                assignedStandardId: (sp as any).assignedStandardId || "",
-                steps: JSON.stringify(sp.steps),
-              })),
+              ...(standardPreparationResidualSolventPerParam[newId] || []).map(
+                (sp) => ({
+                  label: sp.label,
+                  preparationCategory: "standard",
+                  preparationType: "residual_solvent",
+                  assignedStandardId: (sp as any).assignedStandardId || "",
+                  steps: JSON.stringify(sp.steps),
+                }),
+              ),
+              ...(standardPreparationRelatedSubstancePerParam[newId] || []).map(
+                (sp) => ({
+                  label: sp.label,
+                  preparationCategory: "standard",
+                  preparationType: "related_substance",
+                  assignedStandardId: (sp as any).assignedStandardId || "",
+                  steps: JSON.stringify(sp.steps),
+                }),
+              ),
               ...(standardPreparationDissoPerParam[newId] || []).map((sp) => ({
                 label: sp.label,
                 preparationCategory: "standard",
@@ -2658,6 +3807,15 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 assignedStandardId: (sp as any).assignedStandardId || "",
                 steps: JSON.stringify(sp.steps),
               })),
+              ...(samplePreparationRelatedSubstancePerParam[newId] || []).map(
+                (sp) => ({
+                  label: sp.label,
+                  preparationCategory: "sample",
+                  preparationType: "related_substance",
+                  assignedStandardId: (sp as any).assignedStandardId || "",
+                  steps: JSON.stringify(sp.steps),
+                }),
+              ),
               ...(samplePreparationDissoPerParam[newId] || []).map((sp) => ({
                 label: sp.label,
                 preparationCategory: "sample",
@@ -2679,16 +3837,29 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 preparationCategory: "mobile_phase",
                 preparationType: null,
                 assignedStandardId: null,
-                steps: JSON.stringify(mp.steps),
+                steps: null,
+                content: mp.content,
               })),
-              // Sample Preparation Titration
-              ...(samplePrepTitrationPerParam[newId] || []).map((spt) => ({
-                label: spt.label,
-                preparationCategory: "sample",
-                preparationType: "titration",
-                assignedStandardId: null,
-                steps: JSON.stringify(spt.steps),
-              })),
+              // Sample Preparation Assay (Ferrous Fumarate)
+              ...(samplePrepAssayFerrousFumaratePerParam[newId] || []).map(
+                (spt) => ({
+                  label: spt.label,
+                  preparationCategory: "sample",
+                  preparationType: "assay_ferrous_fumarate",
+                  assignedStandardId: null,
+                  steps: JSON.stringify(spt.steps),
+                }),
+              ),
+              // Sample Preparation Dissolution (Ferrous Fumarate)
+              ...(samplePrepDissoFerrousFumaratePerParam[newId] || []).map(
+                (spt) => ({
+                  label: spt.label,
+                  preparationCategory: "sample",
+                  preparationType: "dissolution_ferrous_fumarate",
+                  assignedStandardId: null,
+                  steps: JSON.stringify(spt.steps),
+                }),
+              ),
             ],
             calculations: [
               ...(calculationsAssayPerParam[newId] || []).map((calc) => {
@@ -2738,6 +3909,18 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   data: JSON.stringify(dataObj),
                 };
               }),
+              ...(calculationsRelatedSubstancePerParam[newId] || []).map(
+                (calc) => {
+                  const dataObj = { ...calc } as any;
+                  delete dataObj.selectedStandardPrepId;
+                  delete dataObj.selectedSamplePrepId;
+                  return {
+                    label: calc.label,
+                    calculationType: "related_substance",
+                    data: JSON.stringify(dataObj),
+                  };
+                },
+              ),
               ...(calculationsDissoPerParam[newId] || []).map((calc) => {
                 const dataObj = { ...calc } as any;
                 delete dataObj.selectedStandardPrepId;
@@ -2748,6 +3931,20 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   data: JSON.stringify(dataObj),
                 };
               }),
+              ...(calculationsAssayFerrousFumaratePerParam[newId] || []).map(
+                (calc) => ({
+                  label: calc.label,
+                  calculationType: "assay_ferrous_fumarate",
+                  data: JSON.stringify({ ...calc }),
+                }),
+              ),
+              ...(calculationsDissoFerrousFumaratePerParam[newId] || []).map(
+                (calc) => ({
+                  label: calc.label,
+                  calculationType: "dissolution_ferrous_fumarate",
+                  data: JSON.stringify({ ...calc }),
+                }),
+              ),
             ],
           };
 
@@ -2830,8 +4027,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
             });
           }
 
-          if (standardPreparationPerParam[newId]) {
-            setStandardPreparationPerParam((prev) => {
+          if (standardPreparationAssayPerParam[newId]) {
+            setStandardPreparationAssayPerParam((prev) => {
               const { [newId]: preps, ...rest } = prev;
               return { ...rest, [serverParameterId]: preps };
             });
@@ -2844,8 +4041,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
             });
           }
 
-          if (standardPreparationRSPerParam[newId]) {
-            setStandardPreparationRSPerParam((prev) => {
+          if (standardPreparationResidualSolventPerParam[newId]) {
+            setStandardPreparationResidualSolventPerParam((prev) => {
               const { [newId]: preps, ...rest } = prev;
               return { ...rest, [serverParameterId]: preps };
             });
@@ -2935,6 +4132,27 @@ const Worksheet: React.FC<WorksheetProps> = ({
             });
           }
 
+          if (calculationsAssayFerrousFumaratePerParam[newId]) {
+            setCalculationsAssayFerrousFumaratePerParam((prev) => {
+              const { [newId]: calcs, ...rest } = prev;
+              return { ...rest, [serverParameterId]: calcs };
+            });
+          }
+
+          if (calculationsDissoFerrousFumaratePerParam[newId]) {
+            setCalculationsDissoFerrousFumaratePerParam((prev) => {
+              const { [newId]: calcs, ...rest } = prev;
+              return { ...rest, [serverParameterId]: calcs };
+            });
+          }
+
+          if (samplePrepDissoFerrousFumaratePerParam[newId]) {
+            setSamplePrepDissoFerrousFumaratePerParam((prev) => {
+              const { [newId]: preps, ...rest } = prev;
+              return { ...rest, [serverParameterId]: preps };
+            });
+          }
+
           setToastMessage(
             `Parameter "${newParameter.parameterName}" added successfully!`,
           );
@@ -2972,9 +4190,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
           cleanupState(setAddedChemicalIdsPerParam);
           cleanupState(setAddedStandards);
           cleanupState(setAddedStandardIdsPerParam);
-          cleanupState(setStandardPreparationPerParam);
+          cleanupState(setStandardPreparationAssayPerParam);
           cleanupState(setSamplePreparationPerParam);
-          cleanupState(setStandardPreparationRSPerParam);
+          cleanupState(setStandardPreparationResidualSolventPerParam);
           cleanupState(setSamplePreparationRSPerParam);
           cleanupState(setStandardPreparationDissoPerParam);
           cleanupState(setSamplePreparationDissoPerParam);
@@ -2989,7 +4207,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
           cleanupState(setCalculationsDissoPerParam);
           cleanupState(setDissoMediaPerParam);
           cleanupState(setMobilePhasePerParam);
-          cleanupState(setSamplePrepTitrationPerParam);
+          cleanupState(setShowMobilePhasePreparation);
+          cleanupState(setShowBufferPreparation);
+          cleanupState(setSamplePrepAssayFerrousFumaratePerParam);
+          cleanupState(setCalculationsAssayFerrousFumaratePerParam);
+          cleanupState(setCalculationsDissoFerrousFumaratePerParam);
+          cleanupState(setSamplePrepDissoFerrousFumaratePerParam);
           cleanupState(setShowDiluentPreparation);
           cleanupState(setShowSystemSuitability);
           cleanupState(setSystemSuitabilityPerParam);
@@ -3043,9 +4266,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
               standardIds: (addedStandards[paramId] || []).map(
                 (std) => std.serialNo,
               ),
-              standardPreparations: [], // Add if needed
-              samplePreparations: [], // Add if needed
-              calculations: [], // Add if needed
+              standardPreparations: [],
+              samplePreparations: [],
+              calculations: [],
             };
 
             const response = await updateParameter(paramId, paramData);
@@ -3148,11 +4371,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
     cleanupState(setCalculationsLodPerParam);
     cleanupState(setCalculationsSulphatedAshPerParam);
     cleanupState(setCalculationsDissoPerParam);
-    cleanupState(setStandardPreparationPerParam);
+    cleanupState(setStandardPreparationAssayPerParam);
     cleanupState(setSamplePreparationPerParam);
     cleanupState(setStandardPreparationDissoPerParam);
     cleanupState(setSamplePreparationDissoPerParam);
-    cleanupState(setStandardPreparationRSPerParam);
+    cleanupState(setStandardPreparationResidualSolventPerParam);
     cleanupState(setSamplePreparationRSPerParam);
     cleanupState(setCalculationsRSPerParam);
     cleanupState(setSamplePreparationLodPerParam);
@@ -3164,7 +4387,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
     cleanupState(setAddedStandardIdsPerParam);
     cleanupState(setDissoMediaPerParam);
     cleanupState(setMobilePhasePerParam);
-    cleanupState(setSamplePrepTitrationPerParam);
+    cleanupState(setShowMobilePhasePreparation);
+    cleanupState(setShowBufferPreparation);
+    cleanupState(setSamplePrepAssayFerrousFumaratePerParam);
+    cleanupState(setCalculationsAssayFerrousFumaratePerParam);
+    cleanupState(setCalculationsDissoFerrousFumaratePerParam);
+    cleanupState(setSamplePrepDissoFerrousFumaratePerParam);
     cleanupState(setSamplePreparationUCPerParam);
     cleanupState(setStandardPreparationUCPerParam);
     cleanupState(setCalculationsUCPerParam);
@@ -3694,7 +4922,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     standardPreparationId: number,
   ) => {
-    setStandardPreparationPerParam((prev) => {
+    setStandardPreparationAssayPerParam((prev) => {
       const standards = prev[parameterId] || [];
       const indexToRemove = standards.findIndex(
         (sp) => sp.id === standardPreparationId,
@@ -3739,7 +4967,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       | "solventChemical",
     newValue: string,
   ) => {
-    setStandardPreparationPerParam((prev) => ({
+    setStandardPreparationAssayPerParam((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((sp) => {
         if (sp.id === standardPreparationId) {
@@ -3776,7 +5004,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }));
 
       if (indexToRemove !== -1) {
-        setStandardPreparationPerParam((prevStandard) => {
+        setStandardPreparationAssayPerParam((prevStandard) => {
           const standards = prevStandard[parameterId] || [];
           const updatedStandards = standards
             .filter((_, idx) => idx !== indexToRemove)
@@ -4369,17 +5597,64 @@ const Worksheet: React.FC<WorksheetProps> = ({
     setShowStandardSelectionDialog(true);
   };
 
+  const handleAddStandardPreparationRelatedSubstance = (
+    parameterId: number,
+  ) => {
+    setCurrentParameterForStandardPrep(parameterId);
+    setIsAddingRSStandard(false);
+    setIsAddingDissoStandard(false);
+    setIsAddingUCStandard(false);
+    setIsAddingDissoProfileStandard(false);
+    setIsAddingRelatedSubstanceStandard(true);
+    setShowStandardSelectionDialog(true);
+  };
+
   const handleStandardSelectedForPreparation = (
     standard: Standard,
     isRS: boolean = false,
     isDisso: boolean = false,
     isUC: boolean = false,
+    isDissoProfile: boolean = false,
+    isRelatedSubstance: boolean = false,
   ) => {
     if (currentParameterForStandardPrep === null) return;
 
     const parameterId = currentParameterForStandardPrep;
 
-    if (isUC) {
+    if (isRelatedSubstance) {
+      const currentStandards =
+        standardPreparationRelatedSubstancePerParam[parameterId] || [];
+      const newIndex = currentStandards.length;
+      const newStandardPrep = createNewStandardPreparation(newIndex);
+
+      newStandardPrep.steps = newStandardPrep.steps.map((step) => {
+        if (step.name === "Weighing") {
+          return { ...step, solventChemical: standard.name };
+        }
+        return step;
+      });
+
+      setStandardPreparationRelatedSubstancePerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentStandards,
+          { ...newStandardPrep, assignedStandardId: standard.serialNo },
+        ],
+      }));
+
+      const currentSamples =
+        samplePreparationRelatedSubstancePerParam[parameterId] || [];
+      const newSampleIndex = currentSamples.length;
+      const newSamplePrep = createNewSamplePreparation(newSampleIndex);
+
+      setSamplePreparationRelatedSubstancePerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentSamples,
+          { ...newSamplePrep, assignedStandardId: standard.serialNo },
+        ],
+      }));
+    } else if (isUC) {
       // UC Standard Preparation
       const currentStandards = standardPreparationUCPerParam[parameterId] || [];
       const newIndex = currentStandards.length;
@@ -4413,7 +5688,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
         ],
       }));
     } else if (isRS) {
-      const currentStandards = standardPreparationRSPerParam[parameterId] || [];
+      const currentStandards =
+        standardPreparationResidualSolventPerParam[parameterId] || [];
       const newIndex = currentStandards.length;
       const newStandardPrep = createNewStandardPreparation(newIndex);
 
@@ -4424,7 +5700,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         return step;
       });
 
-      setStandardPreparationRSPerParam((prev) => ({
+      setStandardPreparationResidualSolventPerParam((prev) => ({
         ...prev,
         [parameterId]: [
           ...currentStandards,
@@ -4486,8 +5762,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: [...currentDissoMedia, newDissoMedia],
       }));
-    } else {
-      const currentStandards = standardPreparationPerParam[parameterId] || [];
+    } else if (isDissoProfile) {
+      const currentStandards =
+        standardPreparationDissoProfilePerParam[parameterId] || [];
       const newIndex = currentStandards.length;
       const newStandardPrep = createNewStandardPreparation(newIndex);
 
@@ -4498,7 +5775,54 @@ const Worksheet: React.FC<WorksheetProps> = ({
         return step;
       });
 
-      setStandardPreparationPerParam((prev) => ({
+      setStandardPreparationDissoProfilePerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentStandards,
+          { ...newStandardPrep, assignedStandardId: standard.serialNo },
+        ],
+      }));
+
+      const currentSamples =
+        samplePreparationDissoProfilePerParam[parameterId] || [];
+      const newSampleIndex = currentSamples.length;
+      const newSamplePrepDisso =
+        createNewSamplePreparationDisso(newSampleIndex);
+
+      setSamplePreparationDissoProfilePerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentSamples,
+          { ...newSamplePrepDisso, assignedStandardId: standard.serialNo },
+        ],
+      }));
+
+      // Automatically add Disso Media Preparation for profile
+      const currentDissoMediaProfile =
+        dissoMediaProfilePerParam[parameterId] || [];
+      const newDissoMediaProfileIndex = currentDissoMediaProfile.length;
+      const newDissoMediaProfile = createNewDissoMediaPreparation(
+        newDissoMediaProfileIndex,
+      );
+
+      setDissoMediaProfilePerParam((prev) => ({
+        ...prev,
+        [parameterId]: [...currentDissoMediaProfile, newDissoMediaProfile],
+      }));
+    } else {
+      const currentStandards =
+        standardPreparationAssayPerParam[parameterId] || [];
+      const newIndex = currentStandards.length;
+      const newStandardPrep = createNewStandardPreparation(newIndex);
+
+      newStandardPrep.steps = newStandardPrep.steps.map((step) => {
+        if (step.name === "Weighing") {
+          return { ...step, solventChemical: standard.name };
+        }
+        return step;
+      });
+
+      setStandardPreparationAssayPerParam((prev) => ({
         ...prev,
         [parameterId]: [
           ...currentStandards,
@@ -4524,13 +5848,14 @@ const Worksheet: React.FC<WorksheetProps> = ({
     setIsAddingRSStandard(false);
     setIsAddingDissoStandard(false);
     setIsAddingUCStandard(false);
+    setIsAddingDissoProfileStandard(false);
   };
 
   const handleRemoveStandardPreparationRS = (
     parameterId: number,
     standardPreparationId: number,
   ) => {
-    setStandardPreparationRSPerParam((prev) => {
+    setStandardPreparationResidualSolventPerParam((prev) => {
       const standards = prev[parameterId] || [];
       const indexToRemove = standards.findIndex(
         (sp) => sp.id === standardPreparationId,
@@ -4575,7 +5900,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       | "solventChemical",
     newValue: string,
   ) => {
-    setStandardPreparationRSPerParam((prev) => ({
+    setStandardPreparationResidualSolventPerParam((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((sp) => {
         if (sp.id === standardPreparationId) {
@@ -4612,7 +5937,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }));
 
       if (indexToRemove !== -1) {
-        setStandardPreparationRSPerParam((prevStandard) => {
+        setStandardPreparationResidualSolventPerParam((prevStandard) => {
           const standards = prevStandard[parameterId] || [];
           const updatedStandards = standards
             .filter((_, idx) => idx !== indexToRemove)
@@ -4698,6 +6023,156 @@ const Worksheet: React.FC<WorksheetProps> = ({
     value: string | number | null,
   ) => {
     setCalculationsRSPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((calc) => {
+        if (calc.id === calculationId) {
+          return { ...calc, [field]: value };
+        }
+        return calc;
+      }),
+    }));
+  };
+
+  // ======================== RELATED SUBSTANCE HANDLERS ========================
+
+  const handleRemoveStandardPreparationRelatedSubstance = (
+    parameterId: number,
+    standardPreparationId: number,
+  ) => {
+    setStandardPreparationRelatedSubstancePerParam((prev) => {
+      const standards = prev[parameterId] || [];
+      const indexToRemove = standards.findIndex(
+        (sp) => sp.id === standardPreparationId,
+      );
+
+      const updatedStandards = standards
+        .filter((dm) => dm.id !== standardPreparationId)
+        .map((dm, index) => ({
+          ...dm,
+          label: `Standard Preparation ${1 + index}`,
+        }));
+
+      if (indexToRemove !== -1) {
+        setSamplePreparationRelatedSubstancePerParam((prevSample) => {
+          const samples = prevSample[parameterId] || [];
+          const updatedSamples = samples
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Sample Preparation ${1 + index}`,
+            }));
+          return { ...prevSample, [parameterId]: updatedSamples };
+        });
+      }
+
+      return { ...prev, [parameterId]: updatedStandards };
+    });
+  };
+
+  const handleStandardPreparationRelatedSubstanceStepChange = (
+    parameterId: number,
+    standardPreparationId: number,
+    stepName: StandardPreparationStep["name"],
+    field:
+      | "value1"
+      | "value2"
+      | "unit1"
+      | "unit2"
+      | "value3"
+      | "unit3"
+      | "logBookID"
+      | "solventChemical",
+    newValue: string,
+  ) => {
+    setStandardPreparationRelatedSubstancePerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((sp) => {
+        if (sp.id === standardPreparationId) {
+          return {
+            ...sp,
+            steps: sp.steps.map((step) => {
+              if (step.name === stepName) {
+                return { ...step, [field]: newValue };
+              }
+              return step;
+            }),
+          };
+        }
+        return sp;
+      }),
+    }));
+  };
+
+  const handleSamplePreparationRelatedSubstanceStepChange = (
+    parameterId: number,
+    samplePreparationId: number,
+    stepName: SamplePreparationStep["name"],
+    field:
+      | "value"
+      | "unit"
+      | "value1"
+      | "value2"
+      | "unit1"
+      | "unit2"
+      | "logBookID"
+      | "solventChemical",
+    newValue: string,
+  ) => {
+    setSamplePreparationRelatedSubstancePerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((sp) => {
+        if (sp.id === samplePreparationId) {
+          return {
+            ...sp,
+            steps: sp.steps.map((step) => {
+              if (step.name === stepName) {
+                return { ...step, [field]: newValue };
+              }
+              return step;
+            }),
+          };
+        }
+        return sp;
+      }),
+    }));
+  };
+
+  const handleAddCalculationRelatedSubstance = (parameterId: number) => {
+    setCalculationsRelatedSubstancePerParam((prev) => {
+      const currentCalculations = prev[parameterId] || [];
+      const newIndex = currentCalculations.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentCalculations,
+          createNewCalculationRelatedSubstance(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveCalculationRelatedSubstance = (
+    parameterId: number,
+    calculationId: number,
+  ) => {
+    setCalculationsRelatedSubstancePerParam((prev) => {
+      const updatedCalculations = (prev[parameterId] || [])
+        .filter((calc) => calc.id !== calculationId)
+        .map((calc, index) => ({
+          ...calc,
+          label: `Calculation ${index + 1}`,
+        }));
+      return { ...prev, [parameterId]: updatedCalculations };
+    });
+  };
+
+  const handleCalculationRelatedSubstanceFieldChange = (
+    parameterId: number,
+    calculationId: number,
+    field: keyof CalculationRelatedSubstance,
+    value: string | number | null,
+  ) => {
+    setCalculationsRelatedSubstancePerParam((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((calc) => {
         if (calc.id === calculationId) {
@@ -4843,49 +6318,83 @@ const Worksheet: React.FC<WorksheetProps> = ({
     }));
   };
 
-  // Mobile Phase Handlers
-  const handleAddMobilePhase = (parameterId: number) => {
-    setMobilePhasePerParam((prev) => {
-      const current = prev[parameterId] || [];
-      const newIndex = current.length;
-      return {
-        ...prev,
-        [parameterId]: [...current, createNewMobilePhasePreparation(newIndex)],
-      };
-    });
+  // Dissolution Profile Handlers
+  const handleAddStandardPreparationDissoProfile = (parameterId: number) => {
+    setCurrentParameterForStandardPrep(parameterId);
+    setIsAddingRSStandard(false);
+    setIsAddingDissoStandard(false);
+    setIsAddingUCStandard(false);
+    setIsAddingDissoProfileStandard(true);
+    setShowStandardSelectionDialog(true);
   };
 
-  const handleRemoveMobilePhase = (
+  const handleRemoveStandardPreparationDissoProfile = (
     parameterId: number,
-    mobilePhaseId: number,
+    standardPreparationId: number,
   ) => {
-    setMobilePhasePerParam((prev) => {
-      const updated = (prev[parameterId] || [])
-        .filter((mp) => mp.id !== mobilePhaseId)
-        .map((mp, index) => ({ ...mp, label: `Mobile Phase${index + 1}` }));
-      return { ...prev, [parameterId]: updated };
+    setStandardPreparationDissoProfilePerParam((prev) => {
+      const standards = prev[parameterId] || [];
+      const indexToRemove = standards.findIndex(
+        (sp) => sp.id === standardPreparationId,
+      );
+
+      const updatedStandards = standards
+        .filter((dm) => dm.id !== standardPreparationId)
+        .map((dm, index) => ({
+          ...dm,
+          label: `Standard Preparation ${1 + index}`,
+        }));
+
+      if (indexToRemove !== -1) {
+        setSamplePreparationDissoProfilePerParam((prevSample) => {
+          const samples = prevSample[parameterId] || [];
+          const updatedSamples = samples
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Sample Preparation ${1 + index}`,
+            }));
+          return { ...prevSample, [parameterId]: updatedSamples };
+        });
+
+        setDissoMediaProfilePerParam((prevDissoMedia) => {
+          const dissoMedias = prevDissoMedia[parameterId] || [];
+          const updatedDissoMedias = dissoMedias
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((dm, index) => ({
+              ...dm,
+              label: `Dissolution Media Preparation ${1 + index}`,
+            }));
+          return { ...prevDissoMedia, [parameterId]: updatedDissoMedias };
+        });
+      }
+
+      return { ...prev, [parameterId]: updatedStandards };
     });
   };
 
-  const handleMobilePhaseStepChange = (
+  const handleStandardPreparationDissoProfileStepChange = (
     parameterId: number,
-    mobilePhaseId: number,
-    stepName: MobilePhasePreparationStep["name"],
+    standardPreparationId: number,
+    stepName: StandardPreparationStep["name"],
     field:
       | "value1"
-      | "logBookID"
-      | "mobilePhaseID"
       | "unit1"
+      | "value2"
+      | "value3"
+      | "unit3"
+      | "unit2"
+      | "logBookID"
       | "solventChemical",
     newValue: string,
   ) => {
-    setMobilePhasePerParam((prev) => ({
+    setStandardPreparationDissoProfilePerParam((prev) => ({
       ...prev,
-      [parameterId]: (prev[parameterId] || []).map((mp) => {
-        if (mp.id === mobilePhaseId) {
+      [parameterId]: (prev[parameterId] || []).map((sp) => {
+        if (sp.id === standardPreparationId) {
           return {
-            ...mp,
-            steps: mp.steps.map((step) => {
+            ...sp,
+            steps: sp.steps.map((step) => {
               if (step.name === stepName) {
                 return { ...step, [field]: newValue };
               }
@@ -4893,9 +6402,226 @@ const Worksheet: React.FC<WorksheetProps> = ({
             }),
           };
         }
-        return mp;
+        return sp;
       }),
     }));
+  };
+
+  const handleRemoveSamplePreparationDissoProfile = (
+    parameterId: number,
+    samplePreparationDissoProfileId: number,
+  ) => {
+    setSamplePreparationDissoProfilePerParam((prev) => {
+      const samples = prev[parameterId] || [];
+      const indexToRemove = samples.findIndex(
+        (sp) => sp.id === samplePreparationDissoProfileId,
+      );
+
+      const updatedSamples = samples
+        .filter((sp) => sp.id !== samplePreparationDissoProfileId)
+        .map((sp, index) => ({
+          ...sp,
+          label: `Sample Preparation ${1 + index}`,
+        }));
+
+      if (indexToRemove !== -1) {
+        setStandardPreparationDissoProfilePerParam((prevStandard) => {
+          const standards = prevStandard[parameterId] || [];
+          const updatedStandards = standards
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Standard Preparation ${1 + index}`,
+            }));
+          return { ...prevStandard, [parameterId]: updatedStandards };
+        });
+
+        setDissoMediaProfilePerParam((prevDissoMedia) => {
+          const dissoMedias = prevDissoMedia[parameterId] || [];
+          const updatedDissoMedias = dissoMedias
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((dm, index) => ({
+              ...dm,
+              label: `Dissolution Media Preparation ${index + 1}`,
+            }));
+          return { ...prevDissoMedia, [parameterId]: updatedDissoMedias };
+        });
+      }
+
+      return { ...prev, [parameterId]: updatedSamples };
+    });
+  };
+
+  const handleSamplePreparationDissoProfileStepChange = (
+    parameterId: number,
+    samplePreparationDissoProfileId: number,
+    stepName: SamplePreparationDissoStep["name"],
+    field:
+      | "id"
+      | "value1"
+      | "value2"
+      | "value3"
+      | "unit1"
+      | "unit2"
+      | "unit3"
+      | "solventChemical",
+    newValue: string,
+  ) => {
+    setSamplePreparationDissoProfilePerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((spl) => {
+        if (spl.id === samplePreparationDissoProfileId) {
+          return {
+            ...spl,
+            steps: spl.steps.map((step) => {
+              if (step.name === stepName) {
+                return { ...step, [field]: newValue };
+              }
+              return step;
+            }),
+          };
+        }
+        return spl;
+      }),
+    }));
+  };
+
+  const handleDissoMediaProfileStepChange = (
+    parameterId: number,
+    dissoMediaId: number,
+    stepName: DissoMediaPreparationStep["name"],
+    field: "value1" | "unit1" | "logBookID" | "solventChemical",
+    newValue: string,
+  ) => {
+    setDissoMediaProfilePerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((dm) => {
+        if (dm.id === dissoMediaId) {
+          return {
+            ...dm,
+            steps: dm.steps.map((step) => {
+              if (step.name === stepName) {
+                return { ...step, [field]: newValue };
+              }
+              return step;
+            }),
+          };
+        }
+        return dm;
+      }),
+    }));
+  };
+
+  const handleRemoveDissoMediaProfile = (
+    parameterId: number,
+    dissoMediaId: number,
+  ) => {
+    setDissoMediaProfilePerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((dm) => dm.id !== dissoMediaId)
+        .map((dm, index) => ({
+          ...dm,
+          label: `Dissolution Media Preparation ${index + 1}`,
+        }));
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleAddCalculationDissoProfile = (parameterId: number) => {
+    setCalculationsDissoProfilePerParam((prev) => {
+      const currentCalculations = prev[parameterId] || [];
+      const newIndex = currentCalculations.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentCalculations,
+          createNewCalculationDissoProfile(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveCalculationDissoProfile = (
+    parameterId: number,
+    calculationId: number,
+  ) => {
+    setCalculationsDissoProfilePerParam((prev) => {
+      const updatedCalculations = (prev[parameterId] || [])
+        .filter((calc) => calc.id !== calculationId)
+        .map((calc, index) => ({
+          ...calc,
+          label: `Calculation ${index + 1}`,
+        }));
+      return { ...prev, [parameterId]: updatedCalculations };
+    });
+  };
+
+  const handleCalculationDissoProfileFieldChange = (
+    parameterId: number,
+    calculationId: number,
+    field: keyof CalculationDissoProfile,
+    value: string | number | null,
+  ) => {
+    setCalculationsDissoProfilePerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((calc) => {
+        if (calc.id === calculationId) {
+          return { ...calc, [field]: value };
+        }
+        return calc;
+      }),
+    }));
+  };
+  const handleAddMobilePhase = (parameterId: number) => {
+    setShowMobilePhaseDialog((prev) => ({ ...prev, [parameterId]: true }));
+    setEditingMobilePhasePrepId(null);
+  };
+
+  const handleEditMobilePhase = (parameterId: number, id: string) => {
+    setEditingMobilePhasePrepId(id);
+    setShowMobilePhaseDialog((prev) => ({ ...prev, [parameterId]: true }));
+  };
+
+  const handleSaveMobilePhase = (
+    parameterId: number,
+    _label: string,
+    content: string,
+  ) => {
+    if (editingMobilePhasePrepId) {
+      setMobilePhasePerParam((prev) => ({
+        ...prev,
+        [parameterId]: (prev[parameterId] || []).map((mp) =>
+          mp.id === editingMobilePhasePrepId ? { ...mp, content } : mp,
+        ),
+      }));
+    } else {
+      setMobilePhasePerParam((prev) => {
+        const current = prev[parameterId] || [];
+        const newItem: MobilePhasePreparation = {
+          id: String(Date.now()),
+          label: `Mobile Phase Preparation ${current.length + 1}`,
+          content,
+        };
+        return { ...prev, [parameterId]: [...current, newItem] };
+      });
+    }
+    setShowMobilePhaseDialog((prev) => ({ ...prev, [parameterId]: false }));
+    setEditingMobilePhasePrepId(null);
+  };
+
+  const handleRemoveMobilePhase = (
+    parameterId: number,
+    mobilePhaseId: string,
+  ) => {
+    setMobilePhasePerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((mp) => mp.id !== mobilePhaseId)
+        .map((mp, index) => ({
+          ...mp,
+          label: `Mobile Phase Preparation ${index + 1}`,
+        }));
+      return { ...prev, [parameterId]: updated };
+    });
   };
 
   // Dissolution Media Preparation Handlers
@@ -4982,9 +6708,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
     }));
   };
 
-  // Sample Preparation Titration Handlers
-  const handleAddSamplePrepTitration = (parameterId: number) => {
-    setSamplePrepTitrationPerParam((prev) => {
+  // Sample Preparation Assay (Ferrous Fumarate) Handlers
+  const handleAddSamplePrepAssayFerrousFumaratePerParam = (
+    parameterId: number,
+  ) => {
+    setSamplePrepAssayFerrousFumaratePerParam((prev) => {
       const current = prev[parameterId] || [];
       const newIndex = current.length;
       return {
@@ -4997,11 +6725,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
     });
   };
 
-  const handleRemoveSamplePrepTitration = (
+  const handleRemoveSamplePrepAssayFerrousFumaratePerParam = (
     parameterId: number,
     samplePrepId: number,
   ) => {
-    setSamplePrepTitrationPerParam((prev) => {
+    setSamplePrepAssayFerrousFumaratePerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((sp) => sp.id !== samplePrepId)
         .map((sp, index) => ({
@@ -5012,6 +6740,144 @@ const Worksheet: React.FC<WorksheetProps> = ({
     });
   };
 
+  // Ferrous Fumarate Calculation Handlers
+  const handleAddCalculationFerrousFumarate = (parameterId: number) => {
+    setCalculationsAssayFerrousFumaratePerParam((prev) => {
+      const current = prev[parameterId] || [];
+      return {
+        ...prev,
+        [parameterId]: [
+          ...current,
+          createNewCalculationFerrousFumarate(current.length),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveCalculationFerrousFumarate = (
+    parameterId: number,
+    calculationId: number,
+  ) => {
+    setCalculationsAssayFerrousFumaratePerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((calc) => calc.id !== calculationId)
+        .map((calc, index) => ({ ...calc, label: `Calculation ${index + 1}` }));
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleCalculationFerrousFumarateFieldChange = (
+    parameterId: number,
+    calculationId: number,
+    field: keyof CalculationAssayFerrousFumarate,
+    value: string | null,
+  ) => {
+    setCalculationsAssayFerrousFumaratePerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((calc) =>
+        calc.id === calculationId ? { ...calc, [field]: value } : calc,
+      ),
+    }));
+  };
+
+  // Sample Preparation Dissolution (Ferrous Fumarate) Handlers
+  const handleAddSamplePrepDissoFerrousFumarate = (parameterId: number) => {
+    setSamplePrepDissoFerrousFumaratePerParam((prev) => {
+      const current = prev[parameterId] || [];
+      return {
+        ...prev,
+        [parameterId]: [
+          ...current,
+          createNewSamplePreparationTitration(current.length),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveSamplePrepDissoFerrousFumarate = (
+    parameterId: number,
+    samplePrepId: number,
+  ) => {
+    setSamplePrepDissoFerrousFumaratePerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((sp) => sp.id !== samplePrepId)
+        .map((sp, index) => ({
+          ...sp,
+          label: `Sample Preparation ${index + 1}`,
+        }));
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleSamplePrepDissoFerrousFumarateStepChange = (
+    parameterId: number,
+    samplePrepId: number,
+    stepName: SamplePreparationTitrationStep["name"],
+    field:
+      | "value1"
+      | "value2"
+      | "value3"
+      | "logBookID"
+      | "unit1"
+      | "unit2"
+      | "unit3"
+      | "solventChemical",
+    newValue: string,
+  ) => {
+    setSamplePrepDissoFerrousFumaratePerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((sp) =>
+        sp.id === samplePrepId
+          ? {
+              ...sp,
+              steps: sp.steps.map((step) =>
+                step.name === stepName ? { ...step, [field]: newValue } : step,
+              ),
+            }
+          : sp,
+      ),
+    }));
+  };
+
+  // Dissolution Ferrous Fumarate Calculation Handlers
+  const handleAddCalculationDissoFerrousFumarate = (parameterId: number) => {
+    setCalculationsDissoFerrousFumaratePerParam((prev) => {
+      const current = prev[parameterId] || [];
+      return {
+        ...prev,
+        [parameterId]: [
+          ...current,
+          createNewCalculationDissoFerrousFumarate(current.length),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveCalculationDissoFerrousFumarate = (
+    parameterId: number,
+    calculationId: number,
+  ) => {
+    setCalculationsDissoFerrousFumaratePerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((calc) => calc.id !== calculationId)
+        .map((calc, index) => ({ ...calc, label: `Calculation ${index + 1}` }));
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleCalculationDissoFerrousFumarateFieldChange = (
+    parameterId: number,
+    calculationId: number,
+    field: keyof CalculationDissoFerrousFumarate,
+    value: string | null,
+  ) => {
+    setCalculationsDissoFerrousFumaratePerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((calc) =>
+        calc.id === calculationId ? { ...calc, [field]: value } : calc,
+      ),
+    }));
+  };
 
   // Blank Preparation Handlers
   const handleAddBlankPreparation = (parameterId: number) => {
@@ -5022,7 +6888,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
     setEditingBlankPrepId(null);
   };
 
-  const handleEditBlankPreparation = (parameterId: number, blankPrepId: string) => {
+  const handleEditBlankPreparation = (
+    parameterId: number,
+    blankPrepId: string,
+  ) => {
     setEditingBlankPrepId(blankPrepId);
     setShowBlankPreparationDialog((prev) => ({
       ...prev,
@@ -5030,15 +6899,17 @@ const Worksheet: React.FC<WorksheetProps> = ({
     }));
   };
 
-  const handleSaveBlankPreparation = (parameterId: number, label: string, content: string) => {
+  const handleSaveBlankPreparation = (
+    parameterId: number,
+    label: string,
+    content: string,
+  ) => {
     if (editingBlankPrepId) {
       // Update existing blank preparation
       setBlankPreparationPerParam((prev) => ({
         ...prev,
         [parameterId]: (prev[parameterId] || []).map((prep) =>
-          prep.id === editingBlankPrepId
-            ? { ...prep, label, content }
-            : prep
+          prep.id === editingBlankPrepId ? { ...prep, label, content } : prep,
         ),
       }));
     } else {
@@ -5048,13 +6919,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
         label,
         content,
       };
-      
+
       setBlankPreparationPerParam((prev) => ({
         ...prev,
         [parameterId]: [...(prev[parameterId] || []), newBlankPrep],
       }));
     }
-    
+
     setShowBlankPreparationDialog((prev) => ({
       ...prev,
       [parameterId]: false,
@@ -5062,21 +6933,128 @@ const Worksheet: React.FC<WorksheetProps> = ({
     setEditingBlankPrepId(null);
   };
 
-  const handleRemoveBlankPreparation = (parameterId: number, blankPrepId: string) => {
+  const handleRemoveBlankPreparation = (
+    parameterId: number,
+    blankPrepId: string,
+  ) => {
     setBlankPreparationPerParam((prev) => ({
       ...prev,
-      [parameterId]: (prev[parameterId] || []).filter((prep) => prep.id !== blankPrepId),
+      [parameterId]: (prev[parameterId] || []).filter(
+        (prep) => prep.id !== blankPrepId,
+      ),
     }));
   };
 
-  const handleSamplePrepTitrationStepChange = (
+  // Buffer Preparation Handlers
+  const handleAddBufferPreparation = (parameterId: number) => {
+    setBufferPreparationPerParam((prev) => {
+      const current = prev[parameterId] || [];
+      return {
+        ...prev,
+        [parameterId]: [...current, createNewBufferPreparation(current.length)],
+      };
+    });
+  };
+
+  const handleRemoveBufferPreparation = (
+    parameterId: number,
+    bufferPrepId: number,
+  ) => {
+    setBufferPreparationPerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((bp) => bp.id !== bufferPrepId)
+        .map((bp, i) => ({ ...bp, label: `Buffer Preparation ${i + 1}` }));
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleBufferPreparationStepChange = (
+    parameterId: number,
+    bufferPrepId: number,
+    stepName: string,
+    field: "value1" | "unit1" | "logBookID" | "solventChemical",
+    newValue: string,
+  ) => {
+    setBufferPreparationPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((bp) => {
+        if (bp.id !== bufferPrepId) return bp;
+        return {
+          ...bp,
+          steps: bp.steps.map((step) =>
+            step.name === stepName ? { ...step, [field]: newValue } : step,
+          ),
+        };
+      }),
+    }));
+  };
+
+  // Diluent Preparation (blank-sheet style) Handlers
+  const handleAddDiluentPrep = (parameterId: number) => {
+    setShowDiluentPrepDialog((prev) => ({ ...prev, [parameterId]: true }));
+    setEditingDiluentPrepId(null);
+  };
+
+  const handleEditDiluentPrep = (parameterId: number, id: string) => {
+    setEditingDiluentPrepId(id);
+    setShowDiluentPrepDialog((prev) => ({ ...prev, [parameterId]: true }));
+  };
+
+  const handleSaveDiluentPrep = (
+    parameterId: number,
+    _label: string,
+    content: string,
+  ) => {
+    if (editingDiluentPrepId) {
+      setDiluentPreparationsPerParam((prev) => ({
+        ...prev,
+        [parameterId]: (prev[parameterId] || []).map((d) =>
+          d.id === editingDiluentPrepId ? { ...d, content } : d,
+        ),
+      }));
+    } else {
+      setDiluentPreparationsPerParam((prev) => {
+        const current = prev[parameterId] || [];
+        const newPrep: DiluentPreparation = {
+          id: `diluent_${Date.now()}`,
+          label: `Diluent Preparation ${current.length + 1}`,
+          content,
+        };
+        return { ...prev, [parameterId]: [...current, newPrep] };
+      });
+    }
+    setShowDiluentPrepDialog((prev) => ({ ...prev, [parameterId]: false }));
+    setEditingDiluentPrepId(null);
+  };
+
+  const handleRemoveDiluentPrep = (parameterId: number, id: string) => {
+    setDiluentPreparationsPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || [])
+        .filter((d) => d.id !== id)
+        .map((d, index) => ({
+          ...d,
+          label: `Diluent Preparation ${index + 1}`,
+        })),
+    }));
+  };
+
+  const handleSamplePrepAssayFerrousFumaratePerParamStepChange = (
     parameterId: number,
     samplePrepId: number,
     stepName: SamplePreparationTitrationStep["name"],
-    field: "value1" | "logBookID" | "unit1" | "solventChemical",
+    field:
+      | "value1"
+      | "value2"
+      | "value3"
+      | "logBookID"
+      | "unit1"
+      | "unit2"
+      | "unit3"
+      | "solventChemical",
     newValue: string,
   ) => {
-    setSamplePrepTitrationPerParam((prev) => ({
+    setSamplePrepAssayFerrousFumaratePerParam((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((sp) => {
         if (sp.id === samplePrepId) {
@@ -5299,15 +7277,21 @@ const Worksheet: React.FC<WorksheetProps> = ({
     isForRS: boolean = false,
     isForDisso: boolean = false,
     isForUC: boolean = false,
+    isForDissoProfile: boolean = false,
+    isForRelatedSubstance: boolean = false,
   ): Standard[] => {
     const paramStandards = addedStandards[parameterId] || [];
-    const preparations = isForRS
-      ? standardPreparationRSPerParam[parameterId] || []
-      : isForDisso
-        ? standardPreparationDissoPerParam[parameterId] || []
-        : isForUC
-          ? standardPreparationUCPerParam[parameterId] || []
-          : standardPreparationPerParam[parameterId] || [];
+    const preparations = isForRelatedSubstance
+      ? standardPreparationRelatedSubstancePerParam[parameterId] || []
+      : isForRS
+        ? standardPreparationResidualSolventPerParam[parameterId] || []
+        : isForDisso
+          ? standardPreparationDissoPerParam[parameterId] || []
+          : isForUC
+            ? standardPreparationUCPerParam[parameterId] || []
+            : isForDissoProfile
+              ? standardPreparationDissoProfilePerParam[parameterId] || []
+              : standardPreparationAssayPerParam[parameterId] || [];
 
     const assignedStandardIds = preparations
       .map((prep: any) => prep.assignedStandardId)
@@ -5325,9 +7309,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
     ).values(),
   ];
   const allMethods = uniqueMethods.map((item) => item.methodName);
-const testsRequiredDisplay = allParameters.join(", ").replace(/,\s*$/, "");
-const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
-
+  const testsRequiredDisplay = allParameters.join(", ").replace(/,\s*$/, "");
+  const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
 
   const animationProps = {
     initial: { opacity: 0, scale: 0.9 },
@@ -5368,7 +7351,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
         }
 
         if (group.id === "assay") {
-          setStandardPreparationPerParam((p) => {
+          setStandardPreparationAssayPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
@@ -5408,7 +7391,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
             return rest;
           });
         } else if (group.id === "residualSolvent") {
-          setStandardPreparationRSPerParam((p) => {
+          setStandardPreparationResidualSolventPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
@@ -5417,6 +7400,19 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
             return rest;
           });
           setCalculationsRSPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        } else if (group.id === "relatedSubstance") {
+          setStandardPreparationRelatedSubstancePerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+          setSamplePreparationRelatedSubstancePerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+          setCalculationsRelatedSubstancePerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
@@ -5433,25 +7429,43 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
-        }
-        // else if (group.id === "mobilePhase") {
-        //   setMobilePhasePerParam((p) => {
-        //     const { [parameterId]: _, ...rest } = p;
-        //     return rest;
-        //   });
-        // } else if (group.id === "dissoMedia") {
-        //   setDissoMediaPerParam((p) => {
-        //     const { [parameterId]: _, ...rest } = p;
-        //     return rest;
-        //   });
-        // }
-        else if (group.id === "titration") {
-          setSamplePrepTitrationPerParam((p) => {
+        } else if (group.id === "dissolutionProfile") {
+          setCalculationsDissoProfilePerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+          setSamplePreparationDissoProfilePerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+          setStandardPreparationDissoProfilePerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+          setDissoMediaProfilePerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
         }
-        else if (group.id === "blankPreparation") {
+        else if (group.id === "assayFerrousFumarate") {
+          setSamplePrepAssayFerrousFumaratePerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+          setCalculationsAssayFerrousFumaratePerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        } else if (group.id === "dissolutionFerrousFumarate") {
+          setSamplePrepDissoFerrousFumaratePerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+          setCalculationsDissoFerrousFumaratePerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        } else if (group.id === "blankPreparation") {
           setBlankPreparationPerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
@@ -5470,12 +7484,6 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
       };
     });
     setShowPreparationDropdown({});
-    
-    // If adding blankPreparation, open the dialog
-    // If adding blankPreparation, open the dialog
-    if (groupId === "blankPreparation" && !(activePreparationGroups[parameterId] || []).includes(groupId)) {
-      handleAddBlankPreparation(parameterId);
-    }
   };
 
   const getAvailablePreparationGroups = () => {
@@ -5494,8 +7502,18 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
         color: "emerald",
       },
       {
+        id: "relatedSubstance",
+        label: "Preparations for Related Substance",
+        color: "emerald",
+      },
+      {
         id: "dissolution",
         label: "Preparations for Dissolution",
+        color: "emerald",
+      },
+      {
+        id: "dissolutionProfile",
+        label: "Preparations for Dissolution (Profile)",
         color: "emerald",
       },
       {
@@ -5504,8 +7522,13 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
         color: "emerald",
       },
       {
-        id: "titration",
-        label: "Preparation for Titration",
+        id: "assayFerrousFumarate",
+        label: "Preparation for Assay (Ferrous Fumarate)",
+        color: "emerald",
+      },
+      {
+        id: "dissolutionFerrousFumarate",
+        label: "Preparation for Dissolution (Ferrous Fumarate)",
         color: "emerald",
       },
       {
@@ -8000,7 +10023,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-emerald-700 flex items-center gap-2">
                 <div className="relative">
-                  <div className="flex item-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <div className="flex item-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
                     <IoFlask className="w-6 h-6 text-white" />
                   </div>
                 </div>
@@ -9509,25 +11532,17 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                               ).map((mobilePhase) => (
                                 <div key={mobilePhase.id}>
                                   <MobilePhasePreparationDetail
-                                    mobilePhase={mobilePhase}
-                                    onStepChange={(
-                                      mobilePhaseId,
-                                      stepName,
-                                      field,
-                                      newValue,
-                                    ) =>
-                                      handleMobilePhaseStepChange(
+                                    mobilePhasePreparation={mobilePhase}
+                                    onEdit={(id) =>
+                                      handleEditMobilePhase(
                                         selectedParam.id,
-                                        mobilePhaseId,
-                                        stepName,
-                                        field,
-                                        newValue,
+                                        id,
                                       )
                                     }
-                                    onRemove={() =>
+                                    onRemove={(id) =>
                                       handleRemoveMobilePhase(
                                         selectedParam.id,
-                                        mobilePhase.id,
+                                        id,
                                       )
                                     }
                                   />
@@ -9560,6 +11575,229 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                         )}
                       </AnimatePresence>
 
+                      {/* Mobile Phase Preparation Dialog */}
+                      <AnimatePresence>
+                        {showMobilePhaseDialog[selectedParam.id] && (
+                          <PreparationEditorDialog
+                            title={
+                              editingMobilePhasePrepId
+                                ? ((
+                                    mobilePhasePerParam[selectedParam.id] || []
+                                  ).find(
+                                    (mp) => mp.id === editingMobilePhasePrepId,
+                                  )?.label ?? "Mobile Phase Preparation")
+                                : `Mobile Phase Preparation ${(mobilePhasePerParam[selectedParam.id] || []).length + 1}`
+                            }
+                            onClose={() => {
+                              setShowMobilePhaseDialog((prev) => ({
+                                ...prev,
+                                [selectedParam.id]: false,
+                              }));
+                              setEditingMobilePhasePrepId(null);
+                            }}
+                            onSave={(content) =>
+                              handleSaveMobilePhase(
+                                selectedParam.id,
+                                "",
+                                content,
+                              )
+                            }
+                            existingContent={
+                              editingMobilePhasePrepId
+                                ? (
+                                    mobilePhasePerParam[selectedParam.id] || []
+                                  ).find(
+                                    (mp) => mp.id === editingMobilePhasePrepId,
+                                  )?.content
+                                : undefined
+                            }
+                          />
+                        )}
+                      </AnimatePresence>
+
+                      {/* ============= BUFFER PREPARATION TOGGLE ============= */}
+                      <div className="mb-6 mt-4">
+                        <label className="flex items-center gap-4 cursor-pointer group relative">
+                          <div className="relative flex items-center justify-center">
+                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
+                            <input
+                              type="checkbox"
+                              checked={
+                                showBufferPreparation[selectedParam.id] || false
+                              }
+                              onChange={(e) => {
+                                setShowBufferPreparation((prev) => ({
+                                  ...prev,
+                                  [selectedParam.id]: e.target.checked,
+                                }));
+                                if (!e.target.checked) {
+                                  setBufferPreparationPerParam((prev) => ({
+                                    ...prev,
+                                    [selectedParam.id]: [],
+                                  }));
+                                }
+                              }}
+                              className="peer sr-only"
+                            />
+                            <div className="relative w-14 h-7 rounded-full border-2 border-emerald-200 bg-gray-200 peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-emerald-600 peer-checked:border-emerald-600 transition-all duration-300 shadow-inner group-hover:border-emerald-300">
+                              <motion.div
+                                className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
+                                animate={{
+                                  x: showBufferPreparation[selectedParam.id]
+                                    ? 28
+                                    : 0,
+                                }}
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 500,
+                                  damping: 30,
+                                }}
+                              >
+                                {showBufferPreparation[selectedParam.id] ? (
+                                  <svg
+                                    className="w-3 h-3 text-emerald-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                ) : (
+                                  <svg
+                                    className="w-3 h-3 text-gray-400"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M6 18L18 6M6 6l12 12"
+                                    />
+                                  </svg>
+                                )}
+                              </motion.div>
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base font-bold text-emerald-700 group-hover:text-emerald-700 transition-colors duration-200">
+                                Buffer Preparation
+                              </span>
+                              <motion.span
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className={`px-2 py-0.5 text-[10px] font-medium rounded-full transition-all duration-200 ${
+                                  showBufferPreparation[selectedParam.id]
+                                    ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                                    : "bg-gray-100 text-gray-500 border border-gray-200"
+                                }`}
+                              >
+                                {showBufferPreparation[selectedParam.id]
+                                  ? "Active"
+                                  : "Inactive"}
+                              </motion.span>
+                            </div>
+                            <p className="text-xs text-emerald-600/70">
+                              Toggle buffer preparation section
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+
+                      {/* ============= BUFFER PREPARATION SECTION ============= */}
+                      <AnimatePresence>
+                        {showBufferPreparation[selectedParam.id] && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 0 }}
+                            className="mb-6 p-6 bg-white rounded-xl border-2 border-emerald-200 shadow-lg"
+                          >
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="flex items-center gap-4">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                <div>
+                                  <h2 className="text-lg font-bold text-emerald-700 tracking-tight">
+                                    Buffer Preparations
+                                  </h2>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <button
+                                  onClick={() =>
+                                    handleAddBufferPreparation(selectedParam.id)
+                                  }
+                                  className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                  Add Buffer Preparation
+                                </button>
+                              </div>
+                            </div>
+
+                            <AnimatePresence>
+                              {(
+                                bufferPreparationPerParam[selectedParam.id] ||
+                                []
+                              ).map((bufferPrep) => (
+                                <div key={bufferPrep.id}>
+                                  <BufferPreparationDetail
+                                    buffer={bufferPrep}
+                                    onStepChange={(
+                                      bufferPrepId,
+                                      stepName,
+                                      field,
+                                      newValue,
+                                    ) =>
+                                      handleBufferPreparationStepChange(
+                                        selectedParam.id,
+                                        bufferPrepId,
+                                        stepName,
+                                        field,
+                                        newValue,
+                                      )
+                                    }
+                                    onRemove={() =>
+                                      handleRemoveBufferPreparation(
+                                        selectedParam.id,
+                                        bufferPrep.id,
+                                      )
+                                    }
+                                  />
+                                </div>
+                              ))}
+                            </AnimatePresence>
+
+                            {(bufferPreparationPerParam[selectedParam.id] || [])
+                              .length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="text-center py-10 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl"
+                              >
+                                <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                  <Target className="w-10 h-10 text-emerald-400" />
+                                </div>
+                                <p className="text-base font-bold text-emerald-700 mb-1">
+                                  No buffer preparations added yet
+                                </p>
+                                <p className="text-sm text-emerald-600/80">
+                                  Click "Add Buffer Preparation" to begin
+                                </p>
+                              </motion.div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Diluent Preparation Toggle */}
                       <div className="mb-6 mt-4">
                         <label className="flex items-center gap-4 cursor-pointer group relative">
                           <div className="relative flex items-center justify-center">
@@ -9581,6 +11819,10 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                     ...prev,
                                     [selectedParam.id]: "",
                                   }));
+                                  setDiluentPreparationsPerParam((prev) => ({
+                                    ...prev,
+                                    [selectedParam.id]: [],
+                                  }));
                                 }
                               }}
                               className="peer sr-only"
@@ -9600,7 +11842,6 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                   damping: 30,
                                 }}
                               >
-                                {/* Icon inside thumb */}
                                 {showDiluentPreparation[selectedParam.id] ? (
                                   <svg
                                     className="w-3 h-3 text-emerald-600"
@@ -9637,9 +11878,8 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <span className="text-base font-bold text-emerald-700 group-hover:text-emerald-700 transition-colors duration-200">
-                                Preparation of Diluent
+                                Diluent Preparation
                               </span>
-
                               <motion.span
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
@@ -9654,7 +11894,6 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                   : "Inactive"}
                               </motion.span>
                             </div>
-
                             <p className="text-xs text-emerald-600/70">
                               Toggle diluent preparation section
                             </p>
@@ -9662,7 +11901,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                         </label>
                       </div>
 
-                      {/* Diluent Preparation Section (Conditional) */}
+                      {/* Diluent Preparation Section — Blank Sheet style */}
                       <AnimatePresence>
                         {showDiluentPreparation[selectedParam.id] && (
                           <motion.div
@@ -9671,22 +11910,111 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                             exit={{ opacity: 0, y: 0 }}
                             className="mb-6 p-6 bg-white rounded-xl border-2 border-emerald-200 shadow-lg"
                           >
-                            <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight mb-3">
-                              <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
-                              Preparation of Diluent:
-                            </h3>
-                            <textarea
-                              value={diluentPerParam[selectedParam.id] || ""}
-                              onChange={(e) =>
-                                handleDiluentChange(
-                                  selectedParam.id,
-                                  e.target.value,
-                                )
-                              }
-                              placeholder="Enter diluent preparation details..."
-                              className="w-full min-h-[100px] border border-emerald-300 rounded-lg p-3 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                            />
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                Diluent Preparation
+                              </h3>
+                              <button
+                                onClick={() =>
+                                  handleAddDiluentPrep(selectedParam.id)
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Diluent Preparation
+                              </button>
+                            </div>
+
+                            <AnimatePresence>
+                              {(
+                                diluentPreparationsPerParam[selectedParam.id] ||
+                                []
+                              ).map((dilPrep) => (
+                                <div key={dilPrep.id}>
+                                  <DiluentPreparationDetail
+                                    diluentPreparation={dilPrep}
+                                    onEdit={(id) =>
+                                      handleEditDiluentPrep(
+                                        selectedParam.id,
+                                        id,
+                                      )
+                                    }
+                                    onRemove={(id) =>
+                                      handleRemoveDiluentPrep(
+                                        selectedParam.id,
+                                        id,
+                                      )
+                                    }
+                                  />
+                                </div>
+                              ))}
+                            </AnimatePresence>
+
+                            {(
+                              diluentPreparationsPerParam[selectedParam.id] ||
+                              []
+                            ).length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl"
+                              >
+                                <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                  <Target className="w-10 h-10 text-emerald-400" />
+                                </div>
+                                <p className="text-base font-bold text-emerald-700 mb-1">
+                                  No diluent preparation added yet
+                                </p>
+                                <p className="text-sm text-emerald-600/80">
+                                  Click "Add Diluent Preparation" to create a
+                                  diluent preparation
+                                </p>
+                              </motion.div>
+                            )}
                           </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Diluent Preparation Dialog */}
+                      <AnimatePresence>
+                        {showDiluentPrepDialog[selectedParam.id] && (
+                          <PreparationEditorDialog
+                            title={
+                              editingDiluentPrepId
+                                ? ((
+                                    diluentPreparationsPerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).find((d) => d.id === editingDiluentPrepId)
+                                    ?.label ?? "Diluent Preparation")
+                                : `Diluent Preparation ${(diluentPreparationsPerParam[selectedParam.id] || []).length + 1}`
+                            }
+                            onClose={() => {
+                              setShowDiluentPrepDialog((prev) => ({
+                                ...prev,
+                                [selectedParam.id]: false,
+                              }));
+                              setEditingDiluentPrepId(null);
+                            }}
+                            onSave={(content) =>
+                              handleSaveDiluentPrep(
+                                selectedParam.id,
+                                "",
+                                content,
+                              )
+                            }
+                            existingContent={
+                              editingDiluentPrepId
+                                ? (
+                                    diluentPreparationsPerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).find((d) => d.id === editingDiluentPrepId)
+                                    ?.content
+                                : undefined
+                            }
+                          />
                         )}
                       </AnimatePresence>
 
@@ -9950,142 +12278,6 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                       </div>
                       {/* ============= END OF PREPARATIONS MANAGEMENT SECTION ============= */}
 
-                      {/* ============= TITRATION GROUP CARD ============= */}
-                      {(
-                        activePreparationGroups[selectedParam.id] || []
-                      ).includes("titration") && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
-                        >
-                          {/* Decorative elements */}
-                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
-                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
-
-                          {/* Card Header */}
-                          <div className="flex items-center justify-between mb-8">
-                            <div className="flex items-center gap-4">
-                              <div className="relative">
-                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
-                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
-                                  <BiTestTube className="w-6 h-6 text-white" />
-                                </div>
-                              </div>
-                              <div>
-                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
-                                  Preparation for Titration
-                                </h2>
-                                <p className="text-sm text-emerald-600/80 font-medium">
-                                  Titration Sample Preparation Details
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
-                              <span className="text-xs font-bold text-emerald-700">
-                                {
-                                  (
-                                    samplePrepTitrationPerParam[
-                                      selectedParam.id
-                                    ] || []
-                                  ).length
-                                }{" "}
-                                Items
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Sample Preparation Titration */}
-                          <div>
-                            <div className="flex items-center justify-between mb-4 px-2">
-                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
-                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
-                                Sample Preparations for Titration
-                              </h3>
-                              <button
-                                onClick={() =>
-                                  handleAddSamplePrepTitration(selectedParam.id)
-                                }
-                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
-                              >
-                                <Plus className="w-4 h-4" />
-                                Add Sample Preparation
-                              </button>
-                            </div>
-
-                            <AnimatePresence>
-                              {(
-                                samplePrepTitrationPerParam[selectedParam.id] ||
-                                []
-                              ).map((samplePrep) => (
-                                <div key={samplePrep.id}>
-                                  <SamplePreparationTitrationDetail
-                                    samplePreparationTitration={samplePrep}
-                                    onStepChange={(
-                                      samplePrepId,
-                                      stepName,
-                                      field,
-                                      newValue,
-                                    ) =>
-                                      handleSamplePrepTitrationStepChange(
-                                        selectedParam.id,
-                                        samplePrepId,
-                                        stepName,
-                                        field,
-                                        newValue,
-                                      )
-                                    }
-                                    onRemove={() =>
-                                      handleRemoveSamplePrepTitration(
-                                        selectedParam.id,
-                                        samplePrep.id,
-                                      )
-                                    }
-                                  />
-                                </div>
-                              ))}
-                            </AnimatePresence>
-
-                            {(
-                              samplePrepTitrationPerParam[selectedParam.id] ||
-                              []
-                            ).length === 0 && (
-                              <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
-                              >
-                                <div className="absolute inset-0 opacity-5">
-                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
-                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
-                                </div>
-
-                                <div className="relative z-10">
-                                  <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
-                                    <Target className="w-14 h-14 text-emerald-400" />
-                                  </div>
-                                  <p className="text-lg font-bold text-emerald-700 mb-2">
-                                    No sample preparations added yet
-                                  </p>
-                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
-                                    Click "Add Sample Preparation" to create
-                                    titration sample preparation
-                                  </p>
-                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
-                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
-                                    <span className="text-xs font-semibold text-emerald-700">
-                                      Ready to start
-                                    </span>
-                                  </div>
-                                </div>
-                              </motion.div>
-                            )}
-                          </div>
-                        </motion.div>
-                      )}
-
-
                       {/* ============= BLANK PREPARATION CARD ============= */}
                       {(
                         activePreparationGroups[selectedParam.id] || []
@@ -10158,14 +12350,13 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                 className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                               >
                                 <Plus className="w-4 h-4" />
-                                Add Document
+                                Add Preparation
                               </button>
                             </div>
 
                             <AnimatePresence>
                               {(
-                                blankPreparationPerParam[selectedParam.id] ||
-                                []
+                                blankPreparationPerParam[selectedParam.id] || []
                               ).map((blankPrep) => (
                                 <div key={blankPrep.id}>
                                   <BlankPreparationDetail
@@ -10173,13 +12364,13 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                     onEdit={(id) =>
                                       handleEditBlankPreparation(
                                         selectedParam.id,
-                                        id
+                                        id,
                                       )
                                     }
                                     onRemove={(id) =>
                                       handleRemoveBlankPreparation(
                                         selectedParam.id,
-                                        id
+                                        id,
                                       )
                                     }
                                   />
@@ -10187,10 +12378,8 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                               ))}
                             </AnimatePresence>
 
-                            {(
-                              blankPreparationPerParam[selectedParam.id] ||
-                              []
-                            ).length === 0 && (
+                            {(blankPreparationPerParam[selectedParam.id] || [])
+                              .length === 0 && (
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -10209,7 +12398,8 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                     No documents added yet
                                   </p>
                                   <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
-                                    Click "Add Document" to create a blank preparation document
+                                    Click "Add Document" to create a blank
+                                    preparation document
                                   </p>
                                   <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
                                     <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
@@ -10235,19 +12425,31 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                               }))
                             }
                             onSave={(label, content) => {
-                              handleSaveBlankPreparation(selectedParam.id, label, content);
+                              handleSaveBlankPreparation(
+                                selectedParam.id,
+                                label,
+                                content,
+                              );
                             }}
                             existingContent={
                               editingBlankPrepId
-                                ? (blankPreparationPerParam[selectedParam.id] || []).find(
-                                    (prep) => prep.id === editingBlankPrepId
+                                ? (
+                                    blankPreparationPerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).find(
+                                    (prep) => prep.id === editingBlankPrepId,
                                   )?.content || ""
                                 : ""
                             }
                             existingLabel={
                               editingBlankPrepId
-                                ? (blankPreparationPerParam[selectedParam.id] || []).find(
-                                    (prep) => prep.id === editingBlankPrepId
+                                ? (
+                                    blankPreparationPerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).find(
+                                    (prep) => prep.id === editingBlankPrepId,
                                   )?.label || ""
                                 : ""
                             }
@@ -10255,6 +12457,483 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                           />
                         )}
                       </AnimatePresence>
+
+                      {/* ============= Assay (Ferrous Fumarate) section ============= */}
+                      {(
+                        activePreparationGroups[selectedParam.id] || []
+                      ).includes("assayFerrousFumarate") && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
+                        >
+                          {/* Decorative elements */}
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                          {/* Card Header */}
+                          <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                  <BiTestTube className="w-6 h-6 text-white" />
+                                </div>
+                              </div>
+                              <div>
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
+                                  Preparation for Assay (Ferrous Fumarate)
+                                </h2>
+                                <p className="text-sm text-emerald-600/80 font-medium">
+                                  Ferrous Fumarate Assay – Sample Preparation
+                                  &amp; Calculations
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
+                                {(
+                                  samplePrepAssayFerrousFumaratePerParam[
+                                    selectedParam.id
+                                  ] || []
+                                ).length +
+                                  (
+                                    calculationsAssayFerrousFumaratePerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).length}{" "}
+                                Items
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Sample Preparation Assay (Ferrous Fumarate) */}
+                          <div>
+                            <div className="flex items-center justify-between mb-4 px-2">
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                Sample Preparations for Assay (Ferrous Fumarate)
+                              </h3>
+                              <button
+                                onClick={() =>
+                                  handleAddSamplePrepAssayFerrousFumaratePerParam(
+                                    selectedParam.id,
+                                  )
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Preparation
+                              </button>
+                            </div>
+
+                            <AnimatePresence>
+                              {(
+                                samplePrepAssayFerrousFumaratePerParam[
+                                  selectedParam.id
+                                ] || []
+                              ).map((samplePrep) => (
+                                <div key={samplePrep.id}>
+                                  <SamplePreparationTitrationDetail
+                                    samplePreparationTitration={samplePrep}
+                                    type={"assay"}
+                                    onStepChange={(
+                                      samplePrepId,
+                                      stepName,
+                                      field,
+                                      newValue,
+                                    ) =>
+                                      handleSamplePrepAssayFerrousFumaratePerParamStepChange(
+                                        selectedParam.id,
+                                        samplePrepId,
+                                        stepName,
+                                        field,
+                                        newValue,
+                                      )
+                                    }
+                                    onRemove={() =>
+                                      handleRemoveSamplePrepAssayFerrousFumaratePerParam(
+                                        selectedParam.id,
+                                        samplePrep.id,
+                                      )
+                                    }
+                                  />
+                                </div>
+                              ))}
+                            </AnimatePresence>
+
+                            {(
+                              samplePrepAssayFerrousFumaratePerParam[
+                                selectedParam.id
+                              ] || []
+                            ).length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                              >
+                                <div className="relative z-10">
+                                  <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                    <Target className="w-10 h-10 text-emerald-400" />
+                                  </div>
+                                  <p className="text-base font-bold text-emerald-700 mb-1">
+                                    No sample preparations added yet
+                                  </p>
+                                  <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                    Click "Add Sample Preparation" to create an
+                                    Assay (Ferrous Fumarate) sample preparation
+                                  </p>
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+
+                          {(samplePrepAssayFerrousFumaratePerParam[
+                            selectedParam.id
+                          ] || []).length > 0 && (
+                            <>
+                              {/* ── Ferrous Fumarate Calculations separator ── */}
+                              <div className="flex items-center gap-4 my-8">
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                                  <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                                    Calculations
+                                  </span>
+                                </div>
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                              </div>
+
+                              {/* ── Ferrous Fumarate Calculations section ── */}
+                              <div className="relative p-6 rounded-xl border-2 border-emerald-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                                <div className="flex items-center justify-between mb-6 px-2">
+                                  <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
+                                    <span className="text-emerald-600">
+                                      Calculations for Assay (Ferrous Fumarate)
+                                    </span>
+                                  </h3>
+                                  <motion.button
+                                    onClick={() =>
+                                      handleAddCalculationFerrousFumarate(
+                                        selectedParam.id,
+                                      )
+                                    }
+                                    whileHover={{ scale: 1 }}
+                                    whileTap={{ scale: 1 }}
+                                    className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Calculation
+                                  </motion.button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(
+                                    calculationsAssayFerrousFumaratePerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).map((calculation) => (
+                                    <CalculationDetailAssayFerrousFumarate
+                                      key={calculation.id}
+                                      calculation={calculation}
+                                      samplePreparations={
+                                        samplePrepAssayFerrousFumaratePerParam[
+                                          selectedParam.id
+                                        ] || []
+                                      }
+                                      onFieldChange={(
+                                        calculationId,
+                                        field,
+                                        value,
+                                      ) =>
+                                        handleCalculationFerrousFumarateFieldChange(
+                                          selectedParam.id,
+                                          calculationId,
+                                          field,
+                                          value,
+                                        )
+                                      }
+                                      onRemove={() =>
+                                        handleRemoveCalculationFerrousFumarate(
+                                          selectedParam.id,
+                                          calculation.id,
+                                        )
+                                      }
+                                      role={role}
+                                    />
+                                  ))}
+                                </AnimatePresence>
+
+                                {(
+                                  calculationsAssayFerrousFumaratePerParam[
+                                    selectedParam.id
+                                  ] || []
+                                ).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
+                                        <Target className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="font-semibold text-base text-emerald-700 mb-1">
+                                        No calculations added yet
+                                      </p>
+                                      <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
+                                        Click "Add Calculation" to begin
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </motion.div>
+                      )}
+
+                      {/* ============= Disso (Ferrous Fumarate) section ============= */}
+
+                      {(
+                        activePreparationGroups[selectedParam.id] || []
+                      ).includes("dissolutionFerrousFumarate") && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
+                        >
+                          {/* Decorative elements */}
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                          {/* Card Header */}
+                          <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                  <BiTestTube className="w-6 h-6 text-white" />
+                                </div>
+                              </div>
+                              <div>
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
+                                  Preparation for Dissolution (Ferrous Fumarate)
+                                </h2>
+                                <p className="text-sm text-emerald-600/80 font-medium">
+                                  Dissolution (Ferrous Fumarate) – Sample
+                                  Preparation &amp; Calculations
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
+                                {(
+                                  samplePrepDissoFerrousFumaratePerParam[
+                                    selectedParam.id
+                                  ] || []
+                                ).length +
+                                  (
+                                    calculationsDissoFerrousFumaratePerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).length}{" "}
+                                Items
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Sample Preparations */}
+                          <div>
+                            <div className="flex items-center justify-between mb-4 px-2">
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                Sample Preparations for Dissolution (Ferrous
+                                Fumarate)
+                              </h3>
+                              <button
+                                onClick={() =>
+                                  handleAddSamplePrepDissoFerrousFumarate(
+                                    selectedParam.id,
+                                  )
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Preparation
+                              </button>
+                            </div>
+
+                            <AnimatePresence>
+                              {(
+                                samplePrepDissoFerrousFumaratePerParam[
+                                  selectedParam.id
+                                ] || []
+                              ).map((samplePrep) => (
+                                <div key={samplePrep.id}>
+                                  <SamplePreparationTitrationDetail
+                                    samplePreparationTitration={samplePrep}
+                                    type={"disso"}
+                                    onStepChange={(
+                                      samplePrepId,
+                                      stepName,
+                                      field,
+                                      newValue,
+                                    ) =>
+                                      handleSamplePrepDissoFerrousFumarateStepChange(
+                                        selectedParam.id,
+                                        samplePrepId,
+                                        stepName,
+                                        field,
+                                        newValue,
+                                      )
+                                    }
+                                    onRemove={() =>
+                                      handleRemoveSamplePrepDissoFerrousFumarate(
+                                        selectedParam.id,
+                                        samplePrep.id,
+                                      )
+                                    }
+                                  />
+                                </div>
+                              ))}
+                            </AnimatePresence>
+
+                            {(
+                              samplePrepDissoFerrousFumaratePerParam[
+                                selectedParam.id
+                              ] || []
+                            ).length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                              >
+                                <div className="relative z-10">
+                                  <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                    <Target className="w-10 h-10 text-emerald-400" />
+                                  </div>
+                                  <p className="text-base font-bold text-emerald-700 mb-1">
+                                    No sample preparations added yet
+                                  </p>
+                                  <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                    Click "Add Sample Preparation" to create a
+                                    Dissolution (Ferrous Fumarate) sample
+                                    preparation
+                                  </p>
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+
+                          {samplePrepDissoFerrousFumaratePerParam[
+                            selectedParam.id
+                          ]?.length > 0 && (
+                            <>
+                              <div className="flex items-center gap-4 my-8">
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                                  <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                                    Calculations
+                                  </span>
+                                </div>
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                              </div>
+
+                              {/* Calculations */}
+                              <div className="relative p-6 rounded-xl border-2 border-emerald-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                                <div className="flex items-center justify-between mb-6 px-2">
+                                  <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
+                                    <span className="text-emerald-600">
+                                      Calculations for Dissolution (Ferrous
+                                      Fumarate)
+                                    </span>
+                                  </h3>
+                                  <motion.button
+                                    onClick={() =>
+                                      handleAddCalculationDissoFerrousFumarate(
+                                        selectedParam.id,
+                                      )
+                                    }
+                                    whileHover={{ scale: 1 }}
+                                    whileTap={{ scale: 1 }}
+                                    className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Calculation
+                                  </motion.button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(
+                                    calculationsDissoFerrousFumaratePerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).map((calculation) => (
+                                    <CalculationDetailDissoFerrousFumarate
+                                      key={calculation.id}
+                                      calculation={calculation}
+                                      samplePreparations={
+                                        samplePrepDissoFerrousFumaratePerParam[
+                                          selectedParam.id
+                                        ] || []
+                                      }
+                                      onFieldChange={(
+                                        calculationId,
+                                        field,
+                                        value,
+                                      ) =>
+                                        handleCalculationDissoFerrousFumarateFieldChange(
+                                          selectedParam.id,
+                                          calculationId,
+                                          field,
+                                          value,
+                                        )
+                                      }
+                                      onRemove={() =>
+                                        handleRemoveCalculationDissoFerrousFumarate(
+                                          selectedParam.id,
+                                          calculation.id,
+                                        )
+                                      }
+                                      role={role}
+                                    />
+                                  ))}
+                                </AnimatePresence>
+
+                                {(
+                                  calculationsDissoFerrousFumaratePerParam[
+                                    selectedParam.id
+                                  ] || []
+                                ).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
+                                        <Target className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="font-semibold text-base text-emerald-700 mb-1">
+                                        No calculations added yet
+                                      </p>
+                                      <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
+                                        Click "Add Calculation" to begin
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </motion.div>
+                      )}
 
                       {/* ============= ASSAY GROUP CARD ============= */}
                       {(
@@ -10291,7 +12970,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                             <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
                               <span className="text-xs font-bold text-emerald-700">
                                 {(
-                                  standardPreparationPerParam[
+                                  standardPreparationAssayPerParam[
                                     selectedParam.id
                                   ] || []
                                 ).length +
@@ -10330,8 +13009,9 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
 
                             <AnimatePresence>
                               {(
-                                standardPreparationPerParam[selectedParam.id] ||
-                                []
+                                standardPreparationAssayPerParam[
+                                  selectedParam.id
+                                ] || []
                               ).map((standardPreparation: any, idx: number) => {
                                 const assignedStandard = (
                                   addedStandards[selectedParam.id] || []
@@ -10418,8 +13098,9 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                             </AnimatePresence>
 
                             {(
-                              standardPreparationPerParam[selectedParam.id] ||
-                              []
+                              standardPreparationAssayPerParam[
+                                selectedParam.id
+                              ] || []
                             ).length === 0 && (
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
@@ -10453,7 +13134,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                             )}
                           </div>
 
-                          {standardPreparationPerParam[selectedParam.id]
+                          {standardPreparationAssayPerParam[selectedParam.id]
                             ?.length > 0 &&
                             samplePreparationPerParam[selectedParam.id]
                               ?.length > 0 && (
@@ -10490,7 +13171,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                       className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                                     >
                                       <Plus className="w-4 h-4" />
-                                      Add Assay Calculation
+                                      Add Calculation
                                     </motion.button>
                                   </div>
 
@@ -10504,7 +13185,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                         key={calculation.id}
                                         calculation={calculation}
                                         standardPreparations={
-                                          standardPreparationPerParam[
+                                          standardPreparationAssayPerParam[
                                             selectedParam.id
                                           ] || []
                                         }
@@ -10741,7 +13422,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                     className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add LOD Calculation
+                                    Add Calculation
                                   </motion.button>
                                 </div>
 
@@ -10985,7 +13666,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                     className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add ROI Calculation
+                                    Add Calculation
                                   </motion.button>
                                 </div>
 
@@ -11064,19 +13745,19 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-teal-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
                         >
                           {/* Decorative elements */}
                           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
-                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-teal-400/10 to-transparent rounded-tr-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
 
                           {/* Card Header */}
                           <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-4">
                               <div className="relative">
                                 <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
-                                <div className="relative w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
-                                  <BiTestTube className="w-8 h-8 text-white" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                  <BiTestTube className="w-6 h-6 text-white" />
                                 </div>
                               </div>
                               <div>
@@ -11089,7 +13770,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                               </div>
                             </div>
 
-                            <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-teal-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                            <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
                               <span className="text-xs font-bold text-emerald-700">
                                 {(
                                   samplePreparationSulphatedAshPerParam[
@@ -11171,11 +13852,11 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-teal-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
                               >
                                 <div className="absolute inset-0 opacity-5">
                                   <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
-                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
                                 </div>
 
                                 <div className="relative z-10">
@@ -11207,7 +13888,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                               {/* Visual Separator */}
                               <div className="flex items-center gap-4 my-8">
                                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
-                                <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                                <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-100 rounded-lg border border-emerald-300/50 shadow-sm">
                                   <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
                                     <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                                     Calculations
@@ -11220,8 +13901,8 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                               <div className="relative p-6 rounded-xl border-2 border-emerald-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
                                 <div className="flex items-center justify-between mb-6 px-2">
                                   <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
-                                    <span className="w-1.5 h-6 bg-gradient-to-b from-teal-500 to-emerald-700 rounded-full"></span>
-                                    <span className="text-teal-600">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-700 rounded-full"></span>
+                                    <span className="text-emerald-600">
                                       Sulphated Ash Calculations
                                     </span>
                                   </h3>
@@ -11233,10 +13914,10 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                     }
                                     whileHover={{ scale: 1 }}
                                     whileTap={{ scale: 1 }}
-                                    className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-teal-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                    className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Ash Calculation
+                                    Add Calculation
                                   </motion.button>
                                 </div>
 
@@ -11285,7 +13966,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                   <motion.div
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-teal-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
+                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
                                   >
                                     <div className="absolute inset-0 opacity-5">
                                       <div className="absolute top-0 left-1/4 w-48 h-48 bg-emerald-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
@@ -11345,7 +14026,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                             <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
                               <span className="text-xs font-bold text-emerald-700">
                                 {(
-                                  standardPreparationRSPerParam[
+                                  standardPreparationResidualSolventPerParam[
                                     selectedParam.id
                                   ] || []
                                 ).length +
@@ -11387,7 +14068,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                             {/* Preparations List */}
                             <AnimatePresence>
                               {(
-                                standardPreparationRSPerParam[
+                                standardPreparationResidualSolventPerParam[
                                   selectedParam.id
                                 ] || []
                               ).map((standardPreparation: any, idx: number) => {
@@ -11483,8 +14164,9 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                             </AnimatePresence>
 
                             {(
-                              standardPreparationRSPerParam[selectedParam.id] ||
-                              []
+                              standardPreparationResidualSolventPerParam[
+                                selectedParam.id
+                              ] || []
                             ).length === 0 && (
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
@@ -11518,8 +14200,9 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                             )}
                           </div>
 
-                          {standardPreparationRSPerParam[selectedParam.id]
-                            ?.length > 0 &&
+                          {standardPreparationResidualSolventPerParam[
+                            selectedParam.id
+                          ]?.length > 0 &&
                             samplePreparationRSPerParam[selectedParam.id]
                               ?.length > 0 && (
                               <>
@@ -11553,7 +14236,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                       className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                                     >
                                       <Plus className="w-4 h-4" />
-                                      Add RS Calculation
+                                      Add Calculation
                                     </motion.button>
                                   </div>
 
@@ -11567,7 +14250,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                         key={calculation.id}
                                         calculation={calculation}
                                         standardPreparations={
-                                          standardPreparationRSPerParam[
+                                          standardPreparationResidualSolventPerParam[
                                             selectedParam.id
                                           ] || []
                                         }
@@ -11621,6 +14304,322 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                         </p>
                                         <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
                                           Click "Add RS Calculation" to begin
+                                        </p>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                        </motion.div>
+                      )}
+
+                      {/* ============= RELATED SUBSTANCE GROUP CARD ============= */}
+                      {(
+                        activePreparationGroups[selectedParam.id] || []
+                      ).includes("relatedSubstance") && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
+                        >
+                          {/* Decorative elements */}
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                          {/* Card Header */}
+                          <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                  <IoFlask className="w-6 h-6 text-white" />
+                                </div>
+                              </div>
+                              <div>
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
+                                  Related Substance Analysis
+                                </h2>
+                                <p className="text-sm text-emerald-600/80 font-medium">
+                                  Standard, Sample & Calculations
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
+                                {(
+                                  standardPreparationRelatedSubstancePerParam[
+                                    selectedParam.id
+                                  ] || []
+                                ).length +
+                                  (
+                                    samplePreparationRelatedSubstancePerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).length +
+                                  (
+                                    calculationsRelatedSubstancePerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).length}{" "}
+                                Items
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Combined Preparations Header with Single Add Button */}
+                          <div className="mb-8">
+                            <div className="flex items-center justify-between mb-4 px-2">
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                Standard & Sample Preparations for Related
+                                Substance
+                              </h3>
+                              <button
+                                onClick={() =>
+                                  handleAddStandardPreparationRelatedSubstance(
+                                    selectedParam.id,
+                                  )
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Preparation
+                              </button>
+                            </div>
+
+                            {/* Preparations List */}
+                            <AnimatePresence>
+                              {(
+                                standardPreparationRelatedSubstancePerParam[
+                                  selectedParam.id
+                                ] || []
+                              ).map((standardPreparation: any, idx: number) => {
+                                const assignedStandard = (
+                                  addedStandards[selectedParam.id] || []
+                                ).find(
+                                  (std) =>
+                                    std.serialNo ===
+                                    standardPreparation.assignedStandardId,
+                                );
+
+                                const correspondingSample =
+                                  (samplePreparationRelatedSubstancePerParam[
+                                    selectedParam.id
+                                  ] || [])[idx];
+
+                                return (
+                                  <div
+                                    key={standardPreparation.id}
+                                    className="mb-6"
+                                  >
+                                    <div className="">
+                                      <StandardPreparationDetail
+                                        standardPreparation={
+                                          standardPreparation
+                                        }
+                                        assignedStandard={
+                                          assignedStandard || null
+                                        }
+                                        onStepChange={(
+                                          standardPreparationId,
+                                          stepName,
+                                          field,
+                                          newValue,
+                                        ) =>
+                                          handleStandardPreparationRelatedSubstanceStepChange(
+                                            selectedParam.id,
+                                            standardPreparationId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveStandardPreparationRelatedSubstance(
+                                            selectedParam.id,
+                                            standardPreparation.id,
+                                          )
+                                        }
+                                        role={role}
+                                      />
+                                    </div>
+
+                                    {correspondingSample && (
+                                      <SamplePreparationDetail
+                                        samplePreparation={correspondingSample}
+                                        onStepChange={(
+                                          samplePreparationId,
+                                          stepName,
+                                          field,
+                                          newValue,
+                                        ) =>
+                                          handleSamplePreparationRelatedSubstanceStepChange(
+                                            selectedParam.id,
+                                            samplePreparationId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveStandardPreparationRelatedSubstance(
+                                            selectedParam.id,
+                                            standardPreparation.id,
+                                          )
+                                        }
+                                        role={role}
+                                        assignedStandard={null}
+                                      />
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </AnimatePresence>
+
+                            {(
+                              standardPreparationRelatedSubstancePerParam[
+                                selectedParam.id
+                              ] || []
+                            ).length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                              >
+                                <div className="absolute inset-0 opacity-5">
+                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                </div>
+
+                                <div className="relative z-10">
+                                  <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                                    <Target className="w-14 h-14 text-emerald-400" />
+                                  </div>
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
+                                    No preparations added yet
+                                  </p>
+                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
+                                    Click "Add Preparation" to create your first
+                                    standard and sample preparation
+                                  </p>
+                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                    <span className="text-xs font-semibold text-emerald-700">
+                                      Ready to start
+                                    </span>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+
+                          {standardPreparationRelatedSubstancePerParam[
+                            selectedParam.id
+                          ]?.length > 0 &&
+                            samplePreparationRelatedSubstancePerParam[
+                              selectedParam.id
+                            ]?.length > 0 && (
+                              <>
+                                {/* Visual Separator */}
+                                <div className="flex items-center gap-4 my-8">
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                  <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                                    <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
+                                      <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                                      Calculations
+                                    </span>
+                                  </div>
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                </div>
+
+                                {/* Calculations for Related Substance */}
+                                <div className="relative p-6 rounded-xl border-2 border-emerald-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                                  <div className="flex items-center justify-between mb-6 px-2">
+                                    <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
+                                      <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                      <span className="text-emerald-600">
+                                        Related Substance Calculations
+                                      </span>
+                                    </h3>
+                                    <motion.button
+                                      onClick={() =>
+                                        handleAddCalculationRelatedSubstance(
+                                          selectedParam.id,
+                                        )
+                                      }
+                                      whileHover={{ scale: 1 }}
+                                      whileTap={{ scale: 1 }}
+                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                      Add Calculation
+                                    </motion.button>
+                                  </div>
+
+                                  <AnimatePresence>
+                                    {(
+                                      calculationsRelatedSubstancePerParam[
+                                        selectedParam.id
+                                      ] || []
+                                    ).map((calculation) => (
+                                      <CalculationDetailRelatedSubstance
+                                        key={calculation.id}
+                                        calculation={calculation}
+                                        standardPreparations={
+                                          standardPreparationRelatedSubstancePerParam[
+                                            selectedParam.id
+                                          ] || []
+                                        }
+                                        samplePreparations={
+                                          samplePreparationRelatedSubstancePerParam[
+                                            selectedParam.id
+                                          ] || []
+                                        }
+                                        onFieldChange={(
+                                          calculationId,
+                                          field,
+                                          value,
+                                        ) =>
+                                          handleCalculationRelatedSubstanceFieldChange(
+                                            selectedParam.id,
+                                            calculationId,
+                                            field,
+                                            value,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveCalculationRelatedSubstance(
+                                            selectedParam.id,
+                                            calculation.id,
+                                          )
+                                        }
+                                        role={role}
+                                      />
+                                    ))}
+                                  </AnimatePresence>
+
+                                  {(
+                                    calculationsRelatedSubstancePerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).length === 0 && (
+                                    <motion.div
+                                      initial={{ opacity: 0, scale: 0.95 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
+                                    >
+                                      <div className="relative z-10">
+                                        <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
+                                          <Target className="w-10 h-10 text-emerald-400" />
+                                        </div>
+                                        <p className="font-semibold text-base text-emerald-700 mb-1">
+                                          No Related Substance calculations
+                                          added yet
+                                        </p>
+                                        <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
+                                          Click "Add Calculation" to begin
                                         </p>
                                       </div>
                                     </motion.div>
@@ -11906,7 +14905,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                       className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                                     >
                                       <Plus className="w-4 h-4" />
-                                      Add Dissolution Calculation
+                                      Add Calculation
                                     </motion.button>
                                   </div>
 
@@ -11975,6 +14974,368 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                         </p>
                                         <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
                                           Click "Add Dissolution Calculation" to
+                                          begin
+                                        </p>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                        </motion.div>
+                      )}
+
+                      {/* ============= Dissolution Profile GROUP CARD ============= */}
+                      {(
+                        activePreparationGroups[selectedParam.id] || []
+                      ).includes("dissolutionProfile") && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 hover:scale-[1.01]"
+                        >
+                          {/* Decorative elements */}
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                          {/* Card Header */}
+                          <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                  <IoFlask className="w-6 h-6 text-white" />
+                                </div>
+                              </div>
+                              <div>
+                                <h2 className="text-xl font-bold text-emerald-700 tracking-tight">
+                                  Dissolution Profile Analysis
+                                </h2>
+                                <p className="text-sm text-emerald-600/80 font-medium">
+                                  Media, Standard, Sample & Time-Point
+                                  Calculations
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="px-4 py-1 bg-gradient-to-r from-emerald-100 to-emerald-100 border-2 border-emerald-300/50 rounded-full shadow-sm">
+                              <span className="text-xs font-bold text-emerald-700">
+                                {(
+                                  dissoMediaProfilePerParam[selectedParam.id] ||
+                                  []
+                                ).length +
+                                  (
+                                    standardPreparationDissoProfilePerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).length +
+                                  (
+                                    samplePreparationDissoProfilePerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).length +
+                                  (
+                                    calculationsDissoProfilePerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).length}{" "}
+                                Items
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Standard & Sample Preparations Section */}
+                          <div className="mb-8">
+                            <div className="flex items-center justify-between mb-4 px-2">
+                              <h3 className="text-lg font-bold text-emerald-700 flex items-center gap-2.5 tracking-tight">
+                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                Standard & Sample Preparations for Dissolution
+                                Profile
+                              </h3>
+                              <button
+                                onClick={() =>
+                                  handleAddStandardPreparationDissoProfile(
+                                    selectedParam.id,
+                                  )
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Preparation
+                              </button>
+                            </div>
+
+                            <AnimatePresence>
+                              {(
+                                standardPreparationDissoProfilePerParam[
+                                  selectedParam.id
+                                ] || []
+                              ).map((standardPreparation: any, idx: number) => {
+                                const assignedStandard = (
+                                  addedStandards[selectedParam.id] || []
+                                ).find(
+                                  (std) =>
+                                    std.serialNo ===
+                                    standardPreparation.assignedStandardId,
+                                );
+
+                                const correspondingSample =
+                                  (samplePreparationDissoProfilePerParam[
+                                    selectedParam.id
+                                  ] || [])[idx];
+
+                                const correspondingDissoMedia =
+                                  (dissoMediaProfilePerParam[
+                                    selectedParam.id
+                                  ] || [])[idx];
+
+                                return (
+                                  <div
+                                    key={standardPreparation.id}
+                                    className="mb-6"
+                                  >
+                                    <StandardPreparationDetail
+                                      standardPreparation={standardPreparation}
+                                      assignedStandard={
+                                        assignedStandard || null
+                                      }
+                                      onStepChange={(
+                                        standardPreparationId,
+                                        stepName,
+                                        field,
+                                        newValue,
+                                      ) =>
+                                        handleStandardPreparationDissoProfileStepChange(
+                                          selectedParam.id,
+                                          standardPreparationId,
+                                          stepName,
+                                          field,
+                                          newValue,
+                                        )
+                                      }
+                                      onRemove={() =>
+                                        handleRemoveStandardPreparationDissoProfile(
+                                          selectedParam.id,
+                                          standardPreparation.id,
+                                        )
+                                      }
+                                      isDisso={true}
+                                      role={role}
+                                    />
+
+                                    {correspondingSample && (
+                                      <div className="mt-4">
+                                        <SamplePreparationDissoDetail
+                                          samplePreparationDisso={
+                                            correspondingSample
+                                          }
+                                          assignedStandard={
+                                            assignedStandard || null
+                                          }
+                                          onStepChange={(
+                                            samplePreparationDissoId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          ) =>
+                                            handleSamplePreparationDissoProfileStepChange(
+                                              selectedParam.id,
+                                              samplePreparationDissoId,
+                                              stepName,
+                                              field,
+                                              newValue,
+                                            )
+                                          }
+                                          onRemove={() =>
+                                            handleRemoveSamplePreparationDissoProfile(
+                                              selectedParam.id,
+                                              correspondingSample.id,
+                                            )
+                                          }
+                                          role={role}
+                                        />
+                                      </div>
+                                    )}
+
+                                    {correspondingDissoMedia && (
+                                      <div className="mt-4">
+                                        <DissoMediaPreparationDetail
+                                          dissoMedia={correspondingDissoMedia}
+                                          onStepChange={(
+                                            dissoMediaId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          ) =>
+                                            handleDissoMediaProfileStepChange(
+                                              selectedParam.id,
+                                              dissoMediaId,
+                                              stepName,
+                                              field,
+                                              newValue,
+                                            )
+                                          }
+                                          onRemove={() =>
+                                            handleRemoveDissoMediaProfile(
+                                              selectedParam.id,
+                                              correspondingDissoMedia.id,
+                                            )
+                                          }
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </AnimatePresence>
+
+                            {(
+                              standardPreparationDissoProfilePerParam[
+                                selectedParam.id
+                              ] || []
+                            ).length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                              >
+                                <div className="absolute inset-0 opacity-5">
+                                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                </div>
+
+                                <div className="relative z-10">
+                                  <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                                    <Target className="w-14 h-14 text-emerald-400" />
+                                  </div>
+                                  <p className="text-lg font-bold text-emerald-700 mb-2">
+                                    No preparations added yet
+                                  </p>
+                                  <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
+                                    Click "Add Preparation" to create your first
+                                    standard and sample preparation for
+                                    dissolution profile
+                                  </p>
+                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                    <span className="text-xs font-semibold text-emerald-700">
+                                      Ready to start
+                                    </span>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+
+                          {standardPreparationDissoProfilePerParam[
+                            selectedParam.id
+                          ]?.length > 0 &&
+                            samplePreparationDissoProfilePerParam[
+                              selectedParam.id
+                            ]?.length > 0 && (
+                              <>
+                                {/* Visual Separator */}
+                                <div className="flex items-center gap-4 my-8">
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                  <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                                    <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
+                                      <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                                      Calculations
+                                    </span>
+                                  </div>
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                </div>
+
+                                {/* Calculations for Dissolution Profile */}
+                                <div className="relative p-6 rounded-xl border-2 border-emerald-300/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                                  <div className="flex items-center justify-between mb-6 px-2">
+                                    <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
+                                      <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                      <span className="text-emerald-600">
+                                        Dissolution Profile Calculations
+                                      </span>
+                                    </h3>
+                                    <motion.button
+                                      onClick={() =>
+                                        handleAddCalculationDissoProfile(
+                                          selectedParam.id,
+                                        )
+                                      }
+                                      whileHover={{ scale: 1 }}
+                                      whileTap={{ scale: 1 }}
+                                      className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                      Add Calculation
+                                    </motion.button>
+                                  </div>
+
+                                  <AnimatePresence>
+                                    {(
+                                      calculationsDissoProfilePerParam[
+                                        selectedParam.id
+                                      ] || []
+                                    ).map((calculation) => (
+                                      <CalculationDetailDissoProfile
+                                        key={calculation.id}
+                                        calculation={calculation}
+                                        standardPreparations={
+                                          standardPreparationDissoProfilePerParam[
+                                            selectedParam.id
+                                          ] || []
+                                        }
+                                        samplePreparationsDisso={
+                                          samplePreparationDissoProfilePerParam[
+                                            selectedParam.id
+                                          ] || []
+                                        }
+                                        onFieldChange={(
+                                          calculationId,
+                                          field,
+                                          value,
+                                        ) =>
+                                          handleCalculationDissoProfileFieldChange(
+                                            selectedParam.id,
+                                            calculationId,
+                                            field,
+                                            value,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveCalculationDissoProfile(
+                                            selectedParam.id,
+                                            calculation.id,
+                                          )
+                                        }
+                                        role={role}
+                                      />
+                                    ))}
+                                  </AnimatePresence>
+
+                                  {(
+                                    calculationsDissoProfilePerParam[
+                                      selectedParam.id
+                                    ] || []
+                                  ).length === 0 && (
+                                    <motion.div
+                                      initial={{ opacity: 0, scale: 0.95 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
+                                    >
+                                      <div className="absolute inset-0 opacity-5">
+                                        <div className="absolute top-0 left-1/4 w-48 h-48 bg-emerald-500 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" />
+                                      </div>
+
+                                      <div className="relative z-10">
+                                        <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
+                                          <Target className="w-10 h-10 text-emerald-400" />
+                                        </div>
+                                        <p className="font-semibold text-base text-emerald-700 mb-1">
+                                          No dissolution profile calculations
+                                          added yet
+                                        </p>
+                                        <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
+                                          Click "Add Profile Calculation" to
                                           begin
                                         </p>
                                       </div>
@@ -12223,7 +15584,7 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                                       className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
                                     >
                                       <Plus className="w-4 h-4" />
-                                      Add Uniformity of Content Calculation
+                                      Add Calculation
                                     </motion.button>
                                   </div>
                                   <AnimatePresence>
@@ -12810,6 +16171,8 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
             setIsAddingRSStandard(false);
             setIsAddingDissoStandard(false);
             setIsAddingUCStandard(false);
+            setIsAddingDissoProfileStandard(false);
+            setIsAddingRelatedSubstanceStandard(false);
           }}
           availableStandards={
             currentParameterForStandardPrep !== null
@@ -12818,6 +16181,8 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
                   isAddingRSStandard,
                   isAddingDissoStandard,
                   isAddingUCStandard,
+                  isAddingDissoProfileStandard,
+                  isAddingRelatedSubstanceStandard,
                 )
               : []
           }
@@ -12827,6 +16192,8 @@ const methodsRequiredDisplay = allMethods.join(", ").replace(/,\s*$/, "");
               isAddingRSStandard,
               isAddingDissoStandard,
               isAddingUCStandard,
+              isAddingDissoProfileStandard,
+              isAddingRelatedSubstanceStandard,
             );
           }}
         />

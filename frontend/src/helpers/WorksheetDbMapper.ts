@@ -34,7 +34,6 @@ export class WorksheetDbMapper {
       MethodCode: p.methodCode,
       MethodName: p.methodName,
       ColumnId: nv(p.columnId),
-      DiluentPreparation: nv(p.diluentPreparation),
       OtherInfo: nv(p.otherInfo),
       ParameterAnalyzedBy: nv(p.analyzedBy),
       ParameterApprovedBy: nv(p.approvedBy),
@@ -91,10 +90,10 @@ export class WorksheetDbMapper {
     const rows: TblPreparationRow[] = [];
 
     detail.parameters.forEach((p) => {
-      const mapPrep = (prep: any, category: "STANDARD" | "SAMPLE" | "MOBILE_PHASE" | "DISSOLUTION_MEDIA" | "SYSTEM_SUITABILITY" | "BLANK") => {
+      const mapPrep = (prep: any, category: "STANDARD" | "SAMPLE" | "MOBILE_PHASE" | "DILUENT" | "DISSOLUTION_MEDIA" | "SYSTEM_SUITABILITY" | "BLANK") => {
         const steps = JSON.parse(prep.steps || "[]");
 
-        if(category === "BLANK") {
+        if(category === "BLANK" || category === "MOBILE_PHASE" || category === "DILUENT") {
 
           rows.push({
               WorksheetId: detail.sample.worksheetId,
@@ -170,6 +169,8 @@ export class WorksheetDbMapper {
             mapPrep(prep, "SAMPLE");
           } else if (category === "system_suitability") {
             mapPrep(prep, "SYSTEM_SUITABILITY");
+          } else if (category === "diluent") {
+            mapPrep(prep, "DILUENT");
           } else if (category === "blank") {
             mapPrep(prep, "BLANK");
           }
@@ -188,10 +189,163 @@ export class WorksheetDbMapper {
         const d = JSON.parse(calc.data || "{}");
         const calculationType = nv(calc.calculationType);
 
-        const isDissolution = calculationType?.toLowerCase() === "dissolution";
+        const isDissolution        = calculationType?.toLowerCase() === "dissolution";
+        const isDissolutionProfile = calculationType?.toLowerCase() === "dissolution_profile";
         const isUniformityOfContent = calculationType?.toLowerCase() === "uniformity_of_content";
 
-        if (isDissolution) {
+        if (isDissolutionProfile) {
+          interface NormSampleResult {
+            sampleNumber: number;
+            result: number | null;
+            correctionFactor: number | null;
+            resultAfterCorrection: number | null;
+          }
+          interface NormTimePoint {
+            timePoint: number;
+            timePointLabel: string;
+            sampleResults: NormSampleResult[];
+            min: number | null;
+            avg: number | null;
+            max: number | null;
+          }
+
+          const normalised: NormTimePoint[] = [];
+
+          if (d.calculationResults) {
+            // ── FORMAT A: new calculationResults JSON array ───────────────
+            let parsed: any[] = [];
+            try { parsed = JSON.parse(d.calculationResults); } catch { parsed = []; }
+
+            parsed.forEach((tp: any) => {
+              const sampleResults: NormSampleResult[] = (tp.sampleResults ?? []).map((sr: any) => ({
+                sampleNumber:        Number(sr.sampleNumber),
+                result:              sr.result             != null ? Number(sr.result)             : null,
+                correctionFactor:    sr.correctionFactor   != null ? Number(sr.correctionFactor)   : null,
+                resultAfterCorrection: sr.resultAfterCorrection != null ? Number(sr.resultAfterCorrection) : null,
+              }));
+
+              normalised.push({
+                timePoint:      Number(tp.timePoint),
+                timePointLabel: tp.timePointLabel ?? `T${tp.timePoint}`,
+                sampleResults,
+                min: tp.min != null ? Number(tp.min) : null,
+                avg: tp.avg != null ? Number(tp.avg) : null,
+                max: tp.max != null ? Number(tp.max) : null,
+              });
+            });
+
+          } else {
+            // ── FORMAT B: old flat per-TP fields ─────────────────────────
+            const nTP: number = Number(d.numberOfTimePoints) || 0;
+
+            for (let tpNum = 1; tpNum <= nTP; tpNum++) {
+              const results:  number[] = (() => { try { return JSON.parse(d[`sampleResultsT${tpNum}`] || "[]"); } catch { return []; } })();
+              const cfs:      number[] = (() => { try { return JSON.parse(d[`correctionFactorsT${tpNum}`] || "[]"); } catch { return []; } })();
+              const racs:     number[] = (() => { try { return JSON.parse(d[`resultsAfterCorrectionT${tpNum}`] || "[]"); } catch { return []; } })();
+
+              if (results.length === 0) continue;
+
+              const sampleResults: NormSampleResult[] = results.map((res: number, idx: number) => ({
+                sampleNumber:          idx + 1,
+                result:                res             != null ? Number(res)          : null,
+                correctionFactor:      cfs[idx]        != null ? Number(cfs[idx])     : null,
+                resultAfterCorrection: racs[idx]       != null ? Number(racs[idx])    : null,
+              }));
+
+              normalised.push({
+                timePoint:      tpNum,
+                timePointLabel: nv(d[`timePointDetail${tpNum}`]) ?? `T${tpNum}`,
+                sampleResults,
+                min: d[`minT${tpNum}`] != null ? Number(d[`minT${tpNum}`]) : null,
+                avg: d[`avgT${tpNum}`] != null ? Number(d[`avgT${tpNum}`]) : null,
+                max: d[`maxT${tpNum}`] != null ? Number(d[`maxT${tpNum}`]) : null,
+              });
+            }
+          }
+
+          // ── Shared nulls for unused columns ───────────────────────────
+          const dpNulls: Partial<TblCalculationRow> = {
+            AvgWeight: null, AvgWeightUnit: null,
+            AvgContent: null, AvgContentUnit: null,
+            SampleVol: null, SampleVolUnit: null,
+            LabelClaim: null, LabelClaimUnit: null,
+            LodWaterType: null, LodWaterValue: null,
+            W1_EmptyDish: null, W2_DishWithSample: null, W3_DishAfterIgnition: null,
+            W1_EmptyCrucible: null, W2_CrucibleWithSample: null, W3_CrucibleAfterAsh: null,
+            LabelClaimPercentResult: null, LodWaterBasisResult: null,
+          };
+
+          const dpCommon = {
+            WorksheetId:      detail.sample.worksheetId,
+            ParameterCode:    p.paraCode,
+            CalculationLabel: nv(calc.label),
+            CalculationType:  calculationType,
+            AreaOfStandard:   nv(d.areaOfStandard),
+            Purity:           nv(d.purity),
+            MwSalt:           nv(d.mWSalt),
+            MwBase:           nv(d.mWBase),
+            Claim:            nv(d.claim),
+            ClaimUnit:        nv(d.claimUnit),
+            SelectedStandardPrepLabel: nv(d.selectedStandardPreparationLabel),
+            SelectedSamplePrepLabel:   nv(d.selectedSamplePreparationLabel),
+            Limit:            nv(d.acceptanceLimit),
+          };
+
+          // ── Emit rows from normalised data ────────────────────────────
+          normalised.forEach((tp) => {
+            const tpNum       = tp.timePoint;
+            const tpLabel     = tp.timePointLabel;
+            const hasCorrection = tpNum > 1;   // T1 never has CF
+
+            // One row per sample result
+            tp.sampleResults.forEach((sr) => {
+              const areaValue = nv(d[`areaOfSampleT${tpNum}S${sr.sampleNumber}`]);
+
+              rows.push({
+                ...dpCommon,
+                ...dpNulls,
+
+                CalculationFor:        `TimePoint${tpNum}`,
+                AreaOfSample:          areaValue,
+                TimePointDetailInHr:   tpLabel,
+
+                CalculationResult:     sr.result != null
+                  ? String(Number(sr.result).toFixed(4)) : null,
+                CalculationResultUnit: "% of LC",
+
+                CF: hasCorrection && sr.correctionFactor != null
+                  ? String(Number(sr.correctionFactor).toFixed(4)) : null,
+
+                CorrectedResult: hasCorrection && sr.resultAfterCorrection != null
+                  ? String(Number(sr.resultAfterCorrection).toFixed(4)) : null,
+                CorrectedResultUnit: hasCorrection ? "% of LC" : null,
+              });
+            });
+
+            // One stats row per time point (avg | min | max)
+            if (tp.sampleResults.length > 0) {
+              rows.push({
+                ...dpCommon,
+                ...dpNulls,
+
+                CalculationFor:        `TimePoint${tpNum}_Stats`,
+                AreaOfSample:          null,
+                TimePointDetailInHr:   tpLabel,
+
+                CalculationResult:     tp.avg != null
+                  ? String(Number(tp.avg).toFixed(4)) : null,
+                CalculationResultUnit: "% of LC",
+
+                CF:              tp.min != null
+                  ? String(Number(tp.min).toFixed(4)) : null,    // Min stored in CF column
+                CorrectedResult: tp.max != null
+                  ? String(Number(tp.max).toFixed(4)) : null,    // Max stored in CorrectedResult column
+                CorrectedResultUnit: "% of LC",
+              });
+            }
+          });
+
+        } else if (isDissolution) {
           
           const tabletData = [
             {
@@ -249,6 +403,7 @@ export class WorksheetDbMapper {
                 CalculationResultUnit: nv(d.calculationResultUnit),
                 SelectedStandardPrepLabel: nv(d.selectedStandardPrepLabel),
                 SelectedSamplePrepLabel: nv(d.selectedSamplePrepLabel),
+                Limit: nv(d.acceptanceLimit),
 
                 // Set other fields to null for dissolution
                 AvgWeight: null,
@@ -374,6 +529,7 @@ export class WorksheetDbMapper {
                 W3_CrucibleAfterAsh: null,
                 LabelClaimPercentResult: null,
                 LodWaterBasisResult: null,
+                Limit: null
               });
             }
           });
@@ -425,6 +581,7 @@ export class WorksheetDbMapper {
 
             SelectedStandardPrepLabel: nv(d.selectedStandardPrepLabel),
             SelectedSamplePrepLabel: nv(d.selectedSamplePrepLabel),
+            Limit: null
           });
         }
       });

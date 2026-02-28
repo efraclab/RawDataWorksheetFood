@@ -127,7 +127,7 @@ const DissoMediaPreparationDetail: React.FC<DissoMediaPreparationDetailProps> = 
             >
               <div className="p-5 space-y-3 bg-gradient-to-br from-emerald-50/50 to-emerald-50/30">
                 {dissoMedia.steps.map((step, index) => {
-                  const isWeighing = step.name === "Weighing/Pipetting";
+                  const isWeighing = step.name === "Weighing/Measuring";
                   const isPH = step.name === "PH";
                   const isSonication = step.name === "Sonication";
                   const isFiltration = step.name === "Filtration";
@@ -153,7 +153,7 @@ const DissoMediaPreparationDetail: React.FC<DissoMediaPreparationDetailProps> = 
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-3">
                               <div className="font-bold text-emerald-900 text-sm">
-                                {step.name === "Weighing/Pipetting" ? "Weighing / Pipetting" : step.name}
+                                {step.name === "Weighing/Measuring" ? "Weighing / Measuring" : step.name}
                               </div>
                               <div className="h-px flex-1 bg-gradient-to-r from-emerald-200 to-transparent" />
                             </div>
@@ -162,7 +162,7 @@ const DissoMediaPreparationDetail: React.FC<DissoMediaPreparationDetailProps> = 
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   <span className="text-gray-600 font-medium">
-                                    {["ml", "L", "µL"].includes(step.unit1!) ? "Pipette out accurately" : "Weigh accurately"}
+                                    {["ml", "L", "µL"].includes(step.unit1!) ? "Measure accurately" : "Weigh accurately"}
                                   </span>
                                   <input
                                     type="number"

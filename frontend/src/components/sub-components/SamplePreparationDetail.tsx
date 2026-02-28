@@ -45,7 +45,6 @@ interface SamplePreparationDetailProps {
 
 const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
   samplePreparation,
-  assignedStandard,
   onStepChange,
   onRemove,
   isRS = false,

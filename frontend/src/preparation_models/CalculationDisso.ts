@@ -41,4 +41,7 @@ export interface CalculationDisso {
   v12: string | null;
   v13: string | null;
   v14: string | null;
+
+  acceptanceLimit: string | null;
 }
+

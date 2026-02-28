@@ -7,7 +7,6 @@ export interface TblParameterRow {
   MethodCode: string;
   MethodName: string;
   ColumnId: string | null;
-  DiluentPreparation: string | null;
   OtherInfo: string | null;
   ParameterAnalyzedBy: string | null;
   ParameterApprovedBy: string | null;

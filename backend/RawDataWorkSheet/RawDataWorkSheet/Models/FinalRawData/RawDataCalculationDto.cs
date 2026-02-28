@@ -45,6 +45,12 @@
 
         public string? SelectedStandardPrepLabel { get; set; }
         public string? SelectedSamplePrepLabel { get; set; }
+
+        public string? TimePointDetailInHr { get; set; }
+        public string? CF { get; set; }
+        public string? CorrectedResult { get; set; }
+        public string? CorrectedResultUnit { get; set; }
+        public string? Limit { get; set; }
     }
 
 }

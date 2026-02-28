@@ -496,11 +496,11 @@ namespace RawDataWorkSheet.Repositories
             var sql = @"
                 INSERT INTO worksheet_parameters 
                 (worksheet_id, para_code, parameter_name, method_code, method_name, 
-                 column_id, diluent_preparation, other_info, 
+                 column_id, other_info, 
                  analyzed_by, approved_by, analysis_start_date, analysis_completion_date, approved_at, status)
                 VALUES 
                 (@WorksheetId, @ParaCode, @ParameterName, @MethodCode, @MethodName, 
-                 @ColumnId, @DiluentPreparation, @OtherInfo, @AnalyzedBy, @ApprovedBy,
+                 @ColumnId, @OtherInfo, @AnalyzedBy, @ApprovedBy,
                  @AnalysisStartDate, @AnalysisCompletionDate, @ApprovedAt, @Status);
                 
                 SELECT CAST(SCOPE_IDENTITY() as int);";
@@ -515,7 +515,6 @@ namespace RawDataWorkSheet.Repositories
                     param.MethodCode,
                     param.MethodName,
                     param.ColumnId,
-                    param.DiluentPreparation,
                     param.OtherInfo,
                     param.AnalyzedBy,
                     param.ApprovedBy,
@@ -545,7 +544,6 @@ namespace RawDataWorkSheet.Repositories
                     method_code = @MethodCode,
                     method_name = @MethodName,
                     column_id = @ColumnId,
-                    diluent_preparation = @DiluentPreparation,
                     other_info = @OtherInfo,
                     analyzed_by = @AnalyzedBy,
                     analysis_start_date = @AnalysisStartDate,
@@ -566,7 +564,6 @@ namespace RawDataWorkSheet.Repositories
                     param.MethodCode,
                     param.MethodName,
                     param.ColumnId,
-                    param.DiluentPreparation,
                     param.OtherInfo,
                     param.AnalyzedBy,
                     param.ApprovedBy,
@@ -851,7 +848,6 @@ namespace RawDataWorkSheet.Repositories
                         method_code           AS MethodCode,
                         method_name           AS MethodName,
                         column_id             AS ColumnId,
-                        diluent_preparation   AS DiluentPreparation,
                         analysis_start_date   AS AnalysisStartDate,
                         analysis_completion_date   AS AnalysisCompletionDate,
                         analyzed_by   AS AnalyzedBy,
@@ -872,7 +868,6 @@ namespace RawDataWorkSheet.Repositories
                         method_code           AS MethodCode,
                         method_name           AS MethodName,
                         column_id             AS ColumnId,
-                        diluent_preparation   AS DiluentPreparation,
                         analysis_start_date   AS AnalysisStartDate,
                         analysis_completion_date   AS AnalysisCompletionDate,
                         analyzed_by   AS AnalyzedBy,
@@ -898,7 +893,6 @@ namespace RawDataWorkSheet.Repositories
                     MethodCode = param.MethodCode,
                     MethodName = param.MethodName,
                     ColumnId = param.ColumnId,
-                    DiluentPreparation = param.DiluentPreparation,
                     OtherInfo = param.OtherInfo,
                     AnalysisStartDate = FormatDateTime(param.AnalysisStartDate),
                     AnalysisCompletionDate = FormatDateTime(param.AnalysisCompletionDate),

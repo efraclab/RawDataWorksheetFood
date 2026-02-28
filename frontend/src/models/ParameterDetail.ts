@@ -8,7 +8,6 @@ export interface ParameterDetail {
     methodCode: string;
     methodName: string;
     columnId?: string;
-    diluentPreparation?: string;
     otherInfo?: string;
     analyzedBy?: string;
     approvedBy?: string;

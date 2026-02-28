@@ -961,10 +961,6 @@
             "type": "string",
             "nullable": true
           },
-          "diluentPreparation": {
-            "type": "string",
-            "nullable": true
-          },
           "otherInfo": {
             "type": "string",
             "nullable": true
@@ -1207,6 +1203,26 @@
           "selectedSamplePrepLabel": {
             "type": "string",
             "nullable": true
+          },
+          "timePointDetailInHr": {
+            "type": "string",
+            "nullable": true
+          },
+          "cf": {
+            "type": "string",
+            "nullable": true
+          },
+          "correctedResult": {
+            "type": "string",
+            "nullable": true
+          },
+          "correctedResultUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "limit": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1235,10 +1251,6 @@
             "nullable": true
           },
           "columnId": {
-            "type": "string",
-            "nullable": true
-          },
-          "diluentPreparation": {
             "type": "string",
             "nullable": true
           },

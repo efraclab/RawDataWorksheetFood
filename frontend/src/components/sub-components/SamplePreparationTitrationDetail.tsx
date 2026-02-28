@@ -15,13 +15,19 @@ const volumeUnitOptions = [
   { value: "L", label: "L" },
   { value: "µL", label: "µL" },
 ];
+const timeUnitOptions = [
+  { value: "min", label: "min" },
+  { value: "hr", label: "hr" },
+  { value: "sec", label: "sec" },
+];
 
 interface SamplePreparationTitrationDetailProps {
   samplePreparationTitration: SamplePreparationTitration;
+  type: "assay" | "disso";
   onStepChange: (
     samplePreparationTitrationId: number,
     stepName: SamplePreparationTitrationStep["name"],
-    field: "value1" | "logBookID" | "unit1" | "solventChemical",
+    field: "value1" | "value2" | "value3" | "logBookID" | "unit1" | "unit2" | "unit3" | "solventChemical",
     newValue: string,
   ) => void;
   onRemove: () => void;
@@ -29,7 +35,7 @@ interface SamplePreparationTitrationDetailProps {
 
 const SamplePreparationTitrationDetail: React.FC<
   SamplePreparationTitrationDetailProps
-> = ({ samplePreparationTitration, onStepChange, onRemove }) => {
+> = ({ samplePreparationTitration, type, onStepChange, onRemove }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
@@ -68,7 +74,7 @@ const SamplePreparationTitrationDetail: React.FC<
                   {samplePreparationTitration.label}
                 </h4>
                 <p className="text-xs text-emerald-100">
-                  Sample Preparation for Titration Details
+                  Sample Preparation Details
                 </p>
               </div>
             </div>
@@ -116,8 +122,15 @@ const SamplePreparationTitrationDetail: React.FC<
               <div className="p-5 space-y-3 bg-gradient-to-br from-emerald-50/50 to-emerald-50/30">
                 {samplePreparationTitration.steps.map((step, index) => {
                   const isWeighing = step.name === "Weighing";
+                  const isTablet = step.name === "Tablet Details";
                   const is1stDilution = step.name === "1st Dilution";
                   const isEPD = step.name === "End Point Determination";
+                  const isDisso = type === "disso";
+
+                  console.log("is Disso ?", isDisso, type);
+
+                  if (isWeighing && isDisso) return null;
+                  if (isTablet && !isDisso) return null;
 
                   return (
                     <motion.div
@@ -133,7 +146,7 @@ const SamplePreparationTitrationDetail: React.FC<
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-emerald-500 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
                             <span className="text-white text-xs font-bold">
-                              {index + 1}
+                              {isDisso ? index : index + 1}
                             </span>
                           </div>
 
@@ -145,116 +158,57 @@ const SamplePreparationTitrationDetail: React.FC<
                               <div className="h-px flex-1 bg-gradient-to-r from-emerald-200 to-transparent" />
                             </div>
 
-                            {isWeighing && (
-                              <div className="space-y-2">
-                                <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">
-                                    Weigh accurately
-                                  </span>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    inputMode="decimal"
-                                    value={step.value1 || ""}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationTitration.id,
-                                        step.name,
-                                        "value1",
-                                        e.target.value,
-                                      )
-                                    }
-                                    onKeyDown={(e) => {
-                                      if (
-                                        e.key === "ArrowUp" ||
-                                        e.key === "ArrowDown"
-                                      ) {
-                                        e.preventDefault();
-                                      }
-                                    }}
-                                    onWheel={(e) => e.currentTarget.blur()}
-                                    placeholder="Enter Weight"
-                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
-                                  />
-                                  <CustomDropdown
+                            {isWeighing && !isDisso && (
+                              <div className="flex flex-wrap items-center gap-2 text-xs">
+                                <span className="text-gray-600 font-medium">Weigh accurately</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  inputMode="decimal"
+                                  value={step.value1 || ""}
+                                  onChange={(e) => onStepChange(samplePreparationTitration.id, step.name, "value1", e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "ArrowUp" || e.key === "ArrowDown") e.preventDefault(); }}
+                                  onWheel={(e) => e.currentTarget.blur()}
+                                  placeholder="Enter Weight"
+                                  className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
+                                />
+                                <CustomDropdown
                                   options={weightUnitOptions}
-                                    value={step.unit1}
-                                    onChange={(newUnit) =>
-                                      onStepChange(
-                                        samplePreparationTitration.id,
-                                        step.name,
-                                        "unit1",
-                                        newUnit,
-                                      )
-                                    }
-                                    placeholder="Unit"
-                                      colorScheme="emerald"
-                                  />
-                                  <span className="text-gray-600 font-medium">
-                                    of
-                                  </span>
-                                  <input
-                                    type="text"
-                                    value={step.solventChemical || ""}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationTitration.id,
-                                        step.name,
-                                        "solventChemical",
-                                        e.target.value,
-                                      )
-                                    }
-                                    onKeyDown={(e) => {
-                                      if (
-                                        e.key === "ArrowUp" ||
-                                        e.key === "ArrowDown"
-                                      ) {
-                                        e.preventDefault();
-                                      }
-                                    }}
-                                    onWheel={(e) => e.currentTarget.blur()}
-                                    placeholder="Sample"
-                                    className="flex-1 min-w-[120px] px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
-                                  />
-                                  <span className="text-gray-500 text-xs">
-                                    (Log ID:
-                                  </span>
-                                  <input
-                                    type="text"
-                                    value={step.logBookID || ""}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        samplePreparationTitration.id,
-                                        step.name,
-                                        "logBookID",
-                                        e.target.value,
-                                      )
-                                    }
-                                    onKeyDown={(e) => {
-                                      if (
-                                        e.key === "ArrowUp" ||
-                                        e.key === "ArrowDown"
-                                      ) {
-                                        e.preventDefault();
-                                      }
-                                    }}
-                                    onWheel={(e) => e.currentTarget.blur()}
-                                    placeholder="Enter ID"
-                                    className="w-24 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
-                                  />
-                                  <span className="text-gray-500 text-xs">
-                                    )
-                                  </span>
-                                </div>
+                                  value={step.unit1}
+                                  onChange={(newUnit) => onStepChange(samplePreparationTitration.id, step.name, "unit1", newUnit)}
+                                  placeholder="Unit"
+                                  colorScheme="emerald"
+                                />
+                                <span className="text-gray-600 font-medium">of</span>
+                                <input
+                                  type="text"
+                                  value={step.solventChemical || ""}
+                                  onChange={(e) => onStepChange(samplePreparationTitration.id, step.name, "solventChemical", e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "ArrowUp" || e.key === "ArrowDown") e.preventDefault(); }}
+                                  onWheel={(e) => e.currentTarget.blur()}
+                                  placeholder="Sample"
+                                  className="flex-1 min-w-[120px] px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                                />
+                                <span className="text-gray-500 text-xs">(Log ID:</span>
+                                <input
+                                  type="text"
+                                  value={step.logBookID || ""}
+                                  onChange={(e) => onStepChange(samplePreparationTitration.id, step.name, "logBookID", e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "ArrowUp" || e.key === "ArrowDown") e.preventDefault(); }}
+                                  onWheel={(e) => e.currentTarget.blur()}
+                                  placeholder="Enter ID"
+                                  className="w-24 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                                />
+                                <span className="text-gray-500 text-xs">)</span>
                               </div>
                             )}
 
-                            {is1stDilution && (
+                            {isTablet && isDisso && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   <span className="text-gray-600 font-medium">
-                                    Diluted to
+                                    Claim
                                   </span>
                                   <input
                                     type="number"
@@ -267,7 +221,53 @@ const SamplePreparationTitrationDetail: React.FC<
                                         samplePreparationTitration.id,
                                         step.name,
                                         "value1",
-                                        e.target.value,
+                                        e.target.value
+                                      )
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === "ArrowUp" ||
+                                        e.key === "ArrowDown"
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
+                                    placeholder="Enter Claim"
+                                    className="w-24 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
+                                  />
+                                  <div className="w-20">
+                                    <CustomDropdown
+                                      options={weightUnitOptions}
+                                      value={step.unit1 || "mg"}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationTitration.id,
+                                          step.name,
+                                          "unit1",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="emerald"
+                                    />
+                                  </div>
+
+                                  <span className="text-gray-600 ml-2 font-medium">
+                                    Media Volume
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={step.value2 || ""}
+                                    onChange={(e) =>
+                                      onStepChange(
+                                        samplePreparationTitration.id,
+                                        step.name,
+                                        "value2",
+                                        e.target.value
                                       )
                                     }
                                     onKeyDown={(e) => {
@@ -280,47 +280,39 @@ const SamplePreparationTitrationDetail: React.FC<
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()}
                                     placeholder="Enter Volume"
-                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                                    className="flex-1 min-w-[100px] px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
-                                  <CustomDropdown
-                                    options={volumeUnitOptions}
-                                    value={step.unit1 || "ml"}
-                                    onChange={(newUint) =>
-                                      onStepChange(
-                                        samplePreparationTitration.id,
-                                        step.name,
-                                        "unit1",
-                                        newUint,
-                                      )
-                                    }
-                                    placeholder="Unit"
-                                    colorScheme="emerald"
-                                  />
+                                  <div className="w-20">
+                                    <CustomDropdown
+                                      options={volumeUnitOptions}
+                                      value={step.unit2 || "ml"}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationTitration.id,
+                                          step.name,
+                                          "unit2",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="emerald"
+                                    />
+                                  </div>
                                   <span className="text-gray-600 font-medium">
-                                    with diluent
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-
-                            {isEPD && (
-                              <div className="space-y-2">
-                                <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-gray-600 font-medium">
-                                    Titration Value
+                                     Sampling Time
                                   </span>
                                   <input
                                     type="number"
                                     min="0"
-                                    step="0.01"
+                                    step="1"
                                     inputMode="decimal"
-                                    value={step.value1 || ""}
+                                    value={step.value3 || ""}
                                     onChange={(e) =>
                                       onStepChange(
                                         samplePreparationTitration.id,
                                         step.name,
-                                        "value1",
-                                        e.target.value,
+                                        "value3",
+                                        e.target.value
                                       )
                                     }
                                     onKeyDown={(e) => {
@@ -332,10 +324,98 @@ const SamplePreparationTitrationDetail: React.FC<
                                       }
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()}
-                                    placeholder="Enter Value"
-                                    className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                                    placeholder="Enter Time"
+                                    className="w-24 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                                   />
+                                  <div className="w-20">
+                                    <CustomDropdown
+                                      options={timeUnitOptions}
+                                      value={step.unit3 || "min"}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          samplePreparationTitration.id,
+                                          step.name,
+                                          "unit3",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme="emerald"
+                                    />
+                                  </div>
                                 </div>
+                              </div>
+                            )}
+
+                            {/* ── 1st Dilution: Assay mode ── */}
+                            {is1stDilution && !isDisso && (
+                              <div className="flex flex-wrap items-center gap-2 text-xs">
+                                <span className="text-gray-600 font-medium">Diluted to</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  inputMode="decimal"
+                                  value={step.value1 || ""}
+                                  onChange={(e) => onStepChange(samplePreparationTitration.id, step.name, "value1", e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "ArrowUp" || e.key === "ArrowDown") e.preventDefault(); }}
+                                  onWheel={(e) => e.currentTarget.blur()}
+                                  placeholder="Enter Volume"
+                                  className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                                />
+                                <CustomDropdown
+                                  options={volumeUnitOptions}
+                                  value={step.unit1 || "ml"}
+                                  onChange={(newUnit) => onStepChange(samplePreparationTitration.id, step.name, "unit1", newUnit)}
+                                  placeholder="Unit"
+                                  colorScheme="emerald"
+                                />
+                                <span className="text-gray-600 font-medium">with diluent</span>
+                              </div>
+                            )}
+
+                            {/* ── 1st Dilution: Disso mode → Take ___ of disso solution ── */}
+                            {is1stDilution && isDisso && (
+                              <div className="flex flex-wrap items-center gap-2 text-xs">
+                                <span className="text-gray-600 font-medium">Take</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  inputMode="decimal"
+                                  value={step.value1 || ""}
+                                  onChange={(e) => onStepChange(samplePreparationTitration.id, step.name, "value1", e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "ArrowUp" || e.key === "ArrowDown") e.preventDefault(); }}
+                                  onWheel={(e) => e.currentTarget.blur()}
+                                  placeholder="Enter Volume"
+                                  className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                                />
+                                <CustomDropdown
+                                  options={volumeUnitOptions}
+                                  value={step.unit1 || "ml"}
+                                  onChange={(newUnit) => onStepChange(samplePreparationTitration.id, step.name, "unit1", newUnit)}
+                                  placeholder="Unit"
+                                  colorScheme="emerald"
+                                />
+                                <span className="text-gray-600 font-medium">of Disso Solution</span>
+                              </div>
+                            )}
+
+                            {isEPD && (
+                              <div className="flex flex-wrap items-center gap-2 text-xs">
+                                <span className="text-gray-600 font-medium">Titration Value</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  inputMode="decimal"
+                                  value={step.value1 || ""}
+                                  onChange={(e) => onStepChange(samplePreparationTitration.id, step.name, "value1", e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "ArrowUp" || e.key === "ArrowDown") e.preventDefault(); }}
+                                  onWheel={(e) => e.currentTarget.blur()}
+                                  placeholder="Enter Value"
+                                  className="w-30 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                                />
                               </div>
                             )}
                           </div>

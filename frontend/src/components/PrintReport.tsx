@@ -88,13 +88,6 @@ const PrintReport: React.FC<PrintReportProps> = ({
             )} (SW1) of ${standards.find((s) => s.serialNo === assignedStandard)?.name || assignedStandard || `_____________`} ${
               step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
             }.`;
-          } else if (type === "mobile_phase") {
-            stepText = `Weigh accurately ${boldValue(
-              step.value1,
-              step.unit1,
-            )} of ${step.solventChemical || `_____________`}${
-              step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
-            }.`;
           } else {
             stepText = `Weigh accurately ${boldValue(
               step.value1,
@@ -125,7 +118,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
         case "1st Dilution":
           if (type === "sample") {
-            if (preparationType !== "dissolution") {
+            if (preparationType !== "dissolution" && preparationType !== "dissolution_profile") {
               stepText = `Dilute to ${boldValue(
                 step.value1,
                 step.unit1 || "ml",
@@ -284,8 +277,8 @@ const PrintReport: React.FC<PrintReportProps> = ({
           )} (W3).`;
           break;
 
-        case "Weighing/Pipetting":
-          stepText = `${["ml", "L", "µL"].includes(step.unit1!) ? "Pipette out accurately" : "Weigh accurately"} ${boldValue(
+        case "Weighing/Measuring":
+          stepText = `${["ml", "L", "µL"].includes(step.unit1!) ? "Measure accurately" : "Weigh accurately"} ${boldValue(
             step.value1,
             step.unit1,
           )} of ${step.solventChemical || `_____________`}${
@@ -612,95 +605,77 @@ const PrintReport: React.FC<PrintReportProps> = ({
   };
 
   const calculateUCStats = (calcData: any) => {
-    const result1 = calcData.calculationResultTablet1;
-    const result2 = calcData.calculationResultTablet2;
-    const result3 = calcData.calculationResultTablet3;
-    const result4 = calcData.calculationResultTablet4;
-    const result5 = calcData.calculationResultTablet5;
-    const result6 = calcData.calculationResultTablet6;
-    const result7 = calcData.calculationResultTablet7;
-    const result8 = calcData.calculationResultTablet8;
-    const result9 = calcData.calculationResultTablet9;
-    const result10 = calcData.calculationResultTablet10;
-    const resultUnit = calcData.calculationResultUnit || "";
+    const allResults = [
+      calcData.calculationResultTablet1,
+      calcData.calculationResultTablet2,
+      calcData.calculationResultTablet3,
+      calcData.calculationResultTablet4,
+      calcData.calculationResultTablet5,
+      calcData.calculationResultTablet6,
+      calcData.calculationResultTablet7,
+      calcData.calculationResultTablet8,
+      calcData.calculationResultTablet9,
+      calcData.calculationResultTablet10,
+    ];
 
-    if (
-      result1 &&
-      result2 &&
-      result3 &&
-      result4 &&
-      result5 &&
-      result6 &&
-      result7 &&
-      result8 &&
-      result9 &&
-      result10
-    ) {
-      const nr1 = parseFloat(result1);
-      const nr2 = parseFloat(result2);
-      const nr3 = parseFloat(result3);
-      const nr4 = parseFloat(result4);
-      const nr5 = parseFloat(result5);
-      const nr6 = parseFloat(result6);
-      const nr7 = parseFloat(result7);
-      const nr8 = parseFloat(result8);
-      const nr9 = parseFloat(result9);
-      const nr10 = parseFloat(result10);
+    const allMgResults = [
+      calcData.mgPerTabletResultTablet1,
+      calcData.mgPerTabletResultTablet2,
+      calcData.mgPerTabletResultTablet3,
+      calcData.mgPerTabletResultTablet4,
+      calcData.mgPerTabletResultTablet5,
+      calcData.mgPerTabletResultTablet6,
+      calcData.mgPerTabletResultTablet7,
+      calcData.mgPerTabletResultTablet8,
+      calcData.mgPerTabletResultTablet9,
+      calcData.mgPerTabletResultTablet10,
+    ];
 
-      if (
-        !isNaN(nr1) &&
-        isFinite(nr1) &&
-        !isNaN(nr2) &&
-        isFinite(nr2) &&
-        !isNaN(nr3) &&
-        isFinite(nr3) &&
-        !isNaN(nr4) &&
-        isFinite(nr4) &&
-        !isNaN(nr5) &&
-        isFinite(nr5) &&
-        !isNaN(nr6) &&
-        isFinite(nr6) &&
-        !isNaN(nr7) &&
-        isFinite(nr7) &&
-        !isNaN(nr8) &&
-        isFinite(nr8) &&
-        !isNaN(nr9) &&
-        isFinite(nr9) &&
-        !isNaN(nr10) &&
-        isFinite(nr10)
-      ) {
-        return {
-          average: (
-            (nr1 + nr2 + nr3 + nr4 + nr5 + nr6 + nr7 + nr8 + nr9 + nr10) /
-            10
-          )
-            .toFixedNoRound(4)
-            .toFixed(3),
-          minimum: Math.min(nr1, nr2, nr3, nr4, nr5, nr6, nr7, nr8, nr9, nr10)
-            .toFixedNoRound(4)
-            .toFixed(3),
-          maximum: Math.max(nr1, nr2, nr3, nr4, nr5, nr6, nr7, nr8, nr9, nr10)
-            .toFixedNoRound(4)
-            .toFixed(3),
-          unit: resultUnit,
-          results: [nr1, nr2, nr3, nr4, nr5, nr6, nr7, nr8, nr9, nr10],
-          areas: [
-            calcData.areaOfSample1,
-            calcData.areaOfSample2,
-            calcData.areaOfSample3,
-            calcData.areaOfSample4,
-            calcData.areaOfSample5,
-            calcData.areaOfSample6,
-            calcData.areaOfSample7,
-            calcData.areaOfSample8,
-            calcData.areaOfSample9,
-            calcData.areaOfSample10,
-          ],
-        };
+    const allAreas = [
+      calcData.areaOfSample1,
+      calcData.areaOfSample2,
+      calcData.areaOfSample3,
+      calcData.areaOfSample4,
+      calcData.areaOfSample5,
+      calcData.areaOfSample6,
+      calcData.areaOfSample7,
+      calcData.areaOfSample8,
+      calcData.areaOfSample9,
+      calcData.areaOfSample10,
+    ];
+
+    const validEntries: { idx: number; result: number; mgResult: number | null; area: string }[] = [];
+
+    allResults.forEach((r, idx) => {
+      if (r !== null && r !== undefined && String(r).trim() !== "") {
+        const n = parseFloat(String(r));
+        if (!isNaN(n) && isFinite(n)) {
+          const mg = allMgResults[idx];
+          const mgNum = mg !== null && mg !== undefined && String(mg).trim() !== ""
+            ? parseFloat(String(mg))
+            : null;
+          validEntries.push({
+            idx,
+            result: n,
+            mgResult: mgNum !== null && !isNaN(mgNum as number) ? mgNum : null,
+            area: allAreas[idx] || "___",
+          });
+        }
       }
-    }
+    });
 
-    return null;
+    if (validEntries.length === 0) return null;
+
+    const nums = validEntries.map((e) => e.result);
+    const sum = nums.reduce((a, b) => a + b, 0);
+
+    return {
+      average: (sum / nums.length).toFixedNoRound(4).toFixed(3),
+      minimum: Math.min(...nums).toFixedNoRound(4).toFixed(3),
+      maximum: Math.max(...nums).toFixedNoRound(4).toFixed(3),
+      unit: calcData.calculationResultUnit || "% of LC",
+      entries: validEntries,
+    };
   };
 
   const findUnitForKey = (calcData: any, key: string): string => {
@@ -999,6 +974,283 @@ const PrintReport: React.FC<PrintReportProps> = ({
           )}
         </div>
       );
+    } else if (type === "dissolution_profile") {
+      // ── shared values ────────────────────────────────────────────────────
+      const dpAreaStd = calcData.areaOfStandard || "___";
+      const dpSw1     = calcData.sw1            || "___";
+      const dpMwBase  = calcData.mWBase         || "___";
+      const dpMwSalt  = calcData.mWSalt         || "___";
+      const dpPurity  = calcData.purity         || "___";
+      const dpClaim   = calcData.claim          || "___";
+      const dpNTP     = Number(calcData.numberOfTimePoints) || 0;
+      const dpVolWith = calcData.volumeWithdraw  || "___";
+      const dpVolRepl = calcData.volumeReplaced  || "___";
+      const dpStdLabel = calcData.selectedStandardPreparationLabel || "";
+      const dpSmpLabel = calcData.selectedSamplePreparationLabel   || "";
+
+      // ── dilution volumes ─────────────────────────────────────────────────
+      const dpV1  = calcData.v1  || "___"; const dpV2  = calcData.v2  || "___";
+      const dpV3  = calcData.v3  || "___"; const dpV4  = calcData.v4  || "___";
+      const dpV5  = calcData.v5  || "___"; const dpV6  = calcData.v6  || "___";
+      const dpV7  = calcData.v7  || "___";
+      const dpV9  = calcData.v9  || "___"; const dpV10 = calcData.v10 || "___";
+      const dpV11 = calcData.v11 || "___"; const dpV12 = calcData.v12 || "___";
+      const dpV13 = calcData.v13 || "___"; const dpV14 = calcData.v14 || "___";
+
+      // ── build formula symbolic & value arrays ────────────────────────────
+      const dpStdNumSym: string[] = []; const dpStdDenSym: string[] = [];
+      const dpStdNumVal: string[] = []; const dpStdDenVal: string[] = [];
+      const dpSmpNumSym: string[] = []; const dpSmpDenSym: string[] = [];
+      const dpSmpNumVal: string[] = []; const dpSmpDenVal: string[] = [];
+
+      if (dpV1  !== "___" && dpV1  !== "0") { dpStdDenSym.push("V1");  dpStdDenVal.push(dpV1);  }
+      if (dpV2  !== "___" && dpV2  !== "0") { dpStdNumSym.push("V2");  dpStdNumVal.push(dpV2);  }
+      if (dpV3  !== "___" && dpV3  !== "0") { dpStdDenSym.push("V3");  dpStdDenVal.push(dpV3);  }
+      if (dpV4  !== "___" && dpV4  !== "0") { dpStdNumSym.push("V4");  dpStdNumVal.push(dpV4);  }
+      if (dpV5  !== "___" && dpV5  !== "0") { dpStdDenSym.push("V5");  dpStdDenVal.push(dpV5);  }
+      if (dpV6  !== "___" && dpV6  !== "0") { dpStdNumSym.push("V6");  dpStdNumVal.push(dpV6);  }
+      if (dpV7  !== "___" && dpV7  !== "0") { dpStdDenSym.push("V7");  dpStdDenVal.push(dpV7);  }
+      if (dpV9  !== "___" && dpV9  !== "0") { dpSmpDenSym.push("V9");  dpSmpDenVal.push(dpV9);  }
+      if (dpV10 !== "___" && dpV10 !== "0") { dpSmpNumSym.push("V10"); dpSmpNumVal.push(dpV10); }
+      if (dpV11 !== "___" && dpV11 !== "0") { dpSmpDenSym.push("V11"); dpSmpDenVal.push(dpV11); }
+      if (dpV12 !== "___" && dpV12 !== "0") { dpSmpNumSym.push("V12"); dpSmpNumVal.push(dpV12); }
+      if (dpV13 !== "___" && dpV13 !== "0") { dpSmpDenSym.push("V13"); dpSmpDenVal.push(dpV13); }
+      if (dpV14 !== "___" && dpV14 !== "0") { dpSmpNumSym.push("V14"); dpSmpNumVal.push(dpV14); }
+
+      const dpSymNum = [
+        "Area/ABS of Sample", "× SW1",
+        ...dpStdNumSym.map((v: string) => `× ${v}`),
+        "× V8(Tn)",
+        ...dpSmpNumSym.map((v: string) => `× ${v}`),
+        "× MW Base", "× Purity %", "× 100",
+      ].join(" ");
+      const dpSymDen = [
+        "Area/ABS of Standard",
+        ...dpStdDenSym.map((v: string) => `× ${v}`),
+        "× Claim",
+        ...dpSmpDenSym.map((v: string) => `× ${v}`),
+        "× MW Salt", "× 100",
+      ].join(" ");
+
+      // ── helper: parse stored JSON array ──────────────────────────────────
+      const dpParseArr = (raw: any): number[] => {
+        if (!raw) return [];
+        try {
+          const p = typeof raw === "string" ? JSON.parse(raw) : raw;
+          return Array.isArray(p) ? p.map(Number) : [];
+        } catch { return []; }
+      };
+
+      // ── build per-TP data ────────────────────────────────────────────────
+      const dpTpData: Array<{
+        tpNum: number; label: string; v8: number;
+        results: number[]; areas: string[];
+        cfs: number[]; racs: number[];
+        min: number; avg: number; max: number;
+      }> = [];
+      for (let tp = 1; tp <= dpNTP; tp++) {
+        const results = dpParseArr(calcData[`sampleResultsT${tp}`]);
+        if (results.length === 0) break;
+        dpTpData.push({
+          tpNum: tp,
+          label: calcData[`timePointDetail${tp}`] || `T${tp}`,
+          v8:    Number(calcData[`v8TimePoint${tp}`]) || 0,
+          results,
+          areas: [1,2,3,4,5,6].map((s: number) => calcData[`areaOfSampleT${tp}S${s}`] || "___"),
+          cfs:   dpParseArr(calcData[`correctionFactorsT${tp}`]),
+          racs:  dpParseArr(calcData[`resultsAfterCorrectionT${tp}`]),
+          min:   Number(calcData[`minT${tp}`]) || 0,
+          avg:   Number(calcData[`avgT${tp}`]) || 0,
+          max:   Number(calcData[`maxT${tp}`]) || 0,
+        });
+      }
+
+      const dpFmt = (n: number) => isNaN(n) ? "—" : n.toFixedNoRound(4).toFixed(3);
+
+      // ── reusable table-row renderer (same style as dissolution) ──────────
+      const dpRow = (label: string, value: string) => (
+        <tr className="border-b border-black last:border-b-0">
+          <td className="w-2/5 px-3 py-2 font-bold bg-gray-100 border-r border-black">{label}</td>
+          <td className="px-3 py-2">{value}</td>
+        </tr>
+      );
+
+      return (
+        <div className="mb-3">
+
+          {/* ══ PER-TIME-POINT: details table + formula block ══ */}
+          {dpTpData.map((tp) => {
+            const hasCorrection = tp.tpNum > 1;
+            const prevTp        = dpTpData[tp.tpNum - 2];
+            const dpV8str       = dpFmt(tp.v8);
+
+            // V8 display value — show derivation inline for T2+
+            const v8Display = `${dpV8str} ml `;
+
+            return (
+              <div key={tp.tpNum}>
+
+                {/* ── 1. CALCULATION DETAILS TABLE — same style as dissolution ── */}
+                <div className="mb-3">
+                  <p className="font-bold text-sm mb-1">
+                    {(["1st","2nd","3rd","4th","5th","6th","7th","8th","9th","10th"])[tp.tpNum - 1] || `${tp.tpNum}th`} Time Point {tp.label && tp.label !== `T${tp.tpNum}` ? ` (${tp.label} hr)` : ""}
+                  </p>
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {dpStdLabel && dpRow("Selected Standard Preparation Label", dpStdLabel)}
+                      {dpSmpLabel && dpRow("Selected Sample Preparation Label",   dpSmpLabel)}
+                      {tp.areas.map((area: string, i: number) =>
+                        area && area !== "___"
+                          ? dpRow(`Area of Sample ${i + 1}`, area)
+                          : null
+                      )}
+                      {dpAreaStd !== "___" && dpRow("Area of Standard", dpAreaStd)}
+                      {dpMwBase  !== "___" && dpRow("M W Base",         dpMwBase)}
+                      {dpMwSalt  !== "___" && dpRow("M W Salt",         dpMwSalt)}
+                      {dpPurity  !== "___" && dpRow("Purity",           `${dpPurity} %`)}
+                      {dpVolWith !== "___" && dpRow("Volume Withdrawn", `${dpVolWith} ml`)}
+                      {dpVolRepl !== "___" && dpRow("Volume Replaced",  `${dpVolRepl} ml`)}
+                      {dpRow(hasCorrection ? "Updated Media Volume" : "Media Volume", v8Display)}
+                      {hasCorrection && tp.cfs.map((cf: number, i: number) =>
+                        cf != null && !isNaN(cf)
+                          ? dpRow(`CF(T${tp.tpNum - 1}) Tablet ${i + 1}`, dpFmt(cf))
+                          : null
+                      )}
+                      {/* Result per tablet */}
+                      {tp.results.map((res: number, i: number) =>
+                        dpRow(
+                          hasCorrection
+                            ? `Calculation Result Tablet ${i + 1}`
+                            : `Calculation Result Tablet ${i + 1}`,
+                          `${dpFmt(res)} % of LC`
+                        )
+                      )}
+                      {/* Corrected Result per tablet (T2+) */}
+                      {hasCorrection && tp.racs.map((rac: number, i: number) =>
+                        rac != null && !isNaN(rac)
+                          ? dpRow(`Corrected Result Tablet ${i + 1}`, `${dpFmt(rac)} % of LC`)
+                          : null
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* ── 2. FORMULA (once per TP) ── */}
+                <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
+                  <p className="font-bold text-sm mb-2">Formula :</p>
+                  {renderMathFormula(dpSymNum, dpSymDen, "% of LC")}
+                  {hasCorrection && (
+                    <div className="mt-2 pt-2 border-t border-gray-300 text-xs space-y-0.5">
+                      <p><strong>CF =</strong> &nbsp; [Prev. Result × Vol. Withdrawn] / V8(Tn)</p>
+                      <p><strong>Corrected Result =</strong> &nbsp;Result(Tn) + CF(T1) + CF(T2) + ... + CF(Tn-1)</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* ── 3. PER-TABLET DERIVATIONS — each in own keep-together block ── */}
+                {tp.results.map((res: number, idx: number) => {
+                  const sNum  = idx + 1;
+                  const area  = tp.areas[idx] || "___";
+                  const cf    = tp.cfs[idx];
+                  const rac   = tp.racs[idx];
+                  const prevRes = prevTp
+                    ? (prevTp.results[idx] != null && !isNaN(prevTp.results[idx])
+                        ? prevTp.results[idx]
+                        : 0)
+                    : 0;
+
+                  const numVals = [
+                    area, dpSw1,
+                    ...dpStdNumVal, dpV8str, ...dpSmpNumVal,
+                    dpMwBase, dpPurity, "100",
+                  ].filter((v: string) => v !== "___").join(" × ");
+
+                  const denVals = [
+                    dpAreaStd, ...dpStdDenVal,
+                    dpClaim,   ...dpSmpDenVal,
+                    dpMwSalt, "100",
+                  ].filter((v: string) => v !== "___").join(" × ");
+
+                  // Build CF expression string for corrected result line
+                  const allCFs: number[] = [];
+                  for (let tIdx = 1; tIdx < dpTpData.length; tIdx++) {
+                    const pastTp = dpTpData[tIdx];
+                    if (pastTp.tpNum > tp.tpNum) break;
+                    const pastCf = pastTp.cfs[idx];
+                    if (pastCf != null && !isNaN(pastCf)) allCFs.push(pastCf);
+                  }
+                  const cfExpression = allCFs.length > 0
+                    ? allCFs.map(c => dpFmt(c)).join(" + ")
+                    : (cf != null && !isNaN(cf) ? dpFmt(cf) : "");
+
+                  return (
+                    <div
+                      key={sNum}
+                      className="bg-gray-100 border border-black p-3 mb-3 keep-together"
+                    >
+                      {/* Single heading for the whole tablet block */}
+                      <p className="font-bold text-sm mb-3">
+                        Derivation (Tablet {sNum}) :
+                      </p>
+
+                      {/* CF line — single inline row (T2+) */}
+                      {hasCorrection && cf != null && !isNaN(cf) && (
+                        <p className="text-center text-xs mb-2">
+                          <strong>CF</strong> = ({dpFmt(prevRes)} × {dpVolWith}) / {dpV8str} = <strong>{dpFmt(cf)}</strong>
+                        </p>
+                      )}
+
+                      {/* Result line — single inline row */}
+                      <p className="text-center text-xs mb-2">
+                        <strong>Result</strong> = ({numVals}) / ({denVals}) = <strong>{dpFmt(res)} % of LC</strong>
+                      </p>
+
+                      {/* Corrected Result line (T2+) */}
+                      {hasCorrection && cf != null && !isNaN(cf) && rac != null && !isNaN(rac) && (
+                        <p className="text-center font-bold text-xs mt-1">
+                          Corrected Result = {dpFmt(res)} + {cfExpression} = {dpFmt(rac)} % of LC
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* ── 4. SUMMARY — Min / Avg / Max ── */}
+                <div className="mt-1 keep-together mb-4">
+                  <table className="w-full border border-black">
+                    <tbody>
+                      <tr className="bg-gray-100">
+                        <td colSpan={3} className="p-3 border-b border-black">
+                          <p className="font-bold text-sm">
+                            Calculation Summary
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="text-center p-3 border-r border-black">
+                          <p className="font-semibold text-xs">Minimum</p>
+                          <p className="text-lg font-bold">{dpFmt(tp.min)} % of LC</p>
+                        </td>
+                        <td className="text-center p-3 border-r border-black">
+                          <p className="font-semibold text-xs">Average</p>
+                          <p className="text-lg font-bold">{dpFmt(tp.avg)} % of LC</p>
+                        </td>
+                        <td className="text-center p-3">
+                          <p className="font-semibold text-xs">Maximum</p>
+                          <p className="text-lg font-bold">{dpFmt(tp.max)} % of LC</p>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            );
+          })}
+
+        </div>
+      );
+
     } else if (type.includes("dissolution")) {
       const areaStd = calcData.areaOfStandard || "___";
       const mwBase = calcData.mWBase || "___";
@@ -1119,7 +1371,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
             {renderMathFormula(
               numeratorSymbolic,
               denominatorSymbolic,
-              "mg/Tablet",
+              "% of LC",
             )}
           </div>
 
@@ -1160,7 +1412,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                     </p>
                     {renderMathFormula(numeratorValues, denominatorValues)}
                     <p className="text-center font-bold text-xs mt-2">
-                      Result = {result.toFixedNoRound(4).toFixed(3)} mg/Tablet
+                      Result = {result.toFixedNoRound(4).toFixed(3)} % of LC
                     </p>
                   </div>
                 );
@@ -1255,7 +1507,6 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
       const sw1 = calcData.sw1 || "___";
       const claim = calcData.claim || "___";
-      const dilutedVol = calcData.dilutedVol || "___";
       const v1 = calcData.v1 || "___";
       const v2 = calcData.v2 || "___";
       const v3 = calcData.v3 || "___";
@@ -1270,191 +1521,130 @@ const PrintReport: React.FC<PrintReportProps> = ({
       const v12 = calcData.v12 || "___";
       const v13 = calcData.v13 || "___";
       const v14 = calcData.v14 || "___";
-      const v15 = calcData.v15 || "___";
-      const v16 = calcData.v16 || "___";
 
+      // Build volume symbolic/value arrays
       const stdVolsNumSymbolic: string[] = [];
       const stdVolsDenomSymbolic: string[] = [];
       const stdVolsNumValues: string[] = [];
       const stdVolsDenomValues: string[] = [];
 
-      if (v1 !== "___" && v1 !== "0") {
-        stdVolsDenomSymbolic.push("V1");
-        stdVolsDenomValues.push(v1);
-      }
-      if (v2 !== "___" && v2 !== "0") {
-        stdVolsNumSymbolic.push("V2");
-        stdVolsNumValues.push(v2);
-      }
-      if (v3 !== "___" && v3 !== "0") {
-        stdVolsDenomSymbolic.push("V3");
-        stdVolsDenomValues.push(v3);
-      }
-      if (v4 !== "___" && v4 !== "0") {
-        stdVolsNumSymbolic.push("V4");
-        stdVolsNumValues.push(v4);
-      }
-      if (v5 !== "___" && v5 !== "0") {
-        stdVolsDenomSymbolic.push("V5");
-        stdVolsDenomValues.push(v5);
-      }
-      if (v6 !== "___" && v6 !== "0") {
-        stdVolsNumSymbolic.push("V6");
-        stdVolsNumValues.push(v6);
-      }
-      if (v7 !== "___" && v7 !== "0") {
-        stdVolsDenomSymbolic.push("V7");
-        stdVolsDenomValues.push(v7);
-      }
-      if (v8 !== "___" && v8 !== "0") {
-        stdVolsNumSymbolic.push("V8");
-        stdVolsNumValues.push(v8);
-      }
+      if (v1 !== "___" && v1 !== "0") { stdVolsDenomSymbolic.push("V1"); stdVolsDenomValues.push(v1); }
+      if (v2 !== "___" && v2 !== "0") { stdVolsNumSymbolic.push("V2");   stdVolsNumValues.push(v2); }
+      if (v3 !== "___" && v3 !== "0") { stdVolsDenomSymbolic.push("V3"); stdVolsDenomValues.push(v3); }
+      if (v4 !== "___" && v4 !== "0") { stdVolsNumSymbolic.push("V4");   stdVolsNumValues.push(v4); }
+      if (v5 !== "___" && v5 !== "0") { stdVolsDenomSymbolic.push("V5"); stdVolsDenomValues.push(v5); }
+      if (v6 !== "___" && v6 !== "0") { stdVolsNumSymbolic.push("V6");   stdVolsNumValues.push(v6); }
+      if (v7 !== "___" && v7 !== "0") { stdVolsDenomSymbolic.push("V7"); stdVolsDenomValues.push(v7); }
 
       const smpVolsNumSymbolic: string[] = [];
       const smpVolsDenomSymbolic: string[] = [];
       const smpVolsNumValues: string[] = [];
       const smpVolsDenomValues: string[] = [];
 
-      if (v9 !== "___" && v9 !== "0") {
-        smpVolsDenomSymbolic.push("V9");
-        smpVolsDenomValues.push(v9);
-      }
-      if (v10 !== "___" && v10 !== "0") {
-        smpVolsNumSymbolic.push("V10");
-        smpVolsNumValues.push(v10);
-      }
-      if (v11 !== "___" && v11 !== "0") {
-        smpVolsDenomSymbolic.push("V11");
-        smpVolsDenomValues.push(v11);
-      }
-      if (v12 !== "___" && v12 !== "0") {
-        smpVolsNumSymbolic.push("V12");
-        smpVolsNumValues.push(v12);
-      }
-      if (v13 !== "___" && v13 !== "0") {
-        smpVolsDenomSymbolic.push("V13");
-        smpVolsDenomValues.push(v13);
-      }
-      if (v14 !== "___" && v14 !== "0") {
-        smpVolsNumSymbolic.push("V14");
-        smpVolsNumValues.push(v14);
-      }
-      if (v15 !== "___" && v15 !== "0") {
-        smpVolsDenomSymbolic.push("V15");
-        smpVolsDenomValues.push(v15);
-      }
-      if (v16 !== "___" && v16 !== "0") {
-        smpVolsNumSymbolic.push("V16");
-        smpVolsNumValues.push(v16);
-      }
+      if (v8  !== "___" && v8  !== "0") { smpVolsNumSymbolic.push("V8");    smpVolsNumValues.push(v8); }
+      if (v9  !== "___" && v9  !== "0") { smpVolsDenomSymbolic.push("V9");  smpVolsDenomValues.push(v9); }
+      if (v10 !== "___" && v10 !== "0") { smpVolsNumSymbolic.push("V10");   smpVolsNumValues.push(v10); }
+      if (v11 !== "___" && v11 !== "0") { smpVolsDenomSymbolic.push("V11"); smpVolsDenomValues.push(v11); }
+      if (v12 !== "___" && v12 !== "0") { smpVolsNumSymbolic.push("V12");   smpVolsNumValues.push(v12); }
+      if (v13 !== "___" && v13 !== "0") { smpVolsDenomSymbolic.push("V13"); smpVolsDenomValues.push(v13); }
+      if (v14 !== "___" && v14 !== "0") { smpVolsNumSymbolic.push("V14");   smpVolsNumValues.push(v14); }
 
-      const numeratorSymbolic = [
-        "Area/ABS of Sample",
-        "× SW1",
+      // Step 1 symbolic (mg/Tablet — no Claim in denominator)
+      const step1NumSymbolic = [
+        "Area/ABS of Sample", "× SW1",
         ...stdVolsNumSymbolic.map((v: string) => `× ${v}`),
         ...smpVolsNumSymbolic.map((v: string) => `× ${v}`),
-        "× MW Base",
-        "× Purity %",
-        "× Claim",
+        "× MW Base", "× Purity %",
       ].join(" ");
 
-      const denominatorSymbolic = [
+      const step1DenSymbolic = [
         "Area/ABS of Standard",
         ...stdVolsDenomSymbolic.map((v: string) => `× ${v}`),
-        "× Diluted Vol",
         ...smpVolsDenomSymbolic.map((v: string) => `× ${v}`),
-        "× MW Salt",
-        "× 100",
+        "× MW Salt", "× 100",
       ].join(" ");
 
       const stats = calculateUCStats(calcData);
 
       return (
         <div className="mb-3">
-          <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
-            <p className="font-bold text-sm mb-2">Formula :</p>
-            {renderMathFormula(
-              numeratorSymbolic,
-              denominatorSymbolic,
-              "mg/Tablet",
-            )}
+
+          {/* ── Single "Formula" box containing both Step 1 and Step 2 ── */}
+          <div className="bg-gray-100 border border-black p-3 mb-1 keep-together">
+            <p className="font-bold text-sm mb-3">Formula :</p>
+
+            {renderMathFormula(step1NumSymbolic, step1DenSymbolic, "mg/Tablet")}
+            {renderMathFormula("Result (mg/Tablet) × 100", "Claim (mg)", "% of LC")}
           </div>
 
-          {stats && stats.results && (
-            <div className="mt-4">
-              {stats.results.map((result, idx) => {
-                const areaSample = stats.areas[idx] || "___";
-                const numeratorValues = [
-                  areaSample,
-                  sw1,
-                  ...stdVolsNumValues,
-                  ...smpVolsNumValues,
-                  mwBase,
-                  purity,
-                  claim,
-                ]
-                  .filter((v) => v !== "___")
-                  .join(" × ");
+          {/* ── Per-tablet derivations ── */}
+          {stats && stats.entries && stats.entries.map((entry) => {
+            const step1NumValues = [
+              entry.area,
+              sw1,
+              ...stdVolsNumValues,
+              ...smpVolsNumValues,
+              mwBase,
+              purity,
+            ].filter((v) => v !== "___").join(" × ");
 
-                const denominatorValues = [
-                  areaStd,
-                  ...stdVolsDenomValues,
-                  dilutedVol,
-                  ...smpVolsDenomValues,
-                  mwSalt,
-                  "100",
-                ]
-                  .filter((v) => v !== "___")
-                  .join(" × ");
+            const step1DenValues = [
+              areaStd,
+              ...stdVolsDenomValues,
+              ...smpVolsDenomValues,
+              mwSalt,
+              "100",
+            ].filter((v) => v !== "___").join(" × ");
 
-                return (
-                  <div
-                    key={idx}
-                    className="bg-gray-100 border border-black p-3 mb-3 keep-together"
-                  >
-                    <p className="font-bold text-sm  mb-2">
-                      Derivation (Tablet {idx + 1}) :
-                    </p>
-                    {renderMathFormula(numeratorValues, denominatorValues)}
-                    <p className="text-center font-bold text-xs mt-2">
-                      Result = {result.toFixedNoRound(4).toFixed(3)} mg/Tablet
-                    </p>
-                  </div>
-                );
-              })}
+            const mgDisplay = entry.mgResult !== null
+              ? `${entry.mgResult}`
+              : "Result (mg/Tablet)";
 
-              <div className="mt-4 keep-together">
-                <table className="w-full">
-                  <tbody>
-                    <tr className="bg-gray-100">
-                      <td colSpan={3} className="p-3 border-b border-black">
-                        <p className="font-bold text-sm">Calculation Summary</p>
-                      </td>
-                    </tr>
-                    <tr className="">
-                      <td className="text-center p-3 border-r border-black">
-                        <p className="font-semibold text-xs">Minimum</p>
-                        <p className="text-lg font-bold">
-                          {stats.minimum} {stats.unit}
-                        </p>
-                      </td>
-                      <td className="text-center p-3 border-r border-black">
-                        <p className="font-semibold text-xs">Average</p>
-                        <p className="text-lg font-bold">
-                          {stats.average} {stats.unit}
-                        </p>
-                      </td>
-                      <td className="text-center p-3">
-                        <p className="font-semibold text-xs">Maximum</p>
-                        <p className="text-lg font-bold">
-                          {stats.maximum} {stats.unit}
-                        </p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+            const step2NumValues = entry.mgResult !== null
+              ? `${entry.mgResult} × 100`
+              : "Result (mg/Tablet) × 100";
+
+            return (
+              <div
+                key={entry.idx}
+                className="bg-gray-100 border border-black p-3 mb-1 keep-together"
+              >
+                <p className="font-bold text-sm mb-3">
+                  Derivation (Tablet {entry.idx + 1}) :
+                </p>
+
+                {renderMathFormula(step1NumValues, step1DenValues, `= ${mgDisplay} mg/Tablet`)}
+                {renderMathFormula(step2NumValues, `${claim}`, `= ${entry.result.toFixedNoRound(3).toFixed(2)} % of LC`)}
               </div>
+            );
+          })}
+
+          {/* ── Summary ── */}
+          {stats && (
+            <div className="mt-4 keep-together">
+              <table className="w-full">
+                <tbody>
+                  <tr className="bg-gray-100">
+                    <td colSpan={3} className="p-3 border-b border-black">
+                      <p className="font-bold text-sm">Calculation Summary</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="text-center p-3 border-r border-black">
+                      <p className="font-semibold text-xs">Minimum</p>
+                      <p className="text-lg font-bold">{stats.minimum} {stats.unit}</p>
+                    </td>
+                    <td className="text-center p-3 border-r border-black">
+                      <p className="font-semibold text-xs">Average</p>
+                      <p className="text-lg font-bold">{stats.average} {stats.unit}</p>
+                    </td>
+                    <td className="text-center p-3">
+                      <p className="font-semibold text-xs">Maximum</p>
+                      <p className="text-lg font-bold">{stats.maximum} {stats.unit}</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -1925,43 +2115,61 @@ const PrintReport: React.FC<PrintReportProps> = ({
                     )}
 
                   {/* Dissolution Media Preparations */}
-                  {param.preparations &&
-                    safeJSONParse(param.preparations, []).filter(
-                      (p: any) => p.preparationCategory === "dissolution_media",
-                    ).length > 0 && (
+                  {(() => {
+                    const dissoMediaPreps = param.preparations
+                      ? safeJSONParse(param.preparations, []).filter(
+                          (p: any) =>
+                            p.preparationCategory === "dissolution_media" ||
+                            p.preparationCategory === "dissolution_media_profile",
+                        )
+                      : [];
+
+                    // Build rendered prep items — only include ones with valid step data
+                    const renderedPreps = dissoMediaPreps.map((prep: any, idx: number) => {
+                      const steps = safeJSONParse(prep.steps, []);
+                      const stepsTable = renderPreparationStepsTable(
+                        steps,
+                        "dissolution_media",
+                        prep.preparationType || "dissolution_media",
+                        prep.assignedStandardId,
+                      );
+                      if (!stepsTable) return null;
+
+                      // Format preparationType for display in brackets
+                      const prepTypeLabel = prep.preparationType
+                        ? prep.preparationType
+                            .split("_")
+                            .filter(Boolean)
+                            .map((w: string) => w[0].toUpperCase() + w.slice(1))
+                            .join(" ")
+                            .replace(/Of/g, "of")
+                        : null;
+
+                      return (
+                        <div key={idx} className="section-container mb-3">
+                          <div className="mb-1">
+                            <p className="font-bold text-sm">
+                              {prep.label}
+                              {prepTypeLabel ? ` (${prepTypeLabel})` : ""}
+                            </p>
+                          </div>
+                          <div className="p-0">{stepsTable}</div>
+                        </div>
+                      );
+                    }).filter(Boolean);
+
+                    // Only render the whole block (including title) if at least one prep has valid steps
+                    if (renderedPreps.length === 0) return null;
+
+                    return (
                       <div className="mb-6">
                         <h4 className="text-md uppercase font-bold mb-2">
                           Dissolution Media Preparations
                         </h4>
-                        {safeJSONParse(param.preparations, [])
-                          .filter(
-                            (p: any) =>
-                              p.preparationCategory === "dissolution_media",
-                          )
-                          .map((prep: any, idx: number) => {
-                            const steps = safeJSONParse(prep.steps, []);
-                            const stepsTable = renderPreparationStepsTable(
-                              steps,
-                              "dissolution_media",
-                              prep.preparationType || "dissolution_media",
-                              prep.assignedStandardId,
-                            );
-
-                            if (!stepsTable) return null;
-
-                            return (
-                              <div key={idx} className="section-container mb-3">
-                                <div className="mb-1">
-                                  <p className="font-bold text-sm">
-                                    {prep.label}
-                                  </p>
-                                </div>
-                                <div className="p-0">{stepsTable}</div>
-                              </div>
-                            );
-                          })}
+                        {renderedPreps}
                       </div>
-                    )}
+                    );
+                  })()}
 
                   {/* Standard Preparations */}
                   {((param.standardPreparations &&
@@ -2091,6 +2299,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                       </h4>
                       {param.calculations.map((calc: any, idx: number) => {
                         const calcData = safeJSONParse(calc.data, {});
+                        const isDissoProfileCalc = calc.calculationType?.toLowerCase() === "dissolution_profile";
                         const isDissoCalc = calc.calculationType
                           ?.toLowerCase()
                           .includes("disso");
@@ -2122,13 +2331,15 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                 </p>
                               </div>
 
-                              {/* Calculation Details Table */}
+                              {/* Calculation Details Table — hidden for dissolution_profile (all shown in derivation) */}
+                              {!isDissoProfileCalc && (
                               <div>
                                 <table className="w-full text-sm">
                                   <tbody>
                                     {Object.entries(calcData).map(
                                       ([key, value]: [string, any]) => {
-                                        // Skip these fields
+                                        if (key.includes("mgPerTabletResult")) return null;
+
                                         if (
                                           key === "id" ||
                                           key === "label" ||
@@ -2137,10 +2348,8 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                           key.toLowerCase().includes("unit") ||
                                           (isDissoCalc &&
                                             key === "calculationResult") ||
-                                          // For UC, show calculationResult summary (min, max, avg) but not individual tablet results
                                           (isUCCalc &&
                                             key === "calculationResult") ||
-                                          // Skip stored preparation values (used only in formulas)
                                           key === "sw1" ||
                                           key === "sw2" ||
                                           key === "w1" ||
@@ -2172,9 +2381,9 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                           .replace(/([A-Z])/g, " $1")
                                           .replace(/^./, (c) => c.toUpperCase())
                                           .trim()
-                                          .replace(/(\d+)/g, " $1") // Add space before digit groups (handles multi-digit numbers)
-                                          .replace(/\s+/g, " ") // Clean up multiple spaces
-                                          .replace(/\bOf\b/g, "of"); // Change "Of" to "of"
+                                          .replace(/(\d+)/g, " $1")
+                                          .replace(/\s+/g, " ")
+                                          .replace(/\bOf\b/g, "of");
 
                                         const unit = findUnitForKey(
                                           calcData,
@@ -2210,6 +2419,8 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                   </tbody>
                                 </table>
                               </div>
+                              )}
+
                             </div>
 
                             {/* Mathematical Derivation Section */}

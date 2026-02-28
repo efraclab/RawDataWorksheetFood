@@ -8,7 +8,6 @@
         public string? MethodCode { get; set; }
         public string? MethodName { get; set; }
         public string? ColumnId { get; set; }
-        public string? DiluentPreparation { get; set; }
         public string? OtherInfo { get; set; }
 
         public string? AnalyzedBy { get; set; }

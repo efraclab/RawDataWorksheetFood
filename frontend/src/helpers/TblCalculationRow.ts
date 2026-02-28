@@ -44,4 +44,11 @@ export interface TblCalculationRow {
 
   SelectedStandardPrepLabel?: string | null;
   SelectedSamplePrepLabel?: string | null;
+
+  TimePointDetailInHr?: string | null;
+  CF?: string | null;
+  CorrectedResult?: string | null;
+  CorrectedResultUnit?: string | null;
+  Limit?:string | null;
+
 }

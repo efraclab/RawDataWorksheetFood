@@ -65,16 +65,14 @@ namespace RawDataWorkSheet.Repositories
             const string query = """
                 INSERT INTO tblParameters (
                     WorksheetId, ParameterCode, ParameterName,
-                    MethodCode, MethodName, ColumnId,
-                    DiluentPreparation, OtherInfo,
+                    MethodCode, MethodName, ColumnId, OtherInfo,
                     ParameterAnalyzedBy, ParameterApprovedBy,
                     ParameterStatus, ParameterApprovedAt, AnalysisStartedAt, AnalysisCompletedAt
                 )
                 OUTPUT INSERTED.ParameterId
                 VALUES (
                     @WorksheetId, @ParameterCode, @ParameterName,
-                    @MethodCode, @MethodName, @ColumnId,
-                    @DiluentPreparation, @OtherInfo,
+                    @MethodCode, @MethodName, @ColumnId, @OtherInfo,
                     @ParameterAnalyzedBy, @ParameterApprovedBy,
                     @ParameterStatus, @ParameterApprovedAt, @AnalysisStartedAt, @AnalysisCompletedAt
                 )
@@ -92,7 +90,6 @@ namespace RawDataWorkSheet.Repositories
                         p.MethodName,
                         p.MethodCode,
                         p.ColumnId,
-                        p.DiluentPreparation,
                         p.OtherInfo,
                         p.ParameterAnalyzedBy,
                         p.ParameterApprovedBy,
@@ -107,6 +104,7 @@ namespace RawDataWorkSheet.Repositories
 
             return map;
         }
+
 
         public async Task InsertReferencesAsync(
         List<RawDataReferenceDto> references,
@@ -281,7 +279,12 @@ namespace RawDataWorkSheet.Repositories
             MwSalt,
             MwBase,
             CalculationResult,
-            CalculationResultUnit
+            CalculationResultUnit,
+            TimePointDetailInHr,
+            CF,
+            CorrectedResult,
+            CorrectedResultUnit,
+            Limit
         )
         VALUES (
             @ParameterId,
@@ -305,7 +308,12 @@ namespace RawDataWorkSheet.Repositories
             @MwSalt,
             @MwBase,
             @CalculationResult,
-            @CalculationResultUnit
+            @CalculationResultUnit,
+            @TimePointDetailInHr,
+            @CF,
+            @CorrectedResult,
+            @CorrectedResultUnit,
+            @Limit
         );
     """;
 
@@ -367,7 +375,12 @@ namespace RawDataWorkSheet.Repositories
                         c.MwSalt,
                         c.MwBase,
                         c.CalculationResult,
-                        c.CalculationResultUnit
+                        c.CalculationResultUnit,
+                        c.TimePointDetailInHr,
+                        c.CF,
+                        c.CorrectedResult,
+                        c.CorrectedResultUnit,
+                        c.Limit
                     },
                     tx
                 );

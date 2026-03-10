@@ -19,6 +19,9 @@ export interface CalculationDissoFerrousFumarate {
   factor: string;
   dissoMediaVolume: string;
   labelClaim: string;
+  dissoMediaVolumeUnit: string;
+  labelClaimUnit: string;
+  factorUnit: string;
 
   calculationResultTablet1: string | null;
   calculationResultTablet2: string | null;
@@ -31,5 +34,5 @@ export interface CalculationDissoFerrousFumarate {
   calculationResultUnit: string | null;
 
   sampleTaken: string | null;
-  factorUnit: string;
+  sampleTakenUnit: string | null;
 }

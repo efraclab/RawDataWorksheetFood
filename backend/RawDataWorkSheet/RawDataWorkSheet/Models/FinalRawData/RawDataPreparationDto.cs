@@ -2,10 +2,10 @@
 {
     public class RawDataPreparationDto
     {
-        public string WorksheetId { get; set; }
-        public string ParameterCode { get; set; }
-        public string PrepCategory { get; set; }
-        public string PrepLabel { get; set; }
+        public string WorksheetId { get; set; } = default!;
+        public string ParameterCode { get; set; } = default!;
+        public string PrepCategory { get; set; } = default!;
+        public string PrepLabel { get; set; } = default!;
         public string? PreparationType { get; set; }
         public string? AssignedStandardId { get; set; }
         public string? StepName { get; set; }
@@ -18,7 +18,7 @@
         public string? Unit3 { get; set; }
         public string? SolventChemical { get; set; }
         public string? LogBookID { get; set; }
+        public string? LimitType { get; set; }
         public string? Content { get; set; }
     }
-
 }

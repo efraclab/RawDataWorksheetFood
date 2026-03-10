@@ -5,8 +5,8 @@
         public string WorksheetId { get; set; } = default!;
         public string ParameterCode { get; set; } = default!;
 
-        public string CalculationLabel { get; set; } = default!;
-        public string CalculationType { get; set; } = default!;
+        public string? CalculationLabel { get; set; }
+        public string? CalculationType { get; set; }
         public string? CalculationFor { get; set; }
 
         public string? AreaOfSample { get; set; }
@@ -25,7 +25,7 @@
         public string? Claim { get; set; }
         public string? ClaimUnit { get; set; }
         public string? LabelClaim { get; set; }
-        public string? LabelClaimUnit { get; set; } = "mg";
+        public string? LabelClaimUnit { get; set; }
 
         public string? LodWaterType { get; set; }
         public string? LodWaterValue { get; set; }
@@ -50,7 +50,28 @@
         public string? CF { get; set; }
         public string? CorrectedResult { get; set; }
         public string? CorrectedResultUnit { get; set; }
-        public string? Limit { get; set; }
+
+        public string? LimitMin { get; set; }
+
+        public string? LimitMax { get; set; }
+
+        public string? BuretteReading { get; set; }
+
+        public string? BuretteReading1 { get; set; }
+        public string? BuretteReading2 { get; set; }
+        public string? BuretteReading3 { get; set; }
+        public string? BuretteReading4 { get; set; }
+        public string? BuretteReading5 { get; set; }
+        public string? BuretteReading6 { get; set; }
+
+        public string? TheoreticalMolarity { get; set; }
+        public string? ActualMolarity { get; set; }
+        public string? Factor { get; set; }
+        public string? FactorUnit { get; set; }
+
+        public string? DissoMediaVolume { get; set; }
+        public string? SampleTaken { get; set; }
+        public string? DryBasisResult { get; set; }
     }
 
 }

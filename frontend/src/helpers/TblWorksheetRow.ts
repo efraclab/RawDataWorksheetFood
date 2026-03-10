@@ -1,5 +1,3 @@
-
-
 export interface TblWorksheetRow {
   WorksheetId: string;
   RegistrationNo: string;
@@ -11,4 +9,8 @@ export interface TblWorksheetRow {
   WorksheetCreatedAt: string;
   WorksheetUpdatedAt: string;
   WorksheetApprovedAt?: string | null;
+  // QA workflow fields
+  SubmittedQaBy: string | null;
+  SubmittedQaAt: string | null;
+  ApprovedBy: string | null;
 }

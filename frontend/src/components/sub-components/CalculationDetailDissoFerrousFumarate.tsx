@@ -203,6 +203,47 @@ const CalculationDetailDissoFerrousFumarate: React.FC<
     selectedSamplePrep,
   ]);
 
+  // ── Persist all prep-derived fields whenever the linked preparation changes ─
+  // This ensures dissoMediaVolume (with unit), labelClaim (with unit), and
+  // sampleTaken (with unit) are always saved into the model — even before
+  // the user clicks "Calculate".
+  useEffect(() => {
+    if (!selectedSamplePrep) return;
+    const pv = getFromPrep();
+
+    // Save value + unit combined so the unit is never lost
+    onFieldChange(
+      calculation.id,
+      "sampleTaken",
+      pv.sampleTakenValue ? `${pv.sampleTakenValue}` : null,
+    );
+    onFieldChange(
+      calculation.id,
+      "dissoMediaVolume",
+      pv.dissoMediaVolume ? `${pv.dissoMediaVolume}` : null,
+    );
+    onFieldChange(
+      calculation.id,
+      "labelClaim",
+      pv.labelClaim ? `${pv.labelClaim}` : null,
+    );
+    onFieldChange(
+      calculation.id,
+      "sampleTakenUnit",
+      pv.sampleTakenUnit ? `${pv.sampleTakenUnit}` : null,
+    );
+    onFieldChange(
+      calculation.id,
+      "dissoMediaVolumeUnit",
+      pv.dissoMediaVolumeUnit ? `${pv.dissoMediaVolumeUnit}` : null,
+    );
+    onFieldChange(
+      calculation.id,
+      "labelClaimUnit",
+      pv.labelClaimUnit ? `${pv.labelClaimUnit}` : null,
+    );
+  }, [calculation.selectedSamplePreparationLabel, selectedSamplePrep]);
+
   // ── Field arrays ──────────────────────────────────────────────────────────
   const buretteFields: Array<keyof CalculationDissoFerrousFumarate> = [
     "buretteReading1", "buretteReading2", "buretteReading3",
@@ -327,8 +368,8 @@ const CalculationDetailDissoFerrousFumarate: React.FC<
       onFieldChange(calculation.id, "calculationResultUnit", null);
       return;
     }
-
-    onFieldChange(calculation.id, "sampleTaken", prepValues.sampleTakenValue || null);
+    // Always persist the result unit upfront
+    onFieldChange(calculation.id, "calculationResultUnit", "% of LC");
 
     const buretteVals = [
       calculation.buretteReading1, calculation.buretteReading2,
@@ -370,7 +411,6 @@ const CalculationDetailDissoFerrousFumarate: React.FC<
       };
       setSummaryResults(summary);
       onFieldChange(calculation.id, "calculationResult", `Min: ${summary.min}, Max: ${summary.max}, Avg: ${summary.avg}`);
-      onFieldChange(calculation.id, "calculationResultUnit", "% of LC");
     } else {
       setSummaryResults(null);
       onFieldChange(calculation.id, "calculationResult", null);

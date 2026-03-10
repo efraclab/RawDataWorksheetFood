@@ -25,7 +25,6 @@ import {
 import { fetchAllWorksheets } from "../services/api";
 import type { FetchWorksheetRequest } from "../models/FetchWorksheetRequest";
 import type { WorksheetSummary } from "../models/WorksheetSummary";
-import { MdAnalytics } from "react-icons/md";
 
 interface WorksheetItem {
   id: number;
@@ -490,8 +489,103 @@ export default function WorksheetDashboard({
         )}
 
 
+        {/* QA Hero Section - EMERALD THEME */}
+        {role.includes("QA") && !role.includes("Reviewer") && (
+        <div className="mb-8 mt-3">
+          <div className="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 rounded-2xl border-2 border-emerald-300 shadow-sm overflow-hidden">
+            <div className="relative py-8 px-10">
+
+              {/* Header */}
+              <div className="mb-6">
+                <h2 className="text-3xl font-bold text-slate-800 mb-2 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                  Welcome, {username.split(" ")[0]}!
+                </h2>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  You are the final quality gate. Check reviewer-approved parameters, request revisions if needed, and close worksheets with a full approval.
+                </p>
+              </div>
+
+              {/* 5-Step QA Process */}
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+
+                {/* Step 1 */}
+                <div className="relative bg-white rounded-xl p-4 border-2 border-emerald-200 hover:shadow-lg transition-all group">
+                  <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-xs font-bold">1</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-800">Open Worksheet</h4>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">Pick a worksheet submitted for QA review by the reviewer</p>
+                </div>
+
+                {/* Step 2 */}
+                <div className="relative bg-white rounded-xl p-4 border-2 border-teal-200 hover:shadow-lg transition-all group">
+                  <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-xs font-bold">2</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <ClipboardCheck className="w-4 h-4 text-teal-600" />
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-800">Check Parameters</h4>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">Verify each parameter approved by the reviewer is accurate</p>
+                </div>
+
+                {/* Step 3 */}
+                <div className="relative bg-white rounded-xl p-4 border-2 border-amber-200 hover:shadow-lg transition-all group">
+                  <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-xs font-bold">3</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <FileEdit className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-800">Request Revision</h4>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">Flag issues and return to analyst for corrections if needed</p>
+                </div>
+
+                {/* Step 4 */}
+                <div className="relative bg-white rounded-xl p-4 border-2 border-emerald-200 hover:shadow-lg transition-all group">
+                  <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-xs font-bold">4</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-800">Approve All</h4>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">Once all parameters pass, approve every parameter in the worksheet</p>
+                </div>
+
+                {/* Step 5 */}
+                <div className="relative bg-white rounded-xl p-4 border-2 border-green-200 hover:shadow-lg transition-all group">
+                  <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-xs font-bold">5</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <BarChart3 className="w-4 h-4 text-green-600" />
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-800">Close Worksheet</h4>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">Mark the full worksheet as approved and officially close it</p>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+        )}
+
         {/* Analyst Hero Section - EMERALD THEME */}
-        {!role.includes("Reviewer") && (
+        {!role.includes("Reviewer") && !role.includes("QA") && (
         <div className="mb-8 mt-3">
           <div className="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 rounded-2xl border-2 border-emerald-300 shadow-sm overflow-hidden">
             <div className="relative py-8 px-10">

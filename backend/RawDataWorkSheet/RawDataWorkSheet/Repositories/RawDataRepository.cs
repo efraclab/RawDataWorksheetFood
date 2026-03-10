@@ -154,7 +154,7 @@ namespace RawDataWorkSheet.Repositories
                     AND t1.TRN1DATE BETWEEN '2025-04-01 00:00:00.000' AND '2028-03-31 00:00:00.000'
                     AND (@RegNo IS NULL OR t1.TRN1REFNO = @RegNo)
                     AND (
-                        @Lab IS NULL
+                        @Lab IS NULL OR @Lab LIKE '%Quality Assurance%'
                         OR EXISTS (
                             SELECT 1
                             FROM dbo.SplitStrings(

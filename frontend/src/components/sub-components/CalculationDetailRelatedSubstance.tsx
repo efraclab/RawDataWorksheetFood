@@ -721,7 +721,7 @@ const CalculationDetailRelatedSubstance: React.FC<
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="bg-white rounded-xl shadow-lg border-2 border-emerald-200 overflow-hidden mb-6"
+      className="bg-white rounded-xl shadow-lg border-2 border-emerald-200 mb-6"
     >
       {/* Header */}
       <div
@@ -845,7 +845,7 @@ const CalculationDetailRelatedSubstance: React.FC<
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="overflow-hidden"
+              className="relative"
             >
               <div className="p-6 space-y-6">
                 {/* Preparation selector */}

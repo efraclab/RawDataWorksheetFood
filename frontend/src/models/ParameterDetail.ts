@@ -1,5 +1,6 @@
 import type { CalculationData } from "./CalculationData";
 import type { PreparationData } from "./PreparationData";
+import type { WorksheetFileData } from "./WorksheetFileData";
 
 export interface ParameterDetail {
     id: number;
@@ -10,12 +11,17 @@ export interface ParameterDetail {
     columnId?: string;
     otherInfo?: string;
     analyzedBy?: string;
-    approvedBy?: string;
+    approvedByReviewer?: string;
     analyzedByName?: string;
-    approvedByName?: string;
+    approvedByReviewerName?: string;
     analysisStartDate?: string;
     analysisCompletionDate?: string;
-    approvedAt?: string;
+    approvedAtReviewer?: string;
+    approvedByQAName?: string;
+    approvedByQA?: string;
+    approvedAtQA?: string;
+    remarksByReviewer?: string;
+    remarksByQA?: string;
     status?: string;
 
     instrumentIds: string[];
@@ -27,4 +33,6 @@ export interface ParameterDetail {
 
     preparations: PreparationData[];
     calculations: CalculationData[];
+    files?: WorksheetFileData[];
 }
+

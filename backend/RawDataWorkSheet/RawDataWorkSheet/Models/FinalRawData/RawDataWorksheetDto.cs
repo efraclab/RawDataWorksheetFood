@@ -14,6 +14,9 @@
         public string? WorksheetCreatedAt { get; set; }
         public string? WorksheetUpdatedAt { get; set; }
         public string? WorksheetApprovedAt { get; set; }
+        public string? SubmittedQaAt { get; set; }
+        public string? ApprovedBy { get; set; }
+        public string? SubmittedQaBy { get; set; }
     }
 
 }

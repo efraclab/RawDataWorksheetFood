@@ -158,6 +158,16 @@ const CalculationDetailAssayFerrousFumarate: React.FC<
     selectedSampleTitration,
   ]);
 
+  // ── Persist sampleWeight + sampleWeightUnit whenever the linked prep changes ─
+  // sampleWeight is derived from the prep's Weighing step — it must be saved
+  // into the model immediately so it is never lost between sessions.
+  useEffect(() => {
+    if (!selectedSampleTitration) return;
+    const sw = getSampleWeight();
+    onFieldChange(calculation.id, "sampleWeight", sw.value || null);
+    onFieldChange(calculation.id, "sampleWeightUnit", sw.unit || "mg");
+  }, [calculation.selectedSamplePreparationLabel, selectedSampleTitration]);
+
   const FormulaDisplay: React.FC = () => {
     if (!calculation.calculationFor || !selectedSampleTitration) return null;
 
@@ -240,7 +250,7 @@ const CalculationDetailAssayFerrousFumarate: React.FC<
               {formulaBox(
                 "Result (mg/Tablet) × 100",
                 "Label Claim(mg)",
-                "Result × 100",
+                `${calculation.calculationResult || "Result (mg/Tablet) "} × 100`,
                 `${lc}`,
                 "% of LC",
               )}
@@ -292,9 +302,13 @@ const CalculationDetailAssayFerrousFumarate: React.FC<
       );
       onFieldChange(calculation.id, "calculationResultUnit", null);
       onFieldChange(calculation.id, "labelClaimPercent", null);
-      onFieldChange(calculation.id, "dryBasisResult", null);
+      onFieldChange(calculation.id, "lodWaterBasisResult", null);
       return;
     }
+
+    // ── Always persist sampleWeight + sampleWeightUnit on every calculation ──
+    onFieldChange(calculation.id, "sampleWeight", sampleWeight.value || null);
+    onFieldChange(calculation.id, "sampleWeightUnit", sampleWeight.unit || "mg");
 
     const BR = safeNum(calculation.buretteReading);
     const TM = safeNum(calculation.theoreticalMolarity);
@@ -312,7 +326,7 @@ const CalculationDetailAssayFerrousFumarate: React.FC<
         result.toFixedNoRound(4).toFixed(3),
       );
       onFieldChange(calculation.id, "calculationResultUnit", "mg/Tablet");
-      onFieldChange(calculation.id, "dryBasisResult", null);
+      onFieldChange(calculation.id, "lodWaterBasisResult", null);
 
       const LC = convertMassToMg(calculation.labelClaim || "1", calculation.labelClaimUnit || 'mg');
       const lcPercent = (result / LC) * 100;
@@ -337,11 +351,11 @@ const CalculationDetailAssayFerrousFumarate: React.FC<
         const dryBasis = (asIs * 100) / (100 - lod);
         onFieldChange(
           calculation.id,
-          "dryBasisResult",
+          "lodWaterBasisResult",
           `${dryBasis.toFixedNoRound(3).toFixed(2)}`,
         );
       } else {
-        onFieldChange(calculation.id, "dryBasisResult", null);
+        onFieldChange(calculation.id, "lodWaterBasisResult", null);
       }
     }
   };
@@ -497,7 +511,11 @@ const CalculationDetailAssayFerrousFumarate: React.FC<
                         null,
                       );
                       onFieldChange(calculation.id, "labelClaimPercent", null);
-                      onFieldChange(calculation.id, "dryBasisResult", null);
+                      onFieldChange(calculation.id, "lodWaterBasisResult", null);
+                      // Clear stale sampleWeight from previous prep — the
+                      // useEffect will re-populate it for the new selection.
+                      onFieldChange(calculation.id, "sampleWeight", null);
+                      onFieldChange(calculation.id, "sampleWeightUnit", null);
                     }}
                     placeholder="Select sample preparation..."
                     colorScheme="emerald"
@@ -545,7 +563,7 @@ const CalculationDetailAssayFerrousFumarate: React.FC<
                           "labelClaimPercent",
                           null,
                         );
-                        onFieldChange(calculation.id, "dryBasisResult", null);
+                        onFieldChange(calculation.id, "lodWaterBasisResult", null);
                       }}
                       placeholder="Select calculation type..."
                       colorScheme="emerald"
@@ -622,12 +640,12 @@ const CalculationDetailAssayFerrousFumarate: React.FC<
                             <div className="w-20 shrink-0">
                               <CustomDropdown
                                 options={weightUnitOptions}
-                                value={calculation.factorUnit || "g"}
+                                value={calculation.factorUnit || "mg"}
                                 onChange={(v) =>
                                   onFieldChange(
                                     calculation.id,
                                     "factorUnit",
-                                    v || "g",
+                                    v || "mg",
                                   )
                                 }
                                 placeholder="Unit"
@@ -661,12 +679,12 @@ const CalculationDetailAssayFerrousFumarate: React.FC<
                             <div className="w-20 shrink-0">
                               <CustomDropdown
                                 options={weightUnitOptions}
-                                value={calculation.avgWeightUnit || "g"}
+                                value={calculation.avgWeightUnit || "mg"}
                                 onChange={(v) =>
                                   onFieldChange(
                                     calculation.id,
                                     "avgWeightUnit",
-                                    v || "g",
+                                    v || "mg",
                                   )
                                 }
                                 placeholder="Unit"
@@ -690,12 +708,12 @@ const CalculationDetailAssayFerrousFumarate: React.FC<
                             <div className="w-20 shrink-0">
                               <CustomDropdown
                                 options={weightUnitOptions}
-                                value={calculation.avgWeightUnit || "g"}
+                                value={calculation.labelClaimUnit || "mg"}
                                 onChange={(v) =>
                                   onFieldChange(
                                     calculation.id,
                                     "labelClaimUnit",
-                                    v || "g",
+                                    v || "mg",
                                   )
                                 }
                                 placeholder="Unit"
@@ -880,7 +898,7 @@ const CalculationDetailAssayFerrousFumarate: React.FC<
                           <div
                             className={`grid gap-4 ${
                               calculation.labelClaimPercent ||
-                              calculation.dryBasisResult
+                              calculation.lodWaterBasisResult
                                 ? "md:grid-cols-2"
                                 : "md:grid-cols-1"
                             }`}
@@ -950,7 +968,7 @@ const CalculationDetailAssayFerrousFumarate: React.FC<
                             )}
 
                             {/* Dry basis */}
-                            {calculation.dryBasisResult && (
+                            {calculation.lodWaterBasisResult && (
                               <div className="bg-white rounded-lg shadow-lg border-2 border-emerald-300 overflow-hidden">
                                 <div className="bg-gradient-to-r from-emerald-600 to-emerald-600 px-4 py-2">
                                   <h6 className="text-sm font-bold text-white">
@@ -959,7 +977,7 @@ const CalculationDetailAssayFerrousFumarate: React.FC<
                                 </div>
                                 <div className="p-4">
                                   <p className="text-xl font-bold text-green-700">
-                                    {calculation.dryBasisResult} %
+                                    {calculation.lodWaterBasisResult} %
                                   </p>
                                   <p className="text-sm font-bold text-green-700">
                                     {calculation.lodWaterType === "lod"

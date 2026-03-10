@@ -14,7 +14,8 @@ export interface CalculationAssayFerrousFumarate {
   actualMolarity: string | null;
   factor: string | null;
   factorUnit: string;
-
+  sampleWeight: string | null;
+  sampleWeightUnit: string;
   avgWeight: string | null;
   avgWeightUnit: string;
   labelClaim: string | null;
@@ -26,5 +27,5 @@ export interface CalculationAssayFerrousFumarate {
   calculationResult: string | null;
   calculationResultUnit: string | null;
   labelClaimPercent: string | null;
-  dryBasisResult: string | null;
+  lodWaterBasisResult: string | null;
 }

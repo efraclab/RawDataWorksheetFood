@@ -22,6 +22,10 @@ namespace RawDataWorkSheet.Repositories
             return new SqlConnection(_connectionString);
         }
 
+        // ─────────────────────────────────────────────────────────────────────────
+        // EXISTS CHECKS
+        // ─────────────────────────────────────────────────────────────────────────
+
         public async Task<bool> ExistsWorksheetAsync(string worksheetId)
         {
             const string query = """
@@ -45,6 +49,10 @@ namespace RawDataWorkSheet.Repositories
             using var conn = Createconnection();
             return await conn.ExecuteScalarAsync<int?>(query, new { ParameterId = parameterId }) != null;
         }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // WORKSHEET CRUD
+        // ─────────────────────────────────────────────────────────────────────────
 
         public async Task CreateWorksheetAsync(SaveWorksheetRequest request)
         {
@@ -97,7 +105,10 @@ namespace RawDataWorkSheet.Repositories
                         number_of_parameters = @NumberOfParameters,
                         updated_at = SYSDATETIME(),
                         approved_at = @ApprovedAt,
-                        status = @Status
+                        status = @Status,
+                        submitted_qa_by = COALESCE(submitted_qa_by, @SubmittedQaBy),
+                        submitted_qa_at = COALESCE(submitted_qa_at, @SubmittedQaAt),
+                        approved_by = COALESCE(approved_by, @ApprovedBy)
                     WHERE worksheet_id = @WorksheetId
                 """;
 
@@ -108,9 +119,14 @@ namespace RawDataWorkSheet.Repositories
                         ApprovedAt = request.DocumentInfo?.ApprovedAt != null
                             ? ParseDateTime(request.DocumentInfo.ApprovedAt)
                             : null,
-                        request.RegistrationInfo.NumberOfParameters,
+                        request.RegistrationInfo!.NumberOfParameters,
                         request.WorksheetId,
-                        request.DocumentInfo?.Status
+                        request.DocumentInfo?.Status,
+                        SubmittedQaBy = request.DocumentInfo?.SubmittedQaBy,
+                        SubmittedQaAt = request.DocumentInfo?.SubmittedQaAt != null
+                            ? ParseDateTime(request.DocumentInfo?.SubmittedQaAt!)
+                            : (DateTime?)null,
+                        ApprovedBy = request.DocumentInfo?.ApprovedBy,
                     },
                     transaction
                 );
@@ -170,34 +186,24 @@ namespace RawDataWorkSheet.Repositories
 
                         var parameterId = existing.Id;
 
-                        await UpdateParameter(
-                            connection,
-                            transaction,
-                            parameterId,
-                            request.WorksheetId,
-                            param
-                        );
-
+                        await UpdateParameter(connection, transaction, parameterId, request.WorksheetId, param);
                         await UpsertInstruments(connection, transaction, parameterId, param.InstrumentIds);
                         await UpsertChemicals(connection, transaction, parameterId, param.ChemicalIds);
                         await UpsertStandards(connection, transaction, parameterId, param.StandardIds);
                         await UpsertPreparations(connection, transaction, parameterId, param.Preparations);
                         await UpsertCalculations(connection, transaction, parameterId, param.Calculations);
+                        await UpsertFiles(connection, transaction, parameterId, param.Files, request.WorksheetId);
                     }
                     else
                     {
-                        var parameterId = await InsertParameter(
-                            connection,
-                            transaction,
-                            request.WorksheetId,
-                            param
-                        );
+                        var parameterId = await InsertParameter(connection, transaction, request.WorksheetId, param);
 
                         await UpsertInstruments(connection, transaction, parameterId, param.InstrumentIds);
                         await UpsertChemicals(connection, transaction, parameterId, param.ChemicalIds);
                         await UpsertStandards(connection, transaction, parameterId, param.StandardIds);
                         await UpsertPreparations(connection, transaction, parameterId, param.Preparations);
                         await UpsertCalculations(connection, transaction, parameterId, param.Calculations);
+                        await UpsertFiles(connection, transaction, parameterId, param.Files, request.WorksheetId);
                     }
                 }
 
@@ -209,6 +215,17 @@ namespace RawDataWorkSheet.Repositories
                 throw;
             }
         }
+
+        public async Task DeleteWorksheetAsync(string worksheetId)
+        {
+            using var connection = Createconnection();
+            var query = "DELETE FROM raw_data_worksheets WHERE worksheet_id = @WorksheetId";
+            await connection.ExecuteAsync(query, new { WorksheetId = worksheetId });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // PARAMETER CRUD
+        // ─────────────────────────────────────────────────────────────────────────
 
         public async Task UpdateParameterAsync(int parameterId, ParameterDto request)
         {
@@ -225,17 +242,15 @@ namespace RawDataWorkSheet.Repositories
                 );
 
                 if (worksheetId == null)
-                {
                     throw new InvalidOperationException($"Parameter with id {parameterId} not found");
-                }
 
                 await UpdateParameter(connection, transaction, parameterId, worksheetId, request);
-
                 await UpsertInstruments(connection, transaction, parameterId, request.InstrumentIds);
                 await UpsertChemicals(connection, transaction, parameterId, request.ChemicalIds);
                 await UpsertStandards(connection, transaction, parameterId, request.StandardIds);
                 await UpsertPreparations(connection, transaction, parameterId, request.Preparations);
                 await UpsertCalculations(connection, transaction, parameterId, request.Calculations);
+                await UpsertFiles(connection, transaction, parameterId, request.Files, worksheetId);
 
                 transaction.Commit();
             }
@@ -254,42 +269,37 @@ namespace RawDataWorkSheet.Repositories
 
             try
             {
-                // Child tables (delete first)
                 await connection.ExecuteAsync(
                     "DELETE FROM worksheet_instruments WHERE parameter_id = @ParameterId",
-                    new { ParameterId = parameterId },
-                    transaction);
+                    new { ParameterId = parameterId }, transaction);
 
                 await connection.ExecuteAsync(
                     "DELETE FROM worksheet_chemicals WHERE parameter_id = @ParameterId",
-                    new { ParameterId = parameterId },
-                    transaction);
+                    new { ParameterId = parameterId }, transaction);
 
                 await connection.ExecuteAsync(
                     "DELETE FROM worksheet_standards WHERE parameter_id = @ParameterId",
-                    new { ParameterId = parameterId },
-                    transaction);
+                    new { ParameterId = parameterId }, transaction);
 
                 await connection.ExecuteAsync(
                     "DELETE FROM worksheet_preparations WHERE parameter_id = @ParameterId",
-                    new { ParameterId = parameterId },
-                    transaction);
+                    new { ParameterId = parameterId }, transaction);
 
                 await connection.ExecuteAsync(
                     "DELETE FROM worksheet_calculations WHERE parameter_id = @ParameterId",
-                    new { ParameterId = parameterId },
-                    transaction);
+                    new { ParameterId = parameterId }, transaction);
 
-                // Finally delete the parameter itself
+                // Delete all associated files
+                await connection.ExecuteAsync(
+                    "DELETE FROM worksheet_files WHERE parameter_id = @ParameterId",
+                    new { ParameterId = parameterId }, transaction);
+
                 var rowsAffected = await connection.ExecuteAsync(
                     "DELETE FROM worksheet_parameters WHERE id = @ParameterId",
-                    new { ParameterId = parameterId },
-                    transaction);
+                    new { ParameterId = parameterId }, transaction);
 
                 if (rowsAffected == 0)
-                {
                     throw new InvalidOperationException($"Parameter with id {parameterId} not found.");
-                }
 
                 transaction.Commit();
             }
@@ -316,24 +326,17 @@ namespace RawDataWorkSheet.Repositories
                 );
 
                 if (existingParamId != null)
-                {
                     throw new InvalidOperationException(
-                        $"Parameter with code {parameter.ParaCode} already exists in worksheet {worksheetId}"
-                    );
-                }
+                        $"Parameter with code {parameter.ParaCode} already exists in worksheet {worksheetId}");
 
-                var parameterId = await InsertParameter(
-                    connection,
-                    transaction,
-                    worksheetId,
-                    parameter
-                );
+                var parameterId = await InsertParameter(connection, transaction, worksheetId, parameter);
 
                 await UpsertInstruments(connection, transaction, parameterId, parameter.InstrumentIds);
                 await UpsertChemicals(connection, transaction, parameterId, parameter.ChemicalIds);
                 await UpsertStandards(connection, transaction, parameterId, parameter.StandardIds);
                 await UpsertPreparations(connection, transaction, parameterId, parameter.Preparations);
                 await UpsertCalculations(connection, transaction, parameterId, parameter.Calculations);
+                await UpsertFiles(connection, transaction, parameterId, parameter.Files, worksheetId);
 
                 await connection.ExecuteAsync(
                     @"UPDATE raw_data_worksheets 
@@ -345,7 +348,6 @@ namespace RawDataWorkSheet.Repositories
                 );
 
                 transaction.Commit();
-
                 return parameterId;
             }
             catch
@@ -355,13 +357,126 @@ namespace RawDataWorkSheet.Repositories
             }
         }
 
-        public async Task DeleteWorksheetAsync(string worksheetId)
+        // ─────────────────────────────────────────────────────────────────────────
+        // FILE PUBLIC METHODS (standalone endpoints — no param save required)
+        // ─────────────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Standalone upload — saves files for an existing parameter outside of a full save request.
+        /// </summary>
+        public async Task SaveFilesAsync(int parameterId, List<WorksheetFileDto> files)
+        {
+            using var connection = Createconnection();
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                var worksheetId = await connection.QuerySingleOrDefaultAsync<string>(
+                    "SELECT worksheet_id FROM worksheet_parameters WHERE id = @ParameterId",
+                    new { ParameterId = parameterId },
+                    transaction
+                );
+
+                if (worksheetId == null)
+                    throw new InvalidOperationException($"Parameter with id {parameterId} not found");
+
+                await UpsertFiles(connection, transaction, parameterId, files, worksheetId);
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Returns file metadata (no binary) — use this for listing files in the UI.
+        /// </summary>
+        public async Task<List<WorksheetFileDto>> GetFilesMetaByParameterAsync(int parameterId)
         {
             using var connection = Createconnection();
 
-            var query = "DELETE FROM raw_data_worksheets WHERE worksheet_id = @WorksheetId";
-            await connection.ExecuteAsync(query, new { WorksheetId = worksheetId });
+            var rows = await connection.QueryAsync<WorksheetFileDto>(
+                """
+                SELECT
+                    id                   AS Id,
+                    parameter_id         AS ParameterId,
+                    worksheet_id         AS WorksheetId,
+                    preparation_type     AS PreparationType,
+                    label                AS Label,
+                    filename             AS FileName,
+                    uploaded_at          AS UploadedAt
+                FROM worksheet_files
+                WHERE parameter_id = @ParameterId
+                ORDER BY uploaded_at DESC
+                """,
+                new { ParameterId = parameterId });
+
+            return rows.Select(r => new WorksheetFileDto
+            {
+                Id = r.Id,
+                ParameterId = r.ParameterId,
+                WorksheetId = r.WorksheetId,
+                PreparationType = r.PreparationType,
+                Label = r.Label,
+                FileName = r.FileName,
+                UploadedAt = r.UploadedAt
+            }).ToList();
         }
+
+        /// <summary>
+        /// Returns a single file with its binary content as base64 — use for download/preview.
+        /// </summary>
+        public async Task<WorksheetFileDto?> GetFileByIdAsync(int fileId)
+        {
+            using var connection = Createconnection();
+
+            var row = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                """
+                SELECT
+                    id                   AS Id,
+                    parameter_id         AS ParameterId,
+                    preparation_type     AS PreparationType,
+                    label                AS Label,
+                    filename             AS FileName,
+                    filedata             AS FileData,
+                    uploaded_at          AS UploadedAt
+                FROM worksheet_files
+                WHERE id = @FileId
+                """,
+                new { FileId = fileId });
+
+            if (row == null) return null;
+
+            return new WorksheetFileDto
+            {
+                Id = (int)row.Id,
+                ParameterId = (int)row.ParameterId,
+                PreparationType = (string?)row.PreparationType,
+                Label = (string?)row.Label,
+                FileName = (string)row.FileName,
+                FileDataBase64 = row.FileData != null
+                                        ? Convert.ToBase64String((byte[])row.FileData)
+                                        : null,
+                UploadedAt = row.UploadedAt?.ToString("dd-MM-yyyy HH:mm:ss")
+            };
+        }
+
+        /// <summary>
+        /// Deletes a single file record by its id.
+        /// </summary>
+        public async Task DeleteFileAsync(int fileId)
+        {
+            using var connection = Createconnection();
+            await connection.ExecuteAsync(
+                "DELETE FROM worksheet_files WHERE id = @FileId",
+                new { FileId = fileId });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // GET WORKSHEETS
+        // ─────────────────────────────────────────────────────────────────────────
 
         public async Task<WorksheetDetailDto> GetWorksheetByIdAsync(string worksheetId, FetchWorksheetsRequest request)
         {
@@ -379,7 +494,10 @@ namespace RawDataWorkSheet.Repositories
                     status             AS Status,
                     created_at         AS CreatedAt,
                     updated_at         AS UpdatedAt,
-                    approved_at        AS ApprovedAt
+                    approved_at        AS ApprovedAt,
+                    submitted_qa_by    AS SubmittedQaBy,
+                    submitted_qa_at    AS SubmittedQaAt,
+                    approved_by        AS ApprovedBy
                 FROM raw_data_worksheets
                 WHERE worksheet_id = @WorksheetId";
 
@@ -400,6 +518,20 @@ namespace RawDataWorkSheet.Repositories
                 query2,
                 new { EmployeeId = worksheet.PreparedBy });
 
+            if (worksheet.SubmittedQaBy != null)
+            {
+                worksheet.SubmittedQaByName = await connection.QueryFirstOrDefaultAsync<string>(
+                    "SELECT emp_name FROM participants_rawdata WHERE emp_id = @EmployeeId",
+                    new { EmployeeId = worksheet.SubmittedQaBy });
+            }
+
+            if (worksheet.ApprovedBy != null)
+            {
+                worksheet.ApprovedByName = await connection.QueryFirstOrDefaultAsync<string>(
+                    "SELECT emp_name FROM participants_rawdata WHERE emp_id = @EmployeeId",
+                    new { EmployeeId = worksheet.ApprovedBy });
+            }
+
             return await LoadWorksheetDetails(connection, worksheet, request);
         }
 
@@ -408,7 +540,21 @@ namespace RawDataWorkSheet.Repositories
             using var connection = Createconnection();
             string sql;
 
-            if (request.Role == "Reviewer")
+            if (request.Role == "QA")
+            {
+                sql = @"
+                    SELECT 
+                        worksheet_id as WorksheetId,
+                        registration_no as RegistrationNo,
+                        sample_name as SampleName,
+                        number_of_parameters as NumberOfParameters,
+                        status as Status,
+                        created_at as CreatedAt
+                    FROM raw_data_worksheets
+                    WHERE status IN ('Submitted For QA Review', 'Approved')
+                    ORDER BY created_at DESC";
+            }
+            else if (request.Role == "Reviewer")
             {
                 sql = @"
                     SELECT 
@@ -479,13 +625,21 @@ namespace RawDataWorkSheet.Repositories
                         statusList.All(status =>
                             status == "Analysis Completed" || status == "Approved"))
                     {
-                        worksheet.Status = "Pending For Review";
+                        var allReviewerApproved = statusList.All(s => s == "Approved");
+
+                        worksheet.Status = allReviewerApproved
+                            ? "Pending QA Submission"
+                            : "Pending For Review";
                     }
                 }
             }
 
             return worksheetList;
         }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // PRIVATE – INSERT / UPDATE PARAMETER
+        // ─────────────────────────────────────────────────────────────────────────
 
         private async Task<int> InsertParameter(
             IDbConnection connection,
@@ -497,15 +651,18 @@ namespace RawDataWorkSheet.Repositories
                 INSERT INTO worksheet_parameters 
                 (worksheet_id, para_code, parameter_name, method_code, method_name, 
                  column_id, other_info, 
-                 analyzed_by, approved_by, analysis_start_date, analysis_completion_date, approved_at, status)
+                 analyzed_by, approved_by_reviewer, analysis_start_date, analysis_completion_date,
+                 approved_at_reviewer, status,
+                 approved_by_qa, approved_at_qa, remarks_by_qa, remarks_by_reviewer)
                 VALUES 
                 (@WorksheetId, @ParaCode, @ParameterName, @MethodCode, @MethodName, 
-                 @ColumnId, @OtherInfo, @AnalyzedBy, @ApprovedBy,
-                 @AnalysisStartDate, @AnalysisCompletionDate, @ApprovedAt, @Status);
+                 @ColumnId, @OtherInfo, @AnalyzedBy, @ApprovedByReviewer,
+                 @AnalysisStartDate, @AnalysisCompletionDate, @ApprovedAtReviewer, @Status,
+                 @ApprovedByQA, @ApprovedAtQA, @RemarksByQA, @RemarksByReviewer);
                 
                 SELECT CAST(SCOPE_IDENTITY() as int);";
 
-            var parameterId = await connection.ExecuteScalarAsync<int>(
+            return await connection.ExecuteScalarAsync<int>(
                 sql,
                 new
                 {
@@ -517,15 +674,17 @@ namespace RawDataWorkSheet.Repositories
                     param.ColumnId,
                     param.OtherInfo,
                     param.AnalyzedBy,
-                    param.ApprovedBy,
+                    param.ApprovedByReviewer,
                     AnalysisStartDate = ParseDateTime(param.AnalysisStartDate!),
                     AnalysisCompletionDate = ParseDateTime(param.AnalysisCompletionDate!),
-                    ApprovedAt = ParseDateTime(param.ApprovedAt!),
-                    param.Status
+                    ApprovedAtReviewer = ParseDateTime(param.ApprovedAtReviewer!),
+                    param.Status,
+                    param.ApprovedByQA,
+                    ApprovedAtQA = ParseDateTime(param.ApprovedAtQA!),
+                    param.RemarksByQA,
+                    param.RemarksByReviewer
                 },
                 transaction);
-
-            return parameterId;
         }
 
         private async Task UpdateParameter(
@@ -548,9 +707,13 @@ namespace RawDataWorkSheet.Repositories
                     analyzed_by = @AnalyzedBy,
                     analysis_start_date = @AnalysisStartDate,
                     analysis_completion_date = @AnalysisCompletionDate,
-                    approved_by = COALESCE(approved_by, @ApprovedBy),
-                    approved_at = COALESCE(approved_at, @ApprovedAt),
-                    status = @Status
+                    approved_by_reviewer = COALESCE(approved_by_reviewer, @ApprovedByReviewer),
+                    approved_at_reviewer = COALESCE(approved_at_reviewer, @ApprovedAtReviewer),
+                    status = @Status,
+                    approved_by_qa = @ApprovedByQA,
+                    approved_at_qa = @ApprovedAtQA,
+                    remarks_by_qa = @RemarksByQA,
+                    remarks_by_reviewer = @RemarksByReviewer
                 WHERE id = @ParameterId";
 
             await connection.ExecuteAsync(
@@ -566,14 +729,22 @@ namespace RawDataWorkSheet.Repositories
                     param.ColumnId,
                     param.OtherInfo,
                     param.AnalyzedBy,
-                    param.ApprovedBy,
+                    param.ApprovedByReviewer,
                     AnalysisStartDate = ParseDateTime(param.AnalysisStartDate!),
                     AnalysisCompletionDate = ParseDateTime(param.AnalysisCompletionDate!),
-                    ApprovedAt = ParseDateTime(param.ApprovedAt!),
-                    param.Status
+                    ApprovedAtReviewer = ParseDateTime(param.ApprovedAtReviewer!),
+                    param.Status,
+                    param.ApprovedByQA,
+                    ApprovedAtQA = ParseDateTime(param.ApprovedAtQA!),
+                    param.RemarksByQA,
+                    param.RemarksByReviewer
                 },
                 transaction);
         }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // PRIVATE – UPSERT CHILD TABLES (instruments, chemicals, standards)
+        // ─────────────────────────────────────────────────────────────────────────
 
         private async Task UpsertInstruments(
             IDbConnection connection,
@@ -583,29 +754,21 @@ namespace RawDataWorkSheet.Repositories
         {
             var existing = await connection.QueryAsync<string>(
                 "SELECT instrument_id FROM worksheet_instruments WHERE parameter_id = @ParameterId",
-                new { ParameterId = parameterId },
-                transaction);
+                new { ParameterId = parameterId }, transaction);
 
             var existingSet = existing.ToHashSet();
             var newSet = (instrumentIds ?? new List<string>()).ToHashSet();
 
             var toDelete = existingSet.Except(newSet).ToList();
             if (toDelete.Any())
-            {
                 await connection.ExecuteAsync(
                     "DELETE FROM worksheet_instruments WHERE parameter_id = @ParameterId AND instrument_id IN @Ids",
-                    new { ParameterId = parameterId, Ids = toDelete },
-                    transaction);
-            }
+                    new { ParameterId = parameterId, Ids = toDelete }, transaction);
 
-            var toInsert = newSet.Except(existingSet).ToList();
-            foreach (var instrumentId in toInsert)
-            {
+            foreach (var id in newSet.Except(existingSet))
                 await connection.ExecuteAsync(
                     "INSERT INTO worksheet_instruments (parameter_id, instrument_id) VALUES (@ParameterId, @InstrumentId)",
-                    new { ParameterId = parameterId, InstrumentId = instrumentId },
-                    transaction);
-            }
+                    new { ParameterId = parameterId, InstrumentId = id }, transaction);
         }
 
         private async Task UpsertChemicals(
@@ -616,29 +779,21 @@ namespace RawDataWorkSheet.Repositories
         {
             var existing = await connection.QueryAsync<string>(
                 "SELECT chemical_id FROM worksheet_chemicals WHERE parameter_id = @ParameterId",
-                new { ParameterId = parameterId },
-                transaction);
+                new { ParameterId = parameterId }, transaction);
 
             var existingSet = existing.ToHashSet();
             var newSet = (chemicalIds ?? new List<string>()).ToHashSet();
 
             var toDelete = existingSet.Except(newSet).ToList();
             if (toDelete.Any())
-            {
                 await connection.ExecuteAsync(
                     "DELETE FROM worksheet_chemicals WHERE parameter_id = @ParameterId AND chemical_id IN @Ids",
-                    new { ParameterId = parameterId, Ids = toDelete },
-                    transaction);
-            }
+                    new { ParameterId = parameterId, Ids = toDelete }, transaction);
 
-            var toInsert = newSet.Except(existingSet).ToList();
-            foreach (var chemicalId in toInsert)
-            {
+            foreach (var id in newSet.Except(existingSet))
                 await connection.ExecuteAsync(
                     "INSERT INTO worksheet_chemicals (parameter_id, chemical_id) VALUES (@ParameterId, @ChemicalId)",
-                    new { ParameterId = parameterId, ChemicalId = chemicalId },
-                    transaction);
-            }
+                    new { ParameterId = parameterId, ChemicalId = id }, transaction);
         }
 
         private async Task UpsertStandards(
@@ -649,30 +804,26 @@ namespace RawDataWorkSheet.Repositories
         {
             var existing = await connection.QueryAsync<string>(
                 "SELECT standard_id FROM worksheet_standards WHERE parameter_id = @ParameterId",
-                new { ParameterId = parameterId },
-                transaction);
+                new { ParameterId = parameterId }, transaction);
 
             var existingSet = existing.ToHashSet();
             var newSet = (standardIds ?? new List<string>()).ToHashSet();
 
             var toDelete = existingSet.Except(newSet).ToList();
             if (toDelete.Any())
-            {
                 await connection.ExecuteAsync(
                     "DELETE FROM worksheet_standards WHERE parameter_id = @ParameterId AND standard_id IN @Ids",
-                    new { ParameterId = parameterId, Ids = toDelete },
-                    transaction);
-            }
+                    new { ParameterId = parameterId, Ids = toDelete }, transaction);
 
-            var toInsert = newSet.Except(existingSet).ToList();
-            foreach (var standardId in toInsert)
-            {
+            foreach (var id in newSet.Except(existingSet))
                 await connection.ExecuteAsync(
                     "INSERT INTO worksheet_standards (parameter_id, standard_id) VALUES (@ParameterId, @StandardId)",
-                    new { ParameterId = parameterId, StandardId = standardId },
-                    transaction);
-            }
+                    new { ParameterId = parameterId, StandardId = id }, transaction);
         }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // PRIVATE – UPSERT PREPARATIONS
+        // ─────────────────────────────────────────────────────────────────────────
 
         private async Task UpsertPreparations(
             IDbConnection connection,
@@ -684,32 +835,30 @@ namespace RawDataWorkSheet.Repositories
                 preparations = new List<PreparationDto>();
 
             var existing = await connection.QueryAsync<(int Id, string Label, string PreparationType, string PreparationCategory)>(
-                @"SELECT id, label, preparation_type, preparation_category 
+                @"SELECT id, label, preparation_type, preparation_category
                   FROM worksheet_preparations 
                   WHERE parameter_id = @ParameterId",
-                new { ParameterId = parameterId },
-                transaction);
+                new { ParameterId = parameterId }, transaction);
 
             var existingDict = existing.ToDictionary(
                 x => $"{x.Label}_{x.PreparationType ?? ""}_{x.PreparationCategory}",
-                x => x.Id
-            );
+                x => x.Id);
 
             var newKeys = preparations
                 .Select(p => $"{p.Label}_{p.PreparationType ?? ""}_{p.PreparationCategory}")
                 .ToHashSet();
-            var existingKeys = existingDict.Keys.ToHashSet();
 
-            var toDelete = existingKeys.Except(newKeys).ToList();
+            // Delete removed preparations
+            var toDelete = existingDict.Keys.Except(newKeys).ToList();
             if (toDelete.Any())
             {
                 var idsToDelete = toDelete.Select(key => existingDict[key]).ToList();
                 await connection.ExecuteAsync(
                     "DELETE FROM worksheet_preparations WHERE id IN @Ids",
-                    new { Ids = idsToDelete },
-                    transaction);
+                    new { Ids = idsToDelete }, transaction);
             }
 
+            // Insert or update
             foreach (var prep in preparations)
             {
                 var key = $"{prep.Label}_{prep.PreparationType ?? ""}_{prep.PreparationCategory}";
@@ -756,6 +905,10 @@ namespace RawDataWorkSheet.Repositories
             }
         }
 
+        // ─────────────────────────────────────────────────────────────────────────
+        // PRIVATE – UPSERT CALCULATIONS
+        // ─────────────────────────────────────────────────────────────────────────
+
         private async Task UpsertCalculations(
             IDbConnection connection,
             IDbTransaction transaction,
@@ -769,27 +922,25 @@ namespace RawDataWorkSheet.Repositories
                 @"SELECT id, label, calculation_type 
                   FROM worksheet_calculations 
                   WHERE parameter_id = @ParameterId",
-                new { ParameterId = parameterId },
-                transaction);
+                new { ParameterId = parameterId }, transaction);
 
             var existingDict = existing.ToDictionary(
                 x => $"{x.Label}_{x.CalculationType}",
-                x => x.Id
-            );
+                x => x.Id);
 
             var newKeys = calculations.Select(c => $"{c.Label}_{c.CalculationType}").ToHashSet();
-            var existingKeys = existingDict.Keys.ToHashSet();
 
-            var toDelete = existingKeys.Except(newKeys).ToList();
+            // Delete removed calculations
+            var toDelete = existingDict.Keys.Except(newKeys).ToList();
             if (toDelete.Any())
             {
                 var idsToDelete = toDelete.Select(key => existingDict[key]).ToList();
                 await connection.ExecuteAsync(
                     "DELETE FROM worksheet_calculations WHERE id IN @Ids",
-                    new { Ids = idsToDelete },
-                    transaction);
+                    new { Ids = idsToDelete }, transaction);
             }
 
+            // Insert or update
             foreach (var calc in calculations)
             {
                 var key = $"{calc.Label}_{calc.CalculationType}";
@@ -800,11 +951,7 @@ namespace RawDataWorkSheet.Repositories
                         @"UPDATE worksheet_calculations 
                           SET calculation_data = @CalculationData
                           WHERE id = @Id",
-                        new
-                        {
-                            Id = existingId,
-                            CalculationData = calc.Data
-                        },
+                        new { Id = existingId, CalculationData = calc.Data },
                         transaction);
                 }
                 else
@@ -825,6 +972,135 @@ namespace RawDataWorkSheet.Repositories
             }
         }
 
+        // ─────────────────────────────────────────────────────────────────────────
+        // PRIVATE – UPSERT FILES  (same pattern as preparations & calculations)
+        // ─────────────────────────────────────────────────────────────────────────
+
+        private async Task UpsertFiles(
+            IDbConnection connection,
+            IDbTransaction transaction,
+            int parameterId,
+            List<WorksheetFileDto>? files,
+            string worksheetId)
+        {
+            if (files == null)
+                files = new List<WorksheetFileDto>();
+
+            // Load all existing file ids for this parameter
+            var existing = await connection.QueryAsync<(int Id, string FileName, string? PreparationCategory, string? PreparationType, string? Label)>(
+                """
+                SELECT id, filename, preparation_type, label
+                FROM worksheet_files
+                WHERE parameter_id = @ParameterId
+                """,
+                new { ParameterId = parameterId },
+                transaction);
+
+            // Key: id — we match on Id when available (existing records), otherwise insert
+            var existingIds = existing.Select(x => x.Id).ToHashSet();
+
+            // Ids sent back from the frontend that still exist (no base64 means "keep as is")
+            var incomingIds = files
+                .Where(f => f.Id > 0)
+                .Select(f => f.Id)
+                .ToHashSet();
+
+            // Delete records that were removed (existed before but NOT in incoming list)
+            var toDeleteIds = existingIds.Except(incomingIds).ToList();
+            if (toDeleteIds.Any())
+            {
+                await connection.ExecuteAsync(
+                    "DELETE FROM worksheet_files WHERE id IN @Ids",
+                    new { Ids = toDeleteIds },
+                    transaction);
+            }
+
+            foreach (var file in files)
+            {
+                if (file.Id > 0 && existingIds.Contains(file.Id))
+                {
+                    // ── UPDATE existing record ────────────────────────────────
+                    if (file.FileDataBase64 != null)
+                    {
+                        // Frontend sent new binary — replace everything
+                        await connection.ExecuteAsync(
+                            """
+                            UPDATE worksheet_files
+                            SET
+                                worksheet_id         = @WorksheetId,
+                                preparation_type     = @PreparationType,
+                                label                = @Label,
+                                filename             = @FileName,
+                                filedata             = @FileData,
+                                uploaded_at          = GETDATE()
+                            WHERE id = @Id AND parameter_id = @ParameterId
+                            """,
+                            new
+                            {
+                                WorksheetId = worksheetId,
+                                file.PreparationType,
+                                file.Label,
+                                file.FileName,
+                                FileData = Convert.FromBase64String(file.FileDataBase64),
+                                file.Id,
+                                ParameterId = parameterId
+                            },
+                            transaction);
+                    }
+                    else
+                    {
+                        // No new binary — just update the metadata fields
+                        await connection.ExecuteAsync(
+                            """
+                            UPDATE worksheet_files
+                            SET
+                                worksheet_id         = @WorksheetId,
+                                preparation_type     = @PreparationType,
+                                label                = @Label,
+                                filename             = @FileName
+                            WHERE id = @Id AND parameter_id = @ParameterId
+                            """,
+                            new
+                            {
+                                WorksheetId = worksheetId,
+                                file.PreparationType,
+                                file.Label,
+                                file.FileName,
+                                file.Id,
+                                ParameterId = parameterId
+                            },
+                            transaction);
+                    }
+                }
+                else if (file.FileDataBase64 != null)
+                {
+                    // ── INSERT new record ─────────────────────────────────────
+                    await connection.ExecuteAsync(
+                        """
+                        INSERT INTO worksheet_files
+                            (parameter_id, worksheet_id, preparation_type, label, filename, filedata, uploaded_at)
+                        VALUES
+                            (@ParameterId, @WorksheetId, @PreparationType, @Label, @FileName, @FileData, GETDATE())
+                        """,
+                        new
+                        {
+                            ParameterId = parameterId,
+                            WorksheetId = worksheetId,
+                            file.PreparationType,
+                            file.Label,
+                            file.FileName,
+                            FileData = Convert.FromBase64String(file.FileDataBase64)
+                        },
+                        transaction);
+                }
+                // If Id == 0 and no base64 — skip (nothing to persist)
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // PRIVATE – LOAD WORKSHEET DETAILS
+        // ─────────────────────────────────────────────────────────────────────────
+
         private async Task<WorksheetDetailDto> LoadWorksheetDetails(
             IDbConnection connection,
             Worksheet worksheet,
@@ -838,23 +1114,27 @@ namespace RawDataWorkSheet.Repositories
 
             string parametersSql;
 
-            if (request.Role.Contains("Reviewer"))
+            if (request.Role.Contains("Reviewer") || request.Role.Contains("QA"))
             {
                 parametersSql = @"
                     SELECT
-                        id                    AS Id,
-                        para_code             AS ParaCode,
-                        parameter_name        AS ParameterName,
-                        method_code           AS MethodCode,
-                        method_name           AS MethodName,
-                        column_id             AS ColumnId,
-                        analysis_start_date   AS AnalysisStartDate,
+                        id                         AS Id,
+                        para_code                  AS ParaCode,
+                        parameter_name             AS ParameterName,
+                        method_code                AS MethodCode,
+                        method_name                AS MethodName,
+                        column_id                  AS ColumnId,
+                        analysis_start_date        AS AnalysisStartDate,
                         analysis_completion_date   AS AnalysisCompletionDate,
-                        analyzed_by   AS AnalyzedBy,
-                        approved_by   AS ApprovedBy,
-                        approved_at   AS ApprovedAt,
-                        other_info    AS OtherInfo,
-                        status        AS Status
+                        analyzed_by                AS AnalyzedBy,
+                        approved_by_reviewer       AS ApprovedByReviewer,
+                        approved_at_reviewer       AS ApprovedAtReviewer,
+                        other_info                 AS OtherInfo,
+                        status                     AS Status,
+                        approved_by_qa             AS ApprovedByQA,
+                        approved_at_qa             AS ApprovedAtQA,
+                        remarks_by_qa              AS RemarksByQA,
+                        remarks_by_reviewer        AS RemarksByReviewer
                     FROM worksheet_parameters
                     WHERE worksheet_id = @WorksheetId";
             }
@@ -862,19 +1142,23 @@ namespace RawDataWorkSheet.Repositories
             {
                 parametersSql = @"
                     SELECT
-                        id                    AS Id,
-                        para_code             AS ParaCode,
-                        parameter_name        AS ParameterName,
-                        method_code           AS MethodCode,
-                        method_name           AS MethodName,
-                        column_id             AS ColumnId,
-                        analysis_start_date   AS AnalysisStartDate,
+                        id                         AS Id,
+                        para_code                  AS ParaCode,
+                        parameter_name             AS ParameterName,
+                        method_code                AS MethodCode,
+                        method_name                AS MethodName,
+                        column_id                  AS ColumnId,
+                        analysis_start_date        AS AnalysisStartDate,
                         analysis_completion_date   AS AnalysisCompletionDate,
-                        analyzed_by   AS AnalyzedBy,
-                        approved_by   AS ApprovedBy,
-                        approved_at   AS ApprovedAt,
-                        other_info    AS OtherInfo,
-                        status        AS Status
+                        analyzed_by                AS AnalyzedBy,
+                        approved_by_reviewer       AS ApprovedByReviewer,
+                        approved_at_reviewer       AS ApprovedAtReviewer,
+                        other_info                 AS OtherInfo,
+                        status                     AS Status,
+                        approved_by_qa             AS ApprovedByQA,
+                        approved_at_qa             AS ApprovedAtQA,
+                        remarks_by_qa              AS RemarksByQA,
+                        remarks_by_reviewer        AS RemarksByReviewer
                     FROM worksheet_parameters
                     WHERE worksheet_id = @WorksheetId AND analyzed_by = @EmployeeId";
             }
@@ -897,36 +1181,42 @@ namespace RawDataWorkSheet.Repositories
                     AnalysisStartDate = FormatDateTime(param.AnalysisStartDate),
                     AnalysisCompletionDate = FormatDateTime(param.AnalysisCompletionDate),
                     AnalyzedBy = param.AnalyzedBy,
-                    ApprovedBy = param.ApprovedBy,
-                    ApprovedAt = FormatDateTime(param.ApprovedAt),
+                    ApprovedByReviewer = param.ApprovedByReviewer,
+                    ApprovedAtReviewer = FormatDateTime(param.ApprovedAtReviewer),
                     Status = param.Status,
+                    ApprovedByQA = param.ApprovedByQA,
+                    ApprovedAtQA = FormatDateTime(param.ApprovedAtQA),
+                    RemarksByQA = param.RemarksByQA,
+                    RemarksByReviewer = param.RemarksByReviewer,
                 };
-                if (param.ApprovedBy != null)
+
+                if (param.ApprovedByReviewer != null)
                 {
                     var query = """
-                    SELECT 
-                        emp_name AS [Username]
-                    FROM participants_rawdata
-                    WHERE emp_id = @EmployeeId
-                """;
+                        SELECT emp_name AS [Username]
+                        FROM participants_rawdata
+                        WHERE emp_id = @EmployeeId
+                    """;
+                    paramDetail.ApprovedByReviewerName = await connection.QueryFirstAsync<string>(
+                        query, new { EmployeeId = paramDetail.ApprovedByReviewer });
+                }
 
-                    paramDetail.ApprovedByName = await connection.QueryFirstAsync<string>(
-                        query,
-                        new { EmployeeId = paramDetail.ApprovedBy });
+                if (param.ApprovedByQA != null)
+                {
+                    paramDetail.ApprovedByQAName = await connection.QueryFirstOrDefaultAsync<string>(
+                        "SELECT emp_name FROM participants_rawdata WHERE emp_id = @EmployeeId",
+                        new { EmployeeId = paramDetail.ApprovedByQA });
                 }
 
                 if (param.AnalyzedBy != null)
                 {
                     var query = """
-                    SELECT 
-                        emp_name AS [Username]
-                    FROM participants_rawdata
-                    WHERE emp_id = @EmployeeId
-                """;
-
+                        SELECT emp_name AS [Username]
+                        FROM participants_rawdata
+                        WHERE emp_id = @EmployeeId
+                    """;
                     paramDetail.AnalyzedByName = await connection.QueryFirstAsync<string>(
-                        query,
-                        new { EmployeeId = paramDetail.AnalyzedBy });
+                        query, new { EmployeeId = paramDetail.AnalyzedBy });
                 }
 
                 var instruments = await connection.QueryAsync<WorksheetInstrument>(
@@ -946,13 +1236,13 @@ namespace RawDataWorkSheet.Repositories
 
                 var preparations = await connection.QueryAsync<WorksheetPreparation>(
                     @"SELECT 
-                    label AS Label,
-                    steps AS Steps,
-                    content AS Content,
-                    assigned_standard_id AS AssignedStandardId,
-                    preparation_type AS PreparationType,
-                    preparation_category AS PreparationCategory
-                FROM worksheet_preparations WHERE parameter_id = @ParameterId",
+                        label                AS Label,
+                        steps                AS Steps,
+                        content              AS Content,
+                        assigned_standard_id AS AssignedStandardId,
+                        preparation_type     AS PreparationType,
+                        preparation_category AS PreparationCategory
+                    FROM worksheet_preparations WHERE parameter_id = @ParameterId",
                     new { ParameterId = param.Id });
 
                 paramDetail.Preparations = preparations.Select(p => new PreparationDto
@@ -968,6 +1258,7 @@ namespace RawDataWorkSheet.Repositories
                 var calculations = await connection.QueryAsync<WorksheetCalculation>(
                     "SELECT label as Label, calculation_data AS CalculationData, calculation_type AS CalculationType FROM worksheet_calculations WHERE parameter_id = @ParameterId",
                     new { ParameterId = param.Id });
+
                 paramDetail.Calculations = calculations.Select(c => new CalculationDto
                 {
                     Label = c.Label,
@@ -975,11 +1266,45 @@ namespace RawDataWorkSheet.Repositories
                     CalculationType = c.CalculationType
                 }).ToList();
 
+                // Fetch file metadata (no binary — frontend requests download separately)
+                var files = await connection.QueryAsync<WorksheetFile>(
+                    """
+                    SELECT
+                        id                   AS Id,
+                        parameter_id         AS ParameterId,
+                        worksheet_id         AS WorksheetId,
+                        preparation_type     AS PreparationType,
+                        label                AS Label,
+                        filename             AS FileName,
+                        fileData             AS FileData,
+                        uploaded_at          AS UploadedAt
+                    FROM worksheet_files
+                    WHERE parameter_id = @ParameterId
+                    ORDER BY uploaded_at DESC
+                    """,
+                    new { ParameterId = param.Id });
+
+                paramDetail.Files = files.Select(f => new WorksheetFileDto
+                {
+                    Id = f.Id,
+                    ParameterId = f.ParameterId,
+                    WorksheetId = f.WorksheetId,
+                    PreparationType = f.PreparationType,
+                    Label = f.Label,
+                    FileName = f.FileName,
+                    FileDataBase64 = Convert.ToBase64String(f.FileData),
+                    UploadedAt = FormatDateTime(f.UploadedAt)
+                }).ToList();
+
                 result.Parameters.Add(paramDetail);
             }
 
             return result;
         }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // PRIVATE – MAPPING HELPERS
+        // ─────────────────────────────────────────────────────────────────────────
 
         private WorksheetDto MapToWorksheetDto(Worksheet worksheet)
         {
@@ -996,10 +1321,14 @@ namespace RawDataWorkSheet.Repositories
                 Status = worksheet.Status,
                 ApprovedAt = FormatDateTime(worksheet.ApprovedAt),
                 CreatedAt = FormatDateTime(worksheet.CreatedAt, dateOnly: true),
-                UpdatedAt = FormatDateTime(worksheet.UpdatedAt)
+                UpdatedAt = FormatDateTime(worksheet.UpdatedAt),
+                SubmittedQaBy = worksheet.SubmittedQaBy,
+                SubmittedQaByName = worksheet.SubmittedQaByName,
+                SubmittedQaAt = FormatDateTime(worksheet.SubmittedQaAt),
+                ApprovedBy = worksheet.ApprovedBy,
+                ApprovedByName = worksheet.ApprovedByName,
             };
         }
-
 
         private DateTime? ParseDateTime(string dateTimeString)
         {
@@ -1009,14 +1338,14 @@ namespace RawDataWorkSheet.Repositories
             dateTimeString = dateTimeString.Trim();
 
             string[] formats =
-            { 
+            {
                 "dd/MM/yyyy",
                 "dd-MM-yyyy",
                 "yyyy-MM-dd",
                 "MM/dd/yyyy",
                 "yyyy/MM/dd",
                 "dd.MM.yyyy",
-                
+
                 "dd/MM/yyyy HH:mm:ss",
                 "dd-MM-yyyy HH:mm:ss",
                 "yyyy-MM-dd HH:mm:ss",
@@ -1030,7 +1359,7 @@ namespace RawDataWorkSheet.Repositories
                 "MM/dd/yyyy HH:mm",
                 "yyyy/MM/dd HH:mm",
                 "dd.MM.yyyy HH:mm",
-                
+
                 "dd/MM/yyyy hh:mm:ss tt",
                 "dd-MM-yyyy hh:mm:ss tt",
                 "yyyy-MM-dd hh:mm:ss tt",
@@ -1040,7 +1369,7 @@ namespace RawDataWorkSheet.Repositories
                 "dd-MM-yyyy hh:mm tt",
                 "yyyy-MM-dd hh:mm tt",
                 "MM/dd/yyyy hh:mm tt",
-                
+
                 "yyyy-MM-ddTHH:mm:ss",
                 "yyyy-MM-ddTHH:mm:ssZ",
                 "yyyy-MM-ddTHH:mm:ss.fff",
@@ -1050,21 +1379,18 @@ namespace RawDataWorkSheet.Repositories
             foreach (var format in formats)
             {
                 if (DateTime.TryParseExact(
-                    dateTimeString,
-                    format,
-                    System.Globalization.CultureInfo.InvariantCulture,
-                    System.Globalization.DateTimeStyles.None,
-                    out DateTime result))
+                        dateTimeString,
+                        format,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None,
+                        out DateTime result))
                 {
                     return result;
                 }
             }
 
-            // Fall back to general parsing
             if (DateTime.TryParse(dateTimeString, out DateTime generalResult))
-            {
                 return generalResult;
-            }
 
             return null;
         }
@@ -1075,23 +1401,11 @@ namespace RawDataWorkSheet.Repositories
                 return null;
 
             if (dateOnly)
-            {
                 return dateTime.Value.ToString("dd-MM-yyyy");
-            }
-            else
-            {
-                // Check if time component exists (not midnight)
-                if (dateTime.Value.TimeOfDay.TotalSeconds > 0)
-                {
-                    // Has time component - return full datetime
-                    return dateTime.Value.ToString("dd-MM-yyyy HH:mm:ss");
-                }
-                else
-                {
-                    // No time component - return only date
-                    return dateTime.Value.ToString("dd-MM-yyyy");
-                }
-            }
+
+            return dateTime.Value.TimeOfDay.TotalSeconds > 0
+                ? dateTime.Value.ToString("dd-MM-yyyy HH:mm:ss")
+                : dateTime.Value.ToString("dd-MM-yyyy");
         }
     }
 }

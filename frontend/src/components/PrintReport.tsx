@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Printer, X, ArrowLeft } from "lucide-react";
 import type { SampleData } from "../preparation_models/SampleData";
 import type { WorksheetDetail } from "../models/WorksheetDetail";
@@ -7,6 +7,99 @@ import type { Instrument } from "../preparation_models/Instrument";
 import type { Chemical } from "../preparation_models/Chemical";
 import type { Standard } from "../preparation_models/Standard";
 import type { ParameterDetail } from "../models/ParameterDetail";
+
+// ── PDF page-by-page renderer using PDF.js ───────────────────────────────────
+// Loads PDF.js from CDN, renders every page as a canvas, so the pages appear
+// inline in the report exactly like a merged PDF.
+const PdfPageRenderer: React.FC<{ base64: string; fileName: string }> = ({ base64, fileName }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [pageCount, setPageCount] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const renderPdf = async () => {
+      try {
+        // Load PDF.js if not already present
+        if (!(window as any).pdfjsLib) {
+          await new Promise<void>((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load PDF.js"));
+            document.head.appendChild(script);
+          });
+          (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        }
+
+        const pdfjsLib = (window as any).pdfjsLib;
+
+        // Decode base64 → Uint8Array
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+        const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+        if (cancelled) return;
+
+        setPageCount(pdf.numPages);
+
+        if (!containerRef.current) return;
+        containerRef.current.innerHTML = "";
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          if (cancelled) return;
+          const page = await pdf.getPage(pageNum);
+          // Use a scale that fills A4 width (595pt × 1.5 ≈ 892px, suitable for print)
+          const viewport = page.getViewport({ scale: 1.5 });
+
+          const canvas = document.createElement("canvas");
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          canvas.style.width = "100%";
+          canvas.style.display = "block";
+          canvas.style.pageBreakBefore = pageNum === 1 ? "always" : "auto";
+          canvas.style.pageBreakAfter = "auto";
+          canvas.style.pageBreakInside = "avoid";
+
+          const ctx = canvas.getContext("2d")!;
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          if (cancelled) return;
+
+          if (containerRef.current) {
+            containerRef.current.appendChild(canvas);
+          }
+        }
+      } catch (err: any) {
+        if (!cancelled) setError(err.message || "Failed to render PDF");
+      }
+    };
+
+    renderPdf();
+    return () => { cancelled = true; };
+  }, [base64]);
+
+  if (error) {
+    return (
+      <div className="p-3 text-xs text-red-600 text-center border border-red-300 bg-red-50">
+        Could not render {fileName}: {error}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {pageCount === 0 && (
+        <div className="p-4 text-xs text-gray-500 text-center">
+          Loading {fileName}…
+        </div>
+      )}
+      <div ref={containerRef} style={{ width: "100%" }} />
+    </div>
+  );
+};
 
 interface PrintReportProps {
   worksheetInfo: WorksheetDetail;
@@ -21,7 +114,6 @@ interface PrintReportProps {
 const PrintReport: React.FC<PrintReportProps> = ({
   worksheetInfo,
   sampleData,
-  analysts,
   instruments,
   chemicals,
   standards,
@@ -31,7 +123,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
     window.print();
   };
 
-  console.log(sampleData);
+  console.log('sample', sampleData);
 
   console.log(worksheetInfo);
 
@@ -45,6 +137,25 @@ const PrintReport: React.FC<PrintReportProps> = ({
       }
     }
     return data;
+  };
+
+
+
+  // Converts a snake_case calc/prep type to a readable label,
+  // with special casing for ferrous fumarate variants.
+  const formatCalcType = (type: string | null | undefined): string => {
+    if (!type) return "";
+    const t = type.toLowerCase();
+    if (t === "roi") return "ROI";
+    if (t === "lod") return "LOD";
+    if (t === "assay_ferrous_fumarate") return "Assay of Ferrous Fumarate";
+    if (t === "dissolution_ferrous_fumarate") return "Dissolution of Ferrous Fumarate";
+    return type
+      .split("_")
+      .filter(Boolean)
+      .map((w: string) => w[0].toUpperCase() + w.slice(1))
+      .join(" ")
+      .replace(/\bOf\b/g, "of");
   };
 
   const stepHasValues = (step: any) => {
@@ -462,82 +573,62 @@ const PrintReport: React.FC<PrintReportProps> = ({
   };
 
   const renderSignatureSection = (param: ParameterDetail) => {
+    const formatDt = (raw: string | null | undefined): string => {
+      if (!raw) return "N/A";
+      const s = String(raw).trim();
+      let d = new Date(s);
+      if (isNaN(d.getTime())) {
+        const parts = s.split(" ");
+        const segs = parts[0].split("-");
+        if (segs.length === 3 && segs[0].length <= 2) {
+          const iso = `${segs[2]}-${segs[1]}-${segs[0]}`;
+          d = new Date(parts[1] ? `${iso}T${parts[1]}` : `${iso}T00:00:00`);
+        }
+      }
+      if (isNaN(d.getTime())) return s || "N/A";
+      return d.toLocaleString("en-GB", {
+        day: "2-digit", month: "2-digit", year: "numeric",
+        hour: "2-digit", minute: "2-digit", hour12: false,
+      });
+    };
+
     return (
       <div className="mb-6">
         <table className="w-full border border-black text-sm">
           <tbody>
+            {/* Row 1 — Analyst */}
             <tr className="border-b border-black">
-              <td className="px-3 py-1 border-r border-black">Analyzed By</td>
-              <td className="px-3 py-1 font-bold">{param.analyzedByName || "---"}</td>
-              <td className="px-3 py-1 border-r border-black">Analysis Completed On</td>
-              <td className="px-3 py-1 font-bold">
-                {param.analysisCompletionDate
-                  ? (() => {
-                      const value = param.analysisCompletionDate as string;
-
-                      const parts = value.split(" ");
-                      const datePart = parts[0];
-                      const timePart = parts[1];
-
-                      const isoDate = datePart.split("-").reverse().join("-");
-
-                      const date = new Date(
-                        timePart
-                          ? `${isoDate}T${timePart}`
-                          : `${isoDate}T00:00:00`,
-                      );
-
-                      if (isNaN(date.getTime())) return "N/A";
-
-                      return timePart
-                        ? date.toLocaleString("en-GB", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          })
-                        : date.toLocaleDateString("en-GB");
-                    })()
-                  : "N/A"}
+              <td className="px-3 py-1 border-r border-black w-1/4">Analyzed By</td>
+              <td className="px-3 py-1 font-bold border-r border-black w-1/4">
+                {(param as any).analyzedByName || "---"}
+              </td>
+              <td className="px-3 py-1 border-r border-black w-1/4">Analysis Completed On</td>
+              <td className="px-3 py-1 font-bold w-1/4">
+                {formatDt((param as any).analysisCompletionDate)}
               </td>
             </tr>
+
+            {/* Row 2 — Reviewer */}
             <tr className="border-b border-black">
-              <td className="px-3 py-1 border-r border-black">Approved By</td>
-              <td className="px-3 py-1 font-bold">{param.approvedByName || "---"}</td>
-              <td className="px-3 py-1 border-r border-black">Approved On</td>
+              <td className="px-3 py-1 border-r border-black">Approved By (Reviewer)</td>
+              <td className="px-3 py-1 font-bold border-r border-black">
+                {(param as any).approvedByReviewerName || "---"}
+              </td>
+              <td className="px-3 py-1 border-r border-black">Reviewer Approved On</td>
               <td className="px-3 py-1 font-bold">
-                {param.approvedAt
-                  ? (() => {
-                      const value = param.approvedAt as string;
+                {formatDt((param as any).approvedAtReviewer)}
+              </td>
+            </tr>
 
-                      const parts = value.split(" ");
-                      const datePart = parts[0];
-                      const timePart = parts[1];
-
-                      const isoDate = datePart.split("-").reverse().join("-");
-
-                      const date = new Date(
-                        timePart
-                          ? `${isoDate}T${timePart}`
-                          : `${isoDate}T00:00:00`,
-                      );
-
-                      if (isNaN(date.getTime())) return "N/A";
-
-                      return timePart
-                        ? date.toLocaleString("en-GB", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          })
-                        : date.toLocaleDateString("en-GB");
-                    })()
-                  : "N/A"}
+            {/* Row 3 — QA */}
+            <tr>
+              <td className="px-3 py-0.5 border-r border-black">Approved By (QA)</td>
+              <td className="px-3 py-0.5 font-bold border-r border-black">
+                {(param as any).approvedByQAName || "---"}
+              </td>
+              <td className="px-3 py-0.5 border-r border-black">QA Approved On</td>
+              <td className="px-3 py-0.5 font-bold">
+                {formatDt((param as any).approvedAtQA)}
               </td>
             </tr>
           </tbody>
@@ -708,6 +799,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
   const renderMathFormula = (
     numerator: string,
     denominator: string,
+    result?: string | null,
     resultUnit?: string,
   ) => {
     return (
@@ -720,7 +812,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
             <div className="denominator px-4 py-2 text-xs">{denominator}</div>
           </div>
           {resultUnit && (
-            <div className="text-sm font-semibold">{resultUnit}</div>
+            <div className="text-xs font-bold"> {result !== null && (`= ${result}`)} {resultUnit}</div>
           )}
         </div>
       </div>
@@ -731,7 +823,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
   const renderCalculationDerivation = (calcData: any, calcType: string) => {
     const type = calcType.toLowerCase();
 
-    if (type.includes("assay")) {
+    if (type.includes("assay") && !type.includes("ferrous_fumarate")) {
       const areaSample = calcData.areaOfSample || "___";
       const areaStd = calcData.areaOfStandard || "___";
       const mwBase = calcData.mWBase || "___";
@@ -864,6 +956,13 @@ const PrintReport: React.FC<PrintReportProps> = ({
         .filter((v) => v !== "___")
         .join(" × ");
 
+      // ── Dry / Anhydrous basis (Raw material assay only) ──────────────────
+      const assayLodType  = calcData.lodWaterType  || "";
+      const assayLodValue = calcData.lodWaterValue || "";
+      const assayLodBasis = calcData.lodWaterBasisResult || null;
+      // Rule: lodWaterType === "water" → Anhydrous Basis; "lod" → Dry Basis
+      const assayBasisLabel = assayLodType === "water" ? "Anhydrous Basis" : assayLodType === "lod" ? "Dry Basis" : null;
+
       return (
         <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
           <p className="font-bold text-sm mb-2">Formula :</p>
@@ -873,15 +972,39 @@ const PrintReport: React.FC<PrintReportProps> = ({
             calcData.calculationResultUnit,
           )}
 
-          <p className="font-bold text-sm mb-2 mt-4">Derivation :</p>
-          {renderMathFormula(numeratorValues, denominatorValues)}
-
-          {calcData.calculationResult && (
-            <p className="text-center font-bold text-sm mt-3">
-              Result = {calcData.calculationResult}{" "}
-              {calcData.calculationResultUnit}
-            </p>
+          {/* Dry/Anhydrous formula — shown only when lod/water adjustment is present */}
+          {assayBasisLabel && (
+            <>
+              <p className="text-xs font-semibold text-gray-700 mb-1 mt-3">
+                Result ({assayBasisLabel})
+              </p>
+              {renderMathFormula(
+                "Result (as such Basis) × 100",
+                `100 − ${assayLodType === "water" ? "Water" : "LOD"} (%)`,
+                null,
+                `% (${assayBasisLabel})`,
+              )}
+            </>
           )}
+
+          <p className="font-bold text-sm mb-2 mt-4">Derivation :</p>
+          {renderMathFormula(numeratorValues, denominatorValues, calcData.calculationResult, calcData.calculationResultUnit)}
+
+          {/* Dry/Anhydrous derivation */}
+          {assayBasisLabel && assayLodBasis && (
+            <>
+              <p className="text-xs font-semibold text-gray-700 mb-1 mt-3">
+                Result ({assayBasisLabel})
+              </p>
+              {renderMathFormula(
+                `${calcData.calculationResult || "Result"} × 100`,
+                assayLodValue ? `100 − ${assayLodValue}` : `100 − ${assayLodType === "water" ? "Water" : "LOD"}(%)`,
+                assayLodBasis,
+                `% (${assayBasisLabel})`,
+              )}
+            </>
+          )}
+
         </div>
       );
     } else if (type.includes("residual_solvent")) {
@@ -1097,8 +1220,8 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   </p>
                   <table className="w-full text-sm">
                     <tbody>
-                      {dpStdLabel && dpRow("Selected Standard Preparation Label", dpStdLabel)}
-                      {dpSmpLabel && dpRow("Selected Sample Preparation Label",   dpSmpLabel)}
+                      {dpStdLabel && dpRow("Selected Standard Preparation", dpStdLabel)}
+                      {dpSmpLabel && dpRow("Selected Sample Preparation",   dpSmpLabel)}
                       {tp.areas.map((area: string, i: number) =>
                         area && area !== "___"
                           ? dpRow(`Area of Sample ${i + 1}`, area)
@@ -1251,7 +1374,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
         </div>
       );
 
-    } else if (type.includes("dissolution")) {
+    } else if (type.includes("dissolution") && !type.includes("ferrous_fumarate")) {
       const areaStd = calcData.areaOfStandard || "___";
       const mwBase = calcData.mWBase || "___";
       const mwSalt = calcData.mWSalt || "___";
@@ -1573,8 +1696,8 @@ const PrintReport: React.FC<PrintReportProps> = ({
           <div className="bg-gray-100 border border-black p-3 mb-1 keep-together">
             <p className="font-bold text-sm mb-3">Formula :</p>
 
-            {renderMathFormula(step1NumSymbolic, step1DenSymbolic, "mg/Tablet")}
-            {renderMathFormula("Result (mg/Tablet) × 100", "Claim (mg)", "% of LC")}
+            {renderMathFormula(step1NumSymbolic, step1DenSymbolic, null, "mg/Tablet")}
+            {renderMathFormula("Result (mg/Tablet) × 100", "Claim (mg)", null, "% of LC")}
           </div>
 
           {/* ── Per-tablet derivations ── */}
@@ -1604,6 +1727,11 @@ const PrintReport: React.FC<PrintReportProps> = ({
               ? `${entry.mgResult} × 100`
               : "Result (mg/Tablet) × 100";
 
+            const mgResult = entry.mgResult !== null
+              ? `${entry.mgResult} mg/Tablet`
+              : null;
+            const lcResult = `${entry.result.toFixedNoRound(3).toFixed(2)} % of LC`;
+
             return (
               <div
                 key={entry.idx}
@@ -1613,8 +1741,40 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   Derivation (Tablet {entry.idx + 1}) :
                 </p>
 
-                {renderMathFormula(step1NumValues, step1DenValues, `= ${mgDisplay} mg/Tablet`)}
-                {renderMathFormula(step2NumValues, `${claim}`, `= ${entry.result.toFixedNoRound(3).toFixed(2)} % of LC`)}
+                {/* Two-step derivation — each fraction paired with its result on the same line */}
+                <div className="flex flex-col items-center gap-3">
+                  {/* Step 1: fraction + mg/Tablet result on same line */}
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="formula-fraction text-center">
+                      <div className="numerator px-4 py-1 border-b border-black text-xs">
+                        {step1NumValues}
+                      </div>
+                      <div className="denominator px-4 py-1 text-xs">
+                        {step1DenValues}
+                      </div>
+                    </div>
+                    {mgResult && (
+                      <div className="text-xs font-bold whitespace-nowrap">
+                        = {mgResult}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Step 2: fraction + % of LC result on same line */}
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="formula-fraction text-center">
+                      <div className="numerator px-4 py-1 border-b border-black text-xs">
+                        {step2NumValues}
+                      </div>
+                      <div className="denominator px-4 py-1 text-xs">
+                        {claim}
+                      </div>
+                    </div>
+                    <div className="text-xs font-bold whitespace-nowrap">
+                      = {lcResult}
+                    </div>
+                  </div>
+                </div>
               </div>
             );
           })}
@@ -1647,6 +1807,379 @@ const PrintReport: React.FC<PrintReportProps> = ({
               </table>
             </div>
           )}
+        </div>
+      );
+    } else if (type.includes("assay_ferrous_fumarate")) {
+      // ── Ferrous Fumarate Assay (Titration) ───────────────────────────────────
+      const br      = calcData.buretteReading      || "___";
+      const am      = calcData.actualMolarity      || "___";
+      const tm      = calcData.theoreticalMolarity || "___";
+      const fac     = calcData.factor              || "___";
+      const facU    = calcData.factorUnit          || "g";
+      const sw      = calcData.sw                  || "___";
+      const aw      = calcData.avgWeight           || "___";
+      const awU     = calcData.avgWeightUnit       || "mg";
+      const lc      = calcData.labelClaim          || "___";
+      const lcU     = calcData.labelClaimUnit      || "mg";
+      const lod     = calcData.lodWaterValue       || "___";
+      const lodType = calcData.lodWaterType        || "water";
+      const calcFor = calcData.calculationFor      || "";
+      const isFinishedProduct = calcFor.toLowerCase().includes("finish");
+
+      // Acceptance limit helpers removed — shown in detail table
+      const renderAcceptanceLimit = (_resultVal: string | null) => null;
+
+      // ════════════════════════════════════════════════════════════════════════
+      // FINISHED PRODUCT path
+      // ════════════════════════════════════════════════════════════════════════
+      if (isFinishedProduct) {
+        // Formula 1: Result (mg/Tablet)
+        const f1NumSym = `Burette Reading × Actual Molarity × Factor(${facU}) × Average Weight (${awU})`;
+        const f1DenSym = `Sample Weight (mg) × Theoretical Molarity`;
+        const f1Unit   = "mg/Tablet";
+
+        // Formula 2: Result (% of LC)
+        const f2NumSym = "Result (mg/Tablet) × 100";
+        const f2DenSym = `Label Claim (${lcU})`;
+        const f2Unit   = "% of LC";
+
+        // Derivation 1
+        const d1Num = [br, am, fac, aw !== "___" ? `${aw} ${awU}` : "___"]
+          .filter(v => v !== "___").join(" × ") || "___";
+        const d1Den = [sw, tm].filter(v => v !== "___").join(" × ") || "___";
+
+        // Derivation 2
+        const d2Num = `${calcData.calculationResult || "Result (mg/Tablet)"} × 100`;
+        const d2Den = lc !== "___" ? `${lc} ${lcU}` : "___";
+
+        return (
+          <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
+            <p className="font-bold text-sm mb-2">Formula :</p>
+            {renderMathFormula(f1NumSym, f1DenSym, null, f1Unit)}
+            {renderMathFormula(f2NumSym, f2DenSym, null, f2Unit)}
+
+            <p className="font-bold text-sm mb-2 mt-4">Derivation :</p>
+            {renderMathFormula(d1Num, d1Den, calcData.calculationResult, calcData.calculationResultUnit)}
+            {renderMathFormula(d2Num, d2Den, calcData.labelClaimPercent, "% of LC")}
+
+            {renderAcceptanceLimit(calcData.calculationResult)}
+          </div>
+        );
+      }
+
+      // ════════════════════════════════════════════════════════════════════════
+      // RAW PRODUCT path — two formulas + two results
+      // ════════════════════════════════════════════════════════════════════════
+
+      // Rule: lodWaterType === "water" → Anhydrous Basis; "lod" → Dry Basis
+      const basisLabel = lodType === "water" ? "Anhydrous Basis" : "Dry Basis";
+
+      // ── Formula 1: Result (as such Basis) ────────────────────────────────
+      const f1RawNumSym = "Burette Reading × Actual Molarity × Factor(mg) × 100";
+      const f1RawDenSym = "Sample Weight (mg) × Theoretical Molarity";
+      const f1RawUnit   = "% (as such Basis)";
+
+      // ── Formula 2: Result (Dry / Anhydrous Basis) ────────────────────────
+      const f2RawNumSym = "Result (as such Basis) × 100";
+      const f2RawDenSym = `100 − ${lodType === "lod" ? "LOD" : "Water"} (%)`;
+      const f2RawUnit   = `% (${basisLabel})`;
+
+      // ── Derivation 1 ─────────────────────────────────────────────────────
+      const d1RawNum = [br, am, fac, "100"].filter(v => v !== "___").join(" × ") || "___";
+      const d1RawDen = [sw, tm].filter(v => v !== "___").join(" × ") || "___";
+
+      // ── Derivation 2 ─────────────────────────────────────────────────────
+      const asIsResult = calcData.calculationResult || "Result (as such Basis)";
+      const d2RawNum = `${asIsResult} × 100`;
+      const d2RawDen = lod !== "___" ? `100 − ${lod}` : `100 − ${lodType === "lod" ? "LOD" : "Water"}(%)`;
+
+      return (
+        <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
+          <p className="font-bold text-sm mb-1">
+            Calculation Type: <span className="font-normal">Raw Product</span>
+          </p>
+
+          {/* ── Formulas ── */}
+          <p className="font-bold text-sm mb-2 mt-3">Formula :</p>
+          {renderMathFormula(f1RawNumSym, f1RawDenSym, null, f1RawUnit)}
+          {renderMathFormula(f2RawNumSym, f2RawDenSym, null, f2RawUnit)}
+
+          {/* ── Derivations ── */}
+          <p className="font-bold text-sm mb-2 mt-4">Derivation :</p>
+          {renderMathFormula(d1RawNum, d1RawDen, calcData.calculationResult, "% (as such Basis)")}
+          {renderMathFormula(d2RawNum, d2RawDen, calcData.dryBasisResult, `% (${basisLabel})`)}
+
+          {renderAcceptanceLimit(calcData.calculationResult)}
+        </div>
+      );
+
+    } else if (type.includes("dissolution_ferrous_fumarate")) {
+      // ── Ferrous Fumarate Dissolution (Titration) ─────────────────────────────
+      const am   = calcData.actualMolarity        || "___";
+      const fac  = calcData.factor                || "___";
+      const facU = calcData.factorUnit            || "mg";
+      const dv   = calcData.dissoMediaVolume      || "___";
+      const dvU  = calcData.dissoMediaVolumeUnit  || "ml";
+      const lc   = calcData.labelClaim            || "___";
+      const lcU  = calcData.labelClaimUnit        || "mg";
+      const st   = calcData.sampleTaken           || "___";
+      const stU  = calcData.sampleTakenUnit       || "ml";
+      const resultUnit = calcData.calculationResultUnit || "% of LC";
+
+      const tabletResults: { num: number; br: string; result: string }[] = [];
+      for (let i = 1; i <= 6; i++) {
+        const br  = calcData[`buretteReading${i}`];
+        const res = calcData[`calculationResultTablet${i}`];
+        if (br || res) tabletResults.push({ num: i, br: br || "___", result: res || "___" });
+      }
+
+      // Single combined formula:
+      // Numerator:   BR × Actual Molarity × Factor(facU) × Dissolution Media Volume(dvU)
+      // Denominator: Label Claim(lcU) × Sample Taken(stU) × 100
+      const symNum = `Burette Reading × Actual Molarity × Factor (${facU}) × Dissolution Media Volume (${dvU})`;
+      const symDen = `Label Claim (${lcU}) × Sample Taken (${stU}) × 100`;
+
+      return (
+        <div className="mb-3">
+          {/* ── Formula box ── */}
+          <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
+            <p className="font-bold text-sm mb-2">Formula :</p>
+            {renderMathFormula(symNum, symDen, null, resultUnit)}
+          </div>
+
+          {/* ── Per-tablet derivation blocks ── */}
+          {tabletResults.length > 0 && (
+            <div>
+              {tabletResults.map(({ num, br, result }) => {
+                const valNum = [
+                  br,
+                  am,
+                  fac !== "___" ? `${fac} ${facU}` : "___",
+                  dv !== "___" ? `${dv} ${dvU}` : "___",
+                ].filter(v => v !== "___").join(" × ") || "___";
+
+                const valDen = [
+                  lc !== "___" ? `${lc} ${lcU}` : "___",
+                  st !== "___" ? `${st} ${stU}` : "___",
+                  "100",
+                ].filter(v => v !== "___").join(" × ") || "___";
+
+                return (
+                  <div key={num} className="bg-gray-100 border border-black p-3 mb-2 keep-together">
+                    <p className="font-bold text-sm mb-2">Derivation (Tablet {num}) :</p>
+                    {renderMathFormula(valNum, valDen, result !== "___" ? result : null, resultUnit)}
+                  </div>
+                );
+              })}
+
+              {/* ── Summary Stats ── */}
+              {(() => {
+                const vals = tabletResults.map(r => parseFloat(r.result)).filter(v => !isNaN(v));
+                if (vals.length === 0) return null;
+                const min = Math.min(...vals);
+                const max = Math.max(...vals);
+                const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+
+                return (
+                  <div className="mt-2 keep-together">
+                    <table className="w-full border border-black">
+                      <tbody>
+                        <tr className="bg-gray-100">
+                          <td colSpan={3} className="p-3 border-b border-black">
+                            <p className="font-bold text-sm">Calculation Summary</p>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="text-center p-3 border-r border-black">
+                            <p className="font-semibold text-xs">Minimum</p>
+                            <p className="text-lg font-bold">{min.toFixed(3)} {resultUnit}</p>
+                          </td>
+                          <td className="text-center p-3 border-r border-black">
+                            <p className="font-semibold text-xs">Average</p>
+                            <p className="text-lg font-bold">{avg.toFixed(3)} {resultUnit}</p>
+                          </td>
+                          <td className="text-center p-3">
+                            <p className="font-semibold text-xs">Maximum</p>
+                            <p className="text-lg font-bold">{max.toFixed(3)} {resultUnit}</p>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </div>
+      );
+
+    } else if (type.includes("related_substance")) {
+      // ── Related Substance — same layout as normal Assay ──────────────────────
+      const areaSample = calcData.areaOfSample || "___";
+      const areaStd    = calcData.areaOfStandard || "___";
+      const mwBase     = calcData.mWBase         || "___";
+      const mwSalt     = calcData.mWSalt         || "___";
+      const purity     = calcData.purity         || "___";
+      const sw1        = calcData.sw1 || calcData.sw || "___";
+      const sw2        = calcData.sw2            || "___";
+      const calcFor    = calcData.calculationFor || "";
+
+      const v1  = calcData.v1  || "___"; const v2  = calcData.v2  || "___";
+      const v3  = calcData.v3  || "___"; const v4  = calcData.v4  || "___";
+      const v5  = calcData.v5  || "___"; const v6  = calcData.v6  || "___";
+      const v7  = calcData.v7  || "___"; const v8  = calcData.v8  || "___";
+      const v9  = calcData.v9  || "___"; const v10 = calcData.v10 || "___";
+      const v11 = calcData.v11 || "___"; const v12 = calcData.v12 || "___";
+      const v13 = calcData.v13 || "___"; const v14 = calcData.v14 || "___";
+
+      // ── Build volume arrays (same V1-V14 convention as normal assay) ─────────
+      const stdNumSym: string[] = []; const stdDenSym: string[] = [];
+      const stdNumVal: string[] = []; const stdDenVal: string[] = [];
+
+      if (v1  !== "___" && v1  !== "0") { stdDenSym.push("V1");  stdDenVal.push(v1);  }
+      if (v2  !== "___" && v2  !== "0") { stdNumSym.push("V2");  stdNumVal.push(v2);  }
+      if (v3  !== "___" && v3  !== "0") { stdDenSym.push("V3");  stdDenVal.push(v3);  }
+      if (v4  !== "___" && v4  !== "0") { stdNumSym.push("V4");  stdNumVal.push(v4);  }
+      if (v5  !== "___" && v5  !== "0") { stdDenSym.push("V5");  stdDenVal.push(v5);  }
+      if (v6  !== "___" && v6  !== "0") { stdNumSym.push("V6");  stdNumVal.push(v6);  }
+      if (v7  !== "___" && v7  !== "0") { stdDenSym.push("V7");  stdDenVal.push(v7);  }
+
+      const smpNumSym: string[] = []; const smpDenSym: string[] = [];
+      const smpNumVal: string[] = []; const smpDenVal: string[] = [];
+
+      if (v8  !== "___" && v8  !== "0") { smpNumSym.push("V8");  smpNumVal.push(v8);  }
+      if (v9  !== "___" && v9  !== "0") { smpDenSym.push("V9");  smpDenVal.push(v9);  }
+      if (v10 !== "___" && v10 !== "0") { smpNumSym.push("V10"); smpNumVal.push(v10); }
+      if (v11 !== "___" && v11 !== "0") { smpDenSym.push("V11"); smpDenVal.push(v11); }
+      if (v12 !== "___" && v12 !== "0") { smpNumSym.push("V12"); smpNumVal.push(v12); }
+      if (v13 !== "___" && v13 !== "0") { smpDenSym.push("V13"); smpDenVal.push(v13); }
+      if (v14 !== "___" && v14 !== "0") { smpNumSym.push("V14"); smpNumVal.push(v14); }
+
+      const hasExternal = areaStd !== "___";
+      const resultUnit  = calcData.calculationResultUnit || "%";
+
+      // ── Symbolic formula parts ────────────────────────────────────────────────
+      // Extra formula terms depending on calculationFor
+      const extraNumSym: string[] = [];
+      const extraDenSym: string[] = [];
+      const labelClaim = calcData.labelClaim || "___";
+      const avgWeight  = calcData.avgWeight  || "___";
+      const avgWeightU = calcData.avgWeightUnit || "mg";
+      const doseVolume = calcData.doseVolume  || "___";
+      const weightPerMl = calcData.weightPerMl || "___";
+      const weightPerMlU = calcData.weightPerMlUnit || "mg";
+      const rf         = calcData.responseFactor || "___";
+      const rfUnit     = calcData.responseFactorUnit || "";
+
+      if (calcFor === "Tablets" || calcFor === "Capsule" || calcFor === "Injection Vial") {
+        extraNumSym.push(`× Avg Wt (${avgWeightU})`, "× 100");
+        extraDenSym.push("× Label Claim");
+      } else if (calcFor === "Oral Suspension") {
+        extraNumSym.push(`× Wt/ml (${weightPerMlU})`, "× Dose Volume", "× 100");
+        extraDenSym.push("× Label Claim");
+      } else if (calcFor === "Oral Liquid") {
+        extraNumSym.push("× Dose Volume", "× 100");
+        extraDenSym.push("× Label Claim");
+      } else {
+        // Raw Material
+        extraNumSym.push("× 100");
+      }
+      if (rf !== "___") extraNumSym.push(`× RF${rfUnit ? ` (${rfUnit})` : ""}`);
+
+      const numeratorSymbolic = [
+        "Area/ABS of Sample", "× SW1",
+        ...stdNumSym.map(v => `× ${v}`),
+        ...smpNumSym.map(v => `× ${v}`),
+        "× MW Base", "× Purity %",
+        ...extraNumSym,
+      ].join(" ");
+
+      const denominatorSymbolic = hasExternal ? [
+        "Area/ABS of Standard",
+        ...stdDenSym.map(v => `× ${v}`),
+        "× SW2",
+        ...smpDenSym.map(v => `× ${v}`),
+        "× MW Salt", "× 100",
+        ...extraDenSym,
+      ].join(" ") : "Total Peak Area × 100";
+
+      // ── Derivation value arrays ───────────────────────────────────────────────
+      const buildNumVal = (areaVal: string) => [
+        areaVal, sw1,
+        ...stdNumVal, ...smpNumVal,
+        mwBase, purity,
+        ...(calcFor === "Tablets" || calcFor === "Capsule" || calcFor === "Injection Vial"
+          ? [avgWeight !== "___" ? `${avgWeight} ${avgWeightU}` : "___", "100"]
+          : calcFor === "Oral Suspension"
+            ? [weightPerMl !== "___" ? `${weightPerMl} ${weightPerMlU}` : "___", doseVolume, "100"]
+            : calcFor === "Oral Liquid"
+              ? [doseVolume, "100"]
+              : ["100"]),
+        ...(rf !== "___" ? [rf] : []),
+      ].filter(v => v !== "___").join(" × ");
+
+      const derivationDen = hasExternal ? [
+        areaStd,
+        ...stdDenVal, sw2, ...smpDenVal,
+        mwSalt, "100",
+        ...(labelClaim !== "___" && extraDenSym.length > 0 ? [labelClaim] : []),
+      ].filter(v => v !== "___").join(" × ") : "Total Peak Area × 100";
+
+      const singleResult    = calcData.calculationResult;
+      const totalArea       = calcData.totalPeakArea || calcData.totalArea || "___";
+
+      // Impurity entries
+      const impurityEntries: { name: string; area: string; result: string }[] = [];
+      for (let i = 1; i <= 20; i++) {
+        const area   = calcData[`impurityPeakArea${i}`] || calcData[`impurityArea${i}`];
+        const name   = calcData[`impurityName${i}`]     || `Impurity ${i}`;
+        const result = calcData[`impurityResult${i}`];
+        if (area) impurityEntries.push({ name, area, result: result || "___" });
+      }
+
+      return (
+        <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
+          <p className="font-bold text-sm mb-2">Formula :</p>
+
+          {hasExternal ? (
+            renderMathFormula(numeratorSymbolic, denominatorSymbolic, null, resultUnit)
+          ) : (
+            <p className="text-xs text-center font-mono my-2">
+              % Impurity = (Area of Impurity Peak / Total Peak Area) × 100
+            </p>
+          )}
+
+          <p className="font-bold text-sm mb-2 mt-4">Derivation :</p>
+
+          {/* Multiple impurity entries */}
+          {impurityEntries.length > 0 && impurityEntries.map((imp, idx) => (
+            <div key={idx} className="mb-3">
+              <p className="text-xs font-semibold text-gray-700 mb-1">{imp.name}</p>
+              {hasExternal
+                ? renderMathFormula(
+                    buildNumVal(imp.area),
+                    derivationDen,
+                    imp.result !== "___" ? imp.result : null,
+                    resultUnit,
+                  )
+                : <p className="text-xs text-center font-mono">
+                    ({imp.area} / {totalArea}) × 100
+                    {imp.result !== "___" ? ` = ${imp.result} ${resultUnit}` : ""}
+                  </p>
+              }
+            </div>
+          ))}
+
+          {/* Single result mode */}
+          {impurityEntries.length === 0 && (
+            hasExternal
+              ? renderMathFormula(buildNumVal(areaSample), derivationDen, singleResult, resultUnit)
+              : <p className="text-xs text-center font-mono">
+                  ({areaSample} / {totalArea}) × 100
+                  {singleResult ? ` = ${singleResult} ${resultUnit}` : ""}
+                </p>
+          )}
+
         </div>
       );
     }
@@ -1814,6 +2347,20 @@ const PrintReport: React.FC<PrintReportProps> = ({
               padding: 15mm 15mm;
               background: white;
               box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+
+            /* Border around each attached file only in preview */
+            .attached-file-preview-border {
+              border: 1px solid #ccc;
+              margin-bottom: 8px;
+            }
+          }
+
+          @media print {
+            /* No border on attached files in print */
+            .attached-file-preview-border {
+              border: none !important;
+              margin-bottom: 0 !important;
             }
           }
 
@@ -2075,6 +2622,58 @@ const PrintReport: React.FC<PrintReportProps> = ({
                     </div>
                   )}
 
+                  {/* Buffer Preparations */}
+                  {param.preparations &&
+                    safeJSONParse(param.preparations, []).filter(
+                      (p: any) => p.preparationCategory === "buffer",
+                    ).length > 0 && (
+                      <div className="mb-6">
+                        <h4 className="text-md uppercase font-bold mb-2">
+                          Buffer Preparations
+                        </h4>
+                        {safeJSONParse(param.preparations, [])
+                          .filter(
+                            (p: any) => p.preparationCategory === "buffer",
+                          )
+                          .map((prep: any, idx: number) => {
+                            const steps = safeJSONParse(prep.steps, []);
+                            const validSteps = steps.filter((s: any) =>
+                              s.value1 || s.logBookID || s.solventChemical
+                            );
+                            if (validSteps.length === 0) return null;
+                            return (
+                              <div key={idx} className="section-container mb-3">
+                                <div className="mb-1">
+                                  <p className="font-bold text-sm">{prep.label}</p>
+                                </div>
+                                <table className="w-full border border-black text-sm">
+                                  <tbody>
+                                    {validSteps.map((step: any, sIdx: number) => {
+                                      let stepText = "";
+                                      if (step.name === "Weighing/Measuring") {
+                                        stepText = `${["ml", "L", "µL"].includes(step.unit1) ? "Measure accurately" : "Weigh accurately"} ${step.value1 || "___"} ${step.unit1 || ""} of ${step.solventChemical || "_____________"}${step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""}.`;
+                                      } else if (step.name === "PH") {
+                                        stepText = `Adjust pH to ${step.value1 || "___"}${step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""}.`;
+                                      } else {
+                                        stepText = `${step.name}: ${step.value1 || ""} ${step.unit1 || ""}`.trim();
+                                      }
+                                      return (
+                                        <tr key={sIdx} className="border-b border-black last:border-b-0">
+                                          <td className="w-1/3 px-3 py-2 font-bold bg-gray-100 border-r border-black">
+                                            {step.name}
+                                          </td>
+                                          <td className="px-3 py-2">{stepText}</td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    )}
+
                   {/* Mobile Phase Preparations */}
                   {param.preparations &&
                     safeJSONParse(param.preparations, []).filter(
@@ -2097,8 +2696,10 @@ const PrintReport: React.FC<PrintReportProps> = ({
                               prep.preparationType || "mobile_phase",
                               prep.assignedStandardId,
                             );
+                            const hasContent = !!(prep.content && prep.content.trim());
 
-                            if (!stepsTable) return null;
+                            // Show step table if available, fall back to content, skip if neither
+                            if (!stepsTable && !hasContent) return null;
 
                             return (
                               <div key={idx} className="section-container mb-3">
@@ -2107,7 +2708,15 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                     {prep.label}
                                   </p>
                                 </div>
-                                <div className="p-0">{stepsTable}</div>
+                                {stepsTable ? (
+                                  <div className="p-0">{stepsTable}</div>
+                                ) : (
+                                  <div
+                                    className="prose prose-sm max-w-none text-sm"
+                                    dangerouslySetInnerHTML={{ __html: prep.content }}
+                                    style={{ lineHeight: "1.6", fontSize: "13px" }}
+                                  />
+                                )}
                               </div>
                             );
                           })}
@@ -2137,12 +2746,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
                       // Format preparationType for display in brackets
                       const prepTypeLabel = prep.preparationType
-                        ? prep.preparationType
-                            .split("_")
-                            .filter(Boolean)
-                            .map((w: string) => w[0].toUpperCase() + w.slice(1))
-                            .join(" ")
-                            .replace(/Of/g, "of")
+                        ? formatCalcType(prep.preparationType)
                         : null;
 
                       return (
@@ -2170,6 +2774,40 @@ const PrintReport: React.FC<PrintReportProps> = ({
                       </div>
                     );
                   })()}
+
+                  {/* Diluent Preparations */}
+                  {param.preparations &&
+                    safeJSONParse(param.preparations, []).filter(
+                      (p: any) => p.preparationCategory === "diluent",
+                    ).length > 0 && (
+                      <div className="mb-6">
+                        <h4 className="text-md uppercase font-bold mb-2">
+                          Diluent Preparations
+                        </h4>
+                        {safeJSONParse(param.preparations, [])
+                          .filter(
+                            (p: any) => p.preparationCategory === "diluent",
+                          )
+                          .map((prep: any, idx: number) => {
+                            return (
+                              <div key={idx} className="section-container mb-3">
+                                <div className="mb-1">
+                                  <p className="font-bold text-sm">{prep.label}</p>
+                                </div>
+                                {prep.content ? (
+                                  <div
+                                    className="prose prose-sm max-w-none text-sm"
+                                    dangerouslySetInnerHTML={{ __html: prep.content }}
+                                    style={{ lineHeight: "1.6", fontSize: "13px" }}
+                                  />
+                                ) : (
+                                  <p className="text-sm text-gray-500 italic">No content available.</p>
+                                )}
+                              </div>
+                            );
+                          })}
+                      </div>
+                    )}
 
                   {/* Standard Preparations */}
                   {((param.standardPreparations &&
@@ -2206,22 +2844,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                               >
                                 <div className="mb-1">
                                   <p className="font-bold text-sm">
-                                    {prep.label} (
-                                    {prep.preparationType === "roi"
-                                      ? "ROI"
-                                      : prep.preparationType === "lod"
-                                        ? "LOD"
-                                        : prep.preparationType
-                                            ?.split("_")
-                                            .filter(Boolean)
-                                            .map(
-                                              (word: string | any[]) =>
-                                                word[0].toUpperCase() +
-                                                word.slice(1),
-                                            )
-                                            .join(" ")
-                                            .replace(/\bOf\b/g, "of")}
-                                    )
+                                    {prep.label} ({formatCalcType(prep.preparationType)})
                                   </p>
                                 </div>
                                 <div className="p-0">{stepsTable}</div>
@@ -2266,22 +2889,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                               >
                                 <div className="mb-1">
                                   <p className="font-bold text-sm">
-                                    {prep.label} (
-                                    {prep.preparationType === "roi"
-                                      ? "ROI"
-                                      : prep.preparationType === "lod"
-                                        ? "LOD"
-                                        : prep.preparationType
-                                            ?.split("_")
-                                            .filter(Boolean)
-                                            .map(
-                                              (word: string | any[]) =>
-                                                word[0].toUpperCase() +
-                                                word.slice(1),
-                                            )
-                                            .join(" ")
-                                            .replace(/\bOf\b/g, "of")}
-                                    )
+                                    {prep.label} ({formatCalcType(prep.preparationType)})
                                   </p>
                                 </div>
                                 <div className="p-0">{stepsTable}</div>
@@ -2312,22 +2920,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                             <div className="section-container mb-4 page-break-inside-avoid">
                               <div className="mb-1">
                                 <p className="font-bold text-sm">
-                                  {calc.label} (
-                                  {calc.calculationType === "roi"
-                                    ? "ROI"
-                                    : calc.calculationType === "lod"
-                                      ? "LOD"
-                                      : calc.calculationType
-                                          .split("_")
-                                          .filter(Boolean)
-                                          .map(
-                                            (word: string | any[]) =>
-                                              word[0].toUpperCase() +
-                                              word.slice(1),
-                                          )
-                                          .join(" ")
-                                          .replace(/\bOf\b/g, "of")}{" "}
-                                  {/* Change "Of" to "of" */})
+                                  {calc.label} ({formatCalcType(calc.calculationType)})
                                 </p>
                               </div>
 
@@ -2346,6 +2939,8 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                           value === null ||
                                           value === "" ||
                                           key.toLowerCase().includes("unit") ||
+                                          // Hide lodWaterType — we show the value with a smarter label instead
+                                          key === "lodWaterType" ||
                                           (isDissoCalc &&
                                             key === "calculationResult") ||
                                           (isUCCalc &&
@@ -2373,17 +2968,30 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                           key === "v16" ||
                                           key === "claim" ||
                                           key === "mediaVol" ||
-                                          key === "dilutedVol"
+                                          key === "dilutedVol" ||
+                                          // Hide individual limit keys — rendered as combined row
+                                          key === "acceptanceLimitMin" ||
+                                          key === "acceptanceLimitMax"
                                         )
                                           return null;
 
-                                        let displayKey = key
-                                          .replace(/([A-Z])/g, " $1")
-                                          .replace(/^./, (c) => c.toUpperCase())
-                                          .trim()
-                                          .replace(/(\d+)/g, " $1")
-                                          .replace(/\s+/g, " ")
-                                          .replace(/\bOf\b/g, "of");
+                                        // Smart label for lodWaterValue — show "LOD Value" or "Water Value"
+                                        let displayKey: string;
+                                        if (key === "lodWaterValue") {
+                                          const lodType = calcData["lodWaterType"] || "";
+                                          displayKey = lodType === "lod" ? "LOD Value" : "Water Value";
+                                        } else if (key === "lodWaterBasisResult") {
+                                          const lodType = calcData["lodWaterType"] || "";
+                                          displayKey = lodType === "water" ? "Anhydrous Basis Result" : "Dry Basis Result";
+                                        } else {
+                                          displayKey = key
+                                            .replace(/([A-Z])/g, " $1")
+                                            .replace(/^./, (c) => c.toUpperCase())
+                                            .trim()
+                                            .replace(/(\d+)/g, " $1")
+                                            .replace(/\s+/g, " ")
+                                            .replace(/\bOf\b/g, "of");
+                                        }
 
                                         const unit = findUnitForKey(
                                           calcData,
@@ -2416,6 +3024,29 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                         );
                                       },
                                     )}
+                                    {/* Combined Acceptance Limit row */}
+                                    {(() => {
+                                      const rawMin = calcData.acceptanceLimitMin;
+                                      const rawMax = calcData.acceptanceLimitMax;
+                                      const lMin = rawMin != null && rawMin !== "" ? parseFloat(String(rawMin)) : null;
+                                      const lMax = rawMax != null && rawMax !== "" ? parseFloat(String(rawMax)) : null;
+                                      const hasMin = lMin !== null && !isNaN(lMin);
+                                      const hasMax = lMax !== null && !isNaN(lMax);
+                                      if (!hasMin && !hasMax) return null;
+                                      const display = hasMin && hasMax
+                                        ? `${lMin} ≤ Result ≤ ${lMax}`
+                                        : hasMin
+                                          ? `${lMin} ≤ Result`
+                                          : `Result ≤ ${lMax}`;
+                                      return (
+                                        <tr key="acceptance-limit" className="border-b border-black last:border-b-0">
+                                          <td className="w-2/5 px-3 py-2 font-bold bg-gray-100 border-r border-black">
+                                            Acceptance Limit
+                                          </td>
+                                          <td className="px-3 py-2">{display}</td>
+                                        </tr>
+                                      );
+                                    })()}
                                   </tbody>
                                 </table>
                               </div>
@@ -2645,9 +3276,73 @@ const PrintReport: React.FC<PrintReportProps> = ({
                       </div>
                     </div>
                   )}
+
+                  {/* Digital Signature */}
+                  {renderSignatureSection(param)}
+
+                  {/* Attached Files — PDF pages rendered inline via PDF.js, no filename/border chrome */}
+                  {param.files && Array.isArray(param.files) && param.files.filter((f: any) => f.fileDataBase64).length > 0 && (
+                    <div className="section-container mb-4">
+                      <h4 className="text-md uppercase font-bold mb-2 no-print">Attached Files</h4>
+                      {(() => {
+                        // Group: prep-type files first (keyed by preparationType), then param-level = "Other Files"
+                        const groups: Record<string, { slotLabel: string; sortOrder: number; files: any[] }> = {};
+                        for (const f of param.files) {
+                          if (!f.fileDataBase64) continue;
+                          let slotKey: string;
+                          let slotLabel: string;
+                          let sortOrder: number;
+                          if (f.preparationType) {
+                            slotKey = f.preparationType;
+                            slotLabel = formatCalcType(f.preparationType);
+                            sortOrder = 0;
+                          } else {
+                            slotKey = "__other__";
+                            slotLabel = "Other Files";
+                            sortOrder = 1;
+                          }
+                          if (!groups[slotKey]) groups[slotKey] = { slotLabel, sortOrder, files: [] };
+                          groups[slotKey].files.push(f);
+                        }
+
+                        return Object.entries(groups)
+                          .sort(([, a], [, b]) => a.sortOrder - b.sortOrder)
+                          .map(([slotKey, group]) => (
+                            <div key={slotKey} className="mb-4">
+                              {group.files.map((f: any, fi: number) => {
+                                const isPdf =
+                                  f.fileName?.toLowerCase().endsWith(".pdf") ||
+                                  f.fileDataBase64?.startsWith("JVBER");
+                                const isImage = /\.(png|jpg|jpeg|gif|bmp|webp)$/i.test(f.fileName || "");
+                                return (
+                                  <div key={fi} className="attached-file-preview-border">
+                                    {isPdf ? (
+                                      <PdfPageRenderer
+                                        base64={f.fileDataBase64}
+                                        fileName={f.fileName || `file_${fi + 1}.pdf`}
+                                      />
+                                    ) : isImage ? (
+                                      <img
+                                        src={`data:image/${f.fileName?.split(".").pop()?.toLowerCase() || "jpeg"};base64,${f.fileDataBase64}`}
+                                        alt={f.fileName}
+                                        className="max-w-full block"
+                                        style={{ objectFit: "contain" }}
+                                      />
+                                    ) : (
+                                      <p className="text-xs text-gray-500 text-center py-2">
+                                        {f.fileName} (preview not available)
+                                      </p>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ));
+                      })()}
+                    </div>
+                  )}
                 </div>
 
-                {renderSignatureSection(param)}
               </div>
             );
           })}

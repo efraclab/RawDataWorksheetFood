@@ -835,6 +835,18 @@
           "status": {
             "type": "string",
             "nullable": true
+          },
+          "submittedQaAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "submittedQaBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "approvedBy": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -973,11 +985,11 @@
             "type": "string",
             "nullable": true
           },
-          "approvedBy": {
+          "approvedByReviewer": {
             "type": "string",
             "nullable": true
           },
-          "approvedByName": {
+          "approvedByReviewerName": {
             "type": "string",
             "nullable": true
           },
@@ -989,7 +1001,7 @@
             "type": "string",
             "nullable": true
           },
-          "approvedAt": {
+          "approvedAtReviewer": {
             "type": "string",
             "nullable": true
           },
@@ -1031,6 +1043,34 @@
               "$ref": "#/components/schemas/CalculationDto"
             },
             "nullable": true
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorksheetFileDto"
+            },
+            "nullable": true
+          },
+          "approvedByQA": {
+            "type": "string",
+            "nullable": true
+          },
+          "approvedAtQA": {
+            "type": "string",
+            "nullable": true
+          },
+          "remarksByQA": {
+            "type": "string",
+            "nullable": true
+          },
+          "remarksByReviewer": {
+            "type": "string",
+            "nullable": true
+          },
+          "approvedByQAName": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
           }
         },
         "additionalProperties": false
@@ -1220,7 +1260,97 @@
             "type": "string",
             "nullable": true
           },
-          "limit": {
+          "limitMin": {
+            "type": "string",
+            "nullable": true
+          },
+          "limitMax": {
+            "type": "string",
+            "nullable": true
+          },
+          "buretteReading": {
+            "type": "string",
+            "nullable": true
+          },
+          "buretteReading1": {
+            "type": "string",
+            "nullable": true
+          },
+          "buretteReading2": {
+            "type": "string",
+            "nullable": true
+          },
+          "buretteReading3": {
+            "type": "string",
+            "nullable": true
+          },
+          "buretteReading4": {
+            "type": "string",
+            "nullable": true
+          },
+          "buretteReading5": {
+            "type": "string",
+            "nullable": true
+          },
+          "buretteReading6": {
+            "type": "string",
+            "nullable": true
+          },
+          "theoreticalMolarity": {
+            "type": "string",
+            "nullable": true
+          },
+          "actualMolarity": {
+            "type": "string",
+            "nullable": true
+          },
+          "factor": {
+            "type": "string",
+            "nullable": true
+          },
+          "factorUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "dissoMediaVolume": {
+            "type": "string",
+            "nullable": true
+          },
+          "sampleTaken": {
+            "type": "string",
+            "nullable": true
+          },
+          "dryBasisResult": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RawDataFileDto": {
+        "type": "object",
+        "properties": {
+          "worksheetId": {
+            "type": "string",
+            "nullable": true
+          },
+          "parameterCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "preparationType": {
+            "type": "string",
+            "nullable": true
+          },
+          "prepLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "fileName": {
+            "type": "string",
+            "nullable": true
+          },
+          "fileDataBase64": {
             "type": "string",
             "nullable": true
           }
@@ -1279,6 +1409,30 @@
             "nullable": true
           },
           "analysisCompletedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "approvedByReviewer": {
+            "type": "string",
+            "nullable": true
+          },
+          "approvedAtReviewer": {
+            "type": "string",
+            "nullable": true
+          },
+          "approvedByQA": {
+            "type": "string",
+            "nullable": true
+          },
+          "approvedAtQA": {
+            "type": "string",
+            "nullable": true
+          },
+          "remarksByQA": {
+            "type": "string",
+            "nullable": true
+          },
+          "remarksByReviewer": {
             "type": "string",
             "nullable": true
           }
@@ -1353,6 +1507,10 @@
             "type": "string",
             "nullable": true
           },
+          "limitType": {
+            "type": "string",
+            "nullable": true
+          },
           "content": {
             "type": "string",
             "nullable": true
@@ -1423,6 +1581,18 @@
             "nullable": true
           },
           "worksheetApprovedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "submittedQaAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "approvedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "submittedQaBy": {
             "type": "string",
             "nullable": true
           }
@@ -1501,6 +1671,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/RawDataCalculationDto"
+            },
+            "nullable": true
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RawDataFileDto"
             },
             "nullable": true
           }
@@ -1582,6 +1759,50 @@
           "remarks": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorksheetFileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "parameterId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "preparationCategory": {
+            "type": "string",
+            "nullable": true
+          },
+          "preparationType": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          },
+          "fileName": {
+            "type": "string",
+            "nullable": true
+          },
+          "fileDataBase64": {
+            "type": "string",
+            "nullable": true
+          },
+          "uploadedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "worksheetId": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
           }
         },
         "additionalProperties": false

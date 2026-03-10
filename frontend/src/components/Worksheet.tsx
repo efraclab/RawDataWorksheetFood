@@ -69,6 +69,7 @@ import ApproveParameterDialog from "./shared/ApproveParameterDialog";
 import DisapproveParameterDialog from "./shared/DisapproveParameterDialog";
 import RevisionRequestDialog from "./shared/RevisionRequestDialog";
 import ApproveWorksheetDialog from "./shared/ApproveWorksheetDialog";
+import SubmitForQAReviewDialog from "./shared/SubmitForQAReviewDialog";
 import Toast from "./shared/Toast";
 import { WorksheetDbMapper } from "../helpers/WorksheetDbMapper";
 import { MdDone } from "react-icons/md";
@@ -100,6 +101,9 @@ import BufferPreparationDetail from "./sub-components/BufferPreparationDetail";
 import type { BufferPreparation as BufferPreparationModel } from "../preparation_models/BufferPreparation";
 import type { MobilePhasePreparation } from "../preparation_models/MobilePhasePreparation";
 import type { DiluentPreparation } from "../preparation_models/DiluentPreparation";
+import type { AttachedFile } from "../models/AttachedFile";
+import type { WorksheetFileData } from "../models/WorksheetFileData";
+import WorksheetFileAttacher from "./shared/WorksheetFileAttacher";
 
 // SVG Icons
 const Target: React.FC<{ className: string }> = ({ className }) => (
@@ -807,7 +811,7 @@ const createNewSamplePreparationTitration = (
   ],
 });
 
-const createNewCalculationFerrousFumarate = (
+const createNewAssayCalculationFerrousFumarate = (
   index: number,
 ): CalculationAssayFerrousFumarate => ({
   id: Date.now() + index,
@@ -826,11 +830,13 @@ const createNewCalculationFerrousFumarate = (
   calculationResultUnit: null,
   labelClaimPercent: null,
   dryBasisResult: null,
-  factorUnit: "",
-  avgWeightUnit: "",
-  labelClaimUnit: "",
+  factorUnit: "mg",
+  avgWeightUnit: "mg",
+  labelClaimUnit: "mg",
   acceptanceLimitMin: "",
-  acceptanceLimitMax: ""
+  acceptanceLimitMax: "",
+  sampleWeight: null,
+  sampleWeightUnit: "mg"
 });
 
 const createNewCalculationDissoFerrousFumarate = (
@@ -861,7 +867,10 @@ const createNewCalculationDissoFerrousFumarate = (
   sampleTaken: null,
   factorUnit: "mg",
   acceptanceLimitMin: "",
-  acceptanceLimitMax: ""
+  acceptanceLimitMax: "",
+  dissoMediaVolumeUnit: "mg",
+  labelClaimUnit: "mg",
+  sampleTakenUnit: "ml"
 });
 
 const createNewSamplePreparationUC = (index: number): SamplePreparationUC => ({
@@ -1096,6 +1105,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
     useState(false);
   const [isApprovingWorksheet, setIsApprovingWorksheet] = useState(false);
 
+  const [showSubmitForQADialog, setShowSubmitForQADialog] = useState(false);
+  const [isSubmittingForQA, setIsSubmittingForQA] = useState(false);
+
   const [mobilePhasePerParam, setMobilePhasePerParam] = useState<
     Record<number, MobilePhasePreparation[]>
   >({});
@@ -1187,15 +1199,33 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const [analyzedByNamePerParam, setAnalyzedByNamePerParam] = useState<
     Record<number, string>
   >({});
-  const [approvedByPerParam, setApprovedByPerParam] = useState<
+  const [approvedByReviewerPerParam, setApprovedByPerParam] = useState<
     Record<number, string>
   >({});
-  const [approvedByNamePerParam, setApprovedByNamePerParam] = useState<
+  const [approvedByReviewerNamePerParam, setApprovedByNamePerParam] = useState<
     Record<number, string>
   >({});
-  const [approvedAtPerParam, setApprovedAtPerParam] = useState<
+  const [approvedAtReviewerPerParam, setApprovedAtPerParam] = useState<
     Record<number, string>
   >({});
+
+  // QA-specific state
+  const [approvedByQAPerParam, setApprovedByQAPerParam] = useState<
+    Record<number, string>
+  >({});
+  const [approvedAtQAPerParam, setApprovedAtQAPerParam] = useState<
+    Record<number, string>
+  >({});
+  const [remarksQAPerParam, setRemarksQAPerParam] = useState<
+    Record<number, string | null>
+  >({});
+  const [remarksByReviewerPerParam, setRemarksByReviewerPerParam] = useState<
+    Record<number, string | null>
+  >({});
+
+  const [showQARevisionDialog, setShowQARevisionDialog] = useState(false);
+  const [isQARequestingRevision, setIsQARequestingRevision] = useState(false);
+  const [qaRevisionComments, setQARevisionComments] = useState("");
   const [parameterStatusPerParam, setParameterStatusPerParam] = useState<
     Record<number, string>
   >({});
@@ -1303,6 +1333,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
     string | null
   >(null);
 
+  const [filesPerParam, setFilesPerParam] = useState<
+  Record<number, Record<string, AttachedFile[]>>
+>({});
+
+// Toggle for parameter-level PDF section (after system suitability)
+const [showParamFiles, setShowParamFiles] = useState<Record<number, boolean>>({});
+
   const [isAddingRSStandard, setIsAddingRSStandard] = useState(false);
   const [isAddingDissoStandard, setIsAddingDissoStandard] = useState(false);
   const [isAddingUCStandard, setIsAddingUCStandard] = useState(false);
@@ -1353,14 +1390,27 @@ const Worksheet: React.FC<WorksheetProps> = ({
         );
 
         if (allCompleted) {
+          const allReviewerApproved = addedParameters.every(
+            (p) => (parameterStatusPerParam[p.id] || "").toLowerCase() === "approved",
+          );
+
+          if (allReviewerApproved) {
+            setDisplayStatus("Pending QA Submission");
+            return;
+          }
           setDisplayStatus("Pending For Review");
           return;
         }
       }
     }
 
+    if (currentStatus === "Submitted For QA Review") {
+      setDisplayStatus("Pending QA Validation");
+      return;
+    }
+
     setDisplayStatus(currentStatus);
-  }, [worksheetInfo, parameterStatusPerParam]);
+  }, [worksheetInfo, parameterStatusPerParam, addedParameters]);
 
   useEffect(() => {
     computeDisplayStatus();
@@ -1502,8 +1552,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
         analysisStartDate: param.analysisStartDate,
         analysisCompletionDate: param.analysisCompletionDate,
         status: param.status,
-        approvedBy: param.approvedBy,
-        approvedAt: param.approvedAt,
+        approvedByReviewer: param.approvedByReviewer,
+        approvedAtReviewer: param.approvedAtReviewer,
         ...(matchingParameter || {}),
       };
     });
@@ -1527,6 +1577,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
     };
 
     parameters.forEach((param, idx) => {
+
       const paramId = restoredParams[idx].id;
 
       const systemSuitabilityPreps = (param.preparations || []).filter(
@@ -1616,24 +1667,52 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }));
       }
 
-      if (param.approvedBy) {
+      if (param.approvedByReviewer) {
         setApprovedByPerParam((prev) => ({
           ...prev,
-          [paramId]: param.approvedBy!,
+          [paramId]: param.approvedByReviewer!,
         }));
       }
 
-      if (param.approvedByName) {
+      if (param.approvedByReviewerName) {
         setApprovedByNamePerParam((prev) => ({
           ...prev,
-          [paramId]: param.approvedByName!,
+          [paramId]: param.approvedByReviewerName!,
         }));
       }
 
-      if (param.approvedAt) {
+      if (param.approvedAtReviewer) {
         setApprovedAtPerParam((prev) => ({
           ...prev,
-          [paramId]: param.approvedAt!,
+          [paramId]: param.approvedAtReviewer!,
+        }));
+      }
+
+      if (param.approvedByQA) {
+        setApprovedByQAPerParam((prev) => ({
+          ...prev,
+          [paramId]: param.approvedByQA!,
+        }));
+      }
+
+      if (param.approvedAtQA) {
+        setApprovedAtQAPerParam((prev) => ({
+          ...prev,
+          [paramId]: param.approvedAtQA!,
+        }));
+      }
+
+      if (param.remarksByQA !== undefined) {
+        setRemarksQAPerParam((prev) => ({
+          ...prev,
+          [paramId]: param.remarksByQA ?? null,
+        }));
+      }
+
+      if (param.remarksByReviewer !== undefined) {
+        setRemarksByReviewerPerParam((prev) => ({
+          ...prev,
+          [paramId]: param.remarksByReviewer ?? null,
         }));
       }
 
@@ -2769,7 +2848,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   avgWeightUnit: parsedData.avgWeightUnit || "",
                   labelClaimUnit: parsedData.labelClaimUnit || "",
                   acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
-                  acceptanceLimitMax: parsedData.acceptanceLimitMax || ""
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
+                  sampleWeight: parsedData.sampleWeight || null,
+                  sampleWeightUnit: parsedData.sampleWeightUnit || ""
                 };
                 restoredCalculations.ferrousFumarate.push(ffCalc);
                 break;
@@ -2779,8 +2860,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 const dffCalc: CalculationDissoFerrousFumarate = {
                   id: baseId + 8800,
                   label: parsedData.label || calc.label,
-                  selectedSamplePreparationLabel:
-                    parsedData.selectedSamplePreparationLabel || null,
+                  selectedSamplePreparationLabel: parsedData.selectedSamplePreparationLabel || null,
                   buretteReading1: parsedData.buretteReading1 || "",
                   buretteReading2: parsedData.buretteReading2 || "",
                   buretteReading3: parsedData.buretteReading3 || "",
@@ -2793,24 +2873,20 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   factorUnit: parsedData.factorUnit || null,
                   dissoMediaVolume: parsedData.dissoMediaVolume || "",
                   labelClaim: parsedData.labelClaim || "",
-                  calculationResultTablet1:
-                    parsedData.calculationResultTablet1 || null,
-                  calculationResultTablet2:
-                    parsedData.calculationResultTablet2 || null,
-                  calculationResultTablet3:
-                    parsedData.calculationResultTablet3 || null,
-                  calculationResultTablet4:
-                    parsedData.calculationResultTablet4 || null,
-                  calculationResultTablet5:
-                    parsedData.calculationResultTablet5 || null,
-                  calculationResultTablet6:
-                    parsedData.calculationResultTablet6 || null,
+                  calculationResultTablet1: parsedData.calculationResultTablet1 || null,
+                  calculationResultTablet2: parsedData.calculationResultTablet2 || null,
+                  calculationResultTablet3: parsedData.calculationResultTablet3 || null,
+                  calculationResultTablet4: parsedData.calculationResultTablet4 || null,
+                  calculationResultTablet5: parsedData.calculationResultTablet5 || null,
+                  calculationResultTablet6: parsedData.calculationResultTablet6 || null,
                   calculationResult: parsedData.calculationResult || null,
-                  calculationResultUnit:
-                    parsedData.calculationResultUnit || null,
+                  calculationResultUnit: parsedData.calculationResultUnit || null,
                   sampleTaken: parsedData.sampleTaken || null,
-                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
-                  acceptanceLimitMax: parsedData.acceptanceLimitMax || ""
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin || null,
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax || null,
+                  dissoMediaVolumeUnit: parsedData.dissoMediaVolumeUnit || null,
+                  labelClaimUnit: parsedData.labelClaimUnit || null,
+                  sampleTakenUnit: parsedData.sampleTakenUnit || null
                 };
                 restoredCalculations.dissoFerrousFumarate.push(dffCalc);
                 break;
@@ -3032,12 +3108,51 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }
       }
 
+      if (param.files && Array.isArray(param.files) && param.files.length > 0) {
+        const slotMap: Record<string, AttachedFile[]> = {};
+
+        for (const f of param.files) {
+          // Treat null / undefined / empty-string all as "no value"
+          const hasType = f.preparationType != null && f.preparationType !== "";
+          const hasLabel = f.label != null && f.label !== "";
+
+          // Param-level files have neither type nor label
+          const slotKey =
+            !hasType && !hasLabel
+              ? PARAM_LEVEL_KEY
+              : prepFileKey(
+                  hasType ? f.preparationType : null,
+                  hasLabel ? f.label : null,
+                );
+
+          if (!slotMap[slotKey]) slotMap[slotKey] = [];
+          slotMap[slotKey].push({
+            id: f.id ?? 0,
+            fileName: f.fileName,
+            fileDataBase64: f.fileDataBase64 ?? null,
+            preparationType: hasType ? f.preparationType : null,
+            label: hasLabel ? f.label : null,
+          });
+        }
+
+        // Show param-level section if we have param-level files
+        if (slotMap[PARAM_LEVEL_KEY]?.length) {
+          setShowParamFiles((prev) => ({ ...prev, [paramId]: true }));
+        }
+
+        setFilesPerParam((prev) => ({
+          ...prev,
+          [paramId]: slotMap,
+        }));
+      }
+
       if (activeGroups.length > 0) {
         setActivePreparationGroups((prev) => ({
           ...prev,
           [paramId]: activeGroups,
         }));
       }
+    
     });
 
     setSelectedParamsForDetail(restoredParams.map((p) => p.id));
@@ -3445,8 +3560,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
           analysisCompletionDate:
             analysisCompletionDatePerParam[param.id] || null,
           analyzedBy: analyzedByPerParam[param.id] || null,
-          approvedBy: approvedByPerParam[param.id] || null,
-          approvedAt: approvedAtPerParam[param.id] || null,
+          approvedByReviewer: approvedByReviewerPerParam[param.id] || null,
+          approvedAtReviewer: approvedAtReviewerPerParam[param.id] || null,
+          approvedByQA: approvedByQAPerParam[param.id] || null,
+          approvedAtQA: approvedAtQAPerParam[param.id] || null,
+          remarksByQA: remarksQAPerParam[param.id] ?? null,
+          remarksByReviewer: remarksByReviewerPerParam[param.id] ?? null,
           status: parameterStatusPerParam[param.id] || "Created",
           instrumentIds: (addedInstruments[param.id] || []).map(
             (inst) => inst.id,
@@ -3459,6 +3578,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
           ),
           preparations, // ← Unified preparations array
           calculations,
+          files: collectFilesForParam(param.id),
         };
       }),
     };
@@ -3513,7 +3633,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
     const worksheetData = collectFormDataForAPI();
 
     try {
-      if (role === "Reviewer") {
+      if (role === "Reviewer" || role === "QA") {
         const response = await updateWorksheet(worksheetId, worksheetData);
 
         if (response && response.worksheetId) {
@@ -3755,10 +3875,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
             diluentPreparation: diluentPerParam[newId] || null,
             otherInfo: otherInfoPerParam[newId] || null,
             analyzedBy: employeeId,
-            approvedBy: null,
+            approvedByReviewer: null,
             analysisStartDate: null,
             analysisCompletionDate: null,
-            approvedAt: null,
+            approvedAtReviewer: null,
             status: "Created",
             instrumentIds: (addedInstruments[newId] || []).map(
               (inst) => inst.id,
@@ -3978,6 +4098,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 }),
               ),
             ],
+            files: collectFilesForParam(newId),
           };
 
           const response = await addParameter(worksheetId, parameterData);
@@ -4283,11 +4404,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
               diluentPreparation: diluentPerParam[paramId] || null,
               otherInfo: otherInfoPerParam[paramId] || null,
               analyzedBy: employeeId,
-              approvedBy: approvedByPerParam[paramId] || null,
+              approvedByReviewer: approvedByReviewerPerParam[paramId] || null,
               analysisStartDate: analysisStartDatePerParam[paramId] || null,
               analysisCompletionDate:
                 analysisCompletionDatePerParam[paramId] || null,
-              approvedAt: approvedAtPerParam[paramId] || null,
+              approvedAtReviewer: approvedAtReviewerPerParam[paramId] || null,
               status: parameterStatusPerParam[paramId] || "Created",
               instrumentIds: (addedInstruments[paramId] || []).map(
                 (inst) => inst.id,
@@ -4301,6 +4422,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
               standardPreparations: [],
               samplePreparations: [],
               calculations: [],
+              files: [],
             };
 
             const response = await updateParameter(paramId, paramData);
@@ -4444,6 +4566,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
   const areAllParametersApproved = useCallback((): boolean => {
     if (addedParameters.length === 0) return false;
 
+    // For QA: worksheet approval is available when all params are Reviewer-approved (status = "approved")
+    // and none have been returned for revision (no pending remarksQA)
     return addedParameters.every((param) => {
       const status = (
         parameterStatusPerParam[param.id] || "created"
@@ -4575,8 +4699,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const updatedParam = {
         ...parameterForApproval,
         status: "Approved",
-        approvedBy: employeeId,
-        approvedAt: new Date().toISOString(),
+        approvedByReviewer: employeeId,
+        approvedAtReviewer: new Date().toISOString(),
+        remarksByQA: null, // Clear QA remarks when Reviewer re-approves
       };
 
       const response = await updateParameter(
@@ -4597,7 +4722,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
         setApprovedAtPerParam((prev) => ({
           ...prev,
-          [parameterForApproval.id]: updatedParam.approvedAt,
+          [parameterForApproval.id]: updatedParam.approvedAtReviewer,
+        }));
+
+        // Clear QA remarks locally when Reviewer re-approves
+        setRemarksQAPerParam((prev) => ({
+          ...prev,
+          [parameterForApproval.id]: null,
         }));
 
         setToastMessage("Parameter approved successfully!");
@@ -4633,8 +4764,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const updatedParam = {
         ...parameterForApproval,
         status: "Disapproved",
-        approvedBy: employeeId,
-        approvedAt: new Date().toISOString(),
+        approvedByReviewer: employeeId,
+        approvedAtReviewer: new Date().toISOString(),
       };
 
       const response = await updateParameter(
@@ -4655,7 +4786,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
         setApprovedAtPerParam((prev) => ({
           ...prev,
-          [parameterForApproval.id]: updatedParam.approvedAt,
+          [parameterForApproval.id]: updatedParam.approvedAtReviewer,
         }));
 
         setToastMessage("Parameter disapproved successfully!");
@@ -4683,18 +4814,14 @@ const Worksheet: React.FC<WorksheetProps> = ({
     }
   };
 
-  const handleConfirmRevision = async () => {
-    // if (!parameterForApproval || !revisionComments.trim()) {
-    //   alert("Please enter revision comments");
-    //   return;
-    // }
-
+  const handleConfirmRevision = async (comments: string) => {
     setIsRequestingRevision(true);
     try {
       const updatedParam = {
         ...parameterForApproval,
         status: "Analysis Revision",
-        revisionComments: revisionComments,
+        revisionComments: comments,
+        remarksByReviewer: comments,
       };
 
       const response = await updateParameter(
@@ -4706,6 +4833,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
         setParameterStatusPerParam((prev) => ({
           ...prev,
           [parameterForApproval?.id!]: "Analysis Revision",
+        }));
+
+        setRemarksByReviewerPerParam((prev) => ({
+          ...prev,
+          [parameterForApproval?.id!]: comments,
         }));
 
         setToastMessage("Revision requested successfully!");
@@ -4732,6 +4864,58 @@ const Worksheet: React.FC<WorksheetProps> = ({
       }, 4000);
     } finally {
       setIsRequestingRevision(false);
+    }
+  };
+
+  // ===== QA HANDLERS =====
+  const handleQARequestRevision = (param: ParameterDetail) => {
+    setParameterForApproval(param);
+    setShowQARevisionDialog(true);
+  };
+
+  const handleConfirmQARevision = async (comments: string) => {
+    if (!parameterForApproval) return;
+
+    setIsQARequestingRevision(true);
+    try {
+      const updatedParam = {
+        ...parameterForApproval,
+        status: "Analysis Revision",
+        remarksByQA: comments,
+      };
+
+      const response = await updateParameter(
+        parameterForApproval.id,
+        updatedParam,
+      );
+
+      if (response && response.parameterId) {
+        setParameterStatusPerParam((prev) => ({
+          ...prev,
+          [parameterForApproval.id]: "Analysis Revision",
+        }));
+        setRemarksQAPerParam((prev) => ({
+          ...prev,
+          [parameterForApproval.id]: comments,
+        }));
+
+        setToastMessage("Revision requested by QA successfully!");
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 4000);
+        setShowQARevisionDialog(false);
+        setParameterForApproval(null);
+        setQARevisionComments("");
+      } else {
+        setToastMessage("Failed to request QA revision!");
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 4000);
+      }
+    } catch (error) {
+      setToastMessage(`Error requesting QA revision: ${error}`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 4000);
+    } finally {
+      setIsQARequestingRevision(false);
     }
   };
 
@@ -4872,29 +5056,122 @@ const Worksheet: React.FC<WorksheetProps> = ({
     setIsApprovingWorksheet(true);
 
     try {
-      const worksheetData = collectFormDataForAPI();
-
       if (!worksheetInfo) {
         throw new Error("Worksheet information is not available");
       }
 
-      const mappedData = WorksheetDbMapper.mapAll(worksheetInfo);
+      // Capture timestamp once — used for every write below
+      const now = new Date().toISOString();
 
-      const submitResponse = await submitWorksheet(mappedData);
-
-      if (!submitResponse.success) {
-        throw new Error(
-          submitResponse.message || "Failed to submit worksheet to database",
-        );
-      }
+      // ── 1. Build the full payload with QA approval stamped on every parameter ──
+      // collectFormDataForAPI reads the current per-param state arrays, giving us
+      // the complete parameter data (preparations, calculations, files, etc.)
+      const worksheetData = collectFormDataForAPI();
 
       const updatedWorksheetData = {
         ...worksheetData,
         documentInfo: {
           ...worksheetData?.documentInfo,
           status: "Approved",
+          approvedBy: employeeId,   // → approved_by column on worksheet row
+          approvedAt: now,          // → approved_at column on worksheet row
+        },
+        // Stamp approvedByQA / approvedAtQA on every parameter in the same payload.
+        // updateWorksheet's backend loop calls UpdateParameter for each one in a
+        // single transaction — no separate per-param API calls needed.
+        parameters: worksheetData.parameters?.map((p) => ({
+          ...p,
+          approvedByQA: employeeId,
+          approvedAtQA: now,
+        })),
+      };
+
+      // ── 2. Single call — updates worksheet row + all parameter rows atomically ──
+      const response = await updateWorksheet(worksheetId, updatedWorksheetData);
+
+      if (!response?.worksheetId) {
+        throw new Error("Failed to update worksheet status after approval");
+      }
+
+      // ── 3. Submit to final tbl tables — inject QA fields BEFORE mapping ──
+      const worksheetInfoWithQA = {
+        ...worksheetInfo,
+        sample: {
+          ...worksheetInfo.sample,
+          status: "Approved",
           approvedBy: employeeId,
-          approvedAt: new Date().toISOString(),
+          approvedAt: now,
+        },
+        parameters: worksheetInfo.parameters.map((p) => ({
+          ...p,
+          approvedByQA: employeeId,
+          approvedAtQA: now,
+        })),
+      };
+
+      const mappedData = WorksheetDbMapper.mapAll(worksheetInfoWithQA as typeof worksheetInfo);
+      const submitResponse = await submitWorksheet(mappedData);
+
+      if (!submitResponse.success) {
+        throw new Error(
+          submitResponse.message || "Failed to submit worksheet to final database",
+        );
+      }
+
+      // ── 4. Update local React state so UI reflects approval immediately ──
+      const qaUpdate: Record<number, string> = {};
+      const qaAtUpdate: Record<number, string> = {};
+      addedParameters.forEach((p) => {
+        qaUpdate[p.id] = employeeId;
+        qaAtUpdate[p.id] = now;
+      });
+      setApprovedByQAPerParam((prev) => ({ ...prev, ...qaUpdate }));
+      setApprovedAtQAPerParam((prev) => ({ ...prev, ...qaAtUpdate }));
+
+      setWorksheetInfo((prev) =>
+        prev
+          ? {
+              ...prev,
+              sample: {
+                ...prev.sample,
+                status: "Approved",
+                approvedBy: employeeId,
+                approvedAt: now,
+              },
+            }
+          : null,
+      );
+
+      setToastMessage(
+        "Worksheet approved by QA successfully! All parameters are now finalized.",
+      );
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 4000);
+      setShowApproveWorksheetDialog(false);
+
+    } catch (error: any) {
+      console.error("Error during worksheet approval:", error);
+      setToastMessage(`Error approving worksheet: ${error.message || error}`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 4000);
+    } finally {
+      setIsApprovingWorksheet(false);
+    }
+  };
+
+  const handleSubmitForQA = async () => {
+    setIsSubmittingForQA(true);
+    try {
+      const worksheetData = collectFormDataForAPI();
+      const now = new Date().toISOString();
+
+      const updatedWorksheetData = {
+        ...worksheetData,
+        documentInfo: {
+          ...worksheetData?.documentInfo,
+          status: "Submitted For QA Review",
+          submittedQaBy: employeeId,
+          submittedQaAt: now,
         },
       };
 
@@ -4907,33 +5184,28 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 ...prev,
                 sample: {
                   ...prev.sample,
-                  status: "Approved",
+                  status: "Submitted For QA Review",
+                  submittedQaBy: employeeId,
+                  submittedQaAt: now,
                 },
               }
             : null,
         );
 
-        setToastMessage(
-          "Worksheet submitted to database and approved successfully! All parameters are now finalized.",
-        );
+        setToastMessage("Worksheet submitted for QA Review successfully!");
         setShowToast(true);
-        setTimeout(() => {
-          setShowToast(false);
-        }, 4000);
-
-        setShowApproveWorksheetDialog(false);
+        setTimeout(() => setShowToast(false), 4000);
+        setShowSubmitForQADialog(false);
       } else {
-        throw new Error("Failed to update worksheet status after submission");
+        throw new Error("Failed to submit worksheet for QA Review");
       }
     } catch (error: any) {
-      console.error("Error during worksheet approval:", error);
-      setToastMessage(`Error approving worksheet: ${error.message || error}`);
+      console.error("Error submitting for QA:", error);
+      setToastMessage(`Error: ${error.message || error}`);
       setShowToast(true);
-      setTimeout(() => {
-        setShowToast(false);
-      }, 4000);
+      setTimeout(() => setShowToast(false), 4000);
     } finally {
-      setIsApprovingWorksheet(false);
+      setIsSubmittingForQA(false);
     }
   };
 
@@ -4959,6 +5231,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const indexToRemove = standards.findIndex(
         (sp) => sp.id === standardPreparationId,
       );
+      const removedPrep = standards[indexToRemove];
 
       const updatedStandards = standards
         .filter((dm) => dm.id !== standardPreparationId)
@@ -4978,6 +5251,16 @@ const Worksheet: React.FC<WorksheetProps> = ({
             }));
           return { ...prevSample, [parameterId]: updatedSamples };
         });
+
+        // Remove files tied to this preparation's label
+        if (removedPrep) {
+          const fileKeyToRemove = prepFileKey("assay", removedPrep.label);
+          setFilesPerParam((prevFiles) => {
+            const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+            delete paramSlots[fileKeyToRemove];
+            return { ...prevFiles, [parameterId]: paramSlots };
+          });
+        }
       }
 
       return { ...prev, [parameterId]: updatedStandards };
@@ -5027,6 +5310,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const indexToRemove = samples.findIndex(
         (sp) => sp.id === samplePreparationId,
       );
+      const removedPrep = samples[indexToRemove];
 
       const updatedSamples = samples
         .filter((sp) => sp.id !== samplePreparationId)
@@ -5045,6 +5329,16 @@ const Worksheet: React.FC<WorksheetProps> = ({
               label: `Standard Preparation ${1 + index}`,
             }));
           return { ...prevStandard, [parameterId]: updatedStandards };
+        });
+      }
+
+      // Remove files tied to this sample preparation's label
+      if (removedPrep) {
+        const fileKeyToRemove = prepFileKey("assay", `Preparation Files ${indexToRemove + 1}`);
+        setFilesPerParam((prevFiles) => {
+          const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+          delete paramSlots[fileKeyToRemove];
+          return { ...prevFiles, [parameterId]: paramSlots };
         });
       }
 
@@ -5104,12 +5398,21 @@ const Worksheet: React.FC<WorksheetProps> = ({
     samplePreparationLodId: number,
   ) => {
     setSamplePreparationLodPerParam((prev) => {
+      const removedPrep = (prev[parameterId] || []).find((spl) => spl.id === samplePreparationLodId);
       const updatedSamples = (prev[parameterId] || [])
         .filter((spl) => spl.id !== samplePreparationLodId)
         .map((spl, index) => ({
           ...spl,
           label: `Sample Preparation ${1 + index}`,
         }));
+      if (removedPrep) {
+        const fileKeyToRemove = prepFileKey("lod", removedPrep.label);
+        setFilesPerParam((prevFiles) => {
+          const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+          delete paramSlots[fileKeyToRemove];
+          return { ...prevFiles, [parameterId]: paramSlots };
+        });
+      }
       return { ...prev, [parameterId]: updatedSamples };
     });
   };
@@ -5167,12 +5470,21 @@ const Worksheet: React.FC<WorksheetProps> = ({
     samplePreparationSulphatedAshId: number,
   ) => {
     setSamplePreparationSulphatedAshPerParam((prev) => {
+      const removedPrep = (prev[parameterId] || []).find((spsa) => spsa.id === samplePreparationSulphatedAshId);
       const updatedSamples = (prev[parameterId] || [])
         .filter((spsa) => spsa.id !== samplePreparationSulphatedAshId)
         .map((spsa, index) => ({
           ...spsa,
           label: `Sample Preparation ${1 + index}`,
         }));
+      if (removedPrep) {
+        const fileKeyToRemove = prepFileKey("sulphated_ash", removedPrep.label);
+        setFilesPerParam((prevFiles) => {
+          const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+          delete paramSlots[fileKeyToRemove];
+          return { ...prevFiles, [parameterId]: paramSlots };
+        });
+      }
       return { ...prev, [parameterId]: updatedSamples };
     });
   };
@@ -5230,12 +5542,21 @@ const Worksheet: React.FC<WorksheetProps> = ({
     samplePreparationROIId: number,
   ) => {
     setSamplePreparationROIPerParam((prev) => {
+      const removedPrep = (prev[parameterId] || []).find((spl) => spl.id === samplePreparationROIId);
       const updatedSamples = (prev[parameterId] || [])
         .filter((spl) => spl.id !== samplePreparationROIId)
         .map((spl, index) => ({
           ...spl,
           label: `Sample Preparation ${1 + index}`,
         }));
+      if (removedPrep) {
+        const fileKeyToRemove = prepFileKey("roi", removedPrep.label);
+        setFilesPerParam((prevFiles) => {
+          const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+          delete paramSlots[fileKeyToRemove];
+          return { ...prevFiles, [parameterId]: paramSlots };
+        });
+      }
       return { ...prev, [parameterId]: updatedSamples };
     });
   };
@@ -5283,6 +5604,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const indexToRemove = samples.findIndex(
         (sp) => sp.id === samplePreparationDissoId,
       );
+      const removedPrep = samples[indexToRemove];
 
       const updatedSamples = samples
         .filter((sp) => sp.id !== samplePreparationDissoId)
@@ -5315,6 +5637,16 @@ const Worksheet: React.FC<WorksheetProps> = ({
             }));
           return { ...prevDissoMedia, [parameterId]: updatedDissoMedias };
         });
+
+        // Remove files tied to this preparation's slot
+        if (removedPrep) {
+          const fileKeyToRemove = prepFileKey("dissolution", `Preparation Files ${indexToRemove + 1}`);
+          setFilesPerParam((prevFiles) => {
+            const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+            delete paramSlots[fileKeyToRemove];
+            return { ...prevFiles, [parameterId]: paramSlots };
+          });
+        }
       }
 
       return { ...prev, [parameterId]: updatedSamples };
@@ -5892,6 +6224,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const indexToRemove = standards.findIndex(
         (sp) => sp.id === standardPreparationId,
       );
+      const removedPrep = standards[indexToRemove];
 
       const updatedStandards = standards
         .filter((dm) => dm.id !== standardPreparationId)
@@ -5911,6 +6244,15 @@ const Worksheet: React.FC<WorksheetProps> = ({
             }));
           return { ...prevSample, [parameterId]: updatedSamples };
         });
+
+        if (removedPrep) {
+          const fileKeyToRemove = prepFileKey("residual_solvent", removedPrep.label);
+          setFilesPerParam((prevFiles) => {
+            const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+            delete paramSlots[fileKeyToRemove];
+            return { ...prevFiles, [parameterId]: paramSlots };
+          });
+        }
       }
 
       return { ...prev, [parameterId]: updatedStandards };
@@ -6076,6 +6418,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const indexToRemove = standards.findIndex(
         (sp) => sp.id === standardPreparationId,
       );
+      const removedPrep = standards[indexToRemove];
 
       const updatedStandards = standards
         .filter((dm) => dm.id !== standardPreparationId)
@@ -6095,6 +6438,15 @@ const Worksheet: React.FC<WorksheetProps> = ({
             }));
           return { ...prevSample, [parameterId]: updatedSamples };
         });
+
+        if (removedPrep) {
+          const fileKeyToRemove = prepFileKey("related_substance", removedPrep.label);
+          setFilesPerParam((prevFiles) => {
+            const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+            delete paramSlots[fileKeyToRemove];
+            return { ...prevFiles, [parameterId]: paramSlots };
+          });
+        }
       }
 
       return { ...prev, [parameterId]: updatedStandards };
@@ -6246,6 +6598,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const indexToRemove = standards.findIndex(
         (sp) => sp.id === standardPreparationId,
       );
+      const removedPrep = standards[indexToRemove];
 
       const updatedStandards = standards
         .filter((dm) => dm.id !== standardPreparationId)
@@ -6278,6 +6631,16 @@ const Worksheet: React.FC<WorksheetProps> = ({
             }));
           return { ...prevDissoMedia, [parameterId]: updatedDissoMedias };
         });
+
+        // Remove files tied to this preparation
+        if (removedPrep) {
+          const fileKeyToRemove = prepFileKey("dissolution", removedPrep.label);
+          setFilesPerParam((prevFiles) => {
+            const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+            delete paramSlots[fileKeyToRemove];
+            return { ...prevFiles, [parameterId]: paramSlots };
+          });
+        }
       }
 
       return { ...prev, [parameterId]: updatedStandards };
@@ -6369,6 +6732,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const indexToRemove = standards.findIndex(
         (sp) => sp.id === standardPreparationId,
       );
+      const removedPrep = standards[indexToRemove];
 
       const updatedStandards = standards
         .filter((dm) => dm.id !== standardPreparationId)
@@ -6399,6 +6763,15 @@ const Worksheet: React.FC<WorksheetProps> = ({
             }));
           return { ...prevDissoMedia, [parameterId]: updatedDissoMedias };
         });
+
+        if (removedPrep) {
+          const fileKeyToRemove = prepFileKey("dissolution_profile", removedPrep.label);
+          setFilesPerParam((prevFiles) => {
+            const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+            delete paramSlots[fileKeyToRemove];
+            return { ...prevFiles, [parameterId]: paramSlots };
+          });
+        }
       }
 
       return { ...prev, [parameterId]: updatedStandards };
@@ -6762,12 +7135,21 @@ const Worksheet: React.FC<WorksheetProps> = ({
     samplePrepId: number,
   ) => {
     setSamplePrepAssayFerrousFumaratePerParam((prev) => {
+      const removedPrep = (prev[parameterId] || []).find((sp) => sp.id === samplePrepId);
       const updated = (prev[parameterId] || [])
         .filter((sp) => sp.id !== samplePrepId)
         .map((sp, index) => ({
           ...sp,
           label: `Sample Preparation ${index + 1}`,
         }));
+      if (removedPrep) {
+        const fileKeyToRemove = prepFileKey("assay_ferrous_fumarate", removedPrep.label);
+        setFilesPerParam((prevFiles) => {
+          const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+          delete paramSlots[fileKeyToRemove];
+          return { ...prevFiles, [parameterId]: paramSlots };
+        });
+      }
       return { ...prev, [parameterId]: updated };
     });
   };
@@ -6780,7 +7162,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: [
           ...current,
-          createNewCalculationFerrousFumarate(current.length),
+          createNewAssayCalculationFerrousFumarate(current.length),
         ],
       };
     });
@@ -6831,12 +7213,21 @@ const Worksheet: React.FC<WorksheetProps> = ({
     samplePrepId: number,
   ) => {
     setSamplePrepDissoFerrousFumaratePerParam((prev) => {
+      const removedPrep = (prev[parameterId] || []).find((sp) => sp.id === samplePrepId);
       const updated = (prev[parameterId] || [])
         .filter((sp) => sp.id !== samplePrepId)
         .map((sp, index) => ({
           ...sp,
           label: `Sample Preparation ${index + 1}`,
         }));
+      if (removedPrep) {
+        const fileKeyToRemove = prepFileKey("dissolution_ferrous_fumarate", removedPrep.label);
+        setFilesPerParam((prevFiles) => {
+          const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+          delete paramSlots[fileKeyToRemove];
+          return { ...prevFiles, [parameterId]: paramSlots };
+        });
+      }
       return { ...prev, [parameterId]: updated };
     });
   };
@@ -7123,6 +7514,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
       const indexToRemove = standards.findIndex(
         (sp) => sp.id === standardPreparationId,
       );
+      const removedPrep = standards[indexToRemove];
 
       const updatedStandards = standards
         .filter((dm) => dm.id !== standardPreparationId)
@@ -7142,6 +7534,15 @@ const Worksheet: React.FC<WorksheetProps> = ({
             }));
           return { ...prevSample, [parameterId]: updatedSamples };
         });
+
+        if (removedPrep) {
+          const fileKeyToRemove = prepFileKey("uniformity_of_content", removedPrep.label);
+          setFilesPerParam((prevFiles) => {
+            const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+            delete paramSlots[fileKeyToRemove];
+            return { ...prevFiles, [parameterId]: paramSlots };
+          });
+        }
       }
 
       return { ...prev, [parameterId]: updatedStandards };
@@ -7296,13 +7697,96 @@ const Worksheet: React.FC<WorksheetProps> = ({
     }));
   };
 
-  const handleOtherInfoChange = (parameterId: number, value: string) => {
-    setOtherInfoPerParam((prev) => ({ ...prev, [parameterId]: value }));
-  };
+  
+const prepFileKey = (type: string | null, label: string | null) =>
+  `${type ?? ""}|${label ?? ""}`;
 
-  const handleDiluentChange = (parameterId: number, value: string) => {
-    setDiluentPerParam((prev) => ({ ...prev, [parameterId]: value }));
-  };
+/** Slot key for parameter-level files */
+const PARAM_LEVEL_KEY = "param_level";
+
+const getFilesForPrep = (
+  paramId: number,
+  type: string | null,
+  label: string | null,
+): AttachedFile[] =>
+  (filesPerParam[paramId] ?? {})[prepFileKey(type, label)] ?? [];
+
+const getParamLevelFiles = (paramId: number): AttachedFile[] =>
+  (filesPerParam[paramId] ?? {})[PARAM_LEVEL_KEY] ?? [];
+
+const updateFilesForSlot = (
+  paramId: number,
+  slotKey: string,
+  updater: (prev: AttachedFile[]) => AttachedFile[],
+) => {
+  setFilesPerParam((prev) => ({
+    ...prev,
+    [paramId]: {
+      ...(prev[paramId] ?? {}),
+      [slotKey]: updater((prev[paramId] ?? {})[slotKey] ?? []),
+    },
+  }));
+};
+
+const handleAddPrepFiles = (
+  paramId: number,
+  type: string | null,
+  label: string | null,
+  newFiles: AttachedFile[],
+) => {
+  const key = prepFileKey(type, label);
+  updateFilesForSlot(paramId, key, (prev) => [...prev, ...newFiles]);
+};
+
+const handleRemovePrepFile = (
+  paramId: number,
+  type: string | null,
+  label: string | null,
+  index: number,
+) => {
+  const key = prepFileKey(type, label);
+  updateFilesForSlot(paramId, key, (prev) => prev.filter((_, i) => i !== index));
+};
+
+const handleAddParamFiles = (paramId: number, newFiles: AttachedFile[]) => {
+  updateFilesForSlot(paramId, PARAM_LEVEL_KEY, (prev) => [...prev, ...newFiles]);
+};
+
+const handleRemoveParamFile = (paramId: number, index: number) => {
+  updateFilesForSlot(paramId, PARAM_LEVEL_KEY, (prev) => prev.filter((_, i) => i !== index));
+};
+
+/** Collect ALL files for a param into a flat WorksheetFileData[] for save payload */
+const collectFilesForParam = (paramId: number): WorksheetFileData[] => {
+  const slots = filesPerParam[paramId] ?? {};
+  const result: WorksheetFileData[] = [];
+  for (const [slotKey, slotFiles] of Object.entries(slots)) {
+    for (const f of slotFiles) {
+      if (slotKey === PARAM_LEVEL_KEY) {
+        result.push({
+          id: f.id,
+          preparationType: null,
+          label: null,
+          fileName: f.fileName,
+          fileDataBase64: f.fileDataBase64,
+        });
+      } else {
+        // Key format: "type|label" — use indexOf so labels containing "|" are preserved
+        const separatorIdx = slotKey.indexOf("|");
+        const type = separatorIdx >= 0 ? slotKey.slice(0, separatorIdx) : slotKey;
+        const label = separatorIdx >= 0 ? slotKey.slice(separatorIdx + 1) : "";
+        result.push({
+          id: f.id,
+          preparationType: type || null,
+          label: label || null,
+          fileName: f.fileName,
+          fileDataBase64: f.fileDataBase64,
+        });
+      }
+    }
+  }
+  return result;
+};
 
   const getAvailableStandardsForParameter = (
     parameterId: number,
@@ -7977,15 +8461,22 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
       // ========== ANALYST VIEW - ANALYSIS REVISION REQUESTED ==========
       if (role.toLowerCase() === "analyst" && isAnalysisRevision && param) {
+        const qaRemarks = remarksQAPerParam[parameterId];
+        const reviewerRemarks = remarksByReviewerPerParam[parameterId];
+        const isFromQA = !!qaRemarks;
+        const activeRemarks = isFromQA ? qaRemarks : reviewerRemarks;
+        const senderLabel = isFromQA ? "QA" : "Reviewer";
+        const accentColor = isFromQA ? "amber" : "orange";
+
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
-            <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
+            <div className={`bg-gradient-to-r ${isFromQA ? "from-amber-50 via-amber-100 to-amber-50" : "from-orange-50 via-orange-100 to-orange-50"} px-6 py-5 border-b border-slate-200`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                    <div className={`w-12 h-12 ${isFromQA ? "bg-amber-100" : "bg-orange-100"} rounded-xl flex items-center justify-center`}>
                       <svg
-                        className="w-6 h-6 text-emerald-600 animate-pulse"
+                        className={`w-6 h-6 ${isFromQA ? "text-amber-600" : "text-orange-600"} animate-pulse`}
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -7999,11 +8490,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-slate-800">
-                      Revision Requested
+                      Revision Requested by {senderLabel}
                     </h3>
                     <p className="text-sm text-slate-600 mt-0.5">
-                      Reviewer has requested revisions. Review feedback and
-                      update your work
+                      {senderLabel} has requested revisions. Review the feedback below and update your work
                     </p>
                   </div>
                 </div>
@@ -8012,7 +8502,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   onClick={() => handleCompleteAnalysis(param)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+                  className={`px-5 py-2.5 bg-white/60 backdrop-blur-sm border ${isFromQA ? "border-amber-200 text-amber-700 hover:border-amber-300" : "border-orange-200 text-orange-700 hover:border-orange-300"} text-sm font-semibold rounded-lg hover:bg-white/80 transition-all flex items-center gap-2 shadow-sm`}
                 >
                   <svg
                     className="w-5 h-5"
@@ -8032,8 +8522,47 @@ const Worksheet: React.FC<WorksheetProps> = ({
               </div>
             </div>
 
-            <div className="p-6 bg-emerald-50">
+            <div className={`p-6 ${isFromQA ? "bg-amber-50" : "bg-orange-50"}`}>
               <div className="grid grid-cols-1 gap-4">
+
+                {/* Revision Remarks — most prominent */}
+                {activeRemarks ? (
+                  <div className={`bg-white border ${isFromQA ? "border-amber-200" : "border-orange-200"} rounded-xl p-5`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 ${isFromQA ? "bg-amber-50" : "bg-orange-50"} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                        <svg className={`w-5 h-5 ${isFromQA ? "text-amber-600" : "text-orange-600"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm text-slate-800 mb-2 flex items-center gap-2">
+                          Revision Remarks
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isFromQA ? "bg-amber-100 text-amber-700" : "bg-orange-100 text-orange-700"}`}>
+                            from {senderLabel}
+                          </span>
+                        </h4>
+                        <p className={`text-sm italic leading-relaxed px-4 py-3 rounded-lg border ${isFromQA ? "text-amber-900 bg-amber-50 border-amber-100" : "text-orange-900 bg-orange-50 border-orange-100"}`}>
+                          &ldquo;{activeRemarks}&rdquo;
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-slate-200 rounded-xl p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm text-slate-800 mb-1">Revision Remarks</h4>
+                        <p className="text-sm text-slate-400 italic">No remarks provided by {senderLabel}.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -8059,8 +8588,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         <li className="flex items-start gap-2">
                           <span className="text-emerald-500 mt-1">•</span>
                           <span>
-                            Review Reviewer's feedback and make necessary
-                            corrections
+                            Review {senderLabel}&apos;s feedback above and make necessary corrections
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
@@ -8073,14 +8601,14 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         <li className="flex items-start gap-2">
                           <span className="text-emerald-500 mt-1">•</span>
                           <span>
-                            Click <strong>"Save Draft"</strong> to save your
+                            Click <strong>&quot;Save Draft&quot;</strong> to save your
                             changes
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="text-emerald-500 mt-1">•</span>
                           <span>
-                            Click <strong>"Complete Revision"</strong> when all
+                            Click <strong>&quot;Complete Revision&quot;</strong> when all
                             changes are done
                           </span>
                         </li>
@@ -8089,10 +8617,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   </div>
                 </div>
 
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                <div className={`${isFromQA ? "bg-amber-50 border-amber-200" : "bg-orange-50 border-orange-200"} border rounded-xl p-4`}>
                   <div className="flex items-start gap-3">
                     <svg
-                      className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5"
+                      className={`w-5 h-5 ${isFromQA ? "text-amber-600" : "text-orange-600"} flex-shrink-0 mt-0.5`}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -8104,10 +8632,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    <p className="text-sm text-emerald-800">
+                    <p className={`text-sm ${isFromQA ? "text-amber-800" : "text-orange-800"}`}>
                       <strong>Tip:</strong> Carefully review all sections to
                       ensure accuracy before resubmitting. Your work will be
-                      sent back to Reviewer for re-approval.
+                      sent back to {senderLabel} for re-approval.
                     </p>
                   </div>
                 </div>
@@ -8218,8 +8746,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 </div>
               </div>
 
-              {approvedByPerParam[parameterId] &&
-                approvedAtPerParam[parameterId] && (
+              {approvedByReviewerPerParam[parameterId] &&
+                approvedAtReviewerPerParam[parameterId] && (
                   <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -8239,10 +8767,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-emerald-800">
-                          Approved By: {approvedByNamePerParam[parameterId]}
+                          Approved By: {approvedByReviewerNamePerParam[parameterId]} (Reviewer)
                         </p>
                         <p className="text-sm text-emerald-700 mt-1">
-                          Approval Date: {approvedAtPerParam[parameterId]}
+                          Approval Date: {approvedAtReviewerPerParam[parameterId]}
                         </p>
                       </div>
                     </div>
@@ -8776,6 +9304,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
       // ========== REVIEWER VIEW - ANALYSIS REVISION ==========
       if (role.toLowerCase() === "reviewer" && isAnalysisRevision && param) {
+        const qaRemarks = remarksQAPerParam[parameterId];
+        const reviewerRemarks = remarksByReviewerPerParam[parameterId];
+        const isFromQA = !!qaRemarks;
+        const activeRemarks = isFromQA ? qaRemarks : reviewerRemarks;
+        const senderLabel = isFromQA ? "QA" : "Reviewer (You)";
+
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
             <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
@@ -8816,6 +9350,45 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
             <div className="p-6 bg-emerald-50">
               <div className="grid grid-cols-1 gap-4">
+
+                {/* Revision Remarks — show what was sent */}
+                {activeRemarks ? (
+                  <div className="bg-white border border-emerald-200 rounded-xl p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm text-slate-800 mb-2 flex items-center gap-2">
+                          Revision Remarks Sent
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-100 text-emerald-700">
+                            from {senderLabel}
+                          </span>
+                        </h4>
+                        <p className="text-sm italic leading-relaxed px-4 py-3 rounded-lg border text-emerald-900 bg-emerald-50 border-emerald-100">
+                          &ldquo;{activeRemarks}&rdquo;
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-slate-200 rounded-xl p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm text-slate-800 mb-1">Revision Remarks</h4>
+                        <p className="text-sm text-slate-400 italic">No remarks were provided with this revision request.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -8840,7 +9413,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                       <ul className="text-sm text-slate-600 space-y-2">
                         <li className="flex items-start gap-2">
                           <span className="text-emerald-500 mt-1">•</span>
-                          <span>You requested revisions on this parameter</span>
+                          <span>{isFromQA ? "QA" : "You"} requested revisions on this parameter</span>
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="text-emerald-500 mt-1">•</span>
@@ -8882,7 +9455,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     </svg>
                     <p className="text-sm text-slate-700">
                       <strong>Please wait:</strong> The parameter will return to
-                      "Analysis Completed" status once the analyst finishes the
+                      &quot;Analysis Completed&quot; status once the analyst finishes the
                       revisions.
                     </p>
                   </div>
@@ -8994,8 +9567,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 </div>
               </div>
 
-              {approvedByPerParam[parameterId] &&
-                approvedAtPerParam[parameterId] && (
+              {approvedByReviewerPerParam[parameterId] &&
+                approvedAtReviewerPerParam[parameterId] && (
                   <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -9015,10 +9588,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-emerald-800">
-                          Approved By: {approvedByNamePerParam[parameterId]}
+                          Approved By: {approvedByReviewerNamePerParam[parameterId]} (Reviewer)
                         </p>
                         <p className="text-sm text-emerald-700 mt-1">
-                          Approval Date: {approvedAtPerParam[parameterId]}
+                          Approval Date: {approvedAtReviewerPerParam[parameterId]}
                         </p>
                       </div>
                     </div>
@@ -9030,10 +9603,182 @@ const Worksheet: React.FC<WorksheetProps> = ({
       }
 
       // If none of the conditions match, return null (no overlay)
+
+      // ========== QA VIEW - APPROVED (Reviewer approved, pending QA worksheet approval) ==========
+      if (role.toLowerCase() === "qa" && isApproved && param) {
+        return (
+          <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
+            <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                    <svg className="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-800">
+                      Reviewer Approved — Pending QA Worksheet Approval
+                    </h3>
+                    <p className="text-sm text-slate-600 mt-0.5">
+                      You can return this parameter for revision, or approve the entire worksheet once all parameters are reviewed
+                    </p>
+                  </div>
+                </div>
+                <motion.button
+                  onClick={() => handleRequestRevision(param)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Return for Revision
+                </motion.button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ========== QA VIEW - ANALYSIS REVISION (parameter sent back by QA or Reviewer) ==========
+      if (role.toLowerCase() === "qa" && isAnalysisRevision && param) {
+        const qaRemarks = remarksQAPerParam[parameterId];
+        const reviewerRemarks = remarksByReviewerPerParam[parameterId];
+        const isFromQA = !!qaRemarks;
+        const activeRemarks = isFromQA ? qaRemarks : reviewerRemarks;
+        const senderLabel = isFromQA ? "QA" : "Reviewer";
+        const accentColor = isFromQA ? "amber" : "slate";
+
+        return (
+          <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
+            {/* Header */}
+            <div className={`bg-gradient-to-r ${isFromQA ? "from-amber-50 via-amber-100 to-amber-50" : "from-slate-50 via-slate-100 to-slate-50"} px-6 py-5 border-b border-slate-200`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 ${isFromQA ? "bg-amber-100" : "bg-slate-200"} rounded-xl flex items-center justify-center`}>
+                    <svg className={`w-6 h-6 ${isFromQA ? "text-amber-600" : "text-slate-600"} animate-pulse`} fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-800">
+                      Revision In Progress — Returned by {senderLabel}
+                    </h3>
+                    <p className="text-sm text-slate-600 mt-0.5">
+                      Analyst is working on the requested revisions
+                    </p>
+                  </div>
+                </div>
+                <div className={`px-4 py-2 bg-white/60 backdrop-blur-sm border ${isFromQA ? "border-amber-200" : "border-slate-300"} rounded-lg`}>
+                  <span className={`text-sm font-semibold ${isFromQA ? "text-amber-700" : "text-slate-600"} uppercase tracking-wider`}>
+                    AWAITING REVISION
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Content Body */}
+            <div className={`p-6 ${isFromQA ? "bg-amber-50" : "bg-slate-50"}`}>
+              <div className="grid grid-cols-1 gap-4">
+
+                {/* Remarks Card — most prominent */}
+                {activeRemarks ? (
+                  <div className={`bg-white border ${isFromQA ? "border-amber-200" : "border-slate-200"} rounded-xl p-5`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 ${isFromQA ? "bg-amber-50" : "bg-slate-100"} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                        <svg className={`w-5 h-5 ${isFromQA ? "text-amber-600" : "text-slate-600"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm text-slate-800 mb-2 flex items-center gap-2">
+                          Revision Remarks
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isFromQA ? "bg-amber-100 text-amber-700" : "bg-slate-200 text-slate-600"}`}>
+                            from {senderLabel}
+                          </span>
+                        </h4>
+                        <p className={`text-sm italic leading-relaxed px-4 py-3 rounded-lg border ${isFromQA ? "text-amber-900 bg-amber-50 border-amber-100" : "text-slate-700 bg-slate-50 border-slate-100"}`}>
+                          &ldquo;{activeRemarks}&rdquo;
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-slate-200 rounded-xl p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm text-slate-800 mb-1">Revision Remarks</h4>
+                        <p className="text-sm text-slate-400 italic">No remarks provided by {senderLabel}.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Status Info Card */}
+                <div className="bg-white border border-slate-200 rounded-xl p-5">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-sm text-slate-800 mb-2">Current Status</h4>
+                      <ul className="text-sm text-slate-600 space-y-2">
+                        <li className="flex items-start gap-2">
+                          <span className={`${isFromQA ? "text-amber-500" : "text-slate-400"} mt-1`}>•</span>
+                          <span>{senderLabel} returned this parameter for revision</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className={`${isFromQA ? "text-amber-500" : "text-slate-400"} mt-1`}>•</span>
+                          <span>The analyst is currently making the necessary changes</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className={`${isFromQA ? "text-amber-500" : "text-slate-400"} mt-1`}>•</span>
+                          <span>Once complete, it will be resubmitted for Reviewer approval</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className={`${isFromQA ? "text-amber-500" : "text-slate-400"} mt-1`}>•</span>
+                          <span>You can view all parameter details below</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Wait notice */}
+                <div className="bg-slate-100 border border-slate-200 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm text-slate-700">
+                      <strong>Please wait:</strong> The parameter will return to &quot;Analysis Completed&quot; status once the analyst finishes the revisions and the Reviewer re-approves it.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        );
+      }
+
       return null;
     },
     (prevProps, nextProps) => {
-      return prevProps.parameterId === nextProps.parameterId;
+      return (
+        prevProps.parameterId === nextProps.parameterId &&
+        (parameterStatusPerParam[prevProps.parameterId] || "") ===
+          (parameterStatusPerParam[nextProps.parameterId] || "")
+      );
     },
   );
 
@@ -9211,6 +9956,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
         // ========== ANALYST VIEW - ANALYSIS REVISION ==========
         if (role.toLowerCase() === "analyst" && isAnalysisRevision && param) {
+          const qaRemarks = remarksQAPerParam[parameterId];
+          const reviewerRemarks = remarksByReviewerPerParam[parameterId];
+          const isFromQA = !!qaRemarks;
           return (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -9235,11 +9983,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-slate-800">
-                        Revision Requested
+                        Revision Requested {isFromQA ? "by QA" : "by Reviewer"}
                       </h4>
                       <p className="text-xs text-slate-600">
-                        HOD has requested revisions. Review feedback and update
-                        your work
+                        {isFromQA
+                          ? "QA has requested revisions. Review feedback and update your work"
+                          : "Reviewer has requested revisions. Review feedback and update your work"}
                       </p>
                     </div>
                   </div>
@@ -9267,11 +10016,28 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   </motion.button>
                 </div>
               </div>
+
+              {/* Remarks Block */}
+              {(qaRemarks || reviewerRemarks) && (
+                <div className={`px-6 py-4 border-t ${isFromQA ? "bg-amber-50 border-amber-100" : "bg-slate-50 border-slate-100"}`}>
+                  <div className="flex items-start gap-3">
+                    <svg className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isFromQA ? "text-amber-500" : "text-slate-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-xs font-semibold uppercase tracking-wide ${isFromQA ? "text-amber-600" : "text-slate-500"}`}>
+                        {isFromQA ? "QA Remarks" : "Reviewer Remarks"}
+                      </span>
+                      <p className={`mt-1 text-sm italic leading-relaxed ${isFromQA ? "text-amber-900" : "text-slate-700"}`}>
+                        &ldquo;{isFromQA ? qaRemarks : reviewerRemarks}&rdquo;
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </motion.div>
           );
         }
-
-        // ========== ANALYST VIEW - APPROVED ==========
         if (role.toLowerCase() === "analyst" && isApproved && param) {
           return (
             <motion.div
@@ -9543,6 +10309,9 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
         // ========== reviewer VIEW - ANALYSIS REVISION ==========
         if (role.toLowerCase() === "reviewer" && isAnalysisRevision && param) {
+          const qaRemarks = remarksQAPerParam[parameterId];
+          const reviewerRemarks = remarksByReviewerPerParam[parameterId];
+          const isFromQA = !!qaRemarks;
           return (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -9567,7 +10336,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-slate-800">
-                        Revision In Progress
+                        Revision In Progress — {isFromQA ? "Returned by QA" : "Requested by You"}
                       </h4>
                       <p className="text-xs text-slate-600">
                         Analyst is working on the requested revisions
@@ -9582,6 +10351,25 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   </div>
                 </div>
               </div>
+
+              {/* Remarks Block */}
+              {(qaRemarks || reviewerRemarks) && (
+                <div className={`px-6 py-4 border-t ${isFromQA ? "bg-amber-50 border-amber-100" : "bg-slate-50 border-slate-100"}`}>
+                  <div className="flex items-start gap-3">
+                    <svg className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isFromQA ? "text-amber-500" : "text-slate-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-xs font-semibold uppercase tracking-wide ${isFromQA ? "text-amber-600" : "text-slate-500"}`}>
+                        {isFromQA ? "QA Remarks" : "Your Remarks"}
+                      </span>
+                      <p className={`mt-1 text-sm italic leading-relaxed ${isFromQA ? "text-amber-900" : "text-slate-700"}`}>
+                        &ldquo;{isFromQA ? qaRemarks : reviewerRemarks}&rdquo;
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </motion.div>
           );
         }
@@ -9612,12 +10400,181 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-slate-800">
-                        Parameter Approved & Finalized
+                        Parameter Approved by Reviewer
                       </h4>
                       <p className="text-xs text-slate-600">
-                        This parameter has been reviewed and approved
+                        Awaiting QA validation
                       </p>
                     </div>
+                  </div>
+                  {approvedByQAPerParam[parameterId] && (
+                    <div className="px-3 py-1.5 bg-emerald-100 border border-emerald-300 rounded-lg">
+                      <span className="text-xs font-semibold text-emerald-700">QA Approved ✓</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
+        // ========== QA VIEW - APPROVED (Reviewer approved, awaiting QA worksheet approval) ==========
+        if (role.toLowerCase() === "qa" && isApproved && param) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+              <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-emerald-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        Reviewer Approved — Pending QA Worksheet Approval
+                      </h4>
+                      <p className="text-xs text-slate-600">
+                        You can return this parameter for revision, or approve the entire worksheet once all parameters are reviewed
+                      </p>
+                    </div>
+                  </div>
+
+                  <motion.button
+                    onClick={() => handleQARequestRevision(param)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    Return for Revision
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
+        // ========== QA VIEW - ANALYSIS REVISION (sent back by QA) ==========
+        if (role.toLowerCase() === "qa" && isAnalysisRevision && param) {
+          const qaRemarks = remarksQAPerParam[parameterId];
+          const reviewerRemarks = remarksByReviewerPerParam[parameterId];
+          const isFromQA = !!qaRemarks;
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+              <div className="bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-amber-600 animate-pulse"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        Revision In Progress — {isFromQA ? "Returned by QA" : "Returned by Reviewer"}
+                      </h4>
+                      <p className="text-xs text-slate-600">
+                        Analyst is working on revisions
+                      </p>
+                    </div>
+                  </div>
+                  <div className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 rounded-lg">
+                    <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">
+                      Awaiting Revision
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Remarks Block */}
+              {(qaRemarks || reviewerRemarks) && (
+                <div className={`px-6 py-4 border-t ${isFromQA ? "bg-amber-50 border-amber-100" : "bg-slate-50 border-slate-100"}`}>
+                  <div className="flex items-start gap-3">
+                    <svg className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isFromQA ? "text-amber-500" : "text-slate-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-xs font-semibold uppercase tracking-wide ${isFromQA ? "text-amber-600" : "text-slate-500"}`}>
+                        {isFromQA ? "QA Remarks" : "Reviewer Remarks"}
+                      </span>
+                      <p className={`mt-1 text-sm italic leading-relaxed ${isFromQA ? "text-amber-900" : "text-slate-700"}`}>
+                        &ldquo;{isFromQA ? qaRemarks : reviewerRemarks}&rdquo;
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          );
+        }
+
+        // ========== QA VIEW - OTHER STATUSES (not yet approved by reviewer) ==========
+        if (role.toLowerCase() === "qa" && !isApproved && param) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+              <div className="bg-gradient-to-r from-slate-50 via-gray-50 to-slate-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-slate-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      Pending Reviewer Approval
+                    </h4>
+                    <p className="text-xs text-slate-600">
+                      Status: <span className="uppercase font-semibold">{status}</span>
+                    </p>
                   </div>
                 </div>
               </div>
@@ -9779,6 +10736,43 @@ const Worksheet: React.FC<WorksheetProps> = ({
     );
   }
 
+  if (
+    role === "QA" &&
+    worksheetInfo &&
+    worksheetInfo.sample.status !== "Submitted For QA Review" &&
+    worksheetInfo.sample.status !== "Approved"
+  ) {
+    return (
+      <div className="mx-auto my-8 p-6 bg-white shadow-2xl max-w-4xl rounded-xl border border-gray-200 flex items-center justify-center min-h-[600px]">
+        <motion.div
+          key="qa-gate"
+          {...animationProps}
+          className="flex flex-col justify-center items-center py-20 bg-gradient-to-br from-purple-50 to-white rounded-2xl shadow-2xl border-2 border-purple-200 w-full min-h-[400px]"
+        >
+          <motion.div
+            {...loadingIconProps}
+            className="p-5 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 mb-6 shadow-lg"
+          >
+            <svg className="w-14 h-14 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+          </motion.div>
+          <span className="text-2xl font-semibold text-purple-700 tracking-wide">
+            Awaiting QA Submission
+          </span>
+          <span className="text-base text-gray-600 mt-3 max-w-md text-center">
+            This worksheet has not yet been submitted for QA Review. It will become available once the Reviewer submits it after approving all parameters.
+          </span>
+          <div className="mt-4 px-4 py-2 bg-purple-100 rounded-lg border border-purple-200">
+            <span className="text-sm font-semibold text-purple-700 uppercase tracking-wider">
+              Current Status: {worksheetInfo.sample.status}
+            </span>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Toast
@@ -9847,17 +10841,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                       This worksheet has been reviewed and approved. All data is
                       locked and finalized.
                     </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-end gap-2">
-                  <div className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
-                    <div className="text-xs text-emerald-50 font-semibold uppercase tracking-wider mb-1">
-                      Approved By
-                    </div>
-                    <div className="text-white font-bold">
-                      {worksheetInfo.sample.preparedByName || "Reviewer"}
-                    </div>
                   </div>
                 </div>
               </div>
@@ -10099,6 +11082,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                   standardIds: [],
                                   preparations: [],
                                   calculations: [],
+                                  files: []
                                 })
                               }
                               className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
@@ -10453,6 +11437,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
               const shouldDisableContent =
                 (role === "Reviewer" && isLocked) ||
+                (role === "QA") ||
                 (role === "Analyst" && !isEditableForAnalyst);
 
               return (
@@ -10673,7 +11658,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         {/* Analysis Timeline Section */}
                         {(analysisStartDatePerParam[selectedParam.id] ||
                           analysisCompletionDatePerParam[selectedParam.id] ||
-                          approvedByPerParam[selectedParam.id]) && (
+                          approvedByReviewerPerParam[selectedParam.id]) && (
                           <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -10776,7 +11761,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                 )}
 
-                                {approvedByPerParam[selectedParam.id] && (
+                                {approvedByReviewerPerParam[selectedParam.id] && (
                                   <div className="bg-emerald-50 rounded-lg p-4 border border-slate-200 hover:border-emerald-300 transition-all">
                                     <div className="flex items-center gap-2 mb-2">
                                       <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -10795,11 +11780,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                         </svg>
                                       </div>
                                       <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                                        Approved By
+                                        Approved By (Reviewer)
                                       </span>
                                     </div>
                                     <p className="text-sm font-semibold text-slate-900">
-                                      {approvedByNamePerParam[selectedParam.id]}
+                                      {approvedByReviewerNamePerParam[selectedParam.id]}
                                     </p>
                                   </div>
                                 )}
@@ -12408,6 +13393,18 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               ))}
                             </AnimatePresence>
+                            {(blankPreparationPerParam[selectedParam.id] || []).length > 0 && (
+                              <div className="pointer-events-auto">
+                                <WorksheetFileAttacher
+                                files={getFilesForPrep(selectedParam.id, "blank", "Preparation Files")}
+                                onAdd={(newFiles) => handleAddPrepFiles(selectedParam.id, "blank", "Preparation Files", newFiles)}
+                                onRemove={(index) => handleRemovePrepFile(selectedParam.id, "blank", "Preparation Files", index)}
+                                preparationType="blank"
+                                sectionLabel="Preparation Files"
+                                isLocked={isParameterLocked(selectedParam.id)}
+                              />
+                              </div>
+                            )}
 
                             {(blankPreparationPerParam[selectedParam.id] || [])
                               .length === 0 && (
@@ -12441,6 +13438,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               </motion.div>
                             )}
+
+
                           </div>
                         </motion.div>
                       )}
@@ -12593,6 +13592,18 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               ))}
                             </AnimatePresence>
+                            {(samplePrepAssayFerrousFumaratePerParam[selectedParam.id] || []).length > 0 && (
+                              <div className="pointer-events-auto">
+                                <WorksheetFileAttacher
+                                files={getFilesForPrep(selectedParam.id, "assay_ferrous_fumarate", "Preparation Files")}
+                                onAdd={(newFiles) => handleAddPrepFiles(selectedParam.id, "assay_ferrous_fumarate", "Preparation Files", newFiles)}
+                                onRemove={(index) => handleRemovePrepFile(selectedParam.id, "assay_ferrous_fumarate", "Preparation Files", index)}
+                                preparationType="assay_ferrous_fumarate"
+                                sectionLabel="Preparation Files"
+                                isLocked={isParameterLocked(selectedParam.id)}
+                              />
+                              </div>
+                            )}
 
                             {(
                               samplePrepAssayFerrousFumaratePerParam[
@@ -12834,6 +13845,18 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               ))}
                             </AnimatePresence>
+                            {(samplePrepDissoFerrousFumaratePerParam[selectedParam.id] || []).length > 0 && (
+                              <div className="pointer-events-auto">
+                                <WorksheetFileAttacher
+                                files={getFilesForPrep(selectedParam.id, "dissolution_ferrous_fumarate", "Preparation Files")}
+                                onAdd={(newFiles) => handleAddPrepFiles(selectedParam.id, "dissolution_ferrous_fumarate", "Preparation Files", newFiles)}
+                                onRemove={(index) => handleRemovePrepFile(selectedParam.id, "dissolution_ferrous_fumarate", "Preparation Files", index)}
+                                preparationType="dissolution_ferrous_fumarate"
+                                sectionLabel="Preparation Files"
+                                isLocked={isParameterLocked(selectedParam.id)}
+                              />
+                              </div>
+                            )}
 
                             {(
                               samplePrepDissoFerrousFumaratePerParam[
@@ -13125,10 +14148,24 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                         />
                                       </div>
                                     )}
+
+                                    {/* PDF Attacher for this preparation pair */}
                                   </div>
                                 );
                               })}
                             </AnimatePresence>
+                            {(standardPreparationAssayPerParam[selectedParam.id] || []).length > 0 && (
+                              <div className="pointer-events-auto">
+                                <WorksheetFileAttacher
+                                files={getFilesForPrep(selectedParam.id, "assay", "Preparation Files")}
+                                onAdd={(newFiles) => handleAddPrepFiles(selectedParam.id, "assay", "Preparation Files", newFiles)}
+                                onRemove={(index) => handleRemovePrepFile(selectedParam.id, "assay", "Preparation Files", index)}
+                                preparationType="assay"
+                                sectionLabel="Preparation Files"
+                                isLocked={isParameterLocked(selectedParam.id)}
+                              />
+                              </div>
+                            )}
 
                             {(
                               standardPreparationAssayPerParam[
@@ -13385,6 +14422,18 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               ))}
                             </AnimatePresence>
+                            {(samplePreparationLodPerParam[selectedParam.id] || []).length > 0 && (
+                              <div className="pointer-events-auto">
+                                <WorksheetFileAttacher
+                                files={getFilesForPrep(selectedParam.id, "lod", "Preparation Files")}
+                                onAdd={(newFiles) => handleAddPrepFiles(selectedParam.id, "lod", "Preparation Files", newFiles)}
+                                onRemove={(index) => handleRemovePrepFile(selectedParam.id, "lod", "Preparation Files", index)}
+                                preparationType="lod"
+                                sectionLabel="Preparation Files"
+                                isLocked={isParameterLocked(selectedParam.id)}
+                              />
+                              </div>
+                            )}
 
                             {(
                               samplePreparationLodPerParam[selectedParam.id] ||
@@ -13629,6 +14678,18 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               ))}
                             </AnimatePresence>
+                            {(samplePreparationROIPerParam[selectedParam.id] || []).length > 0 && (
+                              <div className="pointer-events-auto">
+                                <WorksheetFileAttacher
+                                files={getFilesForPrep(selectedParam.id, "roi", "Preparation Files")}
+                                onAdd={(newFiles) => handleAddPrepFiles(selectedParam.id, "roi", "Preparation Files", newFiles)}
+                                onRemove={(index) => handleRemovePrepFile(selectedParam.id, "roi", "Preparation Files", index)}
+                                preparationType="roi"
+                                sectionLabel="Preparation Files"
+                                isLocked={isParameterLocked(selectedParam.id)}
+                              />
+                              </div>
+                            )}
 
                             {(
                               samplePreparationROIPerParam[selectedParam.id] ||
@@ -13876,6 +14937,18 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               ))}
                             </AnimatePresence>
+                            {(samplePreparationSulphatedAshPerParam[selectedParam.id] || []).length > 0 && (
+                              <div className="pointer-events-auto">
+                                <WorksheetFileAttacher
+                                files={getFilesForPrep(selectedParam.id, "sulphated_ash", "Preparation Files")}
+                                onAdd={(newFiles) => handleAddPrepFiles(selectedParam.id, "sulphated_ash", "Preparation Files", newFiles)}
+                                onRemove={(index) => handleRemovePrepFile(selectedParam.id, "sulphated_ash", "Preparation Files", index)}
+                                preparationType="sulphated_ash"
+                                sectionLabel="Preparation Files"
+                                isLocked={isParameterLocked(selectedParam.id)}
+                              />
+                              </div>
+                            )}
 
                             {(
                               samplePreparationSulphatedAshPerParam[
@@ -14191,10 +15264,23 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                         />
                                       </div>
                                     )}
+
                                   </div>
                                 );
                               })}
                             </AnimatePresence>
+                            {(standardPreparationResidualSolventPerParam[selectedParam.id] || []).length > 0 && (
+                              <div className="pointer-events-auto">
+                                <WorksheetFileAttacher
+                                files={getFilesForPrep(selectedParam.id, "residual_solvent", "Preparation Files")}
+                                onAdd={(newFiles) => handleAddPrepFiles(selectedParam.id, "residual_solvent", "Preparation Files", newFiles)}
+                                onRemove={(index) => handleRemovePrepFile(selectedParam.id, "residual_solvent", "Preparation Files", index)}
+                                preparationType="residual_solvent"
+                                sectionLabel="Preparation Files"
+                                isLocked={isParameterLocked(selectedParam.id)}
+                              />
+                              </div>
+                            )}
 
                             {(
                               standardPreparationResidualSolventPerParam[
@@ -14506,10 +15592,24 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                         assignedStandard={null}
                                       />
                                     )}
+
+                                    {/* PDF Attacher for this preparation pair */}
                                   </div>
                                 );
                               })}
                             </AnimatePresence>
+                            {(standardPreparationRelatedSubstancePerParam[selectedParam.id] || []).length > 0 && (
+                              <div className="pointer-events-auto">
+                                <WorksheetFileAttacher
+                                files={getFilesForPrep(selectedParam.id, "related_substance", "Preparation Files")}
+                                onAdd={(newFiles) => handleAddPrepFiles(selectedParam.id, "related_substance", "Preparation Files", newFiles)}
+                                onRemove={(index) => handleRemovePrepFile(selectedParam.id, "related_substance", "Preparation Files", index)}
+                                preparationType="related_substance"
+                                sectionLabel="Preparation Files"
+                                isLocked={isParameterLocked(selectedParam.id)}
+                              />
+                              </div>
+                            )}
 
                             {(
                               standardPreparationRelatedSubstancePerParam[
@@ -14858,10 +15958,24 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                         />
                                       </div>
                                     )}
+
+                                    {/* PDF Attacher for this preparation pair */}
                                   </div>
                                 );
                               })}
                             </AnimatePresence>
+                            {(standardPreparationDissoPerParam[selectedParam.id] || []).length > 0 && (
+                              <div className="pointer-events-auto">
+                                <WorksheetFileAttacher
+                                files={getFilesForPrep(selectedParam.id, "dissolution", "Preparation Files")}
+                                onAdd={(newFiles) => handleAddPrepFiles(selectedParam.id, "dissolution", "Preparation Files", newFiles)}
+                                onRemove={(index) => handleRemovePrepFile(selectedParam.id, "dissolution", "Preparation Files", index)}
+                                preparationType="dissolution"
+                                sectionLabel="Preparation Files"
+                                isLocked={isParameterLocked(selectedParam.id)}
+                              />
+                              </div>
+                            )}
 
                             {(
                               standardPreparationDissoPerParam[
@@ -15540,10 +16654,24 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                         />
                                       </div>
                                     )}
+
+                                    {/* PDF Attacher for this preparation pair */}
                                   </div>
                                 );
                               })}
                             </AnimatePresence>
+                            {(standardPreparationUCPerParam[selectedParam.id] || []).length > 0 && (
+                              <div className="pointer-events-auto">
+                                <WorksheetFileAttacher
+                                files={getFilesForPrep(selectedParam.id, "uniformity_of_content", "Preparation Files")}
+                                onAdd={(newFiles) => handleAddPrepFiles(selectedParam.id, "uniformity_of_content", "Preparation Files", newFiles)}
+                                onRemove={(index) => handleRemovePrepFile(selectedParam.id, "uniformity_of_content", "Preparation Files", index)}
+                                preparationType="uniformity_of_content"
+                                sectionLabel="Preparation Files"
+                                isLocked={isParameterLocked(selectedParam.id)}
+                              />
+                              </div>
+                            )}
 
                             {(
                               standardPreparationUCPerParam[selectedParam.id] ||
@@ -15990,6 +17118,135 @@ const Worksheet: React.FC<WorksheetProps> = ({
                           </motion.div>
                         )}
                       </AnimatePresence>
+
+                      {/* Parameter Files Toggle */}
+                      <div className="mb-6 mt-4">
+                        <label className="flex items-center gap-4 cursor-pointer group relative">
+                          <div className="relative flex items-center justify-center">
+                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
+
+                            <input
+                              type="checkbox"
+                              checked={
+                                showParamFiles[selectedParam.id] || false
+                              }
+                              onChange={(e) => {
+                                setShowParamFiles((prev) => ({
+                                  ...prev,
+                                  [selectedParam.id]: e.target.checked,
+                                }));
+                                if (!e.target.checked) {
+                                  // Clear param-level files when toggled off
+                                  updateFilesForSlot(selectedParam.id, PARAM_LEVEL_KEY, () => []);
+                                }
+                              }}
+                              className="peer sr-only"
+                            />
+
+                            <div className="relative w-14 h-7 rounded-full border-2 border-emerald-200 bg-gray-200 peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-emerald-600 peer-checked:border-emerald-600 transition-all duration-300 shadow-inner group-hover:border-emerald-300">
+                              <motion.div
+                                className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
+                                animate={{
+                                  x: showParamFiles[selectedParam.id]
+                                    ? 28
+                                    : 0,
+                                }}
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 500,
+                                  damping: 30,
+                                }}
+                              >
+                                {showParamFiles[selectedParam.id] ? (
+                                  <svg
+                                    className="w-3 h-3 text-emerald-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                ) : (
+                                  <svg
+                                    className="w-3 h-3 text-gray-400"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M6 18L18 6M6 6l12 12"
+                                    />
+                                  </svg>
+                                )}
+                              </motion.div>
+                            </div>
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base font-bold text-emerald-700 group-hover:text-emerald-700 transition-colors duration-200">
+                                Parameter Files
+                              </span>
+
+                              <motion.span
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className={`px-2 py-0.2 text-[10px] font-medium rounded-full transition-all duration-200 ${
+                                  showParamFiles[selectedParam.id]
+                                    ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                                    : "bg-gray-100 text-gray-500 border border-gray-200"
+                                }`}
+                              >
+                                {showParamFiles[selectedParam.id]
+                                  ? "Active"
+                                  : "Inactive"}
+                              </motion.span>
+                            </div>
+
+                            <p className="text-xs text-emerald-600/70">
+                              Attach additional files for this parameter
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+
+                      {/* Parameter Files Section (Conditional) */}
+                      <AnimatePresence>
+                        {showParamFiles[selectedParam.id] && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 0 }}
+                            className="mb-6 p-6 bg-white rounded-xl border-2 border-emerald-200 shadow-lg"
+                          >
+                            <div className="flex items-center gap-3 mb-4">
+                              <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                              <h3 className="text-lg font-bold text-emerald-700 tracking-tight">
+                                Parameter Files
+                              </h3>
+                            </div>
+                            <div className="pointer-events-auto">
+                              <WorksheetFileAttacher
+                              files={getParamLevelFiles(selectedParam.id)}
+                              onAdd={(newFiles) => handleAddParamFiles(selectedParam.id, newFiles)}
+                              onRemove={(index) => handleRemoveParamFile(selectedParam.id, index)}
+                              preparationType={null}
+                              sectionLabel="Other Files"
+                              isForPrep={false}
+                              isLocked={isParameterLocked(selectedParam.id)}
+                            />
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
 
                     {isLocked && (
@@ -16120,11 +17377,56 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 </motion.button>
               )}
 
-            {/* Approve Worksheet Button - Only for Reviewer when all parameters are approved */}
+            {/* Submit for QA Review Button — Reviewer only, when all params are Reviewer-approved */}
             {role === "Reviewer" &&
+              worksheetInfo?.sample.status === "Submitted For Analysis" &&
+              areAllParametersApproved() && (
+                <motion.button
+                  onClick={() => setShowSubmitForQADialog(true)}
+                  disabled={isSubmittingForQA}
+                  whileHover={!isSubmittingForQA ? { scale: 1.02 } : {}}
+                  whileTap={!isSubmittingForQA ? { scale: 0.98 } : {}}
+                  className={`relative px-6 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all duration-200 flex items-center gap-2 min-w-[210px] justify-center ${
+                    isSubmittingForQA
+                      ? "bg-gradient-to-r from-purple-400 to-purple-500 cursor-not-allowed"
+                      : "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 hover:shadow-xl"
+                  } text-white`}
+                >
+                  {isSubmittingForQA ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                      />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                        />
+                      </svg>
+                      <span>Submit for QA Review</span>
+                    </>
+                  )}
+                </motion.button>
+              )}
+
+            {/* Approve Worksheet Button - Only for QA after Reviewer has submitted for QA Review */}
+            {role === "QA" &&
+              worksheetInfo?.sample.status === "Submitted For QA Review" &&
               addedParameters.length > 0 &&
-              areAllParametersApproved() &&
-              worksheetInfo?.sample.status !== "Approved" && (
+              areAllParametersApproved() && (
                 <motion.button
                   onClick={() => setShowApproveWorksheetDialog(true)}
                   disabled={isApprovingWorksheet}
@@ -16373,7 +17675,38 @@ const Worksheet: React.FC<WorksheetProps> = ({
                 setParameterForApproval(null);
                 setRevisionComments("");
               }}
-              onConfirm={handleConfirmRevision}
+              onConfirm={(comments: string) => handleConfirmRevision(comments)}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* QA Revision Dialog */}
+        <AnimatePresence>
+          {showQARevisionDialog && parameterForApproval && (
+            <RevisionRequestDialog
+              isOpen={showQARevisionDialog}
+              isRequesting={isQARequestingRevision}
+              parameterName={parameterForApproval.parameterName}
+              parameterCode={parameterForApproval.paraCode}
+              onClose={() => {
+                setShowQARevisionDialog(false);
+                setParameterForApproval(null);
+                setQARevisionComments("");
+              }}
+              onConfirm={(comments: string) => handleConfirmQARevision(comments)}
+            />
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showSubmitForQADialog && (
+            <SubmitForQAReviewDialog
+              isOpen={showSubmitForQADialog}
+              isSubmitting={isSubmittingForQA}
+              worksheetId={worksheetId}
+              totalParameters={addedParameters.length}
+              onClose={() => setShowSubmitForQADialog(false)}
+              onConfirm={handleSubmitForQA}
             />
           )}
         </AnimatePresence>

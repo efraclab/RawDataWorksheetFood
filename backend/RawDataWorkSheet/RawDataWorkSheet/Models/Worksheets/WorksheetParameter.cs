@@ -15,9 +15,14 @@
         public DateTime? AnalysisStartDate { get; set; }
         public DateTime? AnalysisCompletionDate { get; set; }
         public string AnalyzedBy { get; set; }
-        public string ApprovedBy { get; set; }
-        public DateTime? ApprovedAt { get; set; }
+        public string ApprovedByReviewer { get; set; }
+        public DateTime? ApprovedAtReviewer { get; set; }
+        public string ApprovedByQA { get; set; }
+        public DateTime? ApprovedAtQA { get; set; }
+        public string? RemarksByReviewer { get; set; }
+        public string? RemarksByQA { get; set; }
         public string? Status { get; set; }
+        public List<WorksheetFile>? Files { get; set; }
     }
 
 }

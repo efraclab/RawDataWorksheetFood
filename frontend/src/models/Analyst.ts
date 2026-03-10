@@ -4,3 +4,5 @@ export interface Analyst {
   department: string;
   role: string;
 }
+
+

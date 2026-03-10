@@ -14,6 +14,11 @@
         public string CreatedAt { get; set; }
         public string? UpdatedAt { get; set; }
         public string? ApprovedAt { get; set; }
+        public string SubmittedQaAt { get; set; }
+        public string? SubmittedQaBy { get; set; }
+        public string? ApprovedBy { get; set; }
+        public string? ApprovedByName { get; internal set; }
+        public string? SubmittedQaByName { get; internal set; }
     }
 
 }

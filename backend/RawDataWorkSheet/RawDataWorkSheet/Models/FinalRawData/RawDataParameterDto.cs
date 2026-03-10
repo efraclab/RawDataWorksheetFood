@@ -1,4 +1,6 @@
-﻿namespace RawDataWorkSheet.Models.FinalRawData
+﻿using Dapper;
+
+namespace RawDataWorkSheet.Models.FinalRawData
 {
     public class RawDataParameterDto
     {
@@ -18,6 +20,12 @@
         public string? ParameterApprovedAt { get; set; }
         public string? AnalysisStartedAt { get; set; }
         public string? AnalysisCompletedAt { get; set; }
+        public string? ApprovedByReviewer { get; set; }
+        public string? ApprovedAtReviewer { get; set; }
+        public string? ApprovedByQA { get; set; }
+        public string? ApprovedAtQA { get; set; }
+        public string? RemarksByQA { get; set; }
+        public string? RemarksByReviewer { get; set; }
     }
 
 }

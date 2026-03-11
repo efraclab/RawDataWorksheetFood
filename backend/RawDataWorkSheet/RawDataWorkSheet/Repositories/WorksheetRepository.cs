@@ -653,12 +653,14 @@ namespace RawDataWorkSheet.Repositories
                  column_id, other_info, 
                  analyzed_by, approved_by_reviewer, analysis_start_date, analysis_completion_date,
                  approved_at_reviewer, status,
-                 approved_by_qa, approved_at_qa, remarks_by_qa, remarks_by_reviewer)
+                 approved_by_qa, approved_at_qa, remarks_by_qa, remarks_by_reviewer, preparation_completed_by,
+                 preparation_completed_at, remarks_by_analyst)
                 VALUES 
                 (@WorksheetId, @ParaCode, @ParameterName, @MethodCode, @MethodName, 
                  @ColumnId, @OtherInfo, @AnalyzedBy, @ApprovedByReviewer,
                  @AnalysisStartDate, @AnalysisCompletionDate, @ApprovedAtReviewer, @Status,
-                 @ApprovedByQA, @ApprovedAtQA, @RemarksByQA, @RemarksByReviewer);
+                 @ApprovedByQA, @ApprovedAtQA, @RemarksByQA, @RemarksByReviewer, @PreparationCompletedBy,
+                 @PreparationCompletedAt, @RemarksByAnalyst);
                 
                 SELECT CAST(SCOPE_IDENTITY() as int);";
 
@@ -682,7 +684,10 @@ namespace RawDataWorkSheet.Repositories
                     param.ApprovedByQA,
                     ApprovedAtQA = ParseDateTime(param.ApprovedAtQA!),
                     param.RemarksByQA,
-                    param.RemarksByReviewer
+                    param.RemarksByReviewer,
+                    param.PreparationCompletedBy,
+                    param.PreparationCompletedAt,
+                    param.RemarksByAnalyst
                 },
                 transaction);
         }
@@ -705,15 +710,18 @@ namespace RawDataWorkSheet.Repositories
                     column_id = @ColumnId,
                     other_info = @OtherInfo,
                     analyzed_by = @AnalyzedBy,
-                    analysis_start_date = @AnalysisStartDate,
-                    analysis_completion_date = @AnalysisCompletionDate,
+                    analysis_start_date = COALESCE(analysis_start_date, @AnalysisStartDate),
+                    analysis_completion_date = COALESCE(analysis_completion_date, @AnalysisCompletionDate),
                     approved_by_reviewer = COALESCE(approved_by_reviewer, @ApprovedByReviewer),
                     approved_at_reviewer = COALESCE(approved_at_reviewer, @ApprovedAtReviewer),
                     status = @Status,
                     approved_by_qa = @ApprovedByQA,
                     approved_at_qa = @ApprovedAtQA,
                     remarks_by_qa = @RemarksByQA,
-                    remarks_by_reviewer = @RemarksByReviewer
+                    remarks_by_reviewer = @RemarksByReviewer,
+                    preparation_completed_by = @PreparationCompletedBy,
+                    preparation_completed_at = @PreparationCompletedAt,
+                    remarks_by_analyst = @RemarksByAnalyst
                 WHERE id = @ParameterId";
 
             await connection.ExecuteAsync(
@@ -737,8 +745,10 @@ namespace RawDataWorkSheet.Repositories
                     param.ApprovedByQA,
                     ApprovedAtQA = ParseDateTime(param.ApprovedAtQA!),
                     param.RemarksByQA,
-                    param.RemarksByReviewer
-                },
+                    param.RemarksByReviewer,
+                    param.PreparationCompletedBy,
+                    param.PreparationCompletedAt,
+                    param.RemarksByAnalyst                },
                 transaction);
         }
 
@@ -1134,7 +1144,10 @@ namespace RawDataWorkSheet.Repositories
                         approved_by_qa             AS ApprovedByQA,
                         approved_at_qa             AS ApprovedAtQA,
                         remarks_by_qa              AS RemarksByQA,
-                        remarks_by_reviewer        AS RemarksByReviewer
+                        remarks_by_reviewer        AS RemarksByReviewer,
+                        preparation_completed_by   AS PreparationCompletedBy,
+                        preparation_completed_at   AS PreparationCompletedAt,
+                        remarks_by_analyst         AS RemarksByAnalyst
                     FROM worksheet_parameters
                     WHERE worksheet_id = @WorksheetId";
             }
@@ -1158,7 +1171,10 @@ namespace RawDataWorkSheet.Repositories
                         approved_by_qa             AS ApprovedByQA,
                         approved_at_qa             AS ApprovedAtQA,
                         remarks_by_qa              AS RemarksByQA,
-                        remarks_by_reviewer        AS RemarksByReviewer
+                        remarks_by_reviewer        AS RemarksByReviewer,
+                        preparation_completed_by   AS PreparationCompletedBy,
+                        preparation_completed_at   AS PreparationCompletedAt,
+                        remarks_by_analyst         AS RemarksByAnalyst
                     FROM worksheet_parameters
                     WHERE worksheet_id = @WorksheetId AND analyzed_by = @EmployeeId";
             }
@@ -1188,6 +1204,9 @@ namespace RawDataWorkSheet.Repositories
                     ApprovedAtQA = FormatDateTime(param.ApprovedAtQA),
                     RemarksByQA = param.RemarksByQA,
                     RemarksByReviewer = param.RemarksByReviewer,
+                    PreparationCompletedBy = param.PreparationCompletedBy,
+                    PreparationCompletedAt = FormatDateTime(param.PreparationCompletedAt),
+                    RemarksByAnalyst = param.RemarksByAnalyst,
                 };
 
                 if (param.ApprovedByReviewer != null)
@@ -1217,6 +1236,17 @@ namespace RawDataWorkSheet.Repositories
                     """;
                     paramDetail.AnalyzedByName = await connection.QueryFirstAsync<string>(
                         query, new { EmployeeId = paramDetail.AnalyzedBy });
+                }
+
+                if (param.PreparationCompletedBy != null)
+                {
+                    var query = """
+                        SELECT emp_name AS [Username]
+                        FROM participants_rawdata
+                        WHERE emp_id = @EmployeeId
+                    """;
+                    paramDetail.PreparationCompletedByName = await connection.QueryFirstAsync<string>(
+                        query, new { EmployeeId = paramDetail.PreparationCompletedBy });
                 }
 
                 var instruments = await connection.QueryAsync<WorksheetInstrument>(

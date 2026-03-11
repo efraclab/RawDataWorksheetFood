@@ -7,7 +7,7 @@ interface CompleteAnalysisDialogProps {
   parameterName: string;
   parameterCode: string;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (comment: string) => void;
 }
 
 const CompleteAnalysisDialog: React.FC<CompleteAnalysisDialogProps> = ({
@@ -18,6 +18,12 @@ const CompleteAnalysisDialog: React.FC<CompleteAnalysisDialogProps> = ({
   onClose,
   onConfirm,
 }) => {
+  const [analystComment, setAnalystComment] = React.useState("");
+
+  React.useEffect(() => {
+    if (!isOpen) setAnalystComment("");
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -140,6 +146,20 @@ const CompleteAnalysisDialog: React.FC<CompleteAnalysisDialogProps> = ({
                 </div>
               </div>
 
+              {/* Analyst Comment */}
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Analyst Comment <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <textarea
+                  value={analystComment}
+                  onChange={(e) => setAnalystComment(e.target.value)}
+                  placeholder="Add any notes or observations about this analysis..."
+                  rows={3}
+                  className="w-full text-sm text-gray-700 bg-white border border-gray-300 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-gray-400"
+                />
+              </div>
+
               {/* Confirmation */}
               <div className="text-center py-2">
                 <p className="text-base font-semibold text-gray-800">
@@ -161,7 +181,7 @@ const CompleteAnalysisDialog: React.FC<CompleteAnalysisDialogProps> = ({
                 Cancel
               </button>
               <button
-                onClick={onConfirm}
+                onClick={() => onConfirm(analystComment)}
                 disabled={isCompleting}
                 className="flex-1 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-medium rounded-lg hover:from-emerald-700 hover:to-green-700 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >

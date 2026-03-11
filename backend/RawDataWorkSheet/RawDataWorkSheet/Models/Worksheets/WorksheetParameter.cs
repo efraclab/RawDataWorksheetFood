@@ -22,6 +22,9 @@
         public string? RemarksByReviewer { get; set; }
         public string? RemarksByQA { get; set; }
         public string? Status { get; set; }
+        public string? PreparationCompletedBy { get; set; }
+        public DateTime? PreparationCompletedAt { get; set; }
+        public string? RemarksByAnalyst { get; set; }
         public List<WorksheetFile>? Files { get; set; }
     }
 

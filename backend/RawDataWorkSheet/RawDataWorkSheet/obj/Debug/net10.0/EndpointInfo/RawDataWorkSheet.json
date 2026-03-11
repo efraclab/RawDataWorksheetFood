@@ -1071,6 +1071,22 @@
             "type": "string",
             "nullable": true,
             "readOnly": true
+          },
+          "preparationCompletedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "preparationCompletedByName": {
+            "type": "string",
+            "nullable": true
+          },
+          "preparationCompletedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "remarksByAnalyst": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false

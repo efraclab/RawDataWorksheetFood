@@ -944,10 +944,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
       onFieldChange(
         calculation.id,
         "lodWaterBasisResult",
-        `${adjustedResult} ${unit.replace(
-          "%",
-          "mg",
-        )} (Adjusted for ${lodWaterBasisValue}% LOD/Water)`,
+        `${adjustedResult}`,
       );
       console.log(
         `8. LOD/Water Basis: (${FinalResult} * 100) / (100 - ${lodWaterBasisValue}) = ${adjustedResult}`,
@@ -1781,7 +1778,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                     {calculation.lodWaterType === "lod"
                                       ? "Anhydrous basis"
                                       : "Water basis"}{" "}
-                                    adjusted for {calculation.lodWaterValue} %
+                                    adjusted for {calculation.lodWaterValue} % 
                                     of {calculation.lodWaterType}
                                   </p>
                                 </div>

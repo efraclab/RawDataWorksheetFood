@@ -7,7 +7,7 @@ interface ApproveParameterDialogProps {
   parameterName: string;
   parameterCode: string;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (remarks: string) => void;
 }
 
 const ApproveParameterDialog: React.FC<ApproveParameterDialogProps> = ({
@@ -18,6 +18,12 @@ const ApproveParameterDialog: React.FC<ApproveParameterDialogProps> = ({
   onClose,
   onConfirm,
 }) => {
+  const [reviewerRemarks, setReviewerRemarks] = React.useState("");
+
+  React.useEffect(() => {
+    if (!isOpen) setReviewerRemarks("");
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -105,6 +111,20 @@ const ApproveParameterDialog: React.FC<ApproveParameterDialogProps> = ({
                 </div>
               </div>
 
+              {/* Reviewer Remarks */}
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Reviewer Remarks <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <textarea
+                  value={reviewerRemarks}
+                  onChange={(e) => setReviewerRemarks(e.target.value)}
+                  placeholder="Add any approval notes or observations..."
+                  rows={3}
+                  className="w-full text-sm text-gray-700 bg-white border border-gray-300 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-gray-400"
+                />
+              </div>
+
               {/* Confirmation */}
               <div className="text-center py-2">
                 <p className="text-base font-semibold text-gray-800">
@@ -123,7 +143,7 @@ const ApproveParameterDialog: React.FC<ApproveParameterDialogProps> = ({
                 Cancel
               </button>
               <button
-                onClick={onConfirm}
+                onClick={() => onConfirm(reviewerRemarks)}
                 disabled={isApproving}
                 className="flex-1 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-medium rounded-lg hover:from-emerald-700 hover:to-green-700 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >

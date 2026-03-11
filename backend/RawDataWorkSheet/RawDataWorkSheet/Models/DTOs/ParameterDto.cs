@@ -31,6 +31,10 @@
         public string? RemarksByQA { get; set; }
         public string? RemarksByReviewer { get; set; }
         public string? ApprovedByQAName { get; internal set; }
+        public string? PreparationCompletedBy { get; set; }
+        public string? PreparationCompletedByName { get; set; }
+        public string? PreparationCompletedAt { get; set; }
+        public string? RemarksByAnalyst { get; set; }
     }
 
 }

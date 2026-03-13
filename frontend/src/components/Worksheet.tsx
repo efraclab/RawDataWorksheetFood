@@ -14605,6 +14605,54 @@ const Worksheet: React.FC<WorksheetProps> = ({
                           )}
                           </div>
 
+                          {/* ── Blank Preparation Complete / Unlock Banner ── */}
+                          {(blankPreparationPerParam[selectedParam.id] || []).length > 0 && (() => {
+                            const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["blankPreparation"];
+
+                            // Prep is locked (completed) — always show the completed banner + unlock button
+                            if (isPreparationLocked || isGroupCompleted) {
+                              return (
+                                <div className="mt-4 pointer-events-auto">
+                                  <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                    <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="text-sm font-semibold text-emerald-800">Blank Preparation Completed</p>
+                                      {isGroupCompleted && (
+                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["blankPreparation"]).toLocaleString()}</p>
+                                      )}
+                                    </div>
+                                    {canManagePrep && (
+                                      <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "blankPreparation")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
+                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+                                        Unlock Preparation
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            // Prep is not locked — show complete button only if user can manage
+                            if (canManagePrep) {
+                              return (
+                                <div className="mt-4 pointer-events-auto">
+                                  <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "blankPreparation")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    Mark Blank Preparation as Complete
+                                  </button>
+                                  <div className="flex items-center gap-3 px-5 py-3 mt-3 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <p className="text-sm text-amber-800"><strong>Complete Preparation</strong> above once all documents are finalized.</p>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            return null;
+                          })()}
+
                           {(blankPreparationPerParam[selectedParam.id] || [])
                             .length === 0 && (
                             <motion.div
@@ -14641,43 +14689,70 @@ const Worksheet: React.FC<WorksheetProps> = ({
                       </motion.div>
                     )}
 
-                    {/* ============= BLANK PREPARATION DIALOG ============= */}
+                    {/* ============= BLANK PREPARATION DIALOG (full-screen) ============= */}
                     <AnimatePresence>
                       {showBlankPreparationDialog[selectedParam.id] && (
-                        <BlankPreparation
-                          onClose={() =>
-                            setShowBlankPreparationDialog((prev) => ({
-                              ...prev,
-                              [selectedParam.id]: false,
-                            }))
-                          }
-                          onSave={(label, content) => {
-                            handleSaveBlankPreparation(
-                              selectedParam.id,
-                              label,
-                              content,
-                            );
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+                          onClick={(e) => {
+                            if (e.target === e.currentTarget) {
+                              setShowBlankPreparationDialog((prev) => ({
+                                ...prev,
+                                [selectedParam.id]: false,
+                              }));
+                              setEditingBlankPrepId(null);
+                            }
                           }}
-                          existingContent={
-                            editingBlankPrepId
-                              ? (
-                                  blankPreparationPerParam[selectedParam.id] ||
-                                  []
-                                ).find((prep) => prep.id === editingBlankPrepId)
-                                  ?.content || ""
-                              : ""
-                          }
-                          existingLabel={
-                            editingBlankPrepId
-                              ? (
-                                  blankPreparationPerParam[selectedParam.id] ||
-                                  []
-                                ).find((prep) => prep.id === editingBlankPrepId)
-                                  ?.label || ""
-                              : ""
-                          }
-                          isEditing={editingBlankPrepId !== null}
-                        />
+                        >
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            className="relative w-full h-full max-w-full max-h-full flex items-center justify-center p-4 sm:p-8"
+                          >
+                            <div className="relative w-full h-full bg-white rounded-2xl shadow-2xl overflow-auto flex flex-col">
+                              <BlankPreparation
+                                onClose={() => {
+                                  setShowBlankPreparationDialog((prev) => ({
+                                    ...prev,
+                                    [selectedParam.id]: false,
+                                  }));
+                                  setEditingBlankPrepId(null);
+                                }}
+                                onSave={(label, content) => {
+                                  handleSaveBlankPreparation(
+                                    selectedParam.id,
+                                    label,
+                                    content,
+                                  );
+                                }}
+                                existingContent={
+                                  editingBlankPrepId
+                                    ? (
+                                        blankPreparationPerParam[selectedParam.id] ||
+                                        []
+                                      ).find((prep) => prep.id === editingBlankPrepId)
+                                        ?.content || ""
+                                    : ""
+                                }
+                                existingLabel={
+                                  editingBlankPrepId
+                                    ? (
+                                        blankPreparationPerParam[selectedParam.id] ||
+                                        []
+                                      ).find((prep) => prep.id === editingBlankPrepId)
+                                        ?.label || ""
+                                    : ""
+                                }
+                                isEditing={editingBlankPrepId !== null}
+                              />
+                            </div>
+                          </motion.div>
+                        </motion.div>
                       )}
                     </AnimatePresence>
 
@@ -18261,41 +18336,6 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 );
                               })}
                             </AnimatePresence>
-
-                            {(
-                              standardPreparationDissoProfilePerParam[
-                                selectedParam.id
-                              ] || []
-                            ).length > 0 && (
-                              <div className="pointer-events-auto">
-                                <WorksheetFileAttacher
-                                  files={getFilesForPrep(
-                                    selectedParam.id,
-                                    "dissolution_profile",
-                                    "Preparation Files",
-                                  )}
-                                  onAdd={(newFiles) =>
-                                    handleAddPrepFiles(
-                                      selectedParam.id,
-                                      "dissolution_profile",
-                                      "Preparation Files",
-                                      newFiles,
-                                    )
-                                  }
-                                  onRemove={(index) =>
-                                    handleRemovePrepFile(
-                                      selectedParam.id,
-                                      "dissolution_profile",
-                                      "Preparation Files",
-                                      index,
-                                    )
-                                  }
-                                  preparationType="dissolution_profile"
-                                  sectionLabel="Preparation Files"
-                                  isLocked={shouldDisableContent}
-                                />
-                              </div>
-                            )}
 
                             {(
                               standardPreparationDissoProfilePerParam[

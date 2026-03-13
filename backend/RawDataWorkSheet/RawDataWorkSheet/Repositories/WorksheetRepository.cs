@@ -686,7 +686,7 @@ namespace RawDataWorkSheet.Repositories
                     param.RemarksByQA,
                     param.RemarksByReviewer,
                     param.PreparationCompletedBy,
-                    param.PreparationCompletedAt,
+                    PreparationCompletedAt = ParseDateTime(param.PreparationCompletedAt!),
                     param.RemarksByAnalyst
                 },
                 transaction);
@@ -747,7 +747,7 @@ namespace RawDataWorkSheet.Repositories
                     param.RemarksByQA,
                     param.RemarksByReviewer,
                     param.PreparationCompletedBy,
-                    param.PreparationCompletedAt,
+                    PreparationCompletedAt = ParseDateTime(param.PreparationCompletedAt!),
                     param.RemarksByAnalyst
                 },
                 transaction);

@@ -591,11 +591,24 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
     return (
       <div className="mb-6">
-        <table className="w-full border border-black text-sm">
+        <table className="w-full border border-black text-xs">
           <tbody>
+            {/* Row 0 — Preparation Completed (only if present) */}
+            {(param as any).preparationCompletedBy && (
+              <tr className="border-b border-black">
+                <td className="px-3 py-1 border-r border-black w-1/4">Preparation Completed By</td>
+                <td className="px-3 py-1 font-bold border-r border-black w-1/4">
+                  {(param as any).preparationCompletedByName || "---"}
+                </td>
+                <td className="px-3 py-1 border-r border-black w-1/4">Preparation Completed On</td>
+                <td className="px-3 py-1 font-bold w-1/4">
+                  {formatDt((param as any).preparationCompletedAt)}
+                </td>
+              </tr>
+            )}
             {/* Row 1 — Analyst */}
             <tr className="border-b border-black">
-              <td className="px-3 py-1 border-r border-black w-1/4">Analyzed By</td>
+              <td className="px-3 py-1 border-r border-black w-1/4">Analysis Completed By</td>
               <td className="px-3 py-1 font-bold border-r border-black w-1/4">
                 {(param as any).analyzedByName || "---"}
               </td>
@@ -1217,8 +1230,8 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   </p>
                   <table className="w-full text-sm">
                     <tbody>
-                      {dpStdLabel && dpRow("Selected Standard Preparation", dpStdLabel)}
-                      {dpSmpLabel && dpRow("Selected Sample Preparation",   dpSmpLabel)}
+                      {dpStdLabel && dpRow("Selected Standard Preparation", dpStdLabel.replace(/\s*\bLabel\b\s*$/i, "").trim() || dpStdLabel)}
+                      {dpSmpLabel && dpRow("Selected Sample Preparation",   dpSmpLabel.replace(/\s*\bLabel\b\s*$/i, "").trim() || dpSmpLabel)}
                       {tp.areas.map((area: string, i: number) =>
                         area && area !== "___"
                           ? dpRow(`Area of Sample ${i + 1}`, area)
@@ -2916,7 +2929,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
                         return (
                           <div key={idx}>
-                            <div className="section-container mb-4 page-break-inside-avoid">
+                            <div className="mb-4">
                               <div className="mb-1">
                                 <p className="font-bold text-sm">
                                   {calc.label} ({formatCalcType(calc.calculationType)})
@@ -3082,22 +3095,103 @@ const PrintReport: React.FC<PrintReportProps> = ({
                       (p: any) => p.preparationCategory === "blank",
                     ).length > 0 && (
                       <div className="mb-6">
+                        <h4 className="text-md uppercase font-bold mb-2">
+                          Blank Preparations
+                        </h4>
                         {safeJSONParse(param.preparations, [])
                           .filter((p: any) => p.preparationCategory === "blank")
                           .map((prep: any, idx: number) => {
+                            let blankData: {
+                              method?: string;
+                              calculationResult?: string;
+                              calculationResultUnit?: string;
+                              acceptanceLimitMin?: string;
+                              acceptanceLimitMax?: string;
+                            } = {};
+                            let isLegacy = false;
+                            if (prep.content) {
+                              try {
+                                const parsed = JSON.parse(prep.content);
+                                if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                                  blankData = parsed;
+                                } else { isLegacy = true; }
+                              } catch { isLegacy = true; }
+                            }
+                            const hasMethod = isLegacy ? !!prep.content : !!blankData.method;
+                            const hasResult = !isLegacy && (!!blankData.calculationResult || !!blankData.calculationResultUnit);
+                            const hasLimit  = !isLegacy && (!!blankData.acceptanceLimitMin || !!blankData.acceptanceLimitMax);
+                            const unit      = blankData.calculationResultUnit || "";
+                            const hasMin    = blankData.acceptanceLimitMin !== undefined && blankData.acceptanceLimitMin !== "";
+                            const hasMax    = blankData.acceptanceLimitMax !== undefined && blankData.acceptanceLimitMax !== "";
+                            const hasBoth   = hasMin && hasMax;
+                            const methodHtml = isLegacy ? prep.content : (blankData.method || "");
+                            if (!hasMethod && !hasResult && !hasLimit) return null;
                             return (
-                              <div key={idx} className="section-container mb-3">
-                                <div className="mb-1">
-                                  <p className="text-md uppercase font-bold mb-2">
-                                    {prep.label}
-                                  </p>
-                                </div>
-                                <div
-                                  className="text-sm"
-                                  dangerouslySetInnerHTML={{
-                                    __html: prep.content || "",
-                                  }}
-                                />
+                              <div key={idx} className="section-container mb-4">
+                                {/* Prep label */}
+                                <p className="font-bold text-sm mb-2">{prep.label}</p>
+
+                                <style dangerouslySetInnerHTML={{ __html: `
+                                  .blank-method-content table { display: table !important; width: 100% !important; border-collapse: collapse !important; }
+                                  .blank-method-content tr    { display: table-row !important; }
+                                  .blank-method-content td,
+                                  .blank-method-content th    { display: table-cell !important; border: 1px solid black !important; padding: 4px 8px !important; }
+                                `}} />
+
+                                {/* Single unified table — no gaps between rows */}
+                                <table className="w-full border-collapse border border-black text-sm">
+                                  <tbody>
+
+                                    {/* Method / Preparation — header row + full-width content row */}
+                                    {hasMethod && (
+                                      <>
+                                        <tr>
+                                          <td className="border border-black px-3 py-2">
+                                            <span className="font-bold">Method / Preparation :&nbsp;</span>
+                                            <div
+                                              className="blank-method-content prose prose-sm max-w-none text-sm mt-2"
+                                              dangerouslySetInnerHTML={{ __html: methodHtml }}
+                                              style={{ lineHeight: "1.6", fontSize: "13px" }}
+                                            />
+                                          </td>
+                                        </tr>
+                                      </>
+                                    )}
+
+                                    {/* Result / Reported Value */}
+                                    {hasResult && (
+                                      <tr>
+                                        <td className="border border-black px-3 py-2">
+                                          <span className="font-bold">Result / Reported Value :&nbsp;</span>
+                                          {blankData.calculationResult
+                                            ? <span>{blankData.calculationResult}{unit ? <span className="ml-1">{unit}</span> : null}</span>
+                                            : <span className="text-gray-400 italic">—</span>}
+                                        </td>
+                                      </tr>
+                                    )}
+
+                                    {/* Acceptance Limit */}
+                                    {hasLimit && (
+                                      <tr>
+                                        <td className="border border-black px-3 py-2">
+                                          <span className="font-bold">Acceptance Limit :&nbsp;</span>
+                                          {hasBoth ? (
+                                            <span>
+                                              {blankData.acceptanceLimitMin}{unit ? <span> {unit}</span> : null}
+                                              <span className="mx-2">≤ Result ≤</span>
+                                              {blankData.acceptanceLimitMax}{unit ? <span> {unit}</span> : null}
+                                            </span>
+                                          ) : hasMin ? (
+                                            <span>{blankData.acceptanceLimitMin}{unit ? <span className="ml-1">{unit} ≤ Result</span> : null}</span>
+                                          ) : (
+                                            <span>Result ≤ {blankData.acceptanceLimitMax}{unit ? <span className="ml-1">{unit}</span> : null}</span>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    )}
+
+                                  </tbody>
+                                </table>
                               </div>
                             );
                           })}

@@ -190,9 +190,9 @@ namespace RawDataWorkSheet.Repositories
                         await UpsertInstruments(connection, transaction, parameterId, param.InstrumentIds);
                         await UpsertChemicals(connection, transaction, parameterId, param.ChemicalIds);
                         await UpsertStandards(connection, transaction, parameterId, param.StandardIds);
-                        await UpsertPreparations(connection, transaction, parameterId, param.Preparations);
+                        var prepLabelToId1 = await UpsertPreparations(connection, transaction, parameterId, param.Preparations);
                         await UpsertCalculations(connection, transaction, parameterId, param.Calculations);
-                        await UpsertFiles(connection, transaction, parameterId, param.Files, request.WorksheetId);
+                        await UpsertFiles(connection, transaction, parameterId, param.Files, request.WorksheetId, prepLabelToId1);
                     }
                     else
                     {
@@ -201,9 +201,9 @@ namespace RawDataWorkSheet.Repositories
                         await UpsertInstruments(connection, transaction, parameterId, param.InstrumentIds);
                         await UpsertChemicals(connection, transaction, parameterId, param.ChemicalIds);
                         await UpsertStandards(connection, transaction, parameterId, param.StandardIds);
-                        await UpsertPreparations(connection, transaction, parameterId, param.Preparations);
+                        var prepLabelToId2 = await UpsertPreparations(connection, transaction, parameterId, param.Preparations);
                         await UpsertCalculations(connection, transaction, parameterId, param.Calculations);
-                        await UpsertFiles(connection, transaction, parameterId, param.Files, request.WorksheetId);
+                        await UpsertFiles(connection, transaction, parameterId, param.Files, request.WorksheetId, prepLabelToId2);
                     }
                 }
 
@@ -248,9 +248,9 @@ namespace RawDataWorkSheet.Repositories
                 await UpsertInstruments(connection, transaction, parameterId, request.InstrumentIds);
                 await UpsertChemicals(connection, transaction, parameterId, request.ChemicalIds);
                 await UpsertStandards(connection, transaction, parameterId, request.StandardIds);
-                await UpsertPreparations(connection, transaction, parameterId, request.Preparations);
+                var prepLabelToId = await UpsertPreparations(connection, transaction, parameterId, request.Preparations);
                 await UpsertCalculations(connection, transaction, parameterId, request.Calculations);
-                await UpsertFiles(connection, transaction, parameterId, request.Files, worksheetId);
+                await UpsertFiles(connection, transaction, parameterId, request.Files, worksheetId, prepLabelToId);
 
                 transaction.Commit();
             }
@@ -334,9 +334,9 @@ namespace RawDataWorkSheet.Repositories
                 await UpsertInstruments(connection, transaction, parameterId, parameter.InstrumentIds);
                 await UpsertChemicals(connection, transaction, parameterId, parameter.ChemicalIds);
                 await UpsertStandards(connection, transaction, parameterId, parameter.StandardIds);
-                await UpsertPreparations(connection, transaction, parameterId, parameter.Preparations);
+                var prepLabelToId = await UpsertPreparations(connection, transaction, parameterId, parameter.Preparations);
                 await UpsertCalculations(connection, transaction, parameterId, parameter.Calculations);
-                await UpsertFiles(connection, transaction, parameterId, parameter.Files, worksheetId);
+                await UpsertFiles(connection, transaction, parameterId, parameter.Files, worksheetId, prepLabelToId);
 
                 await connection.ExecuteAsync(
                     @"UPDATE raw_data_worksheets 
@@ -748,7 +748,8 @@ namespace RawDataWorkSheet.Repositories
                     param.RemarksByReviewer,
                     param.PreparationCompletedBy,
                     param.PreparationCompletedAt,
-                    param.RemarksByAnalyst                },
+                    param.RemarksByAnalyst
+                },
                 transaction);
         }
 
@@ -835,7 +836,12 @@ namespace RawDataWorkSheet.Repositories
         // PRIVATE – UPSERT PREPARATIONS
         // ─────────────────────────────────────────────────────────────────────────
 
-        private async Task UpsertPreparations(
+        /// <summary>
+        /// Upserts preparations and returns a dictionary of Label → preparation_id
+        /// so that UpsertFiles can stamp preparation_id on each file.
+        /// Files whose linked preparation is removed are also deleted here.
+        /// </summary>
+        private async Task<Dictionary<string, int>> UpsertPreparations(
             IDbConnection connection,
             IDbTransaction transaction,
             int parameterId,
@@ -854,21 +860,32 @@ namespace RawDataWorkSheet.Repositories
                 x => $"{x.Label}_{x.PreparationType ?? ""}_{x.PreparationCategory}",
                 x => x.Id);
 
+            // Also keep a label→id map for every existing prep (used for file cascade)
+            var existingLabelToId = existing.ToDictionary(x => x.Label, x => x.Id);
+
             var newKeys = preparations
                 .Select(p => $"{p.Label}_{p.PreparationType ?? ""}_{p.PreparationCategory}")
                 .ToHashSet();
 
-            // Delete removed preparations
+            // Delete removed preparations — and cascade-delete their linked files
             var toDelete = existingDict.Keys.Except(newKeys).ToList();
             if (toDelete.Any())
             {
                 var idsToDelete = toDelete.Select(key => existingDict[key]).ToList();
+
+                // Cascade: delete files that belong to the removed preparations
+                await connection.ExecuteAsync(
+                    "DELETE FROM worksheet_files WHERE preparation_id IN @Ids",
+                    new { Ids = idsToDelete }, transaction);
+
                 await connection.ExecuteAsync(
                     "DELETE FROM worksheet_preparations WHERE id IN @Ids",
                     new { Ids = idsToDelete }, transaction);
             }
 
-            // Insert or update
+            // Insert or update, and build the label→id map for the caller
+            var labelToId = new Dictionary<string, int>();
+
             foreach (var prep in preparations)
             {
                 var key = $"{prep.Label}_{prep.PreparationType ?? ""}_{prep.PreparationCategory}";
@@ -893,13 +910,16 @@ namespace RawDataWorkSheet.Repositories
                             prep.PreparationCategory
                         },
                         transaction);
+
+                    labelToId[prep.Label] = existingId;
                 }
                 else
                 {
-                    await connection.ExecuteAsync(
+                    var newId = await connection.ExecuteScalarAsync<int>(
                         @"INSERT INTO worksheet_preparations 
                           (parameter_id, preparation_category, preparation_type, label, assigned_standard_id, steps, content)
-                          VALUES (@ParameterId, @PreparationCategory, @PreparationType, @Label, @AssignedStandardId, @Steps, @Content)",
+                          VALUES (@ParameterId, @PreparationCategory, @PreparationType, @Label, @AssignedStandardId, @Steps, @Content);
+                          SELECT CAST(SCOPE_IDENTITY() AS int);",
                         new
                         {
                             ParameterId = parameterId,
@@ -911,8 +931,12 @@ namespace RawDataWorkSheet.Repositories
                             prep.Content
                         },
                         transaction);
+
+                    labelToId[prep.Label] = newId;
                 }
             }
+
+            return labelToId;
         }
 
         // ─────────────────────────────────────────────────────────────────────────
@@ -991,10 +1015,13 @@ namespace RawDataWorkSheet.Repositories
             IDbTransaction transaction,
             int parameterId,
             List<WorksheetFileDto>? files,
-            string worksheetId)
+            string worksheetId,
+            Dictionary<string, int>? prepLabelToId = null)
         {
             if (files == null)
                 files = new List<WorksheetFileDto>();
+
+            prepLabelToId ??= new Dictionary<string, int>();
 
             // Load all existing file ids for this parameter
             var existing = await connection.QueryAsync<(int Id, string FileName, string? PreparationCategory, string? PreparationType, string? Label)>(
@@ -1027,6 +1054,11 @@ namespace RawDataWorkSheet.Repositories
 
             foreach (var file in files)
             {
+                // Resolve preparation_id by matching file label against saved preparations
+                int? preparationId = file.Label != null && prepLabelToId.TryGetValue(file.Label, out var pid)
+                    ? pid
+                    : (int?)null;
+
                 if (file.Id > 0 && existingIds.Contains(file.Id))
                 {
                     // ── UPDATE existing record ────────────────────────────────
@@ -1039,6 +1071,7 @@ namespace RawDataWorkSheet.Repositories
                             SET
                                 worksheet_id         = @WorksheetId,
                                 preparation_type     = @PreparationType,
+                                preparation_id       = @PreparationId,
                                 label                = @Label,
                                 filename             = @FileName,
                                 filedata             = @FileData,
@@ -1049,6 +1082,7 @@ namespace RawDataWorkSheet.Repositories
                             {
                                 WorksheetId = worksheetId,
                                 file.PreparationType,
+                                PreparationId = preparationId,
                                 file.Label,
                                 file.FileName,
                                 FileData = Convert.FromBase64String(file.FileDataBase64),
@@ -1066,6 +1100,7 @@ namespace RawDataWorkSheet.Repositories
                             SET
                                 worksheet_id         = @WorksheetId,
                                 preparation_type     = @PreparationType,
+                                preparation_id       = @PreparationId,
                                 label                = @Label,
                                 filename             = @FileName
                             WHERE id = @Id AND parameter_id = @ParameterId
@@ -1074,6 +1109,7 @@ namespace RawDataWorkSheet.Repositories
                             {
                                 WorksheetId = worksheetId,
                                 file.PreparationType,
+                                PreparationId = preparationId,
                                 file.Label,
                                 file.FileName,
                                 file.Id,
@@ -1088,15 +1124,16 @@ namespace RawDataWorkSheet.Repositories
                     await connection.ExecuteAsync(
                         """
                         INSERT INTO worksheet_files
-                            (parameter_id, worksheet_id, preparation_type, label, filename, filedata, uploaded_at)
+                            (parameter_id, worksheet_id, preparation_type, preparation_id, label, filename, filedata, uploaded_at)
                         VALUES
-                            (@ParameterId, @WorksheetId, @PreparationType, @Label, @FileName, @FileData, GETDATE())
+                            (@ParameterId, @WorksheetId, @PreparationType, @PreparationId, @Label, @FileName, @FileData, GETDATE())
                         """,
                         new
                         {
                             ParameterId = parameterId,
                             WorksheetId = worksheetId,
                             file.PreparationType,
+                            PreparationId = preparationId,
                             file.Label,
                             file.FileName,
                             FileData = Convert.FromBase64String(file.FileDataBase64)

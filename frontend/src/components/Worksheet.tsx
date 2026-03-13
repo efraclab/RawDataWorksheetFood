@@ -1616,6 +1616,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
       return data;
     };
 
+    // Accumulators for file state — built during forEach, set once cleanly after
+    const restoredFilesPerParam: Record<number, Record<string, AttachedFile[]>> = {};
+    const restoredShowParamFiles: Record<number, boolean> = {};
+
     parameters.forEach((param, idx) => {
       const paramId = restoredParams[idx].id;
 
@@ -1752,6 +1756,30 @@ const Worksheet: React.FC<WorksheetProps> = ({
           ...prev,
           [paramId]: param.preparationCompletedAt!,
         }));
+
+        // Sync groupPrepCompletedAt: mark whichever prep groups exist on this param as done.
+        // groupPrepCompletedAtPerParam is local-only UI state derived from preparationCompletedAt.
+        if (param.preparations && Array.isArray(param.preparations)) {
+          const groupKeys: Record<string, string> = {};
+          const at = param.preparationCompletedAt!;
+          const prepTypes = param.preparations.map((p: any) => p.preparationType);
+          if (prepTypes.includes("lod")) groupKeys["lod"] = at;
+          if (prepTypes.includes("roi")) groupKeys["roi"] = at;
+          if (prepTypes.includes("sulphated_ash")) groupKeys["sulphated_ash"] = at;
+          if (prepTypes.includes("residual_solvent")) groupKeys["residualSolvent"] = at;
+          if (prepTypes.includes("related_substance")) groupKeys["relatedSubstance"] = at;
+          if (prepTypes.includes("dissolution")) groupKeys["dissolution"] = at;
+          if (prepTypes.includes("dissolution_profile")) groupKeys["dissoProfile"] = at;
+          if (prepTypes.includes("uniformity_of_content")) groupKeys["uc"] = at;
+          if (prepTypes.includes("assay_ferrous_fumarate")) groupKeys["assayFerrousFumarate"] = at;
+          if (prepTypes.includes("dissolution_ferrous_fumarate")) groupKeys["dissolutionFerrousFumarate"] = at;
+          if (Object.keys(groupKeys).length > 0) {
+            setGroupPrepCompletedAtPerParam((prev) => ({
+              ...prev,
+              [paramId]: groupKeys,
+            }));
+          }
+        }
       }
 
       // ------------------------------------------------------------------------
@@ -3167,11 +3195,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
           // Param-level files have neither type nor label
           const slotKey =
             !hasType && !hasLabel
-              ? PARAM_LEVEL_KEY
-              : prepFileKey(
-                  hasType ? f.preparationType : null,
-                  hasLabel ? f.label : null,
-                );
+              ? "param_level"
+              : `${hasType ? f.preparationType : ""}|${hasLabel ? f.label : ""}`;
 
           if (!slotMap[slotKey]) slotMap[slotKey] = [];
           slotMap[slotKey].push({
@@ -3183,15 +3208,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
           });
         }
 
-        // Show param-level section if we have param-level files
-        if (slotMap[PARAM_LEVEL_KEY]?.length) {
-          setShowParamFiles((prev) => ({ ...prev, [paramId]: true }));
-        }
+        restoredFilesPerParam[paramId] = slotMap;
 
-        setFilesPerParam((prev) => ({
-          ...prev,
-          [paramId]: slotMap,
-        }));
+        // Show param-level section if we have param-level files
+        if (slotMap["param_level"]?.length) {
+          restoredShowParamFiles[paramId] = true;
+        }
       }
 
       if (activeGroups.length > 0) {
@@ -3201,6 +3223,10 @@ const Worksheet: React.FC<WorksheetProps> = ({
         }));
       }
     });
+
+    // Set file state once cleanly — no stale merging with old paramIds
+    setFilesPerParam(restoredFilesPerParam);
+    setShowParamFiles(restoredShowParamFiles);
 
     setSelectedParamsForDetail(restoredParams.map((p) => p.id));
   };
@@ -3665,6 +3691,8 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
       setAddedParameters([]);
       setSelectedParamsForDetail([]);
+      setFilesPerParam({});
+      setShowParamFiles({});
 
       restoreWorksheetToState(worksheetData);
     } catch (err: any) {
@@ -5079,17 +5107,23 @@ const Worksheet: React.FC<WorksheetProps> = ({
     setIsCompletingGroupPrep(true);
     try {
       const paramId = groupPrepDialogParam.id;
+      const completedBy = employeeId;
       const completedAt = new Date().toISOString();
-      const paramData = buildFullParamPayload(paramId);
+      // Use the same preparationCompletedBy/At fields as the main prep complete.
+      // groupPrepDialogKey identifies which group triggered it (for UI/toast only).
+      const paramData = buildFullParamPayload(paramId, {
+        preparationCompletedBy: completedBy,
+        preparationCompletedAt: completedAt,
+      });
       if (paramData) {
         const response = await updateParameter(paramId, paramData);
         if (response && response.parameterId) {
+          setPreparationCompletedByPerParam((prev) => ({ ...prev, [paramId]: completedBy }));
+          setPreparationCompletedAtPerParam((prev) => ({ ...prev, [paramId]: completedAt }));
+          // Also update local groupPrepCompletedAt so the UI reflects this group as done
           setGroupPrepCompletedAtPerParam((prev) => ({
             ...prev,
-            [paramId]: {
-              ...(prev[paramId] || {}),
-              [groupPrepDialogKey]: completedAt,
-            },
+            [paramId]: { ...(prev[paramId] || {}), [groupPrepDialogKey]: completedAt },
           }));
           setToastMessage(`${groupPrepDialogKey.toUpperCase()} preparation marked as complete!`);
           setShowToast(true);
@@ -5126,6 +5160,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
     setIsUnlockingGroupPrep(true);
     try {
       const paramId = groupPrepDialogParam.id;
+      // Clear preparationCompletedBy/At — same field as the main prep unlock.
       const paramData = buildFullParamPayload(paramId, {
         preparationCompletedBy: null,
         preparationCompletedAt: null,
@@ -5133,10 +5168,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
       if (paramData) {
         const response = await updateParameter(paramId, paramData);
         if (response && response.parameterId) {
+          setPreparationCompletedByPerParam((prev) => { const { [paramId]: _, ...r } = prev; return r; });
+          setPreparationCompletedAtPerParam((prev) => { const { [paramId]: _, ...r } = prev; return r; });
+          // Also clear local groupPrepCompletedAt for this group so UI updates
           setGroupPrepCompletedAtPerParam((prev) => {
-            const paramGroups = { ...(prev[paramId] || {}) };
-            delete paramGroups[groupPrepDialogKey];
-            return { ...prev, [paramId]: paramGroups };
+            const g = { ...(prev[paramId] || {}) };
+            delete g[groupPrepDialogKey];
+            return { ...prev, [paramId]: g };
           });
           setToastMessage(`${groupPrepDialogKey.toUpperCase()} preparation unlocked!`);
           setShowToast(true);
@@ -10528,35 +10566,40 @@ const Worksheet: React.FC<WorksheetProps> = ({
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-slate-800">
-                      Reviewer Approved — Pending QA Worksheet Approval
+                      {worksheetInfo?.sample.status === "Approved"
+                        ? "Worksheet Approved & Finalized"
+                        : "Reviewer Approved — Pending QA Worksheet Approval"}
                     </h3>
                     <p className="text-sm text-slate-600 mt-0.5">
-                      You can return this parameter for revision, or approve the
-                      entire worksheet once all parameters are reviewed
+                      {worksheetInfo?.sample.status === "Approved"
+                        ? "This worksheet has been fully approved by QA. All data is locked."
+                        : "You can return this parameter for revision, or approve the entire worksheet once all parameters are reviewed"}
                     </p>
                   </div>
                 </div>
-                <motion.button
-                  onClick={() => handleRequestRevision(param)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                {worksheetInfo?.sample.status !== "Approved" && (
+                  <motion.button
+                    onClick={() => handleRequestRevision(param)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
-                  Return for Revision
-                </motion.button>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    Return for Revision
+                  </motion.button>
+                )}
               </div>
             </div>
           </div>
@@ -11494,36 +11537,41 @@ const Worksheet: React.FC<WorksheetProps> = ({
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-slate-800">
-                        Reviewer Approved — Pending QA Worksheet Approval
+                        {worksheetInfo?.sample.status === "Approved"
+                          ? "Worksheet Approved & Finalized"
+                          : "Reviewer Approved — Pending QA Worksheet Approval"}
                       </h4>
                       <p className="text-xs text-slate-600">
-                        You can return this parameter for revision, or approve
-                        the entire worksheet once all parameters are reviewed
+                        {worksheetInfo?.sample.status === "Approved"
+                          ? "This worksheet has been fully approved by QA. All data is locked."
+                          : "You can return this parameter for revision, or approve the entire worksheet once all parameters are reviewed"}
                       </p>
                     </div>
                   </div>
 
-                  <motion.button
-                    onClick={() => handleQARequestRevision(param)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                  {worksheetInfo?.sample.status !== "Approved" && (
+                    <motion.button
+                      onClick={() => handleQARequestRevision(param)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                    Return for Revision
-                  </motion.button>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                      Return for Revision
+                    </motion.button>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -12546,7 +12594,19 @@ const Worksheet: React.FC<WorksheetProps> = ({
 
               // isFullyLocked: locks EVERYTHING — preparation AND calculations/system
               // suitability/other attachments. Triggered when the parameter itself is locked.
-              const isFullyLocked = isLocked || shouldDisableContent;
+              // For Analyst role: isLocked is true during "analysis started"/"analysis revision"
+              // (because isParameterLocked checks those statuses), but analysts must still be
+              // able to edit calculations, system suitability, and attach files in those states.
+              // So we use shouldDisableContent which is already role-aware: it is false for
+              // analysts when isEditableForAnalyst is true (i.e. started/revision statuses).
+              const isFullyLocked = shouldDisableContent;
+
+              // canManagePrep: controls prep Complete/Unlock buttons.
+              // Step 1: is the user blocked from editing this param? (role-aware)
+              // Step 2: block only at terminal statuses where nobody can manage prep.
+              // This means Analysts with "analysis started"/"analysis revision" DO see the buttons.
+              const _paramStatusForPrep = (parameterStatusPerParam[selectedParam.id] || "created").toLowerCase();
+              const canManagePrep = !shouldDisableContent && !["analysis completed", "approved"].includes(_paramStatusForPrep);
 
               return (
                 <AnimatePresence key={selectedParam.id}>
@@ -14416,6 +14476,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         animate={{ opacity: 1, y: 0 }}
                         className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-sm hover:shadow-emerald-200/50 transition-all duration-500"
                       >
+                        <div
+                          className={
+                            isPreparationLocked
+                              ? "pointer-events-none opacity-70"
+                              : ""
+                          }
+                        >
                         {/* Decorative elements */}
                         <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
@@ -14532,10 +14599,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 }
                                 preparationType="blank"
                                 sectionLabel="Preparation Files"
-                                isLocked={isParameterLocked(selectedParam.id)}
+                                isLocked={shouldDisableContent}
                               />
                             </div>
                           )}
+                          </div>
 
                           {(blankPreparationPerParam[selectedParam.id] || [])
                             .length === 0 && (
@@ -14622,6 +14690,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         animate={{ opacity: 1, y: 0 }}
                         className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-sm hover:shadow-emerald-200/50 transition-all duration-500"
                       >
+                        <div
+                          className={
+                            isPreparationLocked
+                              ? "pointer-events-none opacity-70"
+                              : ""
+                          }
+                        >
                         {/* Decorative elements */}
                         <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
@@ -14747,10 +14822,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 }
                                 preparationType="assay_ferrous_fumarate"
                                 sectionLabel="Preparation Files"
-                                isLocked={isParameterLocked(selectedParam.id)}
+                                isLocked={shouldDisableContent}
                               />
                             </div>
                           )}
+                          </div>
 
                           {(
                             samplePrepAssayFerrousFumaratePerParam[
@@ -14778,11 +14854,49 @@ const Worksheet: React.FC<WorksheetProps> = ({
                           )}
                         </div>
 
+                        {canManagePrep && (samplePrepAssayFerrousFumaratePerParam[selectedParam.id] || []).length > 0 && (() => {
+                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["assayFerrousFumarate"];
+                              return (
+                                <div className="mt-4 pointer-events-auto opacity-100">
+                                  {isGroupCompleted ? (
+                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="text-sm font-semibold text-emerald-800">Assay (Ferrous Fumarate) Preparation Completed</p>
+                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["assayFerrousFumarate"]).toLocaleString()}</p>
+                                      </div>
+                                      <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "assayFerrousFumarate")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
+                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+                                        Unlock Preparation
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "assayFerrousFumarate")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                      Mark Assay (Ferrous Fumarate) Preparation as Complete
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                        {(samplePrepAssayFerrousFumaratePerParam[selectedParam.id] || []).length > 0 &&
+                          !groupPrepCompletedAtPerParam[selectedParam.id]?.["assayFerrousFumarate"] &&
+                          !canManagePrep && (
+                            <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                              <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              <p className="text-sm text-amber-800"><strong>Complete Preparation</strong> above to unlock the Calculations section.</p>
+                            </div>
+                          )}
+
                         {(
                           samplePrepAssayFerrousFumaratePerParam[
                             selectedParam.id
                           ] || []
-                        ).length > 0 && (
+                        ).length > 0 && groupPrepCompletedAtPerParam[selectedParam.id]?.["assayFerrousFumarate"] && (
+                          <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                           <>
                             {/* ── Ferrous Fumarate Calculations separator ── */}
                             <div className="flex items-center gap-4 my-8">
@@ -14882,12 +14996,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
                               )}
                             </div>
                           </>
+                          </div>
                         )}
                       </motion.div>
                     )}
 
                     {/* ============= Disso (Ferrous Fumarate) section ============= */}
-
                     {(activePreparationGroups[selectedParam.id] || []).includes(
                       "dissolutionFerrousFumarate",
                     ) && (
@@ -14896,6 +15010,13 @@ const Worksheet: React.FC<WorksheetProps> = ({
                         animate={{ opacity: 1, y: 0 }}
                         className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-sm hover:shadow-emerald-200/50 transition-all duration-500"
                       >
+                        <div
+                          className={
+                            isPreparationLocked
+                              ? "pointer-events-none opacity-70"
+                              : ""
+                          }
+                        >
                         {/* Decorative elements */}
                         <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
@@ -15022,10 +15143,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 }
                                 preparationType="dissolution_ferrous_fumarate"
                                 sectionLabel="Preparation Files"
-                                isLocked={isParameterLocked(selectedParam.id)}
+                                isLocked={shouldDisableContent}
                               />
                             </div>
                           )}
+                          </div>
 
                           {(
                             samplePrepDissoFerrousFumaratePerParam[
@@ -15054,9 +15176,47 @@ const Worksheet: React.FC<WorksheetProps> = ({
                           )}
                         </div>
 
+                        {canManagePrep && samplePrepDissoFerrousFumaratePerParam[selectedParam.id]?.length > 0 && (() => {
+                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["dissolutionFerrousFumarate"];
+                              return (
+                                <div className="mt-4 pointer-events-auto opacity-100">
+                                  {isGroupCompleted ? (
+                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="text-sm font-semibold text-emerald-800">Dissolution (Ferrous Fumarate) Preparation Completed</p>
+                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["dissolutionFerrousFumarate"]).toLocaleString()}</p>
+                                      </div>
+                                      <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "dissolutionFerrousFumarate")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
+                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+                                        Unlock Preparation
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "dissolutionFerrousFumarate")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                      Mark Dissolution (Ferrous Fumarate) Preparation as Complete
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                        {samplePrepDissoFerrousFumaratePerParam[selectedParam.id]?.length > 0 &&
+                          !groupPrepCompletedAtPerParam[selectedParam.id]?.["dissolutionFerrousFumarate"] &&
+                          !canManagePrep && (
+                            <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                              <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              <p className="text-sm text-amber-800"><strong>Complete Preparation</strong> above to unlock the Calculations section.</p>
+                            </div>
+                          )}
+
                         {samplePrepDissoFerrousFumaratePerParam[
                           selectedParam.id
-                        ]?.length > 0 && (
+                        ]?.length > 0 && groupPrepCompletedAtPerParam[selectedParam.id]?.["dissolutionFerrousFumarate"] && (
+                          <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                           <>
                             <div className="flex items-center gap-4 my-8">
                               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
@@ -15156,6 +15316,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                               )}
                             </div>
                           </>
+                          </div>
                         )}
                       </motion.div>
                     )}
@@ -15328,6 +15489,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 );
                               })}
                             </AnimatePresence>
+                          </div>
                             {(
                               standardPreparationAssayPerParam[
                                 selectedParam.id
@@ -15358,7 +15520,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                   }
                                   preparationType="assay"
                                   sectionLabel="Preparation Files"
-                                  isLocked={isParameterLocked(selectedParam.id)}
+                                  isLocked={shouldDisableContent}
                                 />
                               </div>
                             )}
@@ -15398,21 +15560,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               </motion.div>
                             )}
-                          </div>
                         </div>
 
-                                                    {/* ── Complete Preparation Banner / Button ── */}
-                            {!isFullyLocked && (() => {
-                              const paramStatus = (
-                                parameterStatusPerParam[selectedParam.id] ||
-                                "created"
-                              ).toLowerCase();
-                              // Allow completing/unlocking preparation when: not yet analysis completed/approved
-                              // Allowed statuses: created, analysis pending, analysis started, analysis revision
-                              const canManagePreparation = ![
-                                "analysis completed",
-                                "approved",
-                              ].includes(paramStatus);
+                        {/* ── Complete Preparation Banner / Button ── */}
+                            {canManagePrep && (() => {
+                              // Prep complete/unlock shown when canManagePrep is true (role-aware + status-aware).
                               const hasPrepData =
                                 (
                                   standardPreparationAssayPerParam[
@@ -15427,7 +15579,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                               if (!hasPrepData) return null;
 
                               return (
-                                <div className="mt-5">
+                                <div className="mt-5 pointer-events-auto opacity-100">
                                   {isPrepCompleted ? (
                                     /* ── Completed Banner ── */
                                     <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
@@ -15459,7 +15611,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                           ).toLocaleString()}
                                         </p>
                                       </div>
-                                      {canManagePreparation && (
+                                      {true && (
                                         <button
                                           onClick={() =>
                                             handleInitiateUnlockPreparation(
@@ -15485,7 +15637,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                         </button>
                                       )}
                                     </div>
-                                  ) : canManagePreparation ? (
+                                  ) : true ? (
                                     /* ── Complete button (only when allowed) ── */
                                     <button
                                       onClick={() =>
@@ -15508,7 +15660,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                           d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                                         />
                                       </svg>
-                                      Mark Preparation as Complete
+                                      Mark Assay Preparation as Complete
                                     </button>
                                   ) : null}
                                 </div>
@@ -15520,7 +15672,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                           samplePreparationPerParam[selectedParam.id]?.length >
                             0 &&
                           !preparationCompletedAtPerParam[selectedParam.id] &&
-                          !isParameterLocked(selectedParam.id) && (
+                          !canManagePrep && (
                             <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
                               <svg
                                 className="w-5 h-5 text-amber-500 flex-shrink-0"
@@ -15659,6 +15811,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                           )}
                       </motion.div>
                     )}
+
                     {(activePreparationGroups[selectedParam.id] || []).includes(
                       "lod",
                     ) && (
@@ -15767,6 +15920,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               ))}
                             </AnimatePresence>
+                          </div>
                             {(
                               samplePreparationLodPerParam[selectedParam.id] ||
                               []
@@ -15796,45 +15950,11 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                   }
                                   preparationType="lod"
                                   sectionLabel="Preparation Files"
-                                  isLocked={isParameterLocked(selectedParam.id) || !!groupPrepCompletedAtPerParam[selectedParam.id]?.["lod"]}
+                                  isLocked={shouldDisableContent}
                                 />
                               </div>
                             )}
-
-                            {/* ── LOD Complete Preparation Banner ── */}
-                            {!isFullyLocked && (samplePreparationLodPerParam[selectedParam.id] || []).length > 0 && (() => {
-                              const paramStatus = (parameterStatusPerParam[selectedParam.id] || "created").toLowerCase();
-                              const canManage = !["analysis completed", "approved"].includes(paramStatus);
-                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["lod"];
-                              return (
-                                <div className="mt-4">
-                                  {isGroupCompleted ? (
-                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
-                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                      </div>
-                                      <div className="flex-1">
-                                        <p className="text-sm font-semibold text-emerald-800">LOD Preparation Completed</p>
-                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["lod"]).toLocaleString()}</p>
-                                      </div>
-                                      {canManage && (
-                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "lod")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
-                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
-                                          Unlock Preparation
-                                        </button>
-                                      )}
-                                    </div>
-                                  ) : canManage ? (
-                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "lod")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
-                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                      Mark LOD Preparation as Complete
-                                    </button>
-                                  ) : null}
-                                </div>
-                              );
-                            })()}
-
-                            {(
+                                                        {(
                               samplePreparationLodPerParam[selectedParam.id] ||
                               []
                             ).length === 0 && (
@@ -15868,8 +15988,48 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               </motion.div>
                             )}
-                          </div>
                         </div>
+
+                            {/* ── LOD Complete Preparation Banner ── */}
+                            {canManagePrep && (samplePreparationLodPerParam[selectedParam.id] || []).length > 0 && (() => {
+                              // Prep complete/unlock shown when canManagePrep is true (role-aware + status-aware).
+                              const canManage = true;
+                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["lod"];
+                              return (
+                                <div className="mt-4 pointer-events-auto opacity-100">
+                                  {isGroupCompleted ? (
+                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="text-sm font-semibold text-emerald-800">LOD Preparation Completed</p>
+                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["lod"]).toLocaleString()}</p>
+                                      </div>
+                                      {canManage && (
+                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "lod")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+                                          Unlock Preparation
+                                        </button>
+                                      )}
+                                    </div>
+                                  ) : canManage ? (
+                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "lod")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                      Mark LOD Preparation as Complete
+                                    </button>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
+
+                            {canManagePrep && (samplePreparationLodPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["lod"] && (
+                              <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <p className="text-sm text-amber-800"><strong>Complete Preparation</strong> above to unlock the Calculations section.</p>
+                              </div>
+                            )}
 
                         {samplePreparationLodPerParam[selectedParam.id]
                           ?.length > 0 && groupPrepCompletedAtPerParam[selectedParam.id]?.["lod"] && (
@@ -16085,6 +16245,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               ))}
                             </AnimatePresence>
+                          </div>
                             {(
                               samplePreparationROIPerParam[selectedParam.id] ||
                               []
@@ -16114,45 +16275,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                   }
                                   preparationType="roi"
                                   sectionLabel="Preparation Files"
-                                  isLocked={isParameterLocked(selectedParam.id) || !!groupPrepCompletedAtPerParam[selectedParam.id]?.["roi"]}
+                                  isLocked={shouldDisableContent}
                                 />
                               </div>
                             )}
 
-                            {/* ── ROI Complete Preparation Banner ── */}
-                            {!isFullyLocked && (samplePreparationROIPerParam[selectedParam.id] || []).length > 0 && (() => {
-                              const paramStatus = (parameterStatusPerParam[selectedParam.id] || "created").toLowerCase();
-                              const canManage = !["analysis completed", "approved"].includes(paramStatus);
-                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["roi"];
-                              return (
-                                <div className="mt-4">
-                                  {isGroupCompleted ? (
-                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
-                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                      </div>
-                                      <div className="flex-1">
-                                        <p className="text-sm font-semibold text-emerald-800">ROI Preparation Completed</p>
-                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["roi"]).toLocaleString()}</p>
-                                      </div>
-                                      {canManage && (
-                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "roi")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
-                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
-                                          Unlock Preparation
-                                        </button>
-                                      )}
-                                    </div>
-                                  ) : canManage ? (
-                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "roi")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
-                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                      Mark ROI Preparation as Complete
-                                    </button>
-                                  ) : null}
-                                </div>
-                              );
-                            })()}
-
-                            {(
+                                                        {(
                               samplePreparationROIPerParam[selectedParam.id] ||
                               []
                             ).length === 0 && (
@@ -16186,8 +16314,48 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               </motion.div>
                             )}
-                          </div>
                         </div>
+
+                            {/* ── ROI Complete Preparation Banner ── */}
+                            {canManagePrep && (samplePreparationROIPerParam[selectedParam.id] || []).length > 0 && (() => {
+                              // Prep complete/unlock shown when canManagePrep is true (role-aware + status-aware).
+                              const canManage = true;
+                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["roi"];
+                              return (
+                                <div className="mt-4 pointer-events-auto opacity-100">
+                                  {isGroupCompleted ? (
+                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="text-sm font-semibold text-emerald-800">ROI Preparation Completed</p>
+                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["roi"]).toLocaleString()}</p>
+                                      </div>
+                                      {canManage && (
+                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "roi")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+                                          Unlock Preparation
+                                        </button>
+                                      )}
+                                    </div>
+                                  ) : canManage ? (
+                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "roi")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                      Mark ROI Preparation as Complete
+                                    </button>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
+
+                            {canManagePrep && (samplePreparationROIPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["roi"] && (
+                              <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <p className="text-sm text-amber-800"><strong>Complete Preparation</strong> above to unlock the Calculations section.</p>
+                              </div>
+                            )}
 
                         {samplePreparationROIPerParam[selectedParam.id]
                           ?.length > 0 && groupPrepCompletedAtPerParam[selectedParam.id]?.["roi"] && (
@@ -16406,6 +16574,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               ))}
                             </AnimatePresence>
+                          </div>
                             {(
                               samplePreparationSulphatedAshPerParam[
                                 selectedParam.id
@@ -16436,45 +16605,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                   }
                                   preparationType="sulphated_ash"
                                   sectionLabel="Preparation Files"
-                                  isLocked={isParameterLocked(selectedParam.id) || !!groupPrepCompletedAtPerParam[selectedParam.id]?.["sulphated_ash"]}
+                                  isLocked={shouldDisableContent}
                                 />
                               </div>
                             )}
 
-                            {/* ── Sulphated Ash Complete Preparation Banner ── */}
-                            {!isFullyLocked && (samplePreparationSulphatedAshPerParam[selectedParam.id] || []).length > 0 && (() => {
-                              const paramStatus = (parameterStatusPerParam[selectedParam.id] || "created").toLowerCase();
-                              const canManage = !["analysis completed", "approved"].includes(paramStatus);
-                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["sulphated_ash"];
-                              return (
-                                <div className="mt-4">
-                                  {isGroupCompleted ? (
-                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
-                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                      </div>
-                                      <div className="flex-1">
-                                        <p className="text-sm font-semibold text-emerald-800">Sulphated Ash Preparation Completed</p>
-                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["sulphated_ash"]).toLocaleString()}</p>
-                                      </div>
-                                      {canManage && (
-                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "sulphated_ash")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
-                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
-                                          Unlock Preparation
-                                        </button>
-                                      )}
-                                    </div>
-                                  ) : canManage ? (
-                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "sulphated_ash")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
-                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                      Mark Sulphated Ash Preparation as Complete
-                                    </button>
-                                  ) : null}
-                                </div>
-                              );
-                            })()}
-
-                            {(
+                                                        {(
                               samplePreparationSulphatedAshPerParam[
                                 selectedParam.id
                               ] || []
@@ -16509,8 +16645,49 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               </motion.div>
                             )}
-                          </div>
                         </div>
+
+                            {/* ── Sulphated Ash Complete Preparation Banner ── */}
+                            {canManagePrep && (samplePreparationSulphatedAshPerParam[selectedParam.id] || []).length > 0 && (() => {
+                              // Prep complete/unlock shown when canManagePrep is true (role-aware + status-aware).
+                              const canManage = true;
+                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["sulphated_ash"];
+                              return (
+                                <div className="mt-4 pointer-events-auto opacity-100">
+                                  {isGroupCompleted ? (
+                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="text-sm font-semibold text-emerald-800">Sulphated Ash Preparation Completed</p>
+                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["sulphated_ash"]).toLocaleString()}</p>
+                                      </div>
+                                      {canManage && (
+                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "sulphated_ash")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+                                          Unlock Preparation
+                                        </button>
+                                      )}
+                                    </div>
+                                  ) : canManage ? (
+                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "sulphated_ash")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                      Mark Sulphated Ash Preparation as Complete
+                                    </button>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
+
+                            {canManagePrep && (samplePreparationSulphatedAshPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["sulphated_ash"] && (
+                              <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <p className="text-sm text-amber-800"><strong>Complete Preparation</strong> above to unlock the Calculations section.</p>
+                              </div>
+                            )}
+
 
                         {samplePreparationSulphatedAshPerParam[selectedParam.id]
                           ?.length > 0 && groupPrepCompletedAtPerParam[selectedParam.id]?.["sulphated_ash"] && (
@@ -16801,6 +16978,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 );
                               })}
                             </AnimatePresence>
+                          </div>
                             {(
                               standardPreparationResidualSolventPerParam[
                                 selectedParam.id
@@ -16831,45 +17009,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                   }
                                   preparationType="residual_solvent"
                                   sectionLabel="Preparation Files"
-                                  isLocked={isParameterLocked(selectedParam.id) || !!groupPrepCompletedAtPerParam[selectedParam.id]?.["residualSolvent"]}
+                                  isLocked={shouldDisableContent}
                                 />
                               </div>
                             )}
 
-                            {/* ── Residual Solvent Complete Preparation Banner ── */}
-                            {!isFullyLocked && (standardPreparationResidualSolventPerParam[selectedParam.id] || []).length > 0 && (() => {
-                              const paramStatus = (parameterStatusPerParam[selectedParam.id] || "created").toLowerCase();
-                              const canManage = !["analysis completed", "approved"].includes(paramStatus);
-                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["residualSolvent"];
-                              return (
-                                <div className="mt-4">
-                                  {isGroupCompleted ? (
-                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
-                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                      </div>
-                                      <div className="flex-1">
-                                        <p className="text-sm font-semibold text-emerald-800">Residual Solvent Preparation Completed</p>
-                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["residualSolvent"]).toLocaleString()}</p>
-                                      </div>
-                                      {canManage && (
-                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "residualSolvent")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
-                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
-                                          Unlock Preparation
-                                        </button>
-                                      )}
-                                    </div>
-                                  ) : canManage ? (
-                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "residualSolvent")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
-                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                      Mark Residual Solvent Preparation as Complete
-                                    </button>
-                                  ) : null}
-                                </div>
-                              );
-                            })()}
-
-                            {(
+                                                        {(
                               standardPreparationResidualSolventPerParam[
                                 selectedParam.id
                               ] || []
@@ -16904,8 +17049,48 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               </motion.div>
                             )}
-                          </div>
                         </div>
+
+                            {/* ── Residual Solvent Complete Preparation Banner ── */}
+                            {canManagePrep && (standardPreparationResidualSolventPerParam[selectedParam.id] || []).length > 0 && (() => {
+                              // Prep complete/unlock shown when canManagePrep is true (role-aware + status-aware).
+                              const canManage = true;
+                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["residualSolvent"];
+                              return (
+                                <div className="mt-4 pointer-events-auto opacity-100">
+                                  {isGroupCompleted ? (
+                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="text-sm font-semibold text-emerald-800">Residual Solvent Preparation Completed</p>
+                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["residualSolvent"]).toLocaleString()}</p>
+                                      </div>
+                                      {canManage && (
+                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "residualSolvent")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+                                          Unlock Preparation
+                                        </button>
+                                      )}
+                                    </div>
+                                  ) : canManage ? (
+                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "residualSolvent")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                      Mark Residual Solvent Preparation as Complete
+                                    </button>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
+
+                            {canManagePrep && (standardPreparationResidualSolventPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["residualSolvent"] && (
+                              <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <p className="text-sm text-amber-800"><strong>Complete Preparation</strong> above to unlock the Calculations section.</p>
+                              </div>
+                            )}
 
                         {standardPreparationResidualSolventPerParam[
                           selectedParam.id
@@ -17193,6 +17378,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 );
                               })}
                             </AnimatePresence>
+                          </div>
                             {(
                               standardPreparationRelatedSubstancePerParam[
                                 selectedParam.id
@@ -17223,45 +17409,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                   }
                                   preparationType="related_substance"
                                   sectionLabel="Preparation Files"
-                                  isLocked={isParameterLocked(selectedParam.id) || !!groupPrepCompletedAtPerParam[selectedParam.id]?.["relatedSubstance"]}
+                                  isLocked={shouldDisableContent}
                                 />
                               </div>
                             )}
 
-                            {/* ── Related Substance Complete Preparation Banner ── */}
-                            {!isFullyLocked && (standardPreparationRelatedSubstancePerParam[selectedParam.id] || []).length > 0 && (() => {
-                              const paramStatus = (parameterStatusPerParam[selectedParam.id] || "created").toLowerCase();
-                              const canManage = !["analysis completed", "approved"].includes(paramStatus);
-                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["relatedSubstance"];
-                              return (
-                                <div className="mt-4">
-                                  {isGroupCompleted ? (
-                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
-                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                      </div>
-                                      <div className="flex-1">
-                                        <p className="text-sm font-semibold text-emerald-800">Related Substance Preparation Completed</p>
-                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["relatedSubstance"]).toLocaleString()}</p>
-                                      </div>
-                                      {canManage && (
-                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "relatedSubstance")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
-                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
-                                          Unlock Preparation
-                                        </button>
-                                      )}
-                                    </div>
-                                  ) : canManage ? (
-                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "relatedSubstance")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
-                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                      Mark Related Substance Preparation as Complete
-                                    </button>
-                                  ) : null}
-                                </div>
-                              );
-                            })()}
-
-                            {(
+                                                        {(
                               standardPreparationRelatedSubstancePerParam[
                                 selectedParam.id
                               ] || []
@@ -17296,8 +17449,48 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               </motion.div>
                             )}
-                          </div>
                         </div>
+
+                            {/* ── Related Substance Complete Preparation Banner ── */}
+                            {canManagePrep && (standardPreparationRelatedSubstancePerParam[selectedParam.id] || []).length > 0 && (() => {
+                              // Prep complete/unlock shown when canManagePrep is true (role-aware + status-aware).
+                              const canManage = true;
+                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["relatedSubstance"];
+                              return (
+                                <div className="mt-4 pointer-events-auto opacity-100">
+                                  {isGroupCompleted ? (
+                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="text-sm font-semibold text-emerald-800">Related Substance Preparation Completed</p>
+                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["relatedSubstance"]).toLocaleString()}</p>
+                                      </div>
+                                      {canManage && (
+                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "relatedSubstance")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+                                          Unlock Preparation
+                                        </button>
+                                      )}
+                                    </div>
+                                  ) : canManage ? (
+                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "relatedSubstance")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                      Mark Related Substance Preparation as Complete
+                                    </button>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
+
+                            {canManagePrep && (standardPreparationRelatedSubstancePerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["relatedSubstance"] && (
+                              <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <p className="text-sm text-amber-800"><strong>Complete Preparation</strong> above to unlock the Calculations section.</p>
+                              </div>
+                            )}
 
                         {standardPreparationRelatedSubstancePerParam[
                           selectedParam.id
@@ -17625,6 +17818,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 );
                               })}
                             </AnimatePresence>
+                          </div>
                             {(
                               standardPreparationDissoPerParam[
                                 selectedParam.id
@@ -17655,45 +17849,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                   }
                                   preparationType="dissolution"
                                   sectionLabel="Preparation Files"
-                                  isLocked={isParameterLocked(selectedParam.id) || !!groupPrepCompletedAtPerParam[selectedParam.id]?.["dissolution"]}
+                                  isLocked={shouldDisableContent}
                                 />
                               </div>
                             )}
 
-                            {/* ── Dissolution Complete Preparation Banner ── */}
-                            {!isFullyLocked && (standardPreparationDissoPerParam[selectedParam.id] || []).length > 0 && (() => {
-                              const paramStatus = (parameterStatusPerParam[selectedParam.id] || "created").toLowerCase();
-                              const canManage = !["analysis completed", "approved"].includes(paramStatus);
-                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["dissolution"];
-                              return (
-                                <div className="mt-4">
-                                  {isGroupCompleted ? (
-                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
-                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                      </div>
-                                      <div className="flex-1">
-                                        <p className="text-sm font-semibold text-emerald-800">Dissolution Preparation Completed</p>
-                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["dissolution"]).toLocaleString()}</p>
-                                      </div>
-                                      {canManage && (
-                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "dissolution")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
-                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
-                                          Unlock Preparation
-                                        </button>
-                                      )}
-                                    </div>
-                                  ) : canManage ? (
-                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "dissolution")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
-                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                      Mark Dissolution Preparation as Complete
-                                    </button>
-                                  ) : null}
-                                </div>
-                              );
-                            })()}
-
-                            {(
+                                                        {(
                               standardPreparationDissoPerParam[
                                 selectedParam.id
                               ] || []
@@ -17729,8 +17890,48 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               </motion.div>
                             )}
-                          </div>
                         </div>
+
+                            {/* ── Dissolution Complete Preparation Banner ── */}
+                            {canManagePrep && (standardPreparationDissoPerParam[selectedParam.id] || []).length > 0 && (() => {
+                              // Prep complete/unlock shown when canManagePrep is true (role-aware + status-aware).
+                              const canManage = true;
+                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["dissolution"];
+                              return (
+                                <div className="mt-4 pointer-events-auto opacity-100">
+                                  {isGroupCompleted ? (
+                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="text-sm font-semibold text-emerald-800">Dissolution Preparation Completed</p>
+                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["dissolution"]).toLocaleString()}</p>
+                                      </div>
+                                      {canManage && (
+                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "dissolution")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+                                          Unlock Preparation
+                                        </button>
+                                      )}
+                                    </div>
+                                  ) : canManage ? (
+                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "dissolution")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                      Mark Dissolution Preparation as Complete
+                                    </button>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
+
+                            {canManagePrep && (standardPreparationDissoPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["dissolution"] && (
+                              <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <p className="text-sm text-amber-800"><strong>Complete Preparation</strong> above to unlock the Calculations section.</p>
+                              </div>
+                            )}
 
                         {standardPreparationDissoPerParam[selectedParam.id]
                           ?.length > 0 &&
@@ -18100,17 +18301,17 @@ const Worksheet: React.FC<WorksheetProps> = ({
                           </div>
                         </div>
 
-                        {!isFullyLocked && standardPreparationDissoProfilePerParam[
+                        {canManagePrep && standardPreparationDissoProfilePerParam[
                           selectedParam.id
                         ]?.length > 0 &&
                           samplePreparationDissoProfilePerParam[
                             selectedParam.id
                           ]?.length > 0 && (() => {
-                            const paramStatus = (parameterStatusPerParam[selectedParam.id] || "created").toLowerCase();
-                            const canManage = !["analysis completed", "approved"].includes(paramStatus);
+                            // Prep complete/unlock shown when canManagePrep is true (role-aware + status-aware).
+                            const canManage = true;
                             const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["dissoProfile"];
                             return (
-                              <div className="mt-4 mb-2">
+                              <div className="mt-4 mb-2 pointer-events-auto opacity-100">
                                 {isGroupCompleted ? (
                                   <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
                                     <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -18136,6 +18337,14 @@ const Worksheet: React.FC<WorksheetProps> = ({
                               </div>
                             );
                           })()}
+
+                        {canManagePrep && (standardPreparationDissoProfilePerParam[selectedParam.id] || []).length > 0 &&
+                          !groupPrepCompletedAtPerParam[selectedParam.id]?.["dissoProfile"] && (
+                          <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                            <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <p className="text-sm text-amber-800"><strong>Complete Preparation</strong> above to unlock the Calculations section.</p>
+                          </div>
+                        )}
 
                         {standardPreparationDissoProfilePerParam[
                           selectedParam.id
@@ -18431,6 +18640,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 );
                               })}
                             </AnimatePresence>
+                          </div>
                             {(
                               standardPreparationUCPerParam[selectedParam.id] ||
                               []
@@ -18460,45 +18670,12 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                   }
                                   preparationType="uniformity_of_content"
                                   sectionLabel="Preparation Files"
-                                  isLocked={isParameterLocked(selectedParam.id) || !!groupPrepCompletedAtPerParam[selectedParam.id]?.["uc"]}
+                                  isLocked={shouldDisableContent}
                                 />
                               </div>
                             )}
 
-                            {/* ── UC Complete Preparation Banner ── */}
-                            {!isFullyLocked && (standardPreparationUCPerParam[selectedParam.id] || []).length > 0 && (() => {
-                              const paramStatus = (parameterStatusPerParam[selectedParam.id] || "created").toLowerCase();
-                              const canManage = !["analysis completed", "approved"].includes(paramStatus);
-                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["uc"];
-                              return (
-                                <div className="mt-4">
-                                  {isGroupCompleted ? (
-                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
-                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                      </div>
-                                      <div className="flex-1">
-                                        <p className="text-sm font-semibold text-emerald-800">Uniformity of Content Preparation Completed</p>
-                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["uc"]).toLocaleString()}</p>
-                                      </div>
-                                      {canManage && (
-                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "uc")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
-                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
-                                          Unlock Preparation
-                                        </button>
-                                      )}
-                                    </div>
-                                  ) : canManage ? (
-                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "uc")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
-                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                      Mark UC Preparation as Complete
-                                    </button>
-                                  ) : null}
-                                </div>
-                              );
-                            })()}
-
-                            {(
+                                                        {(
                               standardPreparationUCPerParam[selectedParam.id] ||
                               []
                             ).length === 0 && (
@@ -18533,8 +18710,48 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 </div>
                               </motion.div>
                             )}
-                          </div>
                         </div>
+
+                            {/* ── UC Complete Preparation Banner ── */}
+                            {canManagePrep && (standardPreparationUCPerParam[selectedParam.id] || []).length > 0 && (() => {
+                              // Prep complete/unlock shown when canManagePrep is true (role-aware + status-aware).
+                              const canManage = true;
+                              const isGroupCompleted = !!groupPrepCompletedAtPerParam[selectedParam.id]?.["uc"];
+                              return (
+                                <div className="mt-4 pointer-events-auto opacity-100">
+                                  {isGroupCompleted ? (
+                                    <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="text-sm font-semibold text-emerald-800">Uniformity of Content Preparation Completed</p>
+                                        <p className="text-xs text-emerald-600">Completed at {new Date(groupPrepCompletedAtPerParam[selectedParam.id]["uc"]).toLocaleString()}</p>
+                                      </div>
+                                      {canManage && (
+                                        <button onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "uc")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors">
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+                                          Unlock Preparation
+                                        </button>
+                                      )}
+                                    </div>
+                                  ) : canManage ? (
+                                    <button onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "uc")} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                      Mark UC Preparation as Complete
+                                    </button>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
+
+                            {canManagePrep && (standardPreparationUCPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["uc"] && (
+                              <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <p className="text-sm text-amber-800"><strong>Complete Preparation</strong> above to unlock the Calculations section.</p>
+                              </div>
+                            )}
 
                         {standardPreparationUCPerParam[selectedParam.id]
                           ?.length > 0 &&
@@ -19083,7 +19300,7 @@ const Worksheet: React.FC<WorksheetProps> = ({
                                 preparationType={null}
                                 sectionLabel="Other Files"
                                 isForPrep={false}
-                                isLocked={isParameterLocked(selectedParam.id)}
+                                isLocked={shouldDisableContent}
                               />
                             </div>
                           </motion.div>

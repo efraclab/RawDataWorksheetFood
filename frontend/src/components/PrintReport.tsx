@@ -125,7 +125,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
   console.log('sample', sampleData);
 
-  console.log(worksheetInfo);
+  console.log('worksheetInfo',worksheetInfo);
 
   const safeJSONParse = (data: any, fallback: any = []) => {
     if (!data) return fallback;
@@ -140,9 +140,6 @@ const PrintReport: React.FC<PrintReportProps> = ({
   };
 
 
-
-  // Converts a snake_case calc/prep type to a readable label,
-  // with special casing for ferrous fumarate variants.
   const formatCalcType = (type: string | null | undefined): string => {
     if (!type) return "";
     const t = type.toLowerCase();

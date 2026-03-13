@@ -1901,10 +1901,12 @@ const PrintReport: React.FC<PrintReportProps> = ({
           {renderMathFormula(f1RawNumSym, f1RawDenSym, null, f1RawUnit)}
           {renderMathFormula(f2RawNumSym, f2RawDenSym, null, f2RawUnit)}
 
+          console.log("Debug", calcData);
+
           {/* ── Derivations ── */}
           <p className="font-bold text-sm mb-2 mt-4">Derivation :</p>
           {renderMathFormula(d1RawNum, d1RawDen, calcData.calculationResult, "% (as such Basis)")}
-          {renderMathFormula(d2RawNum, d2RawDen, calcData.dryBasisResult, `% (${basisLabel})`)}
+          {renderMathFormula(d2RawNum, d2RawDen, calcData.lodWaterBasisResult, `% (${basisLabel})`)}
 
           {renderAcceptanceLimit(calcData.calculationResult)}
         </div>

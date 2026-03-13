@@ -18266,6 +18266,41 @@ const Worksheet: React.FC<WorksheetProps> = ({
                               standardPreparationDissoProfilePerParam[
                                 selectedParam.id
                               ] || []
+                            ).length > 0 && (
+                              <div className="pointer-events-auto">
+                                <WorksheetFileAttacher
+                                  files={getFilesForPrep(
+                                    selectedParam.id,
+                                    "dissolution_profile",
+                                    "Preparation Files",
+                                  )}
+                                  onAdd={(newFiles) =>
+                                    handleAddPrepFiles(
+                                      selectedParam.id,
+                                      "dissolution_profile",
+                                      "Preparation Files",
+                                      newFiles,
+                                    )
+                                  }
+                                  onRemove={(index) =>
+                                    handleRemovePrepFile(
+                                      selectedParam.id,
+                                      "dissolution_profile",
+                                      "Preparation Files",
+                                      index,
+                                    )
+                                  }
+                                  preparationType="dissolution_profile"
+                                  sectionLabel="Preparation Files"
+                                  isLocked={shouldDisableContent}
+                                />
+                              </div>
+                            )}
+
+                            {(
+                              standardPreparationDissoProfilePerParam[
+                                selectedParam.id
+                              ] || []
                             ).length === 0 && (
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}

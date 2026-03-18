@@ -88,11 +88,18 @@ const MobilePhasePreparationDetail: React.FC<
       {/* Content Preview */}
       <div className="px-4 py-4">
         {mobilePhasePreparation.content ? (
-          <div
-            className="prose prose-sm max-w-none prose-emerald"
-            dangerouslySetInnerHTML={{ __html: mobilePhasePreparation.content }}
-            style={{ lineHeight: "1.6", fontSize: "14px" }}
-          />
+          <>
+            <style>{`.mobile-phase-content * { font-family: inherit !important; }`}</style>
+            <div
+              className="prose prose-sm max-w-none prose-emerald mobile-phase-content"
+              dangerouslySetInnerHTML={{ __html: mobilePhasePreparation.content }}
+              style={{
+                lineHeight: "1.6",
+                fontSize: "14px",
+                fontFamily: "inherit",
+              }}
+            />
+          </>
         ) : (
           <div className="text-center py-8 text-gray-400">
             <p className="text-sm">No content available</p>

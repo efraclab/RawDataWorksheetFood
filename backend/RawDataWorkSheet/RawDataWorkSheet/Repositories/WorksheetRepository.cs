@@ -32,6 +32,7 @@ namespace RawDataWorkSheet.Repositories
                 SELECT 1
                 FROM raw_data_worksheets
                 WHERE worksheet_id = @WorksheetId
+                  AND is_active = 'Y'
             """;
 
             using var conn = Createconnection();
@@ -110,6 +111,7 @@ namespace RawDataWorkSheet.Repositories
                         submitted_qa_at = COALESCE(submitted_qa_at, @SubmittedQaAt),
                         approved_by = COALESCE(approved_by, @ApprovedBy)
                     WHERE worksheet_id = @WorksheetId
+                      AND is_active = 'Y'
                 """;
 
                 await connection.ExecuteAsync(
@@ -219,7 +221,10 @@ namespace RawDataWorkSheet.Repositories
         public async Task DeleteWorksheetAsync(string worksheetId)
         {
             using var connection = Createconnection();
-            var query = "DELETE FROM raw_data_worksheets WHERE worksheet_id = @WorksheetId";
+            //var query = "DELETE FROM raw_data_worksheets WHERE worksheet_id = @WorksheetId";
+            var query = @"UPDATE raw_data_worksheets
+                        SET is_active = 'N'
+                        WHERE worksheet_id = @WorksheetId";
             await connection.ExecuteAsync(query, new { WorksheetId = worksheetId });
         }
 
@@ -342,7 +347,8 @@ namespace RawDataWorkSheet.Repositories
                     @"UPDATE raw_data_worksheets 
                       SET number_of_parameters = number_of_parameters + 1,
                           updated_at = SYSDATETIME()
-                      WHERE worksheet_id = @WorksheetId",
+                      WHERE worksheet_id = @WorksheetId
+                        AND is_active = 'Y'",
                     new { WorksheetId = worksheetId },
                     transaction
                 );
@@ -499,7 +505,8 @@ namespace RawDataWorkSheet.Repositories
                     submitted_qa_at    AS SubmittedQaAt,
                     approved_by        AS ApprovedBy
                 FROM raw_data_worksheets
-                WHERE worksheet_id = @WorksheetId";
+                WHERE worksheet_id = @WorksheetId
+                  AND is_active = 'Y'";
 
             var worksheet = await connection.QueryFirstOrDefaultAsync<Worksheet>(
                 query1,
@@ -509,8 +516,7 @@ namespace RawDataWorkSheet.Repositories
                 return null;
 
             var query2 = """
-                    SELECT 
-                        emp_name AS [Username]
+                    SELECT emp_name AS [Username]
                     FROM participants_rawdata
                     WHERE emp_id = @EmployeeId
                 """;
@@ -552,6 +558,7 @@ namespace RawDataWorkSheet.Repositories
                         created_at as CreatedAt
                     FROM raw_data_worksheets
                     WHERE status IN ('Submitted For QA Review', 'Approved')
+                      AND is_active = 'Y'
                     ORDER BY created_at DESC";
             }
             else if (request.Role == "Reviewer")
@@ -565,7 +572,8 @@ namespace RawDataWorkSheet.Repositories
                         status as Status,
                         created_at as CreatedAt
                     FROM raw_data_worksheets
-                    WHERE (prepared_by = @EmployeeId)
+                    WHERE prepared_by = @EmployeeId
+                      AND is_active = 'Y'
                     ORDER BY created_at DESC";
             }
             else
@@ -590,6 +598,7 @@ namespace RawDataWorkSheet.Repositories
                             ON w.worksheet_id = p.worksheet_id
                         WHERE p.analyzed_by = @EmployeeId
                           AND w.status <> 'Draft'
+                          AND w.is_active = 'Y'
                     )
                     SELECT *
                     FROM cte

@@ -28,17 +28,15 @@ const parseContent = (content?: string): BlankPreparationData | null => {
 };
 
 const SectionCard: React.FC<{
-  icon: string;
   title: string;
   borderColor: string;
   headerBg: string;
   filled: boolean;
   children: React.ReactNode;
-}> = ({ icon, title, borderColor, headerBg, filled, children }) => (
+}> = ({ title, borderColor, headerBg, filled, children }) => (
   <div className={`rounded-xl border ${borderColor} overflow-hidden`}>
     <div className={`px-3 py-2 flex items-center justify-between ${headerBg} border-b ${borderColor}`}>
       <div className="flex items-center gap-2">
-        <span className="text-sm">{icon}</span>
         <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{title}</span>
       </div>
       <span className={`w-2 h-2 rounded-full ${filled ? "bg-emerald-500" : "bg-gray-300"}`} />
@@ -94,8 +92,8 @@ const BlankPreparationDetail: React.FC<BlankPreparationDetailProps> = ({
             </h4>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className={`w-2 h-2 rounded-full ${hasMethod ? "bg-emerald-500" : "bg-gray-300"}`} title="Method" />
-              <span className={`w-2 h-2 rounded-full ${hasResult ? "bg-blue-500"    : "bg-gray-300"}`} title="Result" />
-              <span className={`w-2 h-2 rounded-full ${hasLimit  ? "bg-amber-500"   : "bg-gray-300"}`} title="Limit"  />
+              <span className={`w-2 h-2 rounded-full ${hasResult ? "bg-emerald-400"    : "bg-gray-300"}`} title="Result" />
+              <span className={`w-2 h-2 rounded-full ${hasLimit  ? "bg-emerald-300"   : "bg-gray-300"}`} title="Limit"  />
               <span className="text-xs text-gray-400 ml-0.5">{filledCount}/3</span>
             </div>
           </div>
@@ -130,7 +128,7 @@ const BlankPreparationDetail: React.FC<BlankPreparationDetailProps> = ({
         {data ? (
           <>
             {/* Method */}
-            <SectionCard icon="🧪" title="Method / Preparation"
+            <SectionCard title="Method / Preparation"
               borderColor="border-emerald-200" headerBg="bg-emerald-50/60" filled={hasMethod}
             >
               {hasMethod ? (
@@ -165,7 +163,7 @@ const BlankPreparationDetail: React.FC<BlankPreparationDetailProps> = ({
             </SectionCard>
 
             {/* Result */}
-            <SectionCard icon="📊" title="Result / Reported Value"
+            <SectionCard title="Result / Reported Value"
               borderColor="border-blue-200" headerBg="bg-blue-50/60" filled={hasResult}
             >
               {hasResult ? (
@@ -185,7 +183,7 @@ const BlankPreparationDetail: React.FC<BlankPreparationDetailProps> = ({
             </SectionCard>
 
             {/* Acceptance Limit */}
-            <SectionCard icon="✅" title="Acceptance Limit"
+            <SectionCard title="Acceptance Limit"
               borderColor="border-amber-200" headerBg="bg-amber-50/60" filled={hasLimit}
             >
               {limitCriterion ? (

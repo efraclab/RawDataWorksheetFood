@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   Search,
   FileSpreadsheet,
-  ChevronRight,
+  MoreVertical,
   Loader2,
   Filter,
   RefreshCw,
@@ -21,10 +21,12 @@ import {
   Database,
   ArrowRight,
   BarChart3,
+  Trash2,
 } from "lucide-react";
-import { fetchAllWorksheets } from "../services/api";
+import { fetchAllWorksheets, deleteWorksheet } from "../services/api";
 import type { FetchWorksheetRequest } from "../models/FetchWorksheetRequest";
 import type { WorksheetSummary } from "../models/WorksheetSummary";
+import DeleteWorksheetDialog from "./shared/DeleteWorksheetDialog";
 
 interface WorksheetItem {
   id: number;
@@ -66,6 +68,16 @@ export default function WorksheetDashboard({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [error, setError] = useState<string | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+
+  // ── Delete dialog state ──────────────────────────────────────────────────
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    isDeleting: boolean;
+    worksheet: WorksheetItem | null;
+  }>({ isOpen: false, isDeleting: false, worksheet: null });
+
+  const isReviewer = role.includes("Reviewer");
 
   useEffect(() => {
     fetchWorksheets();
@@ -134,8 +146,37 @@ export default function WorksheetDashboard({
   };
 
   const handleWorksheetClick = (worksheet: WorksheetItem) => {
+    setOpenMenuId(null);
     const idToPass = worksheet.worksheetId;
     onNavigate("worksheet", idToPass);
+  };
+
+  // ── Delete handlers ──────────────────────────────────────────────────────
+  const handleDeleteClick = (e: React.MouseEvent, worksheet: WorksheetItem) => {
+    e.stopPropagation(); // prevent card navigation
+    setDeleteDialog({ isOpen: true, isDeleting: false, worksheet });
+  };
+
+  const handleDeleteClose = () => {
+    if (deleteDialog.isDeleting) return; // block close while in-flight
+    setDeleteDialog({ isOpen: false, isDeleting: false, worksheet: null });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const ws = deleteDialog.worksheet;
+    if (!ws?.worksheetId) return;
+
+    setDeleteDialog((prev) => ({ ...prev, isDeleting: true }));
+    try {
+      await deleteWorksheet(ws.worksheetId);
+      // Remove from local state immediately
+      setWorksheets((prev) => prev.filter((w) => w.worksheetId !== ws.worksheetId));
+      setDeleteDialog({ isOpen: false, isDeleting: false, worksheet: null });
+    } catch (err: any) {
+      console.error("Failed to delete worksheet:", err);
+      setDeleteDialog((prev) => ({ ...prev, isDeleting: false }));
+      alert(err.message || "Failed to delete worksheet. Please try again.");
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -194,7 +235,6 @@ export default function WorksheetDashboard({
       .length,
     approved: worksheets.filter((f) => f.status === "Approved").length,
   };
-
 
   const statusFilters = [
     { label: "All", value: "all", count: stats.total },
@@ -420,16 +460,11 @@ export default function WorksheetDashboard({
             {/* Reference Management Card */}
             <div className="group bg-white rounded-xl border-2 border-slate-200 hover:border-blue-500 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
               <div className="relative p-5">
-                {/* Decorative Background */}
                 <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-100/30 to-indigo-100/30 rounded-full blur-3xl -z-10 group-hover:scale-150 transition-transform duration-500"></div>
-
                 <div className="flex items-center gap-4">
-                  {/* Icon Badge */}
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
                     <Database className="w-6 h-6 text-white" />
                   </div>
-
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-bold text-slate-800 mb-1">
                       Reference Management
@@ -438,11 +473,9 @@ export default function WorksheetDashboard({
                       Manage chemicals, instruments, and standards data
                     </p>
                   </div>
-
-                  {/* Button */}
                   <button
                     onClick={() => onNavigate("reference-data")}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-semibold rounded-lg  transition-all shadow-md hover:shadow-lg group-hover:gap-3 flex-shrink-0"
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-semibold rounded-lg transition-all shadow-md hover:shadow-lg group-hover:gap-3 flex-shrink-0"
                   >
                     <span>Let's Go</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -454,16 +487,11 @@ export default function WorksheetDashboard({
             {/* RawData Analysis Card */}
             <div className="group bg-white rounded-xl border-2 border-slate-200 hover:border-emerald-500 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
               <div className="relative p-5">
-                {/* Decorative Background */}
                 <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-100/30 to-teal-100/30 rounded-full blur-3xl -z-10 group-hover:scale-150 transition-transform duration-500"></div>
-
                 <div className="flex items-center gap-4">
-                  {/* Icon Badge */}
                   <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
                     <BarChart3 className="w-6 h-6 text-white" />
                   </div>
-
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-bold text-slate-800 mb-1">
                       RawData Analysis
@@ -472,8 +500,6 @@ export default function WorksheetDashboard({
                       Create worksheets and perform comprehensive analysis
                     </p>
                   </div>
-
-                  {/* Button */}
                   <button
                     onClick={() => onNavigate("create")}
                     className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all shadow-md hover:shadow-lg group-hover:gap-3 flex-shrink-0"
@@ -494,8 +520,6 @@ export default function WorksheetDashboard({
         <div className="mb-8 mt-3">
           <div className="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 rounded-2xl border-2 border-emerald-300 shadow-sm overflow-hidden">
             <div className="relative py-8 px-10">
-
-              {/* Header */}
               <div className="mb-6">
                 <h2 className="text-3xl font-bold text-slate-800 mb-2 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                   Welcome, {username.split(" ")[0]}!
@@ -504,11 +528,7 @@ export default function WorksheetDashboard({
                   You are the final quality gate. Check reviewer-approved parameters, request revisions if needed, and close worksheets with a full approval.
                 </p>
               </div>
-
-              {/* 5-Step QA Process */}
               <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-
-                {/* Step 1 */}
                 <div className="relative bg-white rounded-xl p-4 border-2 border-emerald-200 hover:shadow-lg transition-all group">
                   <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-white text-xs font-bold">1</span>
@@ -521,8 +541,6 @@ export default function WorksheetDashboard({
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed">Pick a worksheet submitted for QA review by the reviewer</p>
                 </div>
-
-                {/* Step 2 */}
                 <div className="relative bg-white rounded-xl p-4 border-2 border-teal-200 hover:shadow-lg transition-all group">
                   <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-white text-xs font-bold">2</span>
@@ -535,8 +553,6 @@ export default function WorksheetDashboard({
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed">Verify each parameter approved by the reviewer is accurate</p>
                 </div>
-
-                {/* Step 3 */}
                 <div className="relative bg-white rounded-xl p-4 border-2 border-amber-200 hover:shadow-lg transition-all group">
                   <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-white text-xs font-bold">3</span>
@@ -549,8 +565,6 @@ export default function WorksheetDashboard({
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed">Flag issues and return to analyst for corrections if needed</p>
                 </div>
-
-                {/* Step 4 */}
                 <div className="relative bg-white rounded-xl p-4 border-2 border-emerald-200 hover:shadow-lg transition-all group">
                   <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-white text-xs font-bold">4</span>
@@ -563,8 +577,6 @@ export default function WorksheetDashboard({
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed">Once all parameters pass, approve every parameter in the worksheet</p>
                 </div>
-
-                {/* Step 5 */}
                 <div className="relative bg-white rounded-xl p-4 border-2 border-green-200 hover:shadow-lg transition-all group">
                   <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-white text-xs font-bold">5</span>
@@ -577,7 +589,6 @@ export default function WorksheetDashboard({
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed">Mark the full worksheet as approved and officially close it</p>
                 </div>
-
               </div>
             </div>
           </div>
@@ -590,8 +601,6 @@ export default function WorksheetDashboard({
           <div className="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 rounded-2xl border-2 border-emerald-300 shadow-sm overflow-hidden">
             <div className="relative py-8 px-10">
               <div className="flex flex-col lg:flex-row items-center gap-8">
-
-                {/* Middle: Content Section */}
                 <div className="flex-1">
                   <div className="mb-6">
                     <h2 className="text-3xl font-bold text-slate-800 mb-2 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
@@ -601,10 +610,7 @@ export default function WorksheetDashboard({
                       Review and analyze assigned worksheets with precision. Follow the workflow below to complete your analysis tasks.
                     </p>
                   </div>
-
-                  {/* Workflow Steps */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    {/* Step 1 */}
                     <div className="relative bg-white rounded-xl p-4 mr-2 border-2 border-emerald-200 hover:shadow-lg transition-all group">
                       <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
                         <span className="text-white text-xs font-bold">1</span>
@@ -617,8 +623,6 @@ export default function WorksheetDashboard({
                       </div>
                       <p className="text-xs text-slate-600 leading-relaxed">Select and begin analyzing assigned worksheets</p>
                     </div>
-
-                    {/* Step 2 */}
                     <div className="relative bg-white rounded-xl p-4 mr-2 border-2 border-teal-200 hover:shadow-lg transition-all group">
                       <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-full flex items-center justify-center shadow-lg">
                         <span className="text-white text-xs font-bold">2</span>
@@ -631,8 +635,6 @@ export default function WorksheetDashboard({
                       </div>
                       <p className="text-xs text-slate-600 leading-relaxed">Complete analysis and wait for approval</p>
                     </div>
-
-                    {/* Step 3 */}
                     <div className="relative bg-white rounded-xl p-4 mr-2 border-2 border-amber-200 hover:shadow-lg transition-all group">
                       <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
                         <span className="text-white text-xs font-bold">3</span>
@@ -645,8 +647,6 @@ export default function WorksheetDashboard({
                       </div>
                       <p className="text-xs text-slate-600 leading-relaxed">Update analysis based on reviewer feedback</p>
                     </div>
-
-                    {/* Step 4 */}
                     <div className="relative bg-white rounded-xl p-4 border-2 border-emerald-200 hover:shadow-lg transition-all group">
                       <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
                         <span className="text-white text-xs font-bold">4</span>
@@ -666,6 +666,7 @@ export default function WorksheetDashboard({
           </div>
         </div>
         )}
+
         {/* Search and Filter Bar */}
         <div className="mb-6 animate-fadeIn">
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
@@ -802,7 +803,42 @@ export default function WorksheetDashboard({
                               {worksheet.registrationNo}
                             </p>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0 mt-1" />
+                          {/* 3-dot menu — Reviewer only, else nothing */}
+                          {isReviewer ? (
+                            <div className="relative flex-shrink-0 mt-0.5">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(openMenuId === worksheet.id ? null : worksheet.id);
+                                }}
+                                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                title="Options"
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </button>
+                              {openMenuId === worksheet.id && (
+                                <>
+                                  <div
+                                    className="fixed inset-0 z-10"
+                                    onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); }}
+                                  />
+                                  <div className="absolute right-0 top-8 z-20 w-40 bg-white rounded-xl shadow-xl border border-slate-300 overflow-hidden animate-fadeIn">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenMenuId(null);
+                                        handleDeleteClick(e, worksheet);
+                                      }}
+                                      className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                      Delete
+                                    </button>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          ) : null}
                         </div>
                       </div>
 
@@ -840,6 +876,7 @@ export default function WorksheetDashboard({
                           </div>
                         </div>
                       </div>
+
                       <div
                         className={`${statusConfig.bg} flex flex-col mt-auto px-3 py-2 border-b ${statusConfig.border}`}
                       >
@@ -864,6 +901,21 @@ export default function WorksheetDashboard({
           </div>
         </div>
       </div>
+
+      {/* Delete Worksheet Dialog — Reviewer only */}
+      {isReviewer && deleteDialog.worksheet && (
+        <DeleteWorksheetDialog
+          isOpen={deleteDialog.isOpen}
+          isDeleting={deleteDialog.isDeleting}
+          worksheetId={deleteDialog.worksheet.worksheetId ?? ""}
+          registrationNo={deleteDialog.worksheet.registrationNo}
+          sampleName={deleteDialog.worksheet.sampleName}
+          status={deleteDialog.worksheet.status}
+          numberOfParameters={deleteDialog.worksheet.numberOfParameters}
+          onClose={handleDeleteClose}
+          onConfirm={handleDeleteConfirm}
+        />
+      )}
     </div>
   );
 }

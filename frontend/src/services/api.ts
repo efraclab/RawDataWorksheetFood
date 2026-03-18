@@ -16,7 +16,7 @@ import type { WorksheetDbPayload } from '../helpers/WorksheetDbPayload';
 import type { SmapleDetailsRequest } from '../models/SmapleDetailsRequest';
 
 
-const API_BASE_URL = 'http://192.168.3.116:5076/api';
+const API_BASE_URL = 'http://localhost:5162/api';
 
 export async function login(
   payload: LoginRequest

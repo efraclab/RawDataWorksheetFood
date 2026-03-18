@@ -1,0 +1,422 @@
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// ─── Inline SVG icons ────────────────────────────────────────────────────────
+const Check: React.FC<{ className: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+export interface WorksheetSidebarState {
+  worksheetId: string;
+  displayStatus: string;
+  sampleName: string;
+  registrationNo: string;
+  worksheetStatus: string | null;
+  role: string;
+  isSaving: boolean;
+  saveSuccess: boolean;
+  isSubmitting: boolean;
+  isSubmittingForQA: boolean;
+  isApprovingWorksheet: boolean;
+  showSaveDraft: boolean;
+  showSubmitForAnalysis: boolean;
+  showSubmitForQA: boolean;
+  showApproveWorksheet: boolean;
+  showPrintReport: boolean;
+  isContentLoading: boolean;
+}
+
+export interface WorksheetSidebarActions {
+  onBack: () => void;
+  onSaveDraft: () => void;
+  onSubmitForAnalysis: () => void;
+  onSubmitForQA: () => void;
+  onApproveWorksheet: () => void;
+  onPrintReport: () => void;
+  onContentReady: () => void;
+}
+
+interface WorksheetSidebarProps {
+  state: WorksheetSidebarState;
+  actions: WorksheetSidebarActions;
+  mode?: "worksheet" | "print";
+  onClosePrint?: () => void;
+}
+
+// ─── Status colour map ────────────────────────────────────────────────────────
+function statusConfig(status: string): { dot: string; badge: string } {
+  const s = status.toLowerCase();
+  if (s.includes("approved"))  return { dot: "bg-emerald-300", badge: "bg-emerald-500/20 text-emerald-100 border-emerald-400/30" };
+  if (s.includes("qa"))        return { dot: "bg-violet-300",  badge: "bg-violet-500/20  text-violet-100  border-violet-400/30"  };
+  if (s.includes("analysis"))  return { dot: "bg-sky-300",     badge: "bg-sky-500/20     text-sky-100     border-sky-400/30"     };
+  if (s.includes("review"))    return { dot: "bg-amber-300",   badge: "bg-amber-500/20   text-amber-100   border-amber-400/30"   };
+  return                              { dot: "bg-slate-300",   badge: "bg-white/10       text-white       border-white/20"       };
+}
+
+// ─── Reusable action button ───────────────────────────────────────────────────
+interface ActionBtnProps {
+  onClick: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+  gradient: string;
+  hoverGradient: string;
+  shadow: string;
+  disabledBg: string;
+  icon: React.ReactNode;
+  label: string;
+  loadingLabel?: string;
+  badge?: React.ReactNode;
+}
+
+const ActionBtn: React.FC<ActionBtnProps> = ({
+  onClick, disabled, loading, gradient, hoverGradient, shadow, disabledBg,
+  icon, label, loadingLabel, badge,
+}) => (
+  <motion.button
+    onClick={onClick}
+    disabled={disabled}
+    whileHover={!disabled ? { y: -1 } : {}}
+    whileTap={!disabled ? { y: 0 } : {}}
+    className={`relative w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 overflow-hidden group ${
+      loading || disabled
+        ? `${disabledBg} cursor-not-allowed text-white`
+        : `bg-gradient-to-br ${gradient} ${hoverGradient} text-white shadow-lg ${shadow} hover:shadow-xl`
+    }`}
+  >
+    {!disabled && (
+      <span className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
+    )}
+    {loading ? (
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }}
+        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full flex-shrink-0"
+      />
+    ) : (
+      <span className="flex-shrink-0 w-4 h-4">{icon}</span>
+    )}
+    <span className="leading-tight">{loading ? (loadingLabel ?? label) : label}</span>
+    {badge}
+  </motion.button>
+);
+
+// ─── Info card ────────────────────────────────────────────────────────────────
+const InfoCard: React.FC<{ icon: React.ReactNode; label: string; value: string; multiline?: boolean }> = ({
+  icon, label, value, multiline,
+}) => (
+  <div className="mx-3 mb-2 rounded-2xl bg-white border border-slate-100 shadow-sm px-4 py-3 flex gap-3 items-start">
+    <div className="mt-0.5 w-7 h-7 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center flex-shrink-0">
+      <span className="text-emerald-500 w-3.5 h-3.5">{icon}</span>
+    </div>
+    <div className="min-w-0">
+      <p className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-slate-400 mb-0.5">{label}</p>
+      <p className={`text-xs font-semibold text-slate-800 leading-snug ${multiline ? "line-clamp-3" : "truncate"}`}>
+        {value || "—"}
+      </p>
+    </div>
+  </div>
+);
+
+// ─── Component ───────────────────────────────────────────────────────────────
+
+const WorksheetSidebar: React.FC<WorksheetSidebarProps> = ({
+  state, actions, mode = "worksheet", onClosePrint,
+}) => {
+  const {
+    worksheetId, displayStatus, sampleName, registrationNo,
+    isSaving, saveSuccess, isSubmitting, isSubmittingForQA, isApprovingWorksheet,
+    showSaveDraft, showSubmitForAnalysis, showSubmitForQA, showApproveWorksheet, showPrintReport,
+    isContentLoading,
+  } = state;
+
+  const sc = displayStatus ? statusConfig(displayStatus) : null;
+
+  return (
+    <div className="no-print sticky top-0 h-screen w-72 flex-shrink-0 flex flex-col bg-slate-50 border-r border-slate-200/60 shadow-[4px_0_30px_-4px_rgba(0,0,0,0.12)] z-30">
+
+      {/* HEADER */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-emerald-700 via-emerald-800 to-emerald-950 pb-5">
+        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none" />
+        <div className="absolute top-8 -left-8  w-32 h-32 rounded-full bg-teal-300/10   blur-2xl pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-24 h-24 rounded-full bg-emerald-300/5  blur-xl  pointer-events-none" />
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{
+            backgroundImage: "linear-gradient(rgba(255,255,255,.6) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.6) 1px,transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+
+        {/* Back button */}
+        <div className="relative px-4 pt-4 pb-3">
+          <button
+            onClick={mode === "print" ? onClosePrint : actions.onBack}
+            className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-emerald-300/80 hover:text-white hover:bg-white/10 transition-all duration-200"
+          >
+            <svg
+              className="w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5"
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span className="text-[10px] font-bold tracking-[0.15em] uppercase">
+              {mode === "print" ? "Back to Worksheet" : "Back"}
+            </span>
+          </button>
+        </div>
+
+        <div className="mx-4 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent mb-4" />
+
+        {/* Worksheet ID */}
+        <div className="relative px-5">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="inline-block w-1.5 h-4 rounded-full bg-gradient-to-b from-emerald-300 to-emerald-500" />
+            <span className="text-[9px] font-black uppercase tracking-[0.22em] text-emerald-400/80">Worksheet</span>
+          </div>
+          <p className="text-white font-black text-xl leading-tight tracking-tight break-all mb-3">
+            {worksheetId || "—"}
+          </p>
+          {sc && displayStatus && (
+            <motion.span
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.12em] border backdrop-blur-sm ${sc.badge}`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0 ${sc.dot}`} />
+              {displayStatus}
+            </motion.span>
+          )}
+        </div>
+      </div>
+
+      {/* INFO CARDS */}
+      <div className="pt-4 pb-1">
+        <InfoCard
+          label="Reg No"
+          value={registrationNo}
+          icon={
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+            </svg>
+          }
+        />
+        <InfoCard
+          label="Sample"
+          value={sampleName}
+          multiline
+          icon={
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+          }
+        />
+      </div>
+
+      {/* LOADING SPINNER — shown only while content is loading */}
+      {isContentLoading && (
+        <div className="px-3 py-3">
+          <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-slate-100 border border-slate-200">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full flex-shrink-0"
+            />
+            <span className="text-[11px] font-semibold text-slate-500">
+              {mode === "print" ? "Loading report…" : "Loading worksheet…"}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* SECTION DIVIDER + ACTION BUTTONS — hidden until content is fully loaded */}
+      <AnimatePresence>
+        {!isContentLoading && (
+          <motion.div
+            key="actions-panel"
+            className="flex flex-col flex-1 overflow-hidden"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.25 }}
+          >
+            {/* SECTION DIVIDER */}
+            <div className="px-5 py-3">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent" />
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+                  {mode === "print" ? "Print Options" : "Actions"}
+                </span>
+                <div className="flex-1 h-px bg-gradient-to-l from-slate-200 to-transparent" />
+              </div>
+            </div>
+
+            {/* ACTION BUTTONS */}
+            <div className="flex-1 overflow-y-auto px-3 pb-4 flex flex-col gap-2.5">
+
+        <AnimatePresence>
+          {mode === "print" && (
+            <motion.div
+              key="print-actions"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.25 }}
+            >
+              <ActionBtn
+                onClick={() => setTimeout(() => window.print(), 100)}
+                gradient="from-emerald-500 to-emerald-700"
+                hoverGradient="hover:from-emerald-400 hover:to-emerald-600"
+                shadow="shadow-emerald-500/30"
+                disabledBg="bg-emerald-500/70"
+                label="Print Report"
+                icon={
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                }
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {mode === "worksheet" && (
+            <motion.div
+              key="worksheet-actions"
+              className="flex flex-col gap-2.5"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.25 }}
+            >
+            {showSaveDraft && (
+              <div className="relative">
+                <ActionBtn
+                  onClick={actions.onSaveDraft}
+                  disabled={isSaving}
+                  loading={isSaving}
+                  loadingLabel="Saving…"
+                  gradient="from-emerald-500 to-emerald-700"
+                  hoverGradient="hover:from-emerald-400 hover:to-emerald-600"
+                  shadow="shadow-emerald-500/30"
+                  disabledBg="bg-emerald-500/70"
+                  label="Save Draft"
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                  }
+                />
+                <AnimatePresence>
+                  {saveSuccess && (
+                    <motion.span
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0 }}
+                      className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-emerald-400 rounded-full flex items-center justify-center shadow-lg shadow-emerald-400/50 z-10"
+                    >
+                      <Check className="w-3 h-3 text-white" />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {showSubmitForAnalysis && (
+              <ActionBtn
+                onClick={actions.onSubmitForAnalysis}
+                disabled={isSubmitting}
+                loading={isSubmitting}
+                loadingLabel="Submitting…"
+                gradient="from-sky-500 to-blue-700"
+                hoverGradient="hover:from-sky-400 hover:to-blue-600"
+                shadow="shadow-blue-500/30"
+                disabledBg="bg-blue-500/70"
+                label="Submit for Analysis"
+                icon={
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                }
+              />
+            )}
+
+            {showSubmitForQA && (
+              <ActionBtn
+                onClick={actions.onSubmitForQA}
+                disabled={isSubmittingForQA}
+                loading={isSubmittingForQA}
+                loadingLabel="Submitting…"
+                gradient="from-violet-500 to-purple-700"
+                hoverGradient="hover:from-violet-400 hover:to-purple-600"
+                shadow="shadow-purple-500/30"
+                disabledBg="bg-purple-500/70"
+                label="Submit for QA Review"
+                icon={
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                }
+              />
+            )}
+
+            {showApproveWorksheet && (
+              <ActionBtn
+                onClick={actions.onApproveWorksheet}
+                disabled={isApprovingWorksheet}
+                loading={isApprovingWorksheet}
+                loadingLabel="Approving…"
+                gradient="from-green-500 to-green-700"
+                hoverGradient="hover:from-green-400 hover:to-green-600"
+                shadow="shadow-green-500/30"
+                disabledBg="bg-green-500/70"
+                label="Approve Worksheet"
+                icon={
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
+                }
+              />
+            )}
+
+            {showPrintReport && (
+              <ActionBtn
+                onClick={actions.onPrintReport}
+                gradient="from-sky-500 to-blue-700"
+                hoverGradient="hover:from-sky-400 hover:to-blue-600"
+                shadow="shadow-blue-500/30"
+                disabledBg="bg-blue-500/70"
+                label="Print Report"
+                icon={
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                }
+              />
+            )}
+          </motion.div>
+          )}
+        </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* FOOTER */}
+      <div className="px-5 py-4 border-t border-slate-200/60 bg-white flex items-center justify-between">
+        <img
+          src="/ic_efrac.png"
+          alt="EFRAC"
+          className="h-6 opacity-35 hover:opacity-60 transition-opacity duration-300"
+        />
+        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-300">LIMS</span>
+      </div>
+    </div>
+  );
+};
+
+export default WorksheetSidebar;

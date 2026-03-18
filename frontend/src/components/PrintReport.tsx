@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Printer, X, ArrowLeft } from "lucide-react";
+// Printer/X/ArrowLeft removed — toolbar is now in WorksheetSidebar
 import type { SampleData } from "../preparation_models/SampleData";
 import type { WorksheetDetail } from "../models/WorksheetDetail";
 import type { Analyst } from "../models/Analyst";
@@ -11,17 +11,109 @@ import type { ParameterDetail } from "../models/ParameterDetail";
 // ── PDF page-by-page renderer using PDF.js ───────────────────────────────────
 // Loads PDF.js from CDN, renders every page as a canvas, so the pages appear
 // inline in the report exactly like a merged PDF.
-const PdfPageRenderer: React.FC<{ base64: string; fileName: string }> = ({ base64, fileName }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [pageCount, setPageCount] = useState<number>(0);
+// ── Signature footer types and helpers ────────────────────────────────────────
+interface FileSignatureData {
+  analyzedByName: string | null;
+  analysisCompletionDate: string | null;
+  approvedByReviewerName: string | null;
+  approvedAtReviewer: string | null;
+}
+
+function parseDateSafe(raw: string): Date | null {
+  const s = raw.trim();
+  // If it starts with YYYY (ISO format: YYYY-MM-DD...) parse directly
+  if (/^\d{4}[-/]/.test(s)) {
+    const d = new Date(s.replace(" ", "T"));
+    return isNaN(d.getTime()) ? null : d;
+  }
+  // Otherwise treat as DD-MM-YYYY or DD/MM/YYYY (with optional HH:MM:SS)
+  const m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})(?:[T ](\d{2}:\d{2}(?::\d{2})?))?/);
+  if (m) {
+    const iso = `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+    const d = new Date(m[4] ? `${iso}T${m[4]}` : `${iso}T00:00:00`);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function formatFileDt(raw: string | null | undefined): string {
+  if (!raw) return "N/A";
+  const d = parseDateSafe(String(raw));
+  if (!d) return String(raw).trim() || "N/A";
+  const DD = String(d.getDate()).padStart(2, "0");
+  const MM = String(d.getMonth() + 1).padStart(2, "0");
+  const HH = String(d.getHours()).padStart(2, "0");
+  const mi = String(d.getMinutes()).padStart(2, "0");
+  const SS = String(d.getSeconds()).padStart(2, "0");
+  return `${DD}/${MM}/${d.getFullYear()} ${HH}:${mi}:${SS}`;
+}
+
+// ── Reusable signature footer rendered as pure JSX ────────────────────────────
+// Used after every PDF page and every image so it shows in both preview and print
+const FileSignatureFooter: React.FC<{ sig: FileSignatureData }> = ({ sig }) => (
+  <table
+    className="file-signature-footer"
+    style={{
+      width: "100%", borderCollapse: "collapse", fontSize: "10px",
+      marginTop: "4px", border: "1px solid black",
+      breakInside: "avoid", pageBreakInside: "avoid",
+    }}
+  >
+    <tbody>
+      <tr>
+        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>
+          Analyzed By
+        </td>
+        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
+          {sig.analyzedByName || "---"}
+        </td>
+        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>
+          Analyzed On
+        </td>
+        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
+          {formatFileDt(sig.analysisCompletionDate)}
+        </td>
+      </tr>
+      <tr>
+        <td style={{ padding: "4px 8px", border: "1px solid black" }}>
+          Approved By (Reviewer)
+        </td>
+        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+          {sig.approvedByReviewerName || "---"}
+        </td>
+        <td style={{ padding: "4px 8px", border: "1px solid black" }}>
+          Approved On (Reviewer)
+        </td>
+        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+          {formatFileDt(sig.approvedAtReviewer)}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+);
+
+// ── PdfPageRenderer ───────────────────────────────────────────────────────────
+// Renders each PDF page as a data-URL <img> in React state so the signature
+// footer JSX renders as a true React sibling — visible in preview AND print.
+const PdfPageRenderer: React.FC<{
+  base64: string;
+  fileName: string;
+  signature: FileSignatureData;
+}> = ({ base64, fileName, signature }) => {
+  const [pages, setPages] = useState<string[]>([]);   // data-URLs, one per page
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    setPages([]);
+    setLoading(true);
+    setError(null);
 
     const renderPdf = async () => {
       try {
-        // Load PDF.js if not already present
+        // Load PDF.js once
         if (!(window as any).pdfjsLib) {
           await new Promise<void>((resolve, reject) => {
             const script = document.createElement("script");
@@ -35,8 +127,6 @@ const PdfPageRenderer: React.FC<{ base64: string; fileName: string }> = ({ base6
         }
 
         const pdfjsLib = (window as any).pdfjsLib;
-
-        // Decode base64 → Uint8Array
         const binary = atob(base64);
         const bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -44,36 +134,33 @@ const PdfPageRenderer: React.FC<{ base64: string; fileName: string }> = ({ base6
         const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
         if (cancelled) return;
 
-        setPageCount(pdf.numPages);
-
-        if (!containerRef.current) return;
-        containerRef.current.innerHTML = "";
+        const dataUrls: string[] = [];
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
           if (cancelled) return;
           const page = await pdf.getPage(pageNum);
-          // Use a scale that fills A4 width (595pt × 1.5 ≈ 892px, suitable for print)
-          const viewport = page.getViewport({ scale: 1.5 });
+          const viewport = page.getViewport({ scale: 1.2 });
 
           const canvas = document.createElement("canvas");
           canvas.width = viewport.width;
           canvas.height = viewport.height;
-          canvas.style.width = "100%";
-          canvas.style.display = "block";
-          canvas.style.pageBreakBefore = pageNum === 1 ? "always" : "auto";
-          canvas.style.pageBreakAfter = "auto";
-          canvas.style.pageBreakInside = "avoid";
-
           const ctx = canvas.getContext("2d")!;
           await page.render({ canvasContext: ctx, viewport }).promise;
           if (cancelled) return;
 
-          if (containerRef.current) {
-            containerRef.current.appendChild(canvas);
-          }
+          // Convert canvas → data-URL so React can render it as <img>
+          dataUrls.push(canvas.toDataURL("image/png"));
+        }
+
+        if (!cancelled) {
+          setPages(dataUrls);
+          setLoading(false);
         }
       } catch (err: any) {
-        if (!cancelled) setError(err.message || "Failed to render PDF");
+        if (!cancelled) {
+          setError(err.message || "Failed to render PDF");
+          setLoading(false);
+        }
       }
     };
 
@@ -89,15 +176,33 @@ const PdfPageRenderer: React.FC<{ base64: string; fileName: string }> = ({ base6
     );
   }
 
+  if (loading) {
+    return (
+      <div className="p-4 text-xs text-gray-500 text-center">
+        Loading {fileName}…
+      </div>
+    );
+  }
+
   return (
-    <div>
-      {pageCount === 0 && (
-        <div className="p-4 text-xs text-gray-500 text-center">
-          Loading {fileName}…
+    <>
+      {pages.map((dataUrl, idx) => (
+        // Each page + its footer must print together on the same page
+        <div
+          key={idx}
+          className="pdf-page-with-sig"
+          style={{ breakInside: "avoid", pageBreakInside: "avoid", marginBottom: "4px" }}
+        >
+          {/* Constrain image to ~87% of page height, leaving room for the signature footer */}
+          <img
+            src={dataUrl}
+            alt={`${fileName} page ${idx + 1}`}
+            style={{ width: "100%", display: "block", maxHeight: "87vh", objectFit: "contain" }}
+          />
+          <FileSignatureFooter sig={signature} />
         </div>
-      )}
-      <div ref={containerRef} style={{ width: "100%" }} />
-    </div>
+      ))}
+    </>
   );
 };
 
@@ -122,10 +227,6 @@ const PrintReport: React.FC<PrintReportProps> = ({
   const handlePrint = () => {
     window.print();
   };
-
-  console.log('sample', sampleData);
-
-  console.log('worksheetInfo',worksheetInfo);
 
   const safeJSONParse = (data: any, fallback: any = []) => {
     if (!data) return fallback;
@@ -193,23 +294,20 @@ const PrintReport: React.FC<PrintReportProps> = ({
             stepText = `Weigh accurately ${boldValue(
               step.value1,
               step.unit1,
-            )} (SW1) of ${standards.find((s) => s.serialNo === assignedStandard)?.name || assignedStandard || `_____________`} ${
-              step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
-            }.`;
+            )} (SW1) of ${standards.find((s) => s.serialNo === assignedStandard)?.name || assignedStandard || `_____________`} ${step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
+              }.`;
           } else {
             stepText = `Weigh accurately ${boldValue(
               step.value1,
               step.unit1,
-            )} (SW2) of ${step.solventChemical || `_____________`}${
-              step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
-            }.`;
+            )} (SW2) of ${step.solventChemical || `_____________`}${step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
+              }.`;
           }
           break;
 
         case "PH":
-          stepText = `Adjust pH to ${boldValue(step.value1)}${
-            step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
-          }.`;
+          stepText = `Adjust pH to ${boldValue(step.value1)}${step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
+            }.`;
           break;
 
         case "Sonication":
@@ -354,44 +452,38 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
         case "Weighing (Empty Bottle)":
         case "Weighing (Empty Crucible)":
-          stepText = `Weigh of ${
-            step.name.includes("Bottle") ? "Empty Bottle" : "Empty Crucible"
-          }: ${boldValue(step.value1, step.unit1 || "g")} (W1) ${
-            step.logBookID ? ` (Log ID: ${step.logBookID})` : ""
-          }.`;
+          stepText = `Weigh of ${step.name.includes("Bottle") ? "Empty Bottle" : "Empty Crucible"
+            }: ${boldValue(step.value1, step.unit1 || "g")} (W1) ${step.logBookID ? ` (Log ID: ${step.logBookID})` : ""
+            }.`;
           break;
 
         case "Weighing (Before Drying)":
-          stepText = `Weigh of ${
-            preparationType!.includes("lod") ? "Bottle" : "Crucible"
-          } + Sample: ${boldValue(step.value1, step.unit1 || "g")} (W2).`;
+          stepText = `Weigh of ${preparationType!.includes("lod") ? "Bottle" : "Crucible"
+            } + Sample: ${boldValue(step.value1, step.unit1 || "g")} (W2).`;
           break;
 
         case "Drying":
           stepText = `Dry the sample at ${boldValue(
             step.value1,
             step.unit1 || "°C",
-          )} for ${boldValue(step.value2, step.unit2 || "hr")}${
-            step.logBookID ? ` (Log ID: ${step.logBookID})` : ""
-          }.`;
+          )} for ${boldValue(step.value2, step.unit2 || "hr")}${step.logBookID ? ` (Log ID: ${step.logBookID})` : ""
+            }.`;
           break;
 
         case "Weighing (After Drying)":
-          stepText = `Weigh of ${
-            preparationType!.includes("lod") ? "Bottle" : "Crucible"
-          } + Sample after drying: ${boldValue(
-            step.value1,
-            step.unit1 || "g",
-          )} (W3).`;
+          stepText = `Weigh of ${preparationType!.includes("lod") ? "Bottle" : "Crucible"
+            } + Sample after drying: ${boldValue(
+              step.value1,
+              step.unit1 || "g",
+            )} (W3).`;
           break;
 
         case "Weighing/Measuring":
           stepText = `${["ml", "L", "µL"].includes(step.unit1!) ? "Measure accurately" : "Weigh accurately"} ${boldValue(
             step.value1,
             step.unit1,
-          )} of ${step.solventChemical || `_____________`}${
-            step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
-          }.`;
+          )} of ${step.solventChemical || `_____________`}${step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""
+            }.`;
           break;
 
         default:
@@ -447,85 +539,81 @@ const PrintReport: React.FC<PrintReportProps> = ({
     return (
       <div className="keep-together">
         <div className="mb-2">
-          <table className="w-full">
-            <table className="w-full table-fixed border border-black">
-              <tbody>
-                <tr className="bg-gray-200">
-                  <td
-                    className="border border-black px-3 py-2 text-sm font-bold text-center"
-                    colSpan={4}
-                  >
-                    EDWARD FOOD RESEARCH & ANALYSIS CENTRE LTD
-                  </td>
-                </tr>
+          <table className="w-full table-fixed border border-black">
+            <tbody>
+              <tr className="bg-gray-200">
+                <td
+                  className="border border-black px-3 py-2 text-sm font-bold text-center"
+                  colSpan={4}
+                >
+                  EDWARD FOOD RESEARCH & ANALYSIS CENTRE LTD
+                </td>
+              </tr>
 
-                <tr>
-                  <td
-                    className="border border-black px-3 py-2 font-bold text-sm text-center"
-                    colSpan={4}
-                  >
-                    Raw Data Worksheet
-                  </td>
-                </tr>
+              <tr>
+                <td
+                  className="border border-black px-3 py-2 font-bold text-sm text-center"
+                  colSpan={4}
+                >
+                  Raw Data Worksheet
+                </td>
+              </tr>
 
-                <tr>
-                  <td
-                    className="border border-black px-3 py-2 text-center font-bold text-md"
-                    colSpan={4}
-                  >
-                    Annexure-{paramIdx + 1}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+              <tr>
+                <td
+                  className="border border-black px-3 py-2 text-center font-bold text-md"
+                  colSpan={4}
+                >
+                  Annexure-{paramIdx + 1}
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
 
         <div className="mb-2">
-          <table className="w-full text-sm">
-            <table className="w-full table-fixed border border-black">
-              <colgroup>
-                <col style={{ width: "30%" }} />
-                <col style={{ width: "30%" }} />
-                <col style={{ width: "20%" }} />
-                <col style={{ width: "20%" }} />
-              </colgroup>
+          <table className="w-full table-fixed border border-black text-sm">
+            <colgroup>
+              <col style={{ width: "30%" }} />
+              <col style={{ width: "30%" }} />
+              <col style={{ width: "20%" }} />
+              <col style={{ width: "20%" }} />
+            </colgroup>
 
-              <tbody>
-                <tr>
-                  <td className="border border-black px-3 py-2" colSpan={2}>
-                    Registration No: {worksheetInfo.sample.registrationNo}
-                  </td>
-                  <td className="border border-black px-3 py-2" colSpan={2}>
-                    Date of Receipt: {sampleData.recieptDate || ""}
-                  </td>
-                </tr>
+            <tbody>
+              <tr>
+                <td className="border border-black px-3 py-2" colSpan={2}>
+                  Registration No: {worksheetInfo.sample.registrationNo}
+                </td>
+                <td className="border border-black px-3 py-2" colSpan={2}>
+                  Date of Receipt: {sampleData.recieptDate || ""}
+                </td>
+              </tr>
 
-                <tr>
-                  <td className="border border-black px-3 py-2" colSpan={2}>
-                    Sample Name: {worksheetInfo.sample.sampleName}
-                  </td>
-                  <td className="border border-black px-3 py-2" colSpan={2}>
-                    Due Date: {sampleData.tatDate || ""}
-                  </td>
-                </tr>
+              <tr>
+                <td className="border border-black px-3 py-2" colSpan={2}>
+                  Sample Name: {worksheetInfo.sample.sampleName}
+                </td>
+                <td className="border border-black px-3 py-2" colSpan={2}>
+                  Due Date: {sampleData.tatDate || ""}
+                </td>
+              </tr>
 
-                <tr>
-                  <td className="border border-black px-3 py-2" colSpan={2}>
-                    Analysis Started On:{" "}
-                    {sampleData.analysisStartDate
-                      ? sampleData.analysisStartDate
-                      : ""}
-                  </td>
-                  <td className="border border-black px-3 py-2" colSpan={2}>
-                    Analysis Completed On:{" "}
-                    {sampleData.analysisCompletionDate
-                      ? sampleData.analysisCompletionDate
-                      : ""}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+              <tr>
+                <td className="border border-black px-3 py-2" colSpan={2}>
+                  Analysis Started On:{" "}
+                  {sampleData.analysisStartDate
+                    ? sampleData.analysisStartDate
+                    : ""}
+                </td>
+                <td className="border border-black px-3 py-2" colSpan={2}>
+                  Analyzed On:{" "}
+                  {sampleData.analysisCompletionDate
+                    ? sampleData.analysisCompletionDate
+                    : ""}
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
 
@@ -560,7 +648,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                 <td className="w-1/3 px-4 py-3 border-r border-black">
                   Method(s) of Analysis / testing
                 </td>
-                <td className="px-3 py-3 h-16">{param.methodName}</td>
+                <td className="px-3 py-3">{param.methodName}</td>
               </tr>
             </tbody>
           </table>
@@ -572,72 +660,72 @@ const PrintReport: React.FC<PrintReportProps> = ({
   const renderSignatureSection = (param: ParameterDetail) => {
     const formatDt = (raw: string | null | undefined): string => {
       if (!raw) return "N/A";
-      const s = String(raw).trim();
-      let d = new Date(s);
-      if (isNaN(d.getTime())) {
-        const parts = s.split(" ");
-        const segs = parts[0].split("-");
-        if (segs.length === 3 && segs[0].length <= 2) {
-          const iso = `${segs[2]}-${segs[1]}-${segs[0]}`;
-          d = new Date(parts[1] ? `${iso}T${parts[1]}` : `${iso}T00:00:00`);
-        }
-      }
-      if (isNaN(d.getTime())) return s || "N/A";
-      return d.toLocaleString("en-GB", {
-        day: "2-digit", month: "2-digit", year: "numeric",
-        hour: "2-digit", minute: "2-digit", hour12: false,
-      });
+      const d = parseDateSafe(String(raw));
+      if (!d) return String(raw).trim() || "N/A";
+      const DD = String(d.getDate()).padStart(2, "0");
+      const MM = String(d.getMonth() + 1).padStart(2, "0");
+      const HH = String(d.getHours()).padStart(2, "0");
+      const mi = String(d.getMinutes()).padStart(2, "0");
+      const SS = String(d.getSeconds()).padStart(2, "0");
+      return `${DD}/${MM}/${d.getFullYear()} ${HH}:${mi}:${SS}`;
     };
 
     return (
-      <div className="mb-6">
-        <table className="w-full border border-black text-xs">
+      <div className="mb-2">
+        <table
+          className="file-signature-footer"
+          style={{
+            width: "100%", borderCollapse: "collapse", fontSize: "10px",
+            marginTop: "4px", border: "1px solid black",
+            breakInside: "avoid", pageBreakInside: "avoid",
+          }}
+        >
           <tbody>
             {/* Row 0 — Preparation Completed (only if present) */}
             {(param as any).preparationCompletedBy && (
               <tr className="border-b border-black">
-                <td className="px-3 py-1 border-r border-black w-1/4">Preparation Completed By</td>
-                <td className="px-3 py-1 font-bold border-r border-black w-1/4">
+                <td style={{ padding: "4px 8px", border: "1px solid black" }}>Prepared By</td>
+                <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
                   {(param as any).preparationCompletedByName || "---"}
                 </td>
-                <td className="px-3 py-1 border-r border-black w-1/4">Preparation Completed On</td>
-                <td className="px-3 py-1 font-bold w-1/4">
+                <td style={{ padding: "4px 8px", border: "1px solid black" }}>Prepared On</td>
+                <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
                   {formatDt((param as any).preparationCompletedAt)}
                 </td>
               </tr>
             )}
             {/* Row 1 — Analyst */}
             <tr className="border-b border-black">
-              <td className="px-3 py-1 border-r border-black w-1/4">Analysis Completed By</td>
-              <td className="px-3 py-1 font-bold border-r border-black w-1/4">
+              <td style={{ padding: "4px 8px", border: "1px solid black" }}>Analyzed By</td>
+              <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
                 {(param as any).analyzedByName || "---"}
               </td>
-              <td className="px-3 py-1 border-r border-black w-1/4">Analysis Completed On</td>
-              <td className="px-3 py-1 font-bold w-1/4">
+              <td style={{ padding: "4px 8px", border: "1px solid black" }}>Analyzed On</td>
+              <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
                 {formatDt((param as any).analysisCompletionDate)}
               </td>
             </tr>
 
             {/* Row 2 — Reviewer */}
             <tr className="border-b border-black">
-              <td className="px-3 py-1 border-r border-black">Approved By (Reviewer)</td>
-              <td className="px-3 py-1 font-bold border-r border-black">
+              <td style={{ padding: "4px 8px", border: "1px solid black" }}>Approved By (Reviewer)</td>
+              <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
                 {(param as any).approvedByReviewerName || "---"}
               </td>
-              <td className="px-3 py-1 border-r border-black">Reviewer Approved On</td>
-              <td className="px-3 py-1 font-bold">
+              <td style={{ padding: "4px 8px", border: "1px solid black" }}>Approved On (Reviewer)</td>
+              <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
                 {formatDt((param as any).approvedAtReviewer)}
               </td>
             </tr>
 
             {/* Row 3 — QA */}
             <tr>
-              <td className="px-3 py-0.5 border-r border-black">Approved By (QA)</td>
-              <td className="px-3 py-0.5 font-bold border-r border-black">
+              <td style={{ padding: "4px 8px", border: "1px solid black" }}>Approved By (QA)</td>
+              <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
                 {(param as any).approvedByQAName || "---"}
               </td>
-              <td className="px-3 py-0.5 border-r border-black">QA Approved On</td>
-              <td className="px-3 py-0.5 font-bold">
+              <td style={{ padding: "4px 8px", border: "1px solid black" }}>Approved On (QA)</td>
+              <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
                 {formatDt((param as any).approvedAtQA)}
               </td>
             </tr>
@@ -805,6 +893,13 @@ const PrintReport: React.FC<PrintReportProps> = ({
     return "";
   };
 
+  // Helper: append unit to a value string if a unit exists in calcData
+  const withUnit = (value: string, unitKey: string, calcData: any, fallbackUnit?: string): string => {
+    if (value === "___") return value;
+    const unit = calcData[unitKey] || fallbackUnit || "";
+    return unit ? `${value} ${unit}` : value;
+  };
+
   // Render mathematical formula with fraction bar
   const renderMathFormula = (
     numerator: string,
@@ -813,7 +908,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
     resultUnit?: string,
   ) => {
     return (
-      <div className="formula-display my-3">
+      <div className="formula-display my-3" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
         <div className="flex items-center justify-center gap-3">
           <div className="formula-fraction text-center">
             <div className="numerator px-4 py-2 border-b-1 border-black text-xs">
@@ -944,37 +1039,68 @@ const PrintReport: React.FC<PrintReportProps> = ({
         "× 100",
       ].join(" ");
 
+      const sw1U = calcData.sw1Unit || "";
+      const sw2U = calcData.sw2Unit || "";
+      const mwBaseU = calcData.mWBaseUnit || "";
+      const mwSaltU = calcData.mWSaltUnit || "";
+      const purityU = calcData.purityUnit || "";
+      const vUnits: Record<string, string> = {};
+      ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14"].forEach(k => {
+        vUnits[k] = calcData[`${k}Unit`] || "";
+      });
+      const applyVUnits = (vals: string[], keys: string[]) =>
+        vals.map((v, i) => v !== "___" && vUnits[keys[i]] ? `${v} ${vUnits[keys[i]]}` : v);
+
+      const stdNumKeys = [];
+      const stdDenKeys = [];
+      const smpNumKeys = [];
+      const smpDenKeys = [];
+      if (v1 !== "___" && v1 !== "0") stdDenKeys.push("v1");
+      if (v2 !== "___" && v2 !== "0") stdNumKeys.push("v2");
+      if (v3 !== "___" && v3 !== "0") stdDenKeys.push("v3");
+      if (v4 !== "___" && v4 !== "0") stdNumKeys.push("v4");
+      if (v5 !== "___" && v5 !== "0") stdDenKeys.push("v5");
+      if (v6 !== "___" && v6 !== "0") stdNumKeys.push("v6");
+      if (v7 !== "___" && v7 !== "0") stdDenKeys.push("v7");
+      if (v8 !== "___" && v8 !== "0") smpNumKeys.push("v8");
+      if (v9 !== "___" && v9 !== "0") smpDenKeys.push("v9");
+      if (v10 !== "___" && v10 !== "0") smpNumKeys.push("v10");
+      if (v11 !== "___" && v11 !== "0") smpDenKeys.push("v11");
+      if (v12 !== "___" && v12 !== "0") smpNumKeys.push("v12");
+      if (v13 !== "___" && v13 !== "0") smpDenKeys.push("v13");
+      if (v14 !== "___" && v14 !== "0") smpNumKeys.push("v14");
+
       const numeratorValues = [
         areaSample,
-        sw1,
-        ...stdVolsNumValues,
-        ...smpVolsNumValues,
-        mwBase,
-        purity,
+        sw1U ? `${sw1} ${sw1U}` : sw1,
+        ...applyVUnits(stdVolsNumValues, stdNumKeys),
+        ...applyVUnits(smpVolsNumValues, smpNumKeys),
+        mwBaseU ? `${mwBase} ${mwBaseU}` : mwBase,
+        purityU ? `${purity} ${purityU}` : purity,
       ]
         .filter((v) => v !== "___")
         .join(" × ");
 
       const denominatorValues = [
         areaStd,
-        ...stdVolsDenomValues,
-        sw2,
-        ...smpVolsDenomValues,
-        mwSalt,
+        ...applyVUnits(stdVolsDenomValues, stdDenKeys),
+        sw2U ? `${sw2} ${sw2U}` : sw2,
+        ...applyVUnits(smpVolsDenomValues, smpDenKeys),
+        mwSaltU ? `${mwSalt} ${mwSaltU}` : mwSalt,
         "100",
       ]
         .filter((v) => v !== "___")
         .join(" × ");
 
       // ── Dry / Anhydrous basis (Raw material assay only) ──────────────────
-      const assayLodType  = calcData.lodWaterType  || "";
+      const assayLodType = calcData.lodWaterType || "";
       const assayLodValue = calcData.lodWaterValue || "";
       const assayLodBasis = calcData.lodWaterBasisResult || null;
       // Rule: lodWaterType === "water" → Anhydrous Basis; "lod" → Dry Basis
       const assayBasisLabel = assayLodType === "water" ? "Anhydrous Basis" : assayLodType === "lod" ? "Dry Basis" : null;
 
       return (
-        <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
+        <div className="bg-gray-100 border border-black p-3 mb-3 calc-block">
           <p className="font-bold text-sm mb-2">Formula :</p>
           {renderMathFormula(
             numeratorSymbolic,
@@ -1077,22 +1203,34 @@ const PrintReport: React.FC<PrintReportProps> = ({
         "× 100",
       ].join(" ");
 
+      const sw1U_rs = calcData.sw1Unit || "";
+      const sw2U_rs = calcData.sw2Unit || "";
+      const purityU_rs = calcData.purityUnit || "";
+      const vUnits_rs: Record<string, string> = {};
+      ["v1", "v2", "v3", "v4", "v5", "v6"].forEach(k => { vUnits_rs[k] = calcData[`${k}Unit`] || ""; });
+
       const numeratorValues = [
         areaSample,
-        sw1,
-        ...numVolsValues,
-        purity,
+        sw1U_rs ? `${sw1} ${sw1U_rs}` : sw1,
+        ...numVolsValues.map((val, i) => {
+          const key = numVols[i].toLowerCase();
+          return vUnits_rs[key] ? `${val} ${vUnits_rs[key]}` : val;
+        }),
+        purityU_rs ? `${purity} ${purityU_rs}` : purity,
         "1000000",
       ]
         .filter((v) => v !== "___")
         .join(" × ");
 
-      const denominatorValues = [areaStd, ...denVolsValues, sw2, "100"]
+      const denominatorValues = [areaStd, ...denVolsValues.map((val, i) => {
+        const key = denVols[i].toLowerCase();
+        return vUnits_rs[key] ? `${val} ${vUnits_rs[key]}` : val;
+      }), sw2U_rs ? `${sw2} ${sw2U_rs}` : sw2, "100"]
         .filter((v) => v !== "___")
         .join(" × ");
 
       return (
-        <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
+        <div className="bg-gray-100 border border-black p-3 mb-3 calc-block">
           <p className="font-bold text-sm mb-2">Formula :</p>
           {renderMathFormula(numeratorSymbolic, denominatorSymbolic, "ppm")}
 
@@ -1110,23 +1248,36 @@ const PrintReport: React.FC<PrintReportProps> = ({
     } else if (type === "dissolution_profile") {
       // ── shared values ────────────────────────────────────────────────────
       const dpAreaStd = calcData.areaOfStandard || "___";
-      const dpSw1     = calcData.sw1            || "___";
-      const dpMwBase  = calcData.mWBase         || "___";
-      const dpMwSalt  = calcData.mWSalt         || "___";
-      const dpPurity  = calcData.purity         || "___";
-      const dpClaim   = calcData.claim          || "___";
-      const dpNTP     = Number(calcData.numberOfTimePoints) || 0;
-      const dpVolWith = calcData.volumeWithdraw  || "___";
-      const dpVolRepl = calcData.volumeReplaced  || "___";
+      const dpSw1 = calcData.sw1 || "___";
+      const dpMwBase = calcData.mWBase || "___";
+      const dpMwSalt = calcData.mWSalt || "___";
+      const dpPurity = calcData.purity || "___";
+      const dpClaim = calcData.claim || "___";
+      const dpNTP = Number(calcData.numberOfTimePoints) || 0;
+      const dpVolWith = calcData.volumeWithdraw || "___";
+      const dpVolRepl = calcData.volumeReplaced || "___";
       const dpStdLabel = calcData.selectedStandardPreparationLabel || "";
-      const dpSmpLabel = calcData.selectedSamplePreparationLabel   || "";
+      const dpSmpLabel = calcData.selectedSamplePreparationLabel || "";
+
+      // Unit helpers for derivation
+      const dpSw1U = calcData.sw1Unit || "";
+      const dpMwBaseU = calcData.mWBaseUnit || "";
+      const dpMwSaltU = calcData.mWSaltUnit || "";
+      const dpPurityU = calcData.purityUnit || "";
+      const dpClaimU = calcData.claimUnit || "";
+      const dpVUnits: Record<string, string> = {};
+      ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v9", "v10", "v11", "v12", "v13", "v14"].forEach(k => {
+        dpVUnits[k] = calcData[`${k}Unit`] || "";
+      });
+      const applyDpVU = (val: string, key: string) =>
+        val !== "___" && dpVUnits[key] ? `${val} ${dpVUnits[key]}` : val;
 
       // ── dilution volumes ─────────────────────────────────────────────────
-      const dpV1  = calcData.v1  || "___"; const dpV2  = calcData.v2  || "___";
-      const dpV3  = calcData.v3  || "___"; const dpV4  = calcData.v4  || "___";
-      const dpV5  = calcData.v5  || "___"; const dpV6  = calcData.v6  || "___";
-      const dpV7  = calcData.v7  || "___";
-      const dpV9  = calcData.v9  || "___"; const dpV10 = calcData.v10 || "___";
+      const dpV1 = calcData.v1 || "___"; const dpV2 = calcData.v2 || "___";
+      const dpV3 = calcData.v3 || "___"; const dpV4 = calcData.v4 || "___";
+      const dpV5 = calcData.v5 || "___"; const dpV6 = calcData.v6 || "___";
+      const dpV7 = calcData.v7 || "___";
+      const dpV9 = calcData.v9 || "___"; const dpV10 = calcData.v10 || "___";
       const dpV11 = calcData.v11 || "___"; const dpV12 = calcData.v12 || "___";
       const dpV13 = calcData.v13 || "___"; const dpV14 = calcData.v14 || "___";
 
@@ -1135,20 +1286,22 @@ const PrintReport: React.FC<PrintReportProps> = ({
       const dpStdNumVal: string[] = []; const dpStdDenVal: string[] = [];
       const dpSmpNumSym: string[] = []; const dpSmpDenSym: string[] = [];
       const dpSmpNumVal: string[] = []; const dpSmpDenVal: string[] = [];
+      const dpStdNumKeys: string[] = []; const dpStdDenKeys: string[] = [];
+      const dpSmpNumKeys: string[] = []; const dpSmpDenKeys: string[] = [];
 
-      if (dpV1  !== "___" && dpV1  !== "0") { dpStdDenSym.push("V1");  dpStdDenVal.push(dpV1);  }
-      if (dpV2  !== "___" && dpV2  !== "0") { dpStdNumSym.push("V2");  dpStdNumVal.push(dpV2);  }
-      if (dpV3  !== "___" && dpV3  !== "0") { dpStdDenSym.push("V3");  dpStdDenVal.push(dpV3);  }
-      if (dpV4  !== "___" && dpV4  !== "0") { dpStdNumSym.push("V4");  dpStdNumVal.push(dpV4);  }
-      if (dpV5  !== "___" && dpV5  !== "0") { dpStdDenSym.push("V5");  dpStdDenVal.push(dpV5);  }
-      if (dpV6  !== "___" && dpV6  !== "0") { dpStdNumSym.push("V6");  dpStdNumVal.push(dpV6);  }
-      if (dpV7  !== "___" && dpV7  !== "0") { dpStdDenSym.push("V7");  dpStdDenVal.push(dpV7);  }
-      if (dpV9  !== "___" && dpV9  !== "0") { dpSmpDenSym.push("V9");  dpSmpDenVal.push(dpV9);  }
-      if (dpV10 !== "___" && dpV10 !== "0") { dpSmpNumSym.push("V10"); dpSmpNumVal.push(dpV10); }
-      if (dpV11 !== "___" && dpV11 !== "0") { dpSmpDenSym.push("V11"); dpSmpDenVal.push(dpV11); }
-      if (dpV12 !== "___" && dpV12 !== "0") { dpSmpNumSym.push("V12"); dpSmpNumVal.push(dpV12); }
-      if (dpV13 !== "___" && dpV13 !== "0") { dpSmpDenSym.push("V13"); dpSmpDenVal.push(dpV13); }
-      if (dpV14 !== "___" && dpV14 !== "0") { dpSmpNumSym.push("V14"); dpSmpNumVal.push(dpV14); }
+      if (dpV1 !== "___" && dpV1 !== "0") { dpStdDenSym.push("V1"); dpStdDenVal.push(dpV1); dpStdDenKeys.push("v1"); }
+      if (dpV2 !== "___" && dpV2 !== "0") { dpStdNumSym.push("V2"); dpStdNumVal.push(dpV2); dpStdNumKeys.push("v2"); }
+      if (dpV3 !== "___" && dpV3 !== "0") { dpStdDenSym.push("V3"); dpStdDenVal.push(dpV3); dpStdDenKeys.push("v3"); }
+      if (dpV4 !== "___" && dpV4 !== "0") { dpStdNumSym.push("V4"); dpStdNumVal.push(dpV4); dpStdNumKeys.push("v4"); }
+      if (dpV5 !== "___" && dpV5 !== "0") { dpStdDenSym.push("V5"); dpStdDenVal.push(dpV5); dpStdDenKeys.push("v5"); }
+      if (dpV6 !== "___" && dpV6 !== "0") { dpStdNumSym.push("V6"); dpStdNumVal.push(dpV6); dpStdNumKeys.push("v6"); }
+      if (dpV7 !== "___" && dpV7 !== "0") { dpStdDenSym.push("V7"); dpStdDenVal.push(dpV7); dpStdDenKeys.push("v7"); }
+      if (dpV9 !== "___" && dpV9 !== "0") { dpSmpDenSym.push("V9"); dpSmpDenVal.push(dpV9); dpSmpDenKeys.push("v9"); }
+      if (dpV10 !== "___" && dpV10 !== "0") { dpSmpNumSym.push("V10"); dpSmpNumVal.push(dpV10); dpSmpNumKeys.push("v10"); }
+      if (dpV11 !== "___" && dpV11 !== "0") { dpSmpDenSym.push("V11"); dpSmpDenVal.push(dpV11); dpSmpDenKeys.push("v11"); }
+      if (dpV12 !== "___" && dpV12 !== "0") { dpSmpNumSym.push("V12"); dpSmpNumVal.push(dpV12); dpSmpNumKeys.push("v12"); }
+      if (dpV13 !== "___" && dpV13 !== "0") { dpSmpDenSym.push("V13"); dpSmpDenVal.push(dpV13); dpSmpDenKeys.push("v13"); }
+      if (dpV14 !== "___" && dpV14 !== "0") { dpSmpNumSym.push("V14"); dpSmpNumVal.push(dpV14); dpSmpNumKeys.push("v14"); }
 
       const dpSymNum = [
         "Area/ABS of Sample", "× SW1",
@@ -1187,14 +1340,14 @@ const PrintReport: React.FC<PrintReportProps> = ({
         dpTpData.push({
           tpNum: tp,
           label: calcData[`timePointDetail${tp}`] || `T${tp}`,
-          v8:    Number(calcData[`v8TimePoint${tp}`]) || 0,
+          v8: Number(calcData[`v8TimePoint${tp}`]) || 0,
           results,
-          areas: [1,2,3,4,5,6].map((s: number) => calcData[`areaOfSampleT${tp}S${s}`] || "___"),
-          cfs:   dpParseArr(calcData[`correctionFactorsT${tp}`]),
-          racs:  dpParseArr(calcData[`resultsAfterCorrectionT${tp}`]),
-          min:   Number(calcData[`minT${tp}`]) || 0,
-          avg:   Number(calcData[`avgT${tp}`]) || 0,
-          max:   Number(calcData[`maxT${tp}`]) || 0,
+          areas: [1, 2, 3, 4, 5, 6].map((s: number) => calcData[`areaOfSampleT${tp}S${s}`] || "___"),
+          cfs: dpParseArr(calcData[`correctionFactorsT${tp}`]),
+          racs: dpParseArr(calcData[`resultsAfterCorrectionT${tp}`]),
+          min: Number(calcData[`minT${tp}`]) || 0,
+          avg: Number(calcData[`avgT${tp}`]) || 0,
+          max: Number(calcData[`maxT${tp}`]) || 0,
         });
       }
 
@@ -1214,8 +1367,8 @@ const PrintReport: React.FC<PrintReportProps> = ({
           {/* ══ PER-TIME-POINT: details table + formula block ══ */}
           {dpTpData.map((tp) => {
             const hasCorrection = tp.tpNum > 1;
-            const prevTp        = dpTpData[tp.tpNum - 2];
-            const dpV8str       = dpFmt(tp.v8);
+            const prevTp = dpTpData[tp.tpNum - 2];
+            const dpV8str = dpFmt(tp.v8);
 
             // V8 display value — show derivation inline for T2+
             const v8Display = `${dpV8str} ml `;
@@ -1226,23 +1379,23 @@ const PrintReport: React.FC<PrintReportProps> = ({
                 {/* ── 1. CALCULATION DETAILS TABLE — same style as dissolution ── */}
                 <div className="mb-3">
                   <p className="font-bold text-sm mb-1">
-                    {(["1st","2nd","3rd","4th","5th","6th","7th","8th","9th","10th"])[tp.tpNum - 1] || `${tp.tpNum}th`} Time Point {tp.label && tp.label !== `T${tp.tpNum}` ? ` (${tp.label} hr)` : ""}
+                    {(["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"])[tp.tpNum - 1] || `${tp.tpNum}th`} Time Point {tp.label && tp.label !== `T${tp.tpNum}` ? ` (${tp.label} hr)` : ""}
                   </p>
                   <table className="w-full text-sm">
                     <tbody>
                       {dpStdLabel && dpRow("Selected Standard Preparation", dpStdLabel.replace(/\s*\bLabel\b\s*$/i, "").trim() || dpStdLabel)}
-                      {dpSmpLabel && dpRow("Selected Sample Preparation",   dpSmpLabel.replace(/\s*\bLabel\b\s*$/i, "").trim() || dpSmpLabel)}
+                      {dpSmpLabel && dpRow("Selected Sample Preparation", dpSmpLabel.replace(/\s*\bLabel\b\s*$/i, "").trim() || dpSmpLabel)}
                       {tp.areas.map((area: string, i: number) =>
                         area && area !== "___"
                           ? dpRow(`Area of Sample ${i + 1}`, area)
                           : null
                       )}
                       {dpAreaStd !== "___" && dpRow("Area of Standard", dpAreaStd)}
-                      {dpMwBase  !== "___" && dpRow("M W Base",         dpMwBase)}
-                      {dpMwSalt  !== "___" && dpRow("M W Salt",         dpMwSalt)}
-                      {dpPurity  !== "___" && dpRow("Purity",           `${dpPurity} %`)}
+                      {dpMwBase !== "___" && dpRow("M W Base", dpMwBase)}
+                      {dpMwSalt !== "___" && dpRow("M W Salt", dpMwSalt)}
+                      {dpPurity !== "___" && dpRow("Purity", `${dpPurity} %`)}
                       {dpVolWith !== "___" && dpRow("Volume Withdrawn", `${dpVolWith} ml`)}
-                      {dpVolRepl !== "___" && dpRow("Volume Replaced",  `${dpVolRepl} ml`)}
+                      {dpVolRepl !== "___" && dpRow("Volume Replaced", `${dpVolRepl} ml`)}
                       {dpRow(hasCorrection ? "Updated Media Volume" : "Media Volume", v8Display)}
                       {hasCorrection && tp.cfs.map((cf: number, i: number) =>
                         cf != null && !isNaN(cf)
@@ -1269,7 +1422,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                 </div>
 
                 {/* ── 2. FORMULA (once per TP) ── */}
-                <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
+                <div className="bg-gray-100 border border-black p-3 mb-3 calc-block">
                   <p className="font-bold text-sm mb-2">Formula :</p>
                   {renderMathFormula(dpSymNum, dpSymDen, "% of LC")}
                   {hasCorrection && (
@@ -1282,26 +1435,34 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
                 {/* ── 3. PER-TABLET DERIVATIONS — each in own keep-together block ── */}
                 {tp.results.map((res: number, idx: number) => {
-                  const sNum  = idx + 1;
-                  const area  = tp.areas[idx] || "___";
-                  const cf    = tp.cfs[idx];
-                  const rac   = tp.racs[idx];
+                  const sNum = idx + 1;
+                  const area = tp.areas[idx] || "___";
+                  const cf = tp.cfs[idx];
+                  const rac = tp.racs[idx];
                   const prevRes = prevTp
                     ? (prevTp.results[idx] != null && !isNaN(prevTp.results[idx])
-                        ? prevTp.results[idx]
-                        : 0)
+                      ? prevTp.results[idx]
+                      : 0)
                     : 0;
 
                   const numVals = [
-                    area, dpSw1,
-                    ...dpStdNumVal, dpV8str, ...dpSmpNumVal,
-                    dpMwBase, dpPurity, "100",
+                    area,
+                    dpSw1U ? `${dpSw1} ${dpSw1U}` : dpSw1,
+                    ...dpStdNumVal.map((v: string, i: number) => applyDpVU(v, dpStdNumKeys[i])),
+                    dpV8str,
+                    ...dpSmpNumVal.map((v: string, i: number) => applyDpVU(v, dpSmpNumKeys[i])),
+                    dpMwBaseU ? `${dpMwBase} ${dpMwBaseU}` : dpMwBase,
+                    dpPurityU ? `${dpPurity} ${dpPurityU}` : dpPurity,
+                    "100",
                   ].filter((v: string) => v !== "___").join(" × ");
 
                   const denVals = [
-                    dpAreaStd, ...dpStdDenVal,
-                    dpClaim,   ...dpSmpDenVal,
-                    dpMwSalt, "100",
+                    dpAreaStd,
+                    ...dpStdDenVal.map((v: string, i: number) => applyDpVU(v, dpStdDenKeys[i])),
+                    dpClaimU ? `${dpClaim} ${dpClaimU}` : dpClaim,
+                    ...dpSmpDenVal.map((v: string, i: number) => applyDpVU(v, dpSmpDenKeys[i])),
+                    dpMwSaltU ? `${dpMwSalt} ${dpMwSaltU}` : dpMwSalt,
+                    "100",
                   ].filter((v: string) => v !== "___").join(" × ");
 
                   // Build CF expression string for corrected result line
@@ -1319,7 +1480,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   return (
                     <div
                       key={sNum}
-                      className="bg-gray-100 border border-black p-3 mb-3 keep-together"
+                      className="bg-gray-100 border border-black p-3 mb-3 calc-block"
                     >
                       {/* Single heading for the whole tablet block */}
                       <p className="font-bold text-sm mb-3">
@@ -1349,7 +1510,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                 })}
 
                 {/* ── 4. SUMMARY — Min / Avg / Max ── */}
-                <div className="mt-1 keep-together mb-4">
+                <div className="mt-1 mb-4 calc-summary-group">
                   <table className="w-full border border-black">
                     <tbody>
                       <tr className="bg-gray-100">
@@ -1407,74 +1568,49 @@ const PrintReport: React.FC<PrintReportProps> = ({
       const v13 = calcData.v13 || "___";
       const v14 = calcData.v14 || "___";
 
+      // Unit helpers for derivation
+      const sw1U_d = calcData.sw1Unit || "";
+      const mwBaseU_d = calcData.mWBaseUnit || "";
+      const mwSaltU_d = calcData.mWSaltUnit || "";
+      const purityU_d = calcData.purityUnit || "";
+      const claimU_d = calcData.claimUnit || "";
+      const vUnits_d: Record<string, string> = {};
+      ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14"].forEach(k => {
+        vUnits_d[k] = calcData[`${k}Unit`] || "";
+      });
+      const applyVUnit_d = (val: string, key: string) =>
+        val !== "___" && vUnits_d[key] ? `${val} ${vUnits_d[key]}` : val;
+
       const stdVolsNumSymbolic: string[] = [];
       const stdVolsDenomSymbolic: string[] = [];
       const stdVolsNumValues: string[] = [];
       const stdVolsDenomValues: string[] = [];
 
-      if (v1 !== "___" && v1 !== "0") {
-        stdVolsDenomSymbolic.push("V1");
-        stdVolsDenomValues.push(v1);
-      }
-      if (v2 !== "___" && v2 !== "0") {
-        stdVolsNumSymbolic.push("V2");
-        stdVolsNumValues.push(v2);
-      }
-      if (v3 !== "___" && v3 !== "0") {
-        stdVolsDenomSymbolic.push("V3");
-        stdVolsDenomValues.push(v3);
-      }
-      if (v4 !== "___" && v4 !== "0") {
-        stdVolsNumSymbolic.push("V4");
-        stdVolsNumValues.push(v4);
-      }
-      if (v5 !== "___" && v5 !== "0") {
-        stdVolsDenomSymbolic.push("V5");
-        stdVolsDenomValues.push(v5);
-      }
-      if (v6 !== "___" && v6 !== "0") {
-        stdVolsNumSymbolic.push("V6");
-        stdVolsNumValues.push(v6);
-      }
-      if (v7 !== "___" && v7 !== "0") {
-        stdVolsDenomSymbolic.push("V7");
-        stdVolsDenomValues.push(v7);
-      }
+      const stdVolsNumKeys_d: string[] = [];
+      const stdVolsDenKeys_d: string[] = [];
+      const smpVolsNumKeys_d: string[] = [];
+      const smpVolsDenKeys_d: string[] = [];
+
+      if (v1 !== "___" && v1 !== "0") { stdVolsDenomSymbolic.push("V1"); stdVolsDenomValues.push(v1); stdVolsDenKeys_d.push("v1"); }
+      if (v2 !== "___" && v2 !== "0") { stdVolsNumSymbolic.push("V2"); stdVolsNumValues.push(v2); stdVolsNumKeys_d.push("v2"); }
+      if (v3 !== "___" && v3 !== "0") { stdVolsDenomSymbolic.push("V3"); stdVolsDenomValues.push(v3); stdVolsDenKeys_d.push("v3"); }
+      if (v4 !== "___" && v4 !== "0") { stdVolsNumSymbolic.push("V4"); stdVolsNumValues.push(v4); stdVolsNumKeys_d.push("v4"); }
+      if (v5 !== "___" && v5 !== "0") { stdVolsDenomSymbolic.push("V5"); stdVolsDenomValues.push(v5); stdVolsDenKeys_d.push("v5"); }
+      if (v6 !== "___" && v6 !== "0") { stdVolsNumSymbolic.push("V6"); stdVolsNumValues.push(v6); stdVolsNumKeys_d.push("v6"); }
+      if (v7 !== "___" && v7 !== "0") { stdVolsDenomSymbolic.push("V7"); stdVolsDenomValues.push(v7); stdVolsDenKeys_d.push("v7"); }
 
       const smpVolsNumSymbolic: string[] = [];
       const smpVolsDenomSymbolic: string[] = [];
       const smpVolsNumValues: string[] = [];
       const smpVolsDenomValues: string[] = [];
 
-      if (v8 !== "___" && v8 !== "0") {
-        smpVolsNumSymbolic.push("Media Vol (V8)");
-        smpVolsNumValues.push(v8);
-      }
-
-      if (v9 !== "___" && v9 !== "0") {
-        smpVolsDenomSymbolic.push("V9");
-        smpVolsDenomValues.push(v9);
-      }
-      if (v10 !== "___" && v10 !== "0") {
-        smpVolsNumSymbolic.push("V10");
-        smpVolsNumValues.push(v10);
-      }
-      if (v11 !== "___" && v11 !== "0") {
-        smpVolsDenomSymbolic.push("V11");
-        smpVolsDenomValues.push(v11);
-      }
-      if (v12 !== "___" && v12 !== "0") {
-        smpVolsNumSymbolic.push("V12");
-        smpVolsNumValues.push(v12);
-      }
-      if (v13 !== "___" && v13 !== "0") {
-        smpVolsDenomSymbolic.push("V13");
-        smpVolsDenomValues.push(v13);
-      }
-      if (v14 !== "___" && v14 !== "0") {
-        smpVolsNumSymbolic.push("V14");
-        smpVolsNumValues.push(v14);
-      }
+      if (v8 !== "___" && v8 !== "0") { smpVolsNumSymbolic.push("Media Vol (V8)"); smpVolsNumValues.push(v8); smpVolsNumKeys_d.push("v8"); }
+      if (v9 !== "___" && v9 !== "0") { smpVolsDenomSymbolic.push("V9"); smpVolsDenomValues.push(v9); smpVolsDenKeys_d.push("v9"); }
+      if (v10 !== "___" && v10 !== "0") { smpVolsNumSymbolic.push("V10"); smpVolsNumValues.push(v10); smpVolsNumKeys_d.push("v10"); }
+      if (v11 !== "___" && v11 !== "0") { smpVolsDenomSymbolic.push("V11"); smpVolsDenomValues.push(v11); smpVolsDenKeys_d.push("v11"); }
+      if (v12 !== "___" && v12 !== "0") { smpVolsNumSymbolic.push("V12"); smpVolsNumValues.push(v12); smpVolsNumKeys_d.push("v12"); }
+      if (v13 !== "___" && v13 !== "0") { smpVolsDenomSymbolic.push("V13"); smpVolsDenomValues.push(v13); smpVolsDenKeys_d.push("v13"); }
+      if (v14 !== "___" && v14 !== "0") { smpVolsNumSymbolic.push("V14"); smpVolsNumValues.push(v14); smpVolsNumKeys_d.push("v14"); }
 
       const numeratorSymbolic = [
         "Area/ABS of Sample",
@@ -1499,7 +1635,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
       return (
         <div className="mb-3">
-          <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
+          <div className="bg-gray-100 border border-black p-3 mb-3 calc-block">
             <p className="font-bold text-sm mb-2">Formula :</p>
             {renderMathFormula(
               numeratorSymbolic,
@@ -1514,11 +1650,11 @@ const PrintReport: React.FC<PrintReportProps> = ({
                 const areaSample = stats.areas[idx] || "___";
                 const numeratorValues = [
                   areaSample,
-                  sw1,
-                  ...stdVolsNumValues,
-                  ...smpVolsNumValues,
-                  mwBase,
-                  purity,
+                  sw1U_d ? `${sw1} ${sw1U_d}` : sw1,
+                  ...stdVolsNumValues.map((v, i) => applyVUnit_d(v, stdVolsNumKeys_d[i])),
+                  ...smpVolsNumValues.map((v, i) => applyVUnit_d(v, smpVolsNumKeys_d[i])),
+                  mwBaseU_d ? `${mwBase} ${mwBaseU_d}` : mwBase,
+                  purityU_d ? `${purity} ${purityU_d}` : purity,
                   "100",
                 ]
                   .filter((v) => v !== "___")
@@ -1526,10 +1662,10 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
                 const denominatorValues = [
                   areaStd,
-                  ...stdVolsDenomValues,
-                  claim,
-                  ...smpVolsDenomValues,
-                  mwSalt,
+                  ...stdVolsDenomValues.map((v, i) => applyVUnit_d(v, stdVolsDenKeys_d[i])),
+                  claimU_d ? `${claim} ${claimU_d}` : claim,
+                  ...smpVolsDenomValues.map((v, i) => applyVUnit_d(v, smpVolsDenKeys_d[i])),
+                  mwSaltU_d ? `${mwSalt} ${mwSaltU_d}` : mwSalt,
                   "100",
                 ]
                   .filter((v) => v !== "___")
@@ -1538,7 +1674,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                 return (
                   <div
                     key={idx}
-                    className="bg-gray-100 border border-black p-3 mb-3 keep-together"
+                    className="bg-gray-100 border border-black p-3 mb-3 calc-block"
                   >
                     <p className="font-bold text-sm  mb-2">
                       Derivation (Tablet {idx + 1}) :
@@ -1551,7 +1687,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                 );
               })}
 
-              <div className="mt-4 keep-together">
+              <div className="mt-4 calc-summary-group">
                 <table className="w-full">
                   <tbody>
                     <tr className="bg-gray-100">
@@ -1595,17 +1731,23 @@ const PrintReport: React.FC<PrintReportProps> = ({
       const w1 = calcData.w1 || "___";
       const w2 = calcData.w2 || "___";
       const w3 = calcData.w3 || "___";
+      const w1U = calcData.w1Unit || "";
+      const w2U = calcData.w2Unit || "";
+      const w3U = calcData.w3Unit || "";
+      const w1D = w1 !== "___" && w1U ? `${w1} ${w1U}` : w1;
+      const w2D = w2 !== "___" && w2U ? `${w2} ${w2U}` : w2;
+      const w3D = w3 !== "___" && w3U ? `${w3} ${w3U}` : w3;
 
       const numeratorSymbolic = "(W2 - W3)";
       const denominatorSymbolic = "(W2 - W1)";
 
       const numeratorValues =
-        w2 !== "___" && w3 !== "___" ? `(${w2} - ${w3})` : "";
+        w2 !== "___" && w3 !== "___" ? `(${w2D} - ${w3D})` : "";
       const denominatorValues =
-        w2 !== "___" && w1 !== "___" ? `(${w2} - ${w1})` : "";
+        w2 !== "___" && w1 !== "___" ? `(${w2D} - ${w1D})` : "";
 
       return (
-        <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
+        <div className="bg-gray-100 border border-black p-3 mb-3 calc-block">
           <p className="font-bold text-sm mb-2">Formula :</p>
           <div className="rounded p-3 mb-3">
             <div className="flex items-center justify-center gap-2">
@@ -1655,32 +1797,49 @@ const PrintReport: React.FC<PrintReportProps> = ({
       const v13 = calcData.v13 || "___";
       const v14 = calcData.v14 || "___";
 
+      // Unit helpers for derivation
+      const sw1U_uc = calcData.sw1Unit || "";
+      const mwBaseU_uc = calcData.mWBaseUnit || "";
+      const mwSaltU_uc = calcData.mWSaltUnit || "";
+      const purityU_uc = calcData.purityUnit || "";
+      const claimU_uc = calcData.claimUnit || "";
+      const vUnits_uc: Record<string, string> = {};
+      ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14"].forEach(k => {
+        vUnits_uc[k] = calcData[`${k}Unit`] || "";
+      });
+      const applyVUnit_uc = (val: string, key: string) =>
+        val !== "___" && vUnits_uc[key] ? `${val} ${vUnits_uc[key]}` : val;
+
       // Build volume symbolic/value arrays
       const stdVolsNumSymbolic: string[] = [];
       const stdVolsDenomSymbolic: string[] = [];
       const stdVolsNumValues: string[] = [];
       const stdVolsDenomValues: string[] = [];
+      const stdNumKeys_uc: string[] = [];
+      const stdDenKeys_uc: string[] = [];
 
-      if (v1 !== "___" && v1 !== "0") { stdVolsDenomSymbolic.push("V1"); stdVolsDenomValues.push(v1); }
-      if (v2 !== "___" && v2 !== "0") { stdVolsNumSymbolic.push("V2");   stdVolsNumValues.push(v2); }
-      if (v3 !== "___" && v3 !== "0") { stdVolsDenomSymbolic.push("V3"); stdVolsDenomValues.push(v3); }
-      if (v4 !== "___" && v4 !== "0") { stdVolsNumSymbolic.push("V4");   stdVolsNumValues.push(v4); }
-      if (v5 !== "___" && v5 !== "0") { stdVolsDenomSymbolic.push("V5"); stdVolsDenomValues.push(v5); }
-      if (v6 !== "___" && v6 !== "0") { stdVolsNumSymbolic.push("V6");   stdVolsNumValues.push(v6); }
-      if (v7 !== "___" && v7 !== "0") { stdVolsDenomSymbolic.push("V7"); stdVolsDenomValues.push(v7); }
+      if (v1 !== "___" && v1 !== "0") { stdVolsDenomSymbolic.push("V1"); stdVolsDenomValues.push(v1); stdDenKeys_uc.push("v1"); }
+      if (v2 !== "___" && v2 !== "0") { stdVolsNumSymbolic.push("V2"); stdVolsNumValues.push(v2); stdNumKeys_uc.push("v2"); }
+      if (v3 !== "___" && v3 !== "0") { stdVolsDenomSymbolic.push("V3"); stdVolsDenomValues.push(v3); stdDenKeys_uc.push("v3"); }
+      if (v4 !== "___" && v4 !== "0") { stdVolsNumSymbolic.push("V4"); stdVolsNumValues.push(v4); stdNumKeys_uc.push("v4"); }
+      if (v5 !== "___" && v5 !== "0") { stdVolsDenomSymbolic.push("V5"); stdVolsDenomValues.push(v5); stdDenKeys_uc.push("v5"); }
+      if (v6 !== "___" && v6 !== "0") { stdVolsNumSymbolic.push("V6"); stdVolsNumValues.push(v6); stdNumKeys_uc.push("v6"); }
+      if (v7 !== "___" && v7 !== "0") { stdVolsDenomSymbolic.push("V7"); stdVolsDenomValues.push(v7); stdDenKeys_uc.push("v7"); }
 
       const smpVolsNumSymbolic: string[] = [];
       const smpVolsDenomSymbolic: string[] = [];
       const smpVolsNumValues: string[] = [];
       const smpVolsDenomValues: string[] = [];
+      const smpNumKeys_uc: string[] = [];
+      const smpDenKeys_uc: string[] = [];
 
-      if (v8  !== "___" && v8  !== "0") { smpVolsNumSymbolic.push("V8");    smpVolsNumValues.push(v8); }
-      if (v9  !== "___" && v9  !== "0") { smpVolsDenomSymbolic.push("V9");  smpVolsDenomValues.push(v9); }
-      if (v10 !== "___" && v10 !== "0") { smpVolsNumSymbolic.push("V10");   smpVolsNumValues.push(v10); }
-      if (v11 !== "___" && v11 !== "0") { smpVolsDenomSymbolic.push("V11"); smpVolsDenomValues.push(v11); }
-      if (v12 !== "___" && v12 !== "0") { smpVolsNumSymbolic.push("V12");   smpVolsNumValues.push(v12); }
-      if (v13 !== "___" && v13 !== "0") { smpVolsDenomSymbolic.push("V13"); smpVolsDenomValues.push(v13); }
-      if (v14 !== "___" && v14 !== "0") { smpVolsNumSymbolic.push("V14");   smpVolsNumValues.push(v14); }
+      if (v8 !== "___" && v8 !== "0") { smpVolsNumSymbolic.push("V8"); smpVolsNumValues.push(v8); smpNumKeys_uc.push("v8"); }
+      if (v9 !== "___" && v9 !== "0") { smpVolsDenomSymbolic.push("V9"); smpVolsDenomValues.push(v9); smpDenKeys_uc.push("v9"); }
+      if (v10 !== "___" && v10 !== "0") { smpVolsNumSymbolic.push("V10"); smpVolsNumValues.push(v10); smpNumKeys_uc.push("v10"); }
+      if (v11 !== "___" && v11 !== "0") { smpVolsDenomSymbolic.push("V11"); smpVolsDenomValues.push(v11); smpDenKeys_uc.push("v11"); }
+      if (v12 !== "___" && v12 !== "0") { smpVolsNumSymbolic.push("V12"); smpVolsNumValues.push(v12); smpNumKeys_uc.push("v12"); }
+      if (v13 !== "___" && v13 !== "0") { smpVolsDenomSymbolic.push("V13"); smpVolsDenomValues.push(v13); smpDenKeys_uc.push("v13"); }
+      if (v14 !== "___" && v14 !== "0") { smpVolsNumSymbolic.push("V14"); smpVolsNumValues.push(v14); smpNumKeys_uc.push("v14"); }
 
       // Step 1 symbolic (mg/Tablet — no Claim in denominator)
       const step1NumSymbolic = [
@@ -1703,7 +1862,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
         <div className="mb-3">
 
           {/* ── Single "Formula" box containing both Step 1 and Step 2 ── */}
-          <div className="bg-gray-100 border border-black p-3 mb-1 keep-together">
+          <div className="bg-gray-100 border border-black p-3 mb-1">
             <p className="font-bold text-sm mb-3">Formula :</p>
 
             {renderMathFormula(step1NumSymbolic, step1DenSymbolic, null, "mg/Tablet")}
@@ -1714,18 +1873,18 @@ const PrintReport: React.FC<PrintReportProps> = ({
           {stats && stats.entries && stats.entries.map((entry) => {
             const step1NumValues = [
               entry.area,
-              sw1,
-              ...stdVolsNumValues,
-              ...smpVolsNumValues,
-              mwBase,
-              purity,
+              sw1U_uc ? `${sw1} ${sw1U_uc}` : sw1,
+              ...stdVolsNumValues.map((v, i) => applyVUnit_uc(v, stdNumKeys_uc[i])),
+              ...smpVolsNumValues.map((v, i) => applyVUnit_uc(v, smpNumKeys_uc[i])),
+              mwBaseU_uc ? `${mwBase} ${mwBaseU_uc}` : mwBase,
+              purityU_uc ? `${purity} ${purityU_uc}` : purity,
             ].filter((v) => v !== "___").join(" × ");
 
             const step1DenValues = [
               areaStd,
-              ...stdVolsDenomValues,
-              ...smpVolsDenomValues,
-              mwSalt,
+              ...stdVolsDenomValues.map((v, i) => applyVUnit_uc(v, stdDenKeys_uc[i])),
+              ...smpVolsDenomValues.map((v, i) => applyVUnit_uc(v, smpDenKeys_uc[i])),
+              mwSaltU_uc ? `${mwSalt} ${mwSaltU_uc}` : mwSalt,
               "100",
             ].filter((v) => v !== "___").join(" × ");
 
@@ -1742,10 +1901,12 @@ const PrintReport: React.FC<PrintReportProps> = ({
               : null;
             const lcResult = `${entry.result.toFixedNoRound(3).toFixed(2)} % of LC`;
 
+            const claimDisplay = claimU_uc && claim !== "___" ? `${claim} ${claimU_uc}` : claim;
+
             return (
               <div
                 key={entry.idx}
-                className="bg-gray-100 border border-black p-3 mb-1 keep-together"
+                className="bg-gray-100 border border-black p-3 mb-1 calc-block"
               >
                 <p className="font-bold text-sm mb-3">
                   Derivation (Tablet {entry.idx + 1}) :
@@ -1777,7 +1938,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                         {step2NumValues}
                       </div>
                       <div className="denominator px-4 py-1 text-xs">
-                        {claim}
+                        {claimDisplay}
                       </div>
                     </div>
                     <div className="text-xs font-bold whitespace-nowrap">
@@ -1791,7 +1952,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
           {/* ── Summary ── */}
           {stats && (
-            <div className="mt-4 keep-together">
+            <div className="mt-4 calc-summary-group">
               <table className="w-full">
                 <tbody>
                   <tr className="bg-gray-100">
@@ -1821,19 +1982,19 @@ const PrintReport: React.FC<PrintReportProps> = ({
       );
     } else if (type.includes("assay_ferrous_fumarate")) {
       // ── Ferrous Fumarate Assay (Titration) ───────────────────────────────────
-      const br      = calcData.buretteReading      || "___";
-      const am      = calcData.actualMolarity      || "___";
-      const tm      = calcData.theoreticalMolarity || "___";
-      const fac     = calcData.factor              || "___";
-      const facU    = calcData.factorUnit          || "g";
-      const sw      = calcData.sw                  || "___";
-      const aw      = calcData.avgWeight           || "___";
-      const awU     = calcData.avgWeightUnit       || "mg";
-      const lc      = calcData.labelClaim          || "___";
-      const lcU     = calcData.labelClaimUnit      || "mg";
-      const lod     = calcData.lodWaterValue       || "___";
-      const lodType = calcData.lodWaterType        || "water";
-      const calcFor = calcData.calculationFor      || "";
+      const br = calcData.buretteReading || "___";
+      const am = calcData.actualMolarity || "___";
+      const tm = calcData.theoreticalMolarity || "___";
+      const fac = calcData.factor || "___";
+      const facU = calcData.factorUnit || "g";
+      const sw = calcData.sw || "___";
+      const aw = calcData.avgWeight || "___";
+      const awU = calcData.avgWeightUnit || "mg";
+      const lc = calcData.labelClaim || "___";
+      const lcU = calcData.labelClaimUnit || "mg";
+      const lod = calcData.lodWaterValue || "___";
+      const lodType = calcData.lodWaterType || "water";
+      const calcFor = calcData.calculationFor || "";
       const isFinishedProduct = calcFor.toLowerCase().includes("finish");
 
       // Acceptance limit helpers removed — shown in detail table
@@ -1846,24 +2007,25 @@ const PrintReport: React.FC<PrintReportProps> = ({
         // Formula 1: Result (mg/Tablet)
         const f1NumSym = `Burette Reading × Actual Molarity × Factor(${facU}) × Average Weight (${awU})`;
         const f1DenSym = `Sample Weight (mg) × Theoretical Molarity`;
-        const f1Unit   = "mg/Tablet";
+        const f1Unit = "mg/Tablet";
 
         // Formula 2: Result (% of LC)
         const f2NumSym = "Result (mg/Tablet) × 100";
         const f2DenSym = `Label Claim (${lcU})`;
-        const f2Unit   = "% of LC";
+        const f2Unit = "% of LC";
 
         // Derivation 1
-        const d1Num = [br, am, fac, aw !== "___" ? `${aw} ${awU}` : "___"]
+        const swU_ff = calcData.swUnit || "";
+        const d1Num = [br, am, fac !== "___" ? `${fac} ${facU}` : "___", aw !== "___" ? `${aw} ${awU}` : "___"]
           .filter(v => v !== "___").join(" × ") || "___";
-        const d1Den = [sw, tm].filter(v => v !== "___").join(" × ") || "___";
+        const d1Den = [swU_ff && sw !== "___" ? `${sw} ${swU_ff}` : sw, tm].filter(v => v !== "___").join(" × ") || "___";
 
         // Derivation 2
         const d2Num = `${calcData.calculationResult || "Result (mg/Tablet)"} × 100`;
         const d2Den = lc !== "___" ? `${lc} ${lcU}` : "___";
 
         return (
-          <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
+          <div className="bg-gray-100 border border-black p-3 mb-3 calc-block">
             <p className="font-bold text-sm mb-2">Formula :</p>
             {renderMathFormula(f1NumSym, f1DenSym, null, f1Unit)}
             {renderMathFormula(f2NumSym, f2DenSym, null, f2Unit)}
@@ -1887,16 +2049,17 @@ const PrintReport: React.FC<PrintReportProps> = ({
       // ── Formula 1: Result (as such Basis) ────────────────────────────────
       const f1RawNumSym = "Burette Reading × Actual Molarity × Factor(mg) × 100";
       const f1RawDenSym = "Sample Weight (mg) × Theoretical Molarity";
-      const f1RawUnit   = "% (as such Basis)";
+      const f1RawUnit = "% (as such Basis)";
 
       // ── Formula 2: Result (Dry / Anhydrous Basis) ────────────────────────
       const f2RawNumSym = "Result (as such Basis) × 100";
       const f2RawDenSym = `100 − ${lodType === "lod" ? "LOD" : "Water"} (%)`;
-      const f2RawUnit   = `% (${basisLabel})`;
+      const f2RawUnit = `% (${basisLabel})`;
 
       // ── Derivation 1 ─────────────────────────────────────────────────────
-      const d1RawNum = [br, am, fac, "100"].filter(v => v !== "___").join(" × ") || "___";
-      const d1RawDen = [sw, tm].filter(v => v !== "___").join(" × ") || "___";
+      const swU_ffr = calcData.swUnit || "";
+      const d1RawNum = [br, am, fac !== "___" ? `${fac} ${facU}` : "___", "100"].filter(v => v !== "___").join(" × ") || "___";
+      const d1RawDen = [swU_ffr && sw !== "___" ? `${sw} ${swU_ffr}` : sw, tm].filter(v => v !== "___").join(" × ") || "___";
 
       // ── Derivation 2 ─────────────────────────────────────────────────────
       const asIsResult = calcData.calculationResult || "Result (as such Basis)";
@@ -1904,17 +2067,12 @@ const PrintReport: React.FC<PrintReportProps> = ({
       const d2RawDen = lod !== "___" ? `100 − ${lod}` : `100 − ${lodType === "lod" ? "LOD" : "Water"}(%)`;
 
       return (
-        <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
-          <p className="font-bold text-sm mb-1">
-            Calculation Type: <span className="font-normal">Raw Product</span>
-          </p>
+        <div className="bg-gray-100 border border-black p-3 mb-3 calc-block">
 
           {/* ── Formulas ── */}
           <p className="font-bold text-sm mb-2 mt-3">Formula :</p>
           {renderMathFormula(f1RawNumSym, f1RawDenSym, null, f1RawUnit)}
           {renderMathFormula(f2RawNumSym, f2RawDenSym, null, f2RawUnit)}
-
-          console.log("Debug", calcData);
 
           {/* ── Derivations ── */}
           <p className="font-bold text-sm mb-2 mt-4">Derivation :</p>
@@ -1927,20 +2085,21 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
     } else if (type.includes("dissolution_ferrous_fumarate")) {
       // ── Ferrous Fumarate Dissolution (Titration) ─────────────────────────────
-      const am   = calcData.actualMolarity        || "___";
-      const fac  = calcData.factor                || "___";
-      const facU = calcData.factorUnit            || "mg";
-      const dv   = calcData.dissoMediaVolume      || "___";
-      const dvU  = calcData.dissoMediaVolumeUnit  || "ml";
-      const lc   = calcData.labelClaim            || "___";
-      const lcU  = calcData.labelClaimUnit        || "mg";
-      const st   = calcData.sampleTaken           || "___";
-      const stU  = calcData.sampleTakenUnit       || "ml";
+      const am = calcData.actualMolarity || "___";
+      const tm = calcData.theoreticalMolarity || "___";
+      const fac = calcData.factor || "___";
+      const facU = calcData.factorUnit || "mg";
+      const dv = calcData.dissoMediaVolume || "___";
+      const dvU = calcData.dissoMediaVolumeUnit || "ml";
+      const lc = calcData.labelClaim || "___";
+      const lcU = calcData.labelClaimUnit || "mg";
+      const st = calcData.sampleTaken || "___";
+      const stU = calcData.sampleTakenUnit || "ml";
       const resultUnit = calcData.calculationResultUnit || "% of LC";
 
       const tabletResults: { num: number; br: string; result: string }[] = [];
       for (let i = 1; i <= 6; i++) {
-        const br  = calcData[`buretteReading${i}`];
+        const br = calcData[`buretteReading${i}`];
         const res = calcData[`calculationResultTablet${i}`];
         if (br || res) tabletResults.push({ num: i, br: br || "___", result: res || "___" });
       }
@@ -1948,13 +2107,13 @@ const PrintReport: React.FC<PrintReportProps> = ({
       // Single combined formula:
       // Numerator:   BR × Actual Molarity × Factor(facU) × Dissolution Media Volume(dvU)
       // Denominator: Label Claim(lcU) × Sample Taken(stU) × 100
-      const symNum = `Burette Reading × Actual Molarity × Factor (${facU}) × Dissolution Media Volume (${dvU})`;
-      const symDen = `Label Claim (${lcU}) × Sample Taken (${stU}) × 100`;
+      const symNum = `Burette Reading × Actual Molarity × Factor (${facU}) × Dissolution Media Volume (${dvU}) × 100`;
+      const symDen = `Label Claim (${lcU}) × Sample Taken (${stU}) × Theoretical Molarity`;
 
       return (
         <div className="mb-3">
           {/* ── Formula box ── */}
-          <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
+          <div className="bg-gray-100 border border-black p-3 mb-3 calc-block">
             <p className="font-bold text-sm mb-2">Formula :</p>
             {renderMathFormula(symNum, symDen, null, resultUnit)}
           </div>
@@ -1967,17 +2126,17 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   br,
                   am,
                   fac !== "___" ? `${fac} ${facU}` : "___",
-                  dv !== "___" ? `${dv} ${dvU}` : "___",
+                  dv !== "___" ? `${dv} ${dvU}` : "___", "100"
                 ].filter(v => v !== "___").join(" × ") || "___";
 
                 const valDen = [
                   lc !== "___" ? `${lc} ${lcU}` : "___",
                   st !== "___" ? `${st} ${stU}` : "___",
-                  "100",
+                  tm !== "___" ? `${tm}` : "___"
                 ].filter(v => v !== "___").join(" × ") || "___";
 
                 return (
-                  <div key={num} className="bg-gray-100 border border-black p-3 mb-2 keep-together">
+                  <div key={num} className="bg-gray-100 border border-black p-3 mb-2 calc-block">
                     <p className="font-bold text-sm mb-2">Derivation (Tablet {num}) :</p>
                     {renderMathFormula(valNum, valDen, result !== "___" ? result : null, resultUnit)}
                   </div>
@@ -1993,7 +2152,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                 const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
 
                 return (
-                  <div className="mt-2 keep-together">
+                  <div className="mt-2 calc-summary-group">
                     <table className="w-full border border-black">
                       <tbody>
                         <tr className="bg-gray-100">
@@ -2028,60 +2187,77 @@ const PrintReport: React.FC<PrintReportProps> = ({
     } else if (type.includes("related_substance")) {
       // ── Related Substance — same layout as normal Assay ──────────────────────
       const areaSample = calcData.areaOfSample || "___";
-      const areaStd    = calcData.areaOfStandard || "___";
-      const mwBase     = calcData.mWBase         || "___";
-      const mwSalt     = calcData.mWSalt         || "___";
-      const purity     = calcData.purity         || "___";
-      const sw1        = calcData.sw1 || calcData.sw || "___";
-      const sw2        = calcData.sw2            || "___";
-      const calcFor    = calcData.calculationFor || "";
+      const areaStd = calcData.areaOfStandard || "___";
+      const mwBase = calcData.mWBase || "___";
+      const mwSalt = calcData.mWSalt || "___";
+      const purity = calcData.purity || "___";
+      const sw1 = calcData.sw1 || calcData.sw || "___";
+      const sw2 = calcData.sw2 || "___";
+      const calcFor = calcData.calculationFor || "";
 
-      const v1  = calcData.v1  || "___"; const v2  = calcData.v2  || "___";
-      const v3  = calcData.v3  || "___"; const v4  = calcData.v4  || "___";
-      const v5  = calcData.v5  || "___"; const v6  = calcData.v6  || "___";
-      const v7  = calcData.v7  || "___"; const v8  = calcData.v8  || "___";
-      const v9  = calcData.v9  || "___"; const v10 = calcData.v10 || "___";
+      const v1 = calcData.v1 || "___"; const v2 = calcData.v2 || "___";
+      const v3 = calcData.v3 || "___"; const v4 = calcData.v4 || "___";
+      const v5 = calcData.v5 || "___"; const v6 = calcData.v6 || "___";
+      const v7 = calcData.v7 || "___"; const v8 = calcData.v8 || "___";
+      const v9 = calcData.v9 || "___"; const v10 = calcData.v10 || "___";
       const v11 = calcData.v11 || "___"; const v12 = calcData.v12 || "___";
       const v13 = calcData.v13 || "___"; const v14 = calcData.v14 || "___";
+
+      // Unit helpers for derivation
+      const sw1U_rs2 = calcData.sw1Unit || calcData.swUnit || "";
+      const sw2U_rs2 = calcData.sw2Unit || "";
+      const mwBaseU_rs2 = calcData.mWBaseUnit || "";
+      const mwSaltU_rs2 = calcData.mWSaltUnit || "";
+      const purityU_rs2 = calcData.purityUnit || "";
+      const labelClaimU_rs2 = calcData.labelClaimUnit || "";
+      const doseVolumeU_rs2 = calcData.doseVolumeUnit || "";
+      const vUnits_rs2: Record<string, string> = {};
+      ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14"].forEach(k => {
+        vUnits_rs2[k] = calcData[`${k}Unit`] || "";
+      });
+      const applyVU_rs2 = (val: string, key: string) =>
+        val !== "___" && vUnits_rs2[key] ? `${val} ${vUnits_rs2[key]}` : val;
 
       // ── Build volume arrays (same V1-V14 convention as normal assay) ─────────
       const stdNumSym: string[] = []; const stdDenSym: string[] = [];
       const stdNumVal: string[] = []; const stdDenVal: string[] = [];
+      const stdNumKeys_rs: string[] = []; const stdDenKeys_rs: string[] = [];
 
-      if (v1  !== "___" && v1  !== "0") { stdDenSym.push("V1");  stdDenVal.push(v1);  }
-      if (v2  !== "___" && v2  !== "0") { stdNumSym.push("V2");  stdNumVal.push(v2);  }
-      if (v3  !== "___" && v3  !== "0") { stdDenSym.push("V3");  stdDenVal.push(v3);  }
-      if (v4  !== "___" && v4  !== "0") { stdNumSym.push("V4");  stdNumVal.push(v4);  }
-      if (v5  !== "___" && v5  !== "0") { stdDenSym.push("V5");  stdDenVal.push(v5);  }
-      if (v6  !== "___" && v6  !== "0") { stdNumSym.push("V6");  stdNumVal.push(v6);  }
-      if (v7  !== "___" && v7  !== "0") { stdDenSym.push("V7");  stdDenVal.push(v7);  }
+      if (v1 !== "___" && v1 !== "0") { stdDenSym.push("V1"); stdDenVal.push(v1); stdDenKeys_rs.push("v1"); }
+      if (v2 !== "___" && v2 !== "0") { stdNumSym.push("V2"); stdNumVal.push(v2); stdNumKeys_rs.push("v2"); }
+      if (v3 !== "___" && v3 !== "0") { stdDenSym.push("V3"); stdDenVal.push(v3); stdDenKeys_rs.push("v3"); }
+      if (v4 !== "___" && v4 !== "0") { stdNumSym.push("V4"); stdNumVal.push(v4); stdNumKeys_rs.push("v4"); }
+      if (v5 !== "___" && v5 !== "0") { stdDenSym.push("V5"); stdDenVal.push(v5); stdDenKeys_rs.push("v5"); }
+      if (v6 !== "___" && v6 !== "0") { stdNumSym.push("V6"); stdNumVal.push(v6); stdNumKeys_rs.push("v6"); }
+      if (v7 !== "___" && v7 !== "0") { stdDenSym.push("V7"); stdDenVal.push(v7); stdDenKeys_rs.push("v7"); }
 
       const smpNumSym: string[] = []; const smpDenSym: string[] = [];
       const smpNumVal: string[] = []; const smpDenVal: string[] = [];
+      const smpNumKeys_rs: string[] = []; const smpDenKeys_rs: string[] = [];
 
-      if (v8  !== "___" && v8  !== "0") { smpNumSym.push("V8");  smpNumVal.push(v8);  }
-      if (v9  !== "___" && v9  !== "0") { smpDenSym.push("V9");  smpDenVal.push(v9);  }
-      if (v10 !== "___" && v10 !== "0") { smpNumSym.push("V10"); smpNumVal.push(v10); }
-      if (v11 !== "___" && v11 !== "0") { smpDenSym.push("V11"); smpDenVal.push(v11); }
-      if (v12 !== "___" && v12 !== "0") { smpNumSym.push("V12"); smpNumVal.push(v12); }
-      if (v13 !== "___" && v13 !== "0") { smpDenSym.push("V13"); smpDenVal.push(v13); }
-      if (v14 !== "___" && v14 !== "0") { smpNumSym.push("V14"); smpNumVal.push(v14); }
+      if (v8 !== "___" && v8 !== "0") { smpNumSym.push("V8"); smpNumVal.push(v8); smpNumKeys_rs.push("v8"); }
+      if (v9 !== "___" && v9 !== "0") { smpDenSym.push("V9"); smpDenVal.push(v9); smpDenKeys_rs.push("v9"); }
+      if (v10 !== "___" && v10 !== "0") { smpNumSym.push("V10"); smpNumVal.push(v10); smpNumKeys_rs.push("v10"); }
+      if (v11 !== "___" && v11 !== "0") { smpDenSym.push("V11"); smpDenVal.push(v11); smpDenKeys_rs.push("v11"); }
+      if (v12 !== "___" && v12 !== "0") { smpNumSym.push("V12"); smpNumVal.push(v12); smpNumKeys_rs.push("v12"); }
+      if (v13 !== "___" && v13 !== "0") { smpDenSym.push("V13"); smpDenVal.push(v13); smpDenKeys_rs.push("v13"); }
+      if (v14 !== "___" && v14 !== "0") { smpNumSym.push("V14"); smpNumVal.push(v14); smpNumKeys_rs.push("v14"); }
 
       const hasExternal = areaStd !== "___";
-      const resultUnit  = calcData.calculationResultUnit || "%";
+      const resultUnit = calcData.calculationResultUnit || "%";
 
       // ── Symbolic formula parts ────────────────────────────────────────────────
       // Extra formula terms depending on calculationFor
       const extraNumSym: string[] = [];
       const extraDenSym: string[] = [];
       const labelClaim = calcData.labelClaim || "___";
-      const avgWeight  = calcData.avgWeight  || "___";
+      const avgWeight = calcData.avgWeight || "___";
       const avgWeightU = calcData.avgWeightUnit || "mg";
-      const doseVolume = calcData.doseVolume  || "___";
+      const doseVolume = calcData.doseVolume || "___";
       const weightPerMl = calcData.weightPerMl || "___";
       const weightPerMlU = calcData.weightPerMlUnit || "mg";
-      const rf         = calcData.responseFactor || "___";
-      const rfUnit     = calcData.responseFactorUnit || "";
+      const rf = calcData.responseFactor || "___";
+      const rfUnit = calcData.responseFactorUnit || "";
 
       if (calcFor === "Tablets" || calcFor === "Capsule" || calcFor === "Injection Vial") {
         extraNumSym.push(`× Avg Wt (${avgWeightU})`, "× 100");
@@ -2117,40 +2293,50 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
       // ── Derivation value arrays ───────────────────────────────────────────────
       const buildNumVal = (areaVal: string) => [
-        areaVal, sw1,
-        ...stdNumVal, ...smpNumVal,
-        mwBase, purity,
+        areaVal,
+        sw1U_rs2 ? `${sw1} ${sw1U_rs2}` : sw1,
+        ...stdNumVal.map((v, i) => applyVU_rs2(v, stdNumKeys_rs[i])),
+        ...smpNumVal.map((v, i) => applyVU_rs2(v, smpNumKeys_rs[i])),
+        mwBaseU_rs2 ? `${mwBase} ${mwBaseU_rs2}` : mwBase,
+        purityU_rs2 ? `${purity} ${purityU_rs2}` : purity,
         ...(calcFor === "Tablets" || calcFor === "Capsule" || calcFor === "Injection Vial"
           ? [avgWeight !== "___" ? `${avgWeight} ${avgWeightU}` : "___", "100"]
           : calcFor === "Oral Suspension"
-            ? [weightPerMl !== "___" ? `${weightPerMl} ${weightPerMlU}` : "___", doseVolume, "100"]
+            ? [weightPerMl !== "___" ? `${weightPerMl} ${weightPerMlU}` : "___",
+            doseVolumeU_rs2 && doseVolume !== "___" ? `${doseVolume} ${doseVolumeU_rs2}` : doseVolume,
+              "100"]
             : calcFor === "Oral Liquid"
-              ? [doseVolume, "100"]
+              ? [doseVolumeU_rs2 && doseVolume !== "___" ? `${doseVolume} ${doseVolumeU_rs2}` : doseVolume, "100"]
               : ["100"]),
         ...(rf !== "___" ? [rf] : []),
       ].filter(v => v !== "___").join(" × ");
 
       const derivationDen = hasExternal ? [
         areaStd,
-        ...stdDenVal, sw2, ...smpDenVal,
-        mwSalt, "100",
-        ...(labelClaim !== "___" && extraDenSym.length > 0 ? [labelClaim] : []),
+        ...stdDenVal.map((v, i) => applyVU_rs2(v, stdDenKeys_rs[i])),
+        sw2U_rs2 ? `${sw2} ${sw2U_rs2}` : sw2,
+        ...smpDenVal.map((v, i) => applyVU_rs2(v, smpDenKeys_rs[i])),
+        mwSaltU_rs2 ? `${mwSalt} ${mwSaltU_rs2}` : mwSalt,
+        "100",
+        ...(labelClaim !== "___" && extraDenSym.length > 0
+          ? [labelClaimU_rs2 ? `${labelClaim} ${labelClaimU_rs2}` : labelClaim]
+          : []),
       ].filter(v => v !== "___").join(" × ") : "Total Peak Area × 100";
 
-      const singleResult    = calcData.calculationResult;
-      const totalArea       = calcData.totalPeakArea || calcData.totalArea || "___";
+      const singleResult = calcData.calculationResult;
+      const totalArea = calcData.totalPeakArea || calcData.totalArea || "___";
 
       // Impurity entries
       const impurityEntries: { name: string; area: string; result: string }[] = [];
       for (let i = 1; i <= 20; i++) {
-        const area   = calcData[`impurityPeakArea${i}`] || calcData[`impurityArea${i}`];
-        const name   = calcData[`impurityName${i}`]     || `Impurity ${i}`;
+        const area = calcData[`impurityPeakArea${i}`] || calcData[`impurityArea${i}`];
+        const name = calcData[`impurityName${i}`] || `Impurity ${i}`;
         const result = calcData[`impurityResult${i}`];
         if (area) impurityEntries.push({ name, area, result: result || "___" });
       }
 
       return (
-        <div className="bg-gray-100 border border-black p-3 mb-3 keep-together">
+        <div className="bg-gray-100 border border-black p-3 mb-3 calc-block">
           <p className="font-bold text-sm mb-2">Formula :</p>
 
           {hasExternal ? (
@@ -2169,15 +2355,15 @@ const PrintReport: React.FC<PrintReportProps> = ({
               <p className="text-xs font-semibold text-gray-700 mb-1">{imp.name}</p>
               {hasExternal
                 ? renderMathFormula(
-                    buildNumVal(imp.area),
-                    derivationDen,
-                    imp.result !== "___" ? imp.result : null,
-                    resultUnit,
-                  )
+                  buildNumVal(imp.area),
+                  derivationDen,
+                  imp.result !== "___" ? imp.result : null,
+                  resultUnit,
+                )
                 : <p className="text-xs text-center font-mono">
-                    ({imp.area} / {totalArea}) × 100
-                    {imp.result !== "___" ? ` = ${imp.result} ${resultUnit}` : ""}
-                  </p>
+                  ({imp.area} / {totalArea}) × 100
+                  {imp.result !== "___" ? ` = ${imp.result} ${resultUnit}` : ""}
+                </p>
               }
             </div>
           ))}
@@ -2187,9 +2373,9 @@ const PrintReport: React.FC<PrintReportProps> = ({
             hasExternal
               ? renderMathFormula(buildNumVal(areaSample), derivationDen, singleResult, resultUnit)
               : <p className="text-xs text-center font-mono">
-                  ({areaSample} / {totalArea}) × 100
-                  {singleResult ? ` = ${singleResult} ${resultUnit}` : ""}
-                </p>
+                ({areaSample} / {totalArea}) × 100
+                {singleResult ? ` = ${singleResult} ${resultUnit}` : ""}
+              </p>
           )}
 
         </div>
@@ -2206,157 +2392,86 @@ const PrintReport: React.FC<PrintReportProps> = ({
           @media print {
             @page {
               size: A4;
-              margin: 15mm 15mm 15mm 15mm;
+              margin: 6mm 8mm 6mm 8mm;
             }
-            
+
             .no-print {
               display: none !important;
             }
-            
-            body {
-              margin: 0;
-              padding: 0;
+
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
               background: white;
+              height: auto !important;
+              min-height: 0 !important;
+              overflow: visible !important;
             }
-            
+
             .print-container {
               width: 100%;
               max-width: none;
               margin: 0;
               padding: 0;
               box-shadow: none;
+              height: auto !important;
             }
 
-            /* Fix blue background overflow */
-            .bg-gray-100 {
-              overflow: hidden;
-              box-sizing: border-box;
-            }
-
-            /* Ensure all elements with borders contain their backgrounds */
-            .border-black,
-            .border {
-              box-sizing: border-box;
-              overflow: hidden;
-            }
-            
+            /* New parameter starts on a new page */
             .page-break-before {
-              page-break-before: always;
-              break-before: always;
+              break-before: page;
             }
-            
-            .page-break-inside-avoid {
-              page-break-inside: avoid;
-              break-inside: avoid;
-              orphans: 3;
-              widows: 3;
+
+            /* Everything flows freely by default */
+            * {
+              break-inside: auto !important;
+              break-before: auto !important;
+              break-after: auto !important;
             }
-            
-            /* Table page break rules - ALLOW breaking but keep rows together */
+
+            /* Individual table rows must not split mid-row */
+            tr {
+              break-inside: avoid !important;
+            }
+
+            /* Each derivation/formula box stays intact — never splits inside */
+            .calc-block {
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
+            }
+
+            /* Last derivation + summary table grouped — summary never orphans */
+            .calc-summary-group {
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
+            }
+
+            /* Formula fraction display — never split the fraction bar from numerator/denominator */
+            .formula-display {
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
+            }
+
+            /* Formula label + fraction + derivation — keep whole block together */
+            .formula-block-group {
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
+            }
+
             table {
-              page-break-inside: auto;
-              break-inside: auto;
               border-collapse: collapse;
             }
-            
-            /* Keep individual table rows together */
-            tr {
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            /* Repeat table header on each page if needed */
+
             thead {
               display: table-header-group;
-            }
-            
-            /* Ensure table borders render on each page */
-            tbody {
-              page-break-inside: auto;
-              break-inside: auto;
-            }
-            
-            /* Keep entire preparation section together */
-            .section-container {
-              page-break-inside: avoid;
-              break-inside: avoid;
-              margin-bottom: 15px;
-              orphans: 3;
-              widows: 3;
-            }
-            
-            .keep-together {
-              page-break-inside: avoid;
-              break-inside: avoid;
-              orphans: 4;
-              widows: 4;
-            }
-            
-            h3, h4, h5 {
-              page-break-after: avoid;
-              break-after: avoid;
-              orphans: 3;
-              widows: 3;
-            }
-            
-            .footer-section {
-              page-break-inside: avoid;
-              break-inside: avoid;
-              margin-top: 60px;
-            }
-
-            /* Mathematical derivation - keep formula boxes together */
-            .formula-display {
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-
-            /* If a section must break, add margin to next page */
-            .mb-4, .mb-6 {
-              page-break-after: auto;
-            }
-
-            /* Prevent orphan/widow lines in paragraphs */
-            p {
-              orphans: 3;
-              widows: 3;
-            }
-
-            /* Allow mt-4 sections to break if needed */
-            .mt-4 {
-              page-break-inside: auto;
-            }
-
-            /* Table cells should not break */
-            td {
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            /* Table page break handling */
-            table {
-              page-break-inside: auto;
-            }
-            
-            tr {
-              page-break-inside: avoid;
-              page-break-after: auto;
-            }
-            
-            thead {
-              display: table-header-group;
-            }
-            
-            tfoot {
-              display: table-footer-group;
             }
           }
           
           @media screen {
             .print-container {
               max-width: 210mm;
-              margin: 50px auto;
-              padding: 15mm 15mm;
+              margin: 24px auto 24px auto;
+              padding: 6mm 15mm 4mm 15mm;
               background: white;
               box-shadow: 0 0 10px rgba(0,0,0,0.1);
             }
@@ -2373,6 +2488,25 @@ const PrintReport: React.FC<PrintReportProps> = ({
             .attached-file-preview-border {
               border: none !important;
               margin-bottom: 0 !important;
+            }
+
+            /* PDF page image: scale to fit leaving room for signature */
+            .pdf-page-with-sig {
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
+            }
+
+            /* Signature footer: both rows always on same page, never split */
+            .file-signature-footer {
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
+            }
+
+            /* Ensure the PDF img inside doesn't overflow — leave ~40px for footer */
+            .pdf-page-with-sig img {
+              max-height: calc(100vh - 60px) !important;
+              width: 100% !important;
+              object-fit: contain !important;
             }
           }
 
@@ -2399,435 +2533,417 @@ const PrintReport: React.FC<PrintReportProps> = ({
         `}
       </style>
 
-      <div className="min-h-screen">
-        <div className="no-print bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
-          <div className="max-w-[1900px] mx-auto px-8 py-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={onClose}
-                  className="p-2 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-                <div>
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                    Worksheet Print Preview
-                  </h1>
-                  <p className="text-sm text-slate-500 mt-0.5">
-                    Review before printing
-                  </p>
+      <div className="print-container">
+        {worksheetInfo.parameters.map((param: any, paramIdx: number) => {
+          const filteredInstruments = instruments.filter((inst) =>
+            param.instrumentIds?.includes(inst.id),
+          );
+          const filteredChemicals = chemicals.filter((chem) =>
+            param.chemicalIds?.includes(chem.slno),
+          );
+          const filteredStandards = standards.filter((std) =>
+            param.standardIds?.includes(std.serialNo),
+          );
+
+          return (
+            <div
+              key={paramIdx}
+              className={paramIdx > 0 ? "page-break-before" : ""}
+            >
+              {renderHeaderAndSampleSection(
+                param,
+                paramIdx,
+                worksheetInfo.parameters.length,
+              )}
+
+              <div className="mt-4">
+                <div className="keep-together">
+                  <h3 className="text-lg bg-gray-200 font-bold border border-black mb-3 px-3 py-2 uppercase">
+                    Parameter: {param.parameterName} ({param.paraCode})
+                  </h3>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handlePrint}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/30"
-                >
-                  <Printer className="w-4 h-4" />
-                  Print
-                </button>
-
-                <button
-                  onClick={onClose}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-all"
-                >
-                  <X className="w-4 h-4" />
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="print-container">
-          {worksheetInfo.parameters.map((param: any, paramIdx: number) => {
-            const filteredInstruments = instruments.filter((inst) =>
-              param.instrumentIds?.includes(inst.id),
-            );
-            const filteredChemicals = chemicals.filter((chem) =>
-              param.chemicalIds?.includes(chem.slno),
-            );
-            const filteredStandards = standards.filter((std) =>
-              param.standardIds?.includes(std.serialNo),
-            );
-
-            return (
-              <div
-                key={paramIdx}
-                className={paramIdx > 0 ? "page-break-before" : ""}
-              >
-                {renderHeaderAndSampleSection(
-                  param,
-                  paramIdx,
-                  worksheetInfo.parameters.length,
+                {/* Instruments */}
+                {filteredInstruments.length > 0 && (
+                  <div className="section-container mb-4">
+                    <h4 className="text-md uppercase font-bold mb-2">
+                      Instruments Used
+                    </h4>
+                    <table className="w-full border border-black text-sm">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Instrument Id
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Instrument Name
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Calibration Done On
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Calibration Due On
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredInstruments.map((inst, idx) => (
+                          <tr key={idx}>
+                            <td className="border border-black px-3 py-2">
+                              {inst.instrumentTag}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {inst.name}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {inst.calibrationDoneDate
+                                ? new Date(
+                                  inst.calibrationDoneDate,
+                                ).toLocaleDateString("en-GB")
+                                : "N/A"}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {inst.calibrationDueDate
+                                ? new Date(
+                                  inst.calibrationDueDate,
+                                ).toLocaleDateString("en-GB")
+                                : "N/A"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
 
-                <div className="my-6">
-                  <div className="keep-together">
-                    <h3 className="text-lg bg-gray-200 font-bold border border-black mb-3 px-3 py-2 uppercase">
-                      Parameter: {param.parameterName} ({param.paraCode})
-                    </h3>
+                {/* Chemicals */}
+                {filteredChemicals.length > 0 && (
+                  <div className="section-container mb-4">
+                    <h4 className="text-md uppercase font-bold mb-2">
+                      Chemicals/Reagents Used
+                    </h4>
+                    <table className="w-full border border-black text-sm">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Chemical Name
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Code
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Make
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Batch No.
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Validity
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredChemicals.map((chem, idx) => (
+                          <tr key={idx}>
+                            <td className="border border-black px-3 py-2">
+                              {chem.name}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {chem.code || "N/A"}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {chem.make || "N/A"}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {chem.batchNo || "N/A"}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {chem.exp_Date
+                                ? new Date(chem.exp_Date).toLocaleDateString(
+                                  "en-GB",
+                                )
+                                : "N/A"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
+                )}
 
-                  {/* Instruments */}
-                  {filteredInstruments.length > 0 && (
-                    <div className="section-container mb-4">
-                      <h4 className="text-md uppercase font-bold mb-2">
-                        Instruments Used
-                      </h4>
-                      <table className="w-full border border-black text-sm">
-                        <thead>
-                          <tr className="bg-gray-100">
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Instrument Id
-                            </th>
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Instrument Name
-                            </th>
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Calibration Done On
-                            </th>
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Calibration Due On
-                            </th>
+                {/* Standards */}
+                {filteredStandards.length > 0 && (
+                  <div className="section-container mb-4">
+                    <h4 className="text-md uppercase font-bold mb-2">
+                      Standards Used
+                    </h4>
+                    <table className="w-full border border-black text-sm">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Standard Name
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Purity
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Make
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Batch No.
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Validity
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredStandards.map((std, idx) => (
+                          <tr key={idx}>
+                            <td className="border border-black px-3 py-2">
+                              {std.name}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {std.purity || "N/A"}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {std.make || "N/A"}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {std.batchNo || "N/A"}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {std.validity
+                                ? new Date(std.validity).toLocaleDateString(
+                                  "en-GB",
+                                )
+                                : "N/A"}
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {filteredInstruments.map((inst, idx) => (
-                            <tr key={idx}>
-                              <td className="border border-black px-3 py-2">
-                                {inst.instrumentTag}
-                              </td>
-                              <td className="border border-black px-3 py-2">
-                                {inst.name}
-                              </td>
-                              <td className="border border-black px-3 py-2">
-                                {inst.calibrationDoneDate
-                                  ? new Date(
-                                      inst.calibrationDoneDate,
-                                    ).toLocaleDateString("en-GB")
-                                  : "N/A"}
-                              </td>
-                              <td className="border border-black px-3 py-2">
-                                {inst.calibrationDueDate
-                                  ? new Date(
-                                      inst.calibrationDueDate,
-                                    ).toLocaleDateString("en-GB")
-                                  : "N/A"}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
 
-                  {/* Chemicals */}
-                  {filteredChemicals.length > 0 && (
-                    <div className="section-container mb-4">
+                {/* Buffer Preparations */}
+                {param.preparations &&
+                  safeJSONParse(param.preparations, []).filter(
+                    (p: any) => p.preparationCategory === "buffer",
+                  ).length > 0 && (
+                    <div className="mb-6">
                       <h4 className="text-md uppercase font-bold mb-2">
-                        Chemicals/Reagents Used
+                        Buffer Preparations
                       </h4>
-                      <table className="w-full border border-black text-sm">
-                        <thead>
-                          <tr className="bg-gray-100">
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Chemical Name
-                            </th>
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Code
-                            </th>
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Make
-                            </th>
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Batch No.
-                            </th>
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Validity
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredChemicals.map((chem, idx) => (
-                            <tr key={idx}>
-                              <td className="border border-black px-3 py-2">
-                                {chem.name}
-                              </td>
-                              <td className="border border-black px-3 py-2">
-                                {chem.code || "N/A"}
-                              </td>
-                              <td className="border border-black px-3 py-2">
-                                {chem.make || "N/A"}
-                              </td>
-                              <td className="border border-black px-3 py-2">
-                                {chem.batchNo || "N/A"}
-                              </td>
-                              <td className="border border-black px-3 py-2">
-                                {chem.exp_Date
-                                  ? new Date(chem.exp_Date).toLocaleDateString(
-                                      "en-GB",
-                                    )
-                                  : "N/A"}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {/* Standards */}
-                  {filteredStandards.length > 0 && (
-                    <div className="section-container mb-4">
-                      <h4 className="text-md uppercase font-bold mb-2">
-                        Standards Used
-                      </h4>
-                      <table className="w-full border border-black text-sm">
-                        <thead>
-                          <tr className="bg-gray-100">
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Standard Name
-                            </th>
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Purity
-                            </th>
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Make
-                            </th>
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Batch No.
-                            </th>
-                            <th className="border border-black px-3 py-2 text-left font-bold">
-                              Validity
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredStandards.map((std, idx) => (
-                            <tr key={idx}>
-                              <td className="border border-black px-3 py-2">
-                                {std.name}
-                              </td>
-                              <td className="border border-black px-3 py-2">
-                                {std.purity || "N/A"}
-                              </td>
-                              <td className="border border-black px-3 py-2">
-                                {std.make || "N/A"}
-                              </td>
-                              <td className="border border-black px-3 py-2">
-                                {std.batchNo || "N/A"}
-                              </td>
-                              <td className="border border-black px-3 py-2">
-                                {std.validity
-                                  ? new Date(std.validity).toLocaleDateString(
-                                      "en-GB",
-                                    )
-                                  : "N/A"}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {/* Buffer Preparations */}
-                  {param.preparations &&
-                    safeJSONParse(param.preparations, []).filter(
-                      (p: any) => p.preparationCategory === "buffer",
-                    ).length > 0 && (
-                      <div className="mb-6">
-                        <h4 className="text-md uppercase font-bold mb-2">
-                          Buffer Preparations
-                        </h4>
-                        {safeJSONParse(param.preparations, [])
-                          .filter(
-                            (p: any) => p.preparationCategory === "buffer",
-                          )
-                          .map((prep: any, idx: number) => {
-                            const steps = safeJSONParse(prep.steps, []);
-                            const validSteps = steps.filter((s: any) =>
-                              s.value1 || s.logBookID || s.solventChemical
-                            );
-                            if (validSteps.length === 0) return null;
-                            return (
-                              <div key={idx} className="section-container mb-3">
-                                <div className="mb-1">
-                                  <p className="font-bold text-sm">{prep.label}</p>
-                                </div>
-                                <table className="w-full border border-black text-sm">
-                                  <tbody>
-                                    {validSteps.map((step: any, sIdx: number) => {
-                                      let stepText = "";
-                                      if (step.name === "Weighing/Measuring") {
-                                        stepText = `${["ml", "L", "µL"].includes(step.unit1) ? "Measure accurately" : "Weigh accurately"} ${step.value1 || "___"} ${step.unit1 || ""} of ${step.solventChemical || "_____________"}${step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""}.`;
-                                      } else if (step.name === "PH") {
-                                        stepText = `Adjust pH to ${step.value1 || "___"}${step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""}.`;
-                                      } else {
-                                        stepText = `${step.name}: ${step.value1 || ""} ${step.unit1 || ""}`.trim();
-                                      }
-                                      return (
-                                        <tr key={sIdx} className="border-b border-black last:border-b-0">
-                                          <td className="w-1/3 px-3 py-2 font-bold bg-gray-100 border-r border-black">
-                                            {step.name}
-                                          </td>
-                                          <td className="px-3 py-2">{stepText}</td>
-                                        </tr>
-                                      );
-                                    })}
-                                  </tbody>
-                                </table>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    )}
-
-                  {/* Mobile Phase Preparations */}
-                  {param.preparations &&
-                    safeJSONParse(param.preparations, []).filter(
-                      (p: any) => p.preparationCategory === "mobile_phase",
-                    ).length > 0 && (
-                      <div className="mb-6">
-                        <h4 className="text-md uppercase font-bold mb-2">
-                          Mobile Phase Preparations
-                        </h4>
-                        {safeJSONParse(param.preparations, [])
-                          .filter(
-                            (p: any) =>
-                              p.preparationCategory === "mobile_phase",
-                          )
-                          .map((prep: any, idx: number) => {
-                            const steps = safeJSONParse(prep.steps, []);
-                            const stepsTable = renderPreparationStepsTable(
-                              steps,
-                              "mobile_phase",
-                              prep.preparationType || "mobile_phase",
-                              prep.assignedStandardId,
-                            );
-                            const hasContent = !!(prep.content && prep.content.trim());
-
-                            // Show step table if available, fall back to content, skip if neither
-                            if (!stepsTable && !hasContent) return null;
-
-                            return (
-                              <div key={idx} className="section-container mb-3">
-                                <div className="mb-1">
-                                  <p className="font-bold text-sm">
-                                    {prep.label}
-                                  </p>
-                                </div>
-                                {stepsTable ? (
-                                  <div className="p-0">{stepsTable}</div>
-                                ) : (
-                                  <div
-                                    className="prose prose-sm max-w-none text-sm"
-                                    dangerouslySetInnerHTML={{ __html: prep.content }}
-                                    style={{ lineHeight: "1.6", fontSize: "13px" }}
-                                  />
-                                )}
-                              </div>
-                            );
-                          })}
-                      </div>
-                    )}
-
-                  {/* Dissolution Media Preparations */}
-                  {(() => {
-                    const dissoMediaPreps = param.preparations
-                      ? safeJSONParse(param.preparations, []).filter(
-                          (p: any) =>
-                            p.preparationCategory === "dissolution_media" ||
-                            p.preparationCategory === "dissolution_media_profile",
+                      {safeJSONParse(param.preparations, [])
+                        .filter(
+                          (p: any) => p.preparationCategory === "buffer",
                         )
-                      : [];
+                        .map((prep: any, idx: number) => {
+                          const steps = safeJSONParse(prep.steps, []);
+                          const validSteps = steps.filter((s: any) =>
+                            s.value1 || s.logBookID || s.solventChemical
+                          );
+                          if (validSteps.length === 0) return null;
+                          return (
+                            <div key={idx} className="section-container mb-3">
+                              <div className="mb-1">
+                                <p className="font-bold text-sm">{prep.label}</p>
+                              </div>
+                              <table className="w-full border border-black text-sm">
+                                <tbody>
+                                  {validSteps.map((step: any, sIdx: number) => {
+                                    let stepText = "";
+                                    if (step.name === "Weighing/Measuring") {
+                                      stepText = `${["ml", "L", "µL"].includes(step.unit1) ? "Measure accurately" : "Weigh accurately"} ${step.value1 || "___"} ${step.unit1 || ""} of ${step.solventChemical || "_____________"}${step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""}.`;
+                                    } else if (step.name === "PH") {
+                                      stepText = `Adjust pH to ${step.value1 || "___"}${step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""}.`;
+                                    } else {
+                                      stepText = `${step.name}: ${step.value1 || ""} ${step.unit1 || ""}`.trim();
+                                    }
+                                    return (
+                                      <tr key={sIdx} className="border-b border-black last:border-b-0">
+                                        <td className="w-1/3 px-3 py-2 font-bold bg-gray-100 border-r border-black">
+                                          {step.name}
+                                        </td>
+                                        <td className="px-3 py-2">{stepText}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
 
-                    // Build rendered prep items — only include ones with valid step data
-                    const renderedPreps = dissoMediaPreps.map((prep: any, idx: number) => {
-                      const steps = safeJSONParse(prep.steps, []);
-                      const stepsTable = renderPreparationStepsTable(
-                        steps,
-                        "dissolution_media",
-                        prep.preparationType || "dissolution_media",
-                        prep.assignedStandardId,
-                      );
-                      if (!stepsTable) return null;
+                {/* Reset styles for rich-text HTML injected into prep content areas */}
+                <style>{`
+                    .prep-rich-content, .prep-rich-content * {
+                      font-family: inherit !important;
+                      font-size: 0.875rem !important;
+                    }
+                    .prep-rich-content p {
+                      margin: 0 0 0.25rem 0 !important;
+                      padding: 0 !important;
+                    }
+                    .prep-rich-content ul, .prep-rich-content ol {
+                      margin: 0 !important;
+                      padding-left: 1.25rem !important;
+                    }
+                    .blank-method-content, .blank-method-content * {
+                      font-family: inherit !important;
+                      font-size: 0.875rem !important;
+                    }
+                    .blank-method-content p {
+                      margin: 0 0 0.25rem 0 !important;
+                      padding: 0 !important;
+                    }
+                  `}</style>
 
-                      // Format preparationType for display in brackets
-                      const prepTypeLabel = prep.preparationType
-                        ? formatCalcType(prep.preparationType)
-                        : null;
+                {/* Mobile Phase Preparations */}
+                {param.preparations &&
+                  safeJSONParse(param.preparations, []).filter(
+                    (p: any) => p.preparationCategory === "mobile_phase",
+                  ).length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="text-md uppercase font-bold mb-2">
+                        Mobile Phase Preparations
+                      </h4>
+                      {safeJSONParse(param.preparations, [])
+                        .filter(
+                          (p: any) =>
+                            p.preparationCategory === "mobile_phase",
+                        )
+                        .map((prep: any, idx: number) => {
+                          const steps = safeJSONParse(prep.steps, []);
+                          const stepsTable = renderPreparationStepsTable(
+                            steps,
+                            "mobile_phase",
+                            prep.preparationType || "mobile_phase",
+                            prep.assignedStandardId,
+                          );
+                          const hasContent = !!(prep.content && prep.content.trim());
 
-                      return (
-                        <div key={idx} className="section-container mb-3">
-                          <div className="mb-1">
-                            <p className="font-bold text-sm">
-                              {prep.label}
-                              {prepTypeLabel ? ` (${prepTypeLabel})` : ""}
-                            </p>
-                          </div>
-                          <div className="p-0">{stepsTable}</div>
-                        </div>
-                      );
-                    }).filter(Boolean);
+                          // Show step table if available, fall back to content, skip if neither
+                          if (!stepsTable && !hasContent) return null;
 
-                    // Only render the whole block (including title) if at least one prep has valid steps
-                    if (renderedPreps.length === 0) return null;
+                          return (
+                            <div key={idx} className="section-container mb-3">
+                              <div className="mb-1">
+                                <p className="font-bold text-sm">
+                                  {prep.label}
+                                </p>
+                              </div>
+                              {stepsTable ? (
+                                <div className="p-0">{stepsTable}</div>
+                              ) : (
+                                <div
+                                  className="prep-rich-content text-sm"
+                                  dangerouslySetInnerHTML={{ __html: prep.content }}
+                                  style={{ lineHeight: "1.6", fontFamily: "inherit", fontSize: "0.875rem", marginLeft: 0, paddingLeft: 0 }}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+
+                {/* Dissolution Media Preparations */}
+                {(() => {
+                  const dissoMediaPreps = param.preparations
+                    ? safeJSONParse(param.preparations, []).filter(
+                      (p: any) =>
+                        p.preparationCategory === "dissolution_media" ||
+                        p.preparationCategory === "dissolution_media_profile",
+                    )
+                    : [];
+
+                  // Build rendered prep items — only include ones with valid step data
+                  const renderedPreps = dissoMediaPreps.map((prep: any, idx: number) => {
+                    const steps = safeJSONParse(prep.steps, []);
+                    const stepsTable = renderPreparationStepsTable(
+                      steps,
+                      "dissolution_media",
+                      prep.preparationType || "dissolution_media",
+                      prep.assignedStandardId,
+                    );
+                    if (!stepsTable) return null;
+
+                    // Format preparationType for display in brackets
+                    const prepTypeLabel = prep.preparationType
+                      ? formatCalcType(prep.preparationType)
+                      : null;
 
                     return (
-                      <div className="mb-6">
-                        <h4 className="text-md uppercase font-bold mb-2">
-                          Dissolution Media Preparations
-                        </h4>
-                        {renderedPreps}
+                      <div key={idx} className="section-container mb-3">
+                        <div className="mb-1">
+                          <p className="font-bold text-sm">
+                            {prep.label}
+                            {prepTypeLabel ? ` (${prepTypeLabel})` : ""}
+                          </p>
+                        </div>
+                        <div className="p-0">{stepsTable}</div>
                       </div>
                     );
-                  })()}
+                  }).filter(Boolean);
 
-                  {/* Diluent Preparations */}
-                  {param.preparations &&
-                    safeJSONParse(param.preparations, []).filter(
-                      (p: any) => p.preparationCategory === "diluent",
-                    ).length > 0 && (
-                      <div className="mb-6">
-                        <h4 className="text-md uppercase font-bold mb-2">
-                          Diluent Preparations
-                        </h4>
-                        {safeJSONParse(param.preparations, [])
-                          .filter(
-                            (p: any) => p.preparationCategory === "diluent",
-                          )
-                          .map((prep: any, idx: number) => {
-                            return (
-                              <div key={idx} className="section-container mb-3">
-                                <div className="mb-1">
-                                  <p className="font-bold text-sm">{prep.label}</p>
-                                </div>
-                                {prep.content ? (
-                                  <div
-                                    className="prose prose-sm max-w-none text-sm"
-                                    dangerouslySetInnerHTML={{ __html: prep.content }}
-                                    style={{ lineHeight: "1.6", fontSize: "13px" }}
-                                  />
-                                ) : (
-                                  <p className="text-sm text-gray-500 italic">No content available.</p>
-                                )}
+                  // Only render the whole block (including title) if at least one prep has valid steps
+                  if (renderedPreps.length === 0) return null;
+
+                  return (
+                    <div className="mb-6">
+                      <h4 className="text-md uppercase font-bold mb-2">
+                        Dissolution Media Preparations
+                      </h4>
+                      {renderedPreps}
+                    </div>
+                  );
+                })()}
+
+                {/* Diluent Preparations */}
+                {param.preparations &&
+                  safeJSONParse(param.preparations, []).filter(
+                    (p: any) => p.preparationCategory === "diluent",
+                  ).length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="text-md uppercase font-bold mb-2">
+                        Diluent Preparations
+                      </h4>
+                      {safeJSONParse(param.preparations, [])
+                        .filter(
+                          (p: any) => p.preparationCategory === "diluent",
+                        )
+                        .map((prep: any, idx: number) => {
+                          return (
+                            <div key={idx} className="section-container mb-3">
+                              <div className="mb-1">
+                                <p className="font-bold text-sm">{prep.label}</p>
                               </div>
-                            );
-                          })}
-                      </div>
-                    )}
+                              {prep.content ? (
+                                <div
+                                  className="prep-rich-content text-sm"
+                                  dangerouslySetInnerHTML={{ __html: prep.content }}
+                                  style={{ lineHeight: "1.6", fontFamily: "inherit", fontSize: "0.875rem", marginLeft: 0, paddingLeft: 0 }}
+                                />
+                              ) : (
+                                <p className="text-sm text-gray-500 italic">No content available.</p>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
 
-                  {/* Standard Preparations */}
-                  {((param.standardPreparations &&
-                    param.standardPreparations.length > 0) ||
-                    (param.preparations &&
-                      safeJSONParse(param.preparations, []).filter(
-                        (p: any) => p.preparationCategory === "standard",
-                      ).length > 0)) && (
+                {/* Standard Preparations */}
+                {((param.standardPreparations &&
+                  param.standardPreparations.length > 0) ||
+                  (param.preparations &&
+                    safeJSONParse(param.preparations, []).filter(
+                      (p: any) => p.preparationCategory === "standard",
+                    ).length > 0)) && (
                     <div className="mb-6">
                       <h4 className="text-md uppercase font-bold mb-2">
                         Standard Preparations
@@ -2866,13 +2982,13 @@ const PrintReport: React.FC<PrintReportProps> = ({
                     </div>
                   )}
 
-                  {/* Sample Preparations */}
-                  {((param.samplePreparations &&
-                    param.samplePreparations.length > 0) ||
-                    (param.preparations &&
-                      safeJSONParse(param.preparations, []).filter(
-                        (p: any) => p.preparationCategory === "sample",
-                      ).length > 0)) && (
+                {/* Sample Preparations */}
+                {((param.samplePreparations &&
+                  param.samplePreparations.length > 0) ||
+                  (param.preparations &&
+                    safeJSONParse(param.preparations, []).filter(
+                      (p: any) => p.preparationCategory === "sample",
+                    ).length > 0)) && (
                     <div className="mb-6">
                       <h4 className="text-md uppercase font-bold mb-2">
                         Sample Preparations
@@ -2911,33 +3027,33 @@ const PrintReport: React.FC<PrintReportProps> = ({
                     </div>
                   )}
 
-                  {/* Calculations */}
-                  {param.calculations && param.calculations.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-md uppercase font-bold mb-2">
-                        Calculations
-                      </h4>
-                      {param.calculations.map((calc: any, idx: number) => {
-                        const calcData = safeJSONParse(calc.data, {});
-                        const isDissoProfileCalc = calc.calculationType?.toLowerCase() === "dissolution_profile";
-                        const isDissoCalc = calc.calculationType
-                          ?.toLowerCase()
-                          .includes("disso");
-                        const isUCCalc = calc.calculationType
-                          ?.toLowerCase()
-                          .includes("uniformity_of_content");
+                {/* Calculations */}
+                {param.calculations && param.calculations.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-md uppercase font-bold mb-2">
+                      Calculations
+                    </h4>
+                    {param.calculations.map((calc: any, idx: number) => {
+                      const calcData = safeJSONParse(calc.data, {});
+                      const isDissoProfileCalc = calc.calculationType?.toLowerCase() === "dissolution_profile";
+                      const isDissoCalc = calc.calculationType
+                        ?.toLowerCase()
+                        .includes("disso");
+                      const isUCCalc = calc.calculationType
+                        ?.toLowerCase()
+                        .includes("uniformity_of_content");
 
-                        return (
-                          <div key={idx}>
-                            <div className="mb-4">
-                              <div className="mb-1">
-                                <p className="font-bold text-sm">
-                                  {calc.label} ({formatCalcType(calc.calculationType)})
-                                </p>
-                              </div>
+                      return (
+                        <div key={idx}>
+                          <div className="mb-4">
+                            <div className="mb-1">
+                              <p className="font-bold text-sm">
+                                {calc.label} ({formatCalcType(calc.calculationType)})
+                              </p>
+                            </div>
 
-                              {/* Calculation Details Table — hidden for dissolution_profile (all shown in derivation) */}
-                              {!isDissoProfileCalc && (
+                            {/* Calculation Details Table — hidden for dissolution_profile (all shown in derivation) */}
+                            {!isDissoProfileCalc && (
                               <div>
                                 <table className="w-full text-sm">
                                   <tbody>
@@ -3062,141 +3178,145 @@ const PrintReport: React.FC<PrintReportProps> = ({
                                   </tbody>
                                 </table>
                               </div>
-                              )}
+                            )}
 
-                            </div>
-
-                            {/* Mathematical Derivation Section */}
-                            <div className="mt-3">
-                              {renderCalculationDerivation(
-                                calcData,
-                                calc.calculationType,
-                              )}
-                            </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
 
-                  {/* Diluent Preparation */}
-                  {param.diluentPreparation && (
-                    <div className="section-container mb-6">
+                          {/* Mathematical Derivation Section */}
+                          <div className="mt-3">
+                            {renderCalculationDerivation(
+                              calcData,
+                              calc.calculationType,
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Diluent Preparation */}
+                {param.diluentPreparation && (
+                  <div className="section-container mb-6">
+                    <h4 className="text-md uppercase font-bold mb-2">
+                      Diluent Preparation
+                    </h4>
+                    <div className="text-sm">{param.diluentPreparation}</div>
+                  </div>
+                )}
+
+                {/* Blank Preparation */}
+                {param.preparations &&
+                  safeJSONParse(param.preparations, []).filter(
+                    (p: any) => p.preparationCategory === "blank",
+                  ).length > 0 && (
+                    <div className="mb-6">
                       <h4 className="text-md uppercase font-bold mb-2">
-                        Diluent Preparation
+                        Blank Preparations
                       </h4>
-                      <div className="text-sm">{param.diluentPreparation}</div>
-                    </div>
-                  )}
+                      {safeJSONParse(param.preparations, [])
+                        .filter((p: any) => p.preparationCategory === "blank")
+                        .map((prep: any, idx: number) => {
+                          let blankData: {
+                            method?: string;
+                            calculationResult?: string;
+                            calculationResultUnit?: string;
+                            acceptanceLimitMin?: string;
+                            acceptanceLimitMax?: string;
+                          } = {};
+                          let isLegacy = false;
+                          if (prep.content) {
+                            try {
+                              const parsed = JSON.parse(prep.content);
+                              if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                                blankData = parsed;
+                              } else { isLegacy = true; }
+                            } catch { isLegacy = true; }
+                          }
+                          const hasMethod = isLegacy ? !!prep.content : !!blankData.method;
+                          const hasResult = !isLegacy && (!!blankData.calculationResult || !!blankData.calculationResultUnit);
+                          const hasLimit = !isLegacy && (!!blankData.acceptanceLimitMin || !!blankData.acceptanceLimitMax);
+                          const unit = blankData.calculationResultUnit || "";
+                          const hasMin = blankData.acceptanceLimitMin !== undefined && blankData.acceptanceLimitMin !== "";
+                          const hasMax = blankData.acceptanceLimitMax !== undefined && blankData.acceptanceLimitMax !== "";
+                          const hasBoth = hasMin && hasMax;
+                          const methodHtml = isLegacy ? prep.content : (blankData.method || "");
+                          if (!hasMethod && !hasResult && !hasLimit) return null;
+                          return (
+                            <div key={idx} className="section-container mb-4">
+                              {/* Prep label */}
+                              <p className="font-bold text-sm mb-2">{prep.label}</p>
 
-                  {/* Blank Preparation */}
-                  {param.preparations &&
-                    safeJSONParse(param.preparations, []).filter(
-                      (p: any) => p.preparationCategory === "blank",
-                    ).length > 0 && (
-                      <div className="mb-6">
-                        <h4 className="text-md uppercase font-bold mb-2">
-                          Blank Preparations
-                        </h4>
-                        {safeJSONParse(param.preparations, [])
-                          .filter((p: any) => p.preparationCategory === "blank")
-                          .map((prep: any, idx: number) => {
-                            let blankData: {
-                              method?: string;
-                              calculationResult?: string;
-                              calculationResultUnit?: string;
-                              acceptanceLimitMin?: string;
-                              acceptanceLimitMax?: string;
-                            } = {};
-                            let isLegacy = false;
-                            if (prep.content) {
-                              try {
-                                const parsed = JSON.parse(prep.content);
-                                if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-                                  blankData = parsed;
-                                } else { isLegacy = true; }
-                              } catch { isLegacy = true; }
-                            }
-                            const hasMethod = isLegacy ? !!prep.content : !!blankData.method;
-                            const hasResult = !isLegacy && (!!blankData.calculationResult || !!blankData.calculationResultUnit);
-                            const hasLimit  = !isLegacy && (!!blankData.acceptanceLimitMin || !!blankData.acceptanceLimitMax);
-                            const unit      = blankData.calculationResultUnit || "";
-                            const hasMin    = blankData.acceptanceLimitMin !== undefined && blankData.acceptanceLimitMin !== "";
-                            const hasMax    = blankData.acceptanceLimitMax !== undefined && blankData.acceptanceLimitMax !== "";
-                            const hasBoth   = hasMin && hasMax;
-                            const methodHtml = isLegacy ? prep.content : (blankData.method || "");
-                            if (!hasMethod && !hasResult && !hasLimit) return null;
-                            return (
-                              <div key={idx} className="section-container mb-4">
-                                {/* Prep label */}
-                                <p className="font-bold text-sm mb-2">{prep.label}</p>
-
-                                <style dangerouslySetInnerHTML={{ __html: `
+                              <style dangerouslySetInnerHTML={{
+                                __html: `
                                   .blank-method-content table { display: table !important; width: 100% !important; border-collapse: collapse !important; }
                                   .blank-method-content tr    { display: table-row !important; }
                                   .blank-method-content td,
                                   .blank-method-content th    { display: table-cell !important; border: 1px solid black !important; padding: 4px 8px !important; }
                                 `}} />
 
-                                {/* Single unified table — no gaps between rows */}
-                                <table className="w-full border-collapse border border-black text-sm">
-                                  <tbody>
+                              {/* Single unified table — no gaps between rows */}
+                              <table className="w-full border-collapse border border-black text-sm">
+                                <tbody>
 
-                                    {/* Method / Preparation — header row + full-width content row */}
-                                    {hasMethod && (
-                                      <>
-                                        <tr>
-                                          <td className="border border-black px-3 py-2">
-                                            <span className="font-bold">Method / Preparation :&nbsp;</span>
-                                            <div
-                                              className="blank-method-content prose prose-sm max-w-none text-sm mt-2"
-                                              dangerouslySetInnerHTML={{ __html: methodHtml }}
-                                              style={{ lineHeight: "1.6", fontSize: "13px" }}
-                                            />
-                                          </td>
-                                        </tr>
-                                      </>
-                                    )}
-
-                                    {/* Result / Reported Value */}
-                                    {hasResult && (
+                                  {/* Method / Preparation — header row + full-width content row */}
+                                  {hasMethod && (
+                                    <>
                                       <tr>
                                         <td className="border border-black px-3 py-2">
-                                          <span className="font-bold">Result / Reported Value :&nbsp;</span>
-                                          {blankData.calculationResult
-                                            ? <span>{blankData.calculationResult}{unit ? <span className="ml-1">{unit}</span> : null}</span>
-                                            : <span className="text-gray-400 italic">—</span>}
+                                          <span className="font-bold">Method / Preparation :&nbsp;</span>
+                                          <div
+                                            className="blank-method-content text-sm mt-2"
+                                            dangerouslySetInnerHTML={{ __html: methodHtml }}
+                                            style={{ lineHeight: "1.6", fontFamily: "inherit", fontSize: "0.875rem", marginLeft: 0, paddingLeft: 0 }}
+                                          />
                                         </td>
                                       </tr>
-                                    )}
+                                    </>
+                                  )}
 
-                                    {/* Acceptance Limit */}
-                                    {hasLimit && (
-                                      <tr>
-                                        <td className="border border-black px-3 py-2">
-                                          <span className="font-bold">Acceptance Limit :&nbsp;</span>
-                                          {hasBoth ? (
-                                            <span>
-                                              {blankData.acceptanceLimitMin}{unit ? <span> {unit}</span> : null}
-                                              <span className="mx-2">≤ Result ≤</span>
-                                              {blankData.acceptanceLimitMax}{unit ? <span> {unit}</span> : null}
-                                            </span>
-                                          ) : hasMin ? (
-                                            <span>{blankData.acceptanceLimitMin}{unit ? <span className="ml-1">{unit} ≤ Result</span> : null}</span>
-                                          ) : (
-                                            <span>Result ≤ {blankData.acceptanceLimitMax}{unit ? <span className="ml-1">{unit}</span> : null}</span>
-                                          )}
-                                        </td>
-                                      </tr>
-                                    )}
+                                  {/* Result / Reported Value */}
+                                  {hasResult && (
+                                    <tr>
+                                      <td className="border border-black px-3 py-2">
+                                        <span className="font-bold">Result / Reported Value :&nbsp;</span>
+                                        {blankData.calculationResult
+                                          ? <span>{blankData.calculationResult}{unit ? <span className="ml-1">{unit}</span> : null}</span>
+                                          : <span className="text-gray-400 italic">—</span>}
+                                      </td>
+                                    </tr>
+                                  )}
 
-                                  </tbody>
-                                </table>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    )}
+                                  {/* Acceptance Limit */}
+                                  {hasLimit && (
+                                    <tr>
+                                      <td className="border border-black px-3 py-2">
+                                        <span className="font-bold">Acceptance Limit :&nbsp;</span>
+                                        {hasBoth ? (
+                                          <span>
+                                            {blankData.acceptanceLimitMin}{unit ? <span> {unit}</span> : null}
+                                            <span className="mx-2">≤ Result ≤</span>
+                                            {blankData.acceptanceLimitMax}{unit ? <span> {unit}</span> : null}
+                                          </span>
+                                        ) : hasMin ? (
+                                          <span>{blankData.acceptanceLimitMin}{unit ? <span className="ml-1">{unit} ≤ Result</span> : null}</span>
+                                        ) : (
+                                          <span>Result ≤ {blankData.acceptanceLimitMax}{unit ? <span className="ml-1">{unit}</span> : null}</span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  )}
+
+                                </tbody>
+                              </table>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+
+                {/* System Suitabilities + Other Info + Signature — grouped so they never orphan */}
+                <div className="signature-table">
 
                   {/* System Suitability */}
                   {param.preparations &&
@@ -3204,7 +3324,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
                       (p: any) =>
                         p.preparationCategory === "system_suitability",
                     ).length > 0 && (
-                      <div className="mb-6">
+                      <div className="mb-2">
                         <h4 className="text-md uppercase font-bold mb-2">
                           System Suitabilities
                         </h4>
@@ -3336,7 +3456,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
                                           return (
                                             <tr key={stepIdx}>
-                                              <td className="bg-purple-100 border border-black px-4 py-2 font-medium">
+                                              <td className="bg-gray-100 border border-black px-4 py-2 font-medium">
                                                 {step.name}
                                               </td>
                                               <td
@@ -3360,7 +3480,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
                   {/* Other Information */}
                   {param.otherInfo && (
-                    <div className="section-container mb-4">
+                    <div className="mb-2">
                       <h4 className="text-sm font-bold mb-2 underline">
                         Other Information:
                       </h4>
@@ -3373,73 +3493,87 @@ const PrintReport: React.FC<PrintReportProps> = ({
                   {/* Digital Signature */}
                   {renderSignatureSection(param)}
 
-                  {/* Attached Files — PDF pages rendered inline via PDF.js, no filename/border chrome */}
-                  {param.files && Array.isArray(param.files) && param.files.filter((f: any) => f.fileDataBase64).length > 0 && (
-                    <div className="section-container mb-4">
-                      <h4 className="text-md uppercase font-bold mb-2 no-print">Attached Files</h4>
-                      {(() => {
-                        // Group: prep-type files first (keyed by preparationType), then param-level = "Other Files"
-                        const groups: Record<string, { slotLabel: string; sortOrder: number; files: any[] }> = {};
-                        for (const f of param.files) {
-                          if (!f.fileDataBase64) continue;
-                          let slotKey: string;
-                          let slotLabel: string;
-                          let sortOrder: number;
-                          if (f.preparationType) {
-                            slotKey = f.preparationType;
-                            slotLabel = formatCalcType(f.preparationType);
-                            sortOrder = 0;
-                          } else {
-                            slotKey = "__other__";
-                            slotLabel = "Other Files";
-                            sortOrder = 1;
-                          }
-                          if (!groups[slotKey]) groups[slotKey] = { slotLabel, sortOrder, files: [] };
-                          groups[slotKey].files.push(f);
-                        }
+                </div>{/* end: suitability+signature group */}
 
-                        return Object.entries(groups)
-                          .sort(([, a], [, b]) => a.sortOrder - b.sortOrder)
-                          .map(([slotKey, group]) => (
-                            <div key={slotKey} className="mb-4">
-                              {group.files.map((f: any, fi: number) => {
-                                const isPdf =
-                                  f.fileName?.toLowerCase().endsWith(".pdf") ||
-                                  f.fileDataBase64?.startsWith("JVBER");
-                                const isImage = /\.(png|jpg|jpeg|gif|bmp|webp)$/i.test(f.fileName || "");
-                                return (
-                                  <div key={fi} className="attached-file-preview-border">
-                                    {isPdf ? (
-                                      <PdfPageRenderer
-                                        base64={f.fileDataBase64}
-                                        fileName={f.fileName || `file_${fi + 1}.pdf`}
-                                      />
-                                    ) : isImage ? (
+                {/* Attached Files — PDF pages rendered inline via PDF.js, no filename/border chrome */}
+                {param.files && Array.isArray(param.files) && param.files.filter((f: any) => f.fileDataBase64).length > 0 && (
+                  <div className="section-container mb-4">
+                    <h4 className="text-md uppercase font-bold mb-2 no-print">Attached Files</h4>
+                    {(() => {
+                      // Group: prep-type files first (keyed by preparationType), then param-level = "Other Files"
+                      const groups: Record<string, { slotLabel: string; sortOrder: number; files: any[] }> = {};
+                      for (const f of param.files) {
+                        if (!f.fileDataBase64) continue;
+                        let slotKey: string;
+                        let slotLabel: string;
+                        let sortOrder: number;
+                        if (f.preparationType) {
+                          slotKey = f.preparationType;
+                          slotLabel = formatCalcType(f.preparationType);
+                          sortOrder = 0;
+                        } else {
+                          slotKey = "__other__";
+                          slotLabel = "Other Files";
+                          sortOrder = 1;
+                        }
+                        if (!groups[slotKey]) groups[slotKey] = { slotLabel, sortOrder, files: [] };
+                        groups[slotKey].files.push(f);
+                      }
+
+                      // Build signature data for this parameter
+                      const fileSig: FileSignatureData = {
+                        analyzedByName: (param as any).analyzedByName || null,
+                        analysisCompletionDate: (param as any).analysisCompletionDate || null,
+                        approvedByReviewerName: (param as any).approvedByReviewerName || null,
+                        approvedAtReviewer: (param as any).approvedAtReviewer || null,
+                      };
+
+                      return Object.entries(groups)
+                        .sort(([, a], [, b]) => a.sortOrder - b.sortOrder)
+                        .map(([slotKey, group]) => (
+                          <div key={slotKey} className="mb-4">
+                            {group.files.map((f: any, fi: number) => {
+                              const isPdf =
+                                f.fileName?.toLowerCase().endsWith(".pdf") ||
+                                f.fileDataBase64?.startsWith("JVBER");
+                              const isImage = /\.(png|jpg|jpeg|gif|bmp|webp)$/i.test(f.fileName || "");
+                              return (
+                                <div key={fi}>
+                                  {isPdf ? (
+                                    /* PDF: footer injected after every page canvas inside PdfPageRenderer */
+                                    <PdfPageRenderer
+                                      base64={f.fileDataBase64}
+                                      fileName={f.fileName || `file_${fi + 1}.pdf`}
+                                      signature={fileSig}
+                                    />
+                                  ) : isImage ? (
+                                    /* Image: show image then JSX footer below */
+                                    <div className="pdf-page-with-sig" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                                       <img
                                         src={`data:image/${f.fileName?.split(".").pop()?.toLowerCase() || "jpeg"};base64,${f.fileDataBase64}`}
                                         alt={f.fileName}
                                         className="max-w-full block"
                                         style={{ objectFit: "contain" }}
                                       />
-                                    ) : (
-                                      <p className="text-xs text-gray-500 text-center py-2">
-                                        {f.fileName} (preview not available)
-                                      </p>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ));
-                      })()}
-                    </div>
-                  )}
-                </div>
-
+                                      <FileSignatureFooter sig={fileSig} />
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-gray-500 text-center py-2">
+                                      {f.fileName} (preview not available)
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ));
+                    })()}
+                  </div>
+                )}
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </>
   );

@@ -69,11 +69,18 @@ const DiluentPreparationDetail: React.FC<DiluentPreparationDetailProps> = ({
       {/* Content Preview */}
       <div className="px-4 py-4">
         {diluentPreparation.content ? (
-          <div
-            className="prose prose-sm max-w-none prose-emerald"
-            dangerouslySetInnerHTML={{ __html: diluentPreparation.content }}
-            style={{ lineHeight: "1.6", fontSize: "14px" }}
-          />
+          <>
+            <style>{`.diluent-content * { font-family: inherit !important; }`}</style>
+            <div
+              className="prose prose-sm max-w-none prose-emerald diluent-content"
+              dangerouslySetInnerHTML={{ __html: diluentPreparation.content }}
+              style={{
+                lineHeight: "1.6",
+                fontSize: "14px",
+                fontFamily: "inherit",
+              }}
+            />
+          </>
         ) : (
           <div className="text-center py-8 text-gray-400">
             <p className="text-sm">No content available</p>

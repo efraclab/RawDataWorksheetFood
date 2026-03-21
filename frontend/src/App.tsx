@@ -169,6 +169,8 @@ function WorksheetPage(props: {
     showSubmitForQA: false,
     showApproveWorksheet: false,
     showPrintReport: false,
+    isContentLoading: false,
+    includeAuditTrail: false,
   });
 
   // A stable proxy object that always delegates to the latest actionsRef.
@@ -182,6 +184,8 @@ function WorksheetPage(props: {
     onSubmitForQA: () => {},
     onApproveWorksheet: () => {},
     onPrintReport: () => {},
+    onContentReady: () => {},
+    onToggleAuditTrail: () => {},
   });
 
   // stableActions is created once and its methods always delegate through
@@ -193,6 +197,8 @@ function WorksheetPage(props: {
     onSubmitForQA:       () => actionsRef.current.onSubmitForQA(),
     onApproveWorksheet:  () => actionsRef.current.onApproveWorksheet(),
     onPrintReport:       () => actionsRef.current.onPrintReport(),
+    onContentReady:      () => actionsRef.current.onContentReady(),
+    onToggleAuditTrail:  () => setIncludeAuditTrail(v => !v),
   });
 
   // ── Print overlay state ────────────────────────────────────────────────
@@ -201,6 +207,9 @@ function WorksheetPage(props: {
     analysts: Analyst[];
     sampleData: SampleData;
   } | null>(null);
+
+  // ── Audit trail toggle ─────────────────────────────────────────────────
+  const [includeAuditTrail, setIncludeAuditTrail] = useState(false);
 
   if (!worksheetId) return null;
 
@@ -234,7 +243,7 @@ function WorksheetPage(props: {
     /* ── Sidebar is OUTSIDE all transitions — rendered once, always present ── */
     <div className="flex min-h-screen">
       <WorksheetSidebar
-        state={sidebarState}
+        state={{ ...sidebarState, includeAuditTrail }}
         actions={stableActionsRef.current}
         mode={sidebarMode}
         onClosePrint={handleClosePrint}
@@ -261,6 +270,7 @@ function WorksheetPage(props: {
                 chemicals={props.chemicals}
                 standards={props.standards}
                 onClose={handleClosePrint}
+                includeAuditTrail={includeAuditTrail}
               />
             </motion.div>
           ) : (

@@ -214,6 +214,7 @@ interface PrintReportProps {
   chemicals: Chemical[];
   standards: Standard[];
   onClose: () => void;
+  includeAuditTrail?: boolean;
 }
 
 const PrintReport: React.FC<PrintReportProps> = ({
@@ -223,6 +224,7 @@ const PrintReport: React.FC<PrintReportProps> = ({
   chemicals,
   standards,
   onClose,
+  includeAuditTrail = false,
 }) => {
   const handlePrint = () => {
     window.print();
@@ -3572,7 +3574,13 @@ const PrintReport: React.FC<PrintReportProps> = ({
 
       {/* ── Audit Log ─────────────────────────────────────────────────────── */}
       {(() => {
+        console.log("[PrintReport] includeAuditTrail:", includeAuditTrail);
+        console.log("[PrintReport] worksheetInfo.logs:", (worksheetInfo as any)?.logs);
+        return null;
+      })()}
+      {includeAuditTrail && (() => {
         const logs: any[] = (worksheetInfo as any)?.logs ?? [];
+        console.log("[PrintReport] logs count:", logs.length, "logs:", logs);
         if (!logs.length) return null;
 
         return (

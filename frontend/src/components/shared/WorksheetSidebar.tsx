@@ -28,6 +28,7 @@ export interface WorksheetSidebarState {
   showApproveWorksheet: boolean;
   showPrintReport: boolean;
   isContentLoading: boolean;
+  includeAuditTrail: boolean;
 }
 
 export interface WorksheetSidebarActions {
@@ -38,6 +39,7 @@ export interface WorksheetSidebarActions {
   onApproveWorksheet: () => void;
   onPrintReport: () => void;
   onContentReady: () => void;
+  onToggleAuditTrail: () => void;
 }
 
 interface WorksheetSidebarProps {
@@ -146,7 +148,7 @@ const WorksheetSidebar: React.FC<WorksheetSidebarProps> = ({
     role,
     isSaving, saveSuccess, isSubmitting, isSubmittingForQA, isApprovingWorksheet,
     showSaveDraft, showSubmitForAnalysis, showSubmitForQA, showApproveWorksheet, showPrintReport,
-    isContentLoading,
+    isContentLoading, includeAuditTrail,
   } = state;
 
   const sc = displayStatus ? statusConfig(displayStatus) : null;
@@ -303,7 +305,49 @@ const WorksheetSidebar: React.FC<WorksheetSidebarProps> = ({
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 6 }}
                       transition={{ duration: 0.25 }}
+                      className="flex flex-col gap-2.5"
                     >
+                      {/* ── Audit Trail checkbox ────────────────────────── */}
+                      <button
+                        type="button"
+                        onClick={actions.onToggleAuditTrail}
+                        className={`group relative w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all duration-200 text-left ${
+                          includeAuditTrail
+                            ? "bg-emerald-50 border-emerald-300 shadow-sm"
+                            : "bg-white border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/40"
+                        }`}
+                      >
+                        {/* Custom checkbox */}
+                        <div className={`flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                          includeAuditTrail
+                            ? "bg-emerald-600 border-emerald-600"
+                            : "bg-white border-slate-300 group-hover:border-emerald-400"
+                        }`}>
+                          {includeAuditTrail && (
+                            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className={`text-[10px] sm:text-xs font-bold leading-tight transition-colors ${
+                            includeAuditTrail ? "text-emerald-800" : "text-slate-700 group-hover:text-emerald-700"
+                          }`}>
+                            Include Audit Trail
+                          </p>
+                          <p className={`text-[8px] sm:text-[9px] leading-tight mt-0.5 transition-colors ${
+                            includeAuditTrail ? "text-emerald-600/80" : "text-slate-400"
+                          }`}>
+                            {includeAuditTrail ? "Will print on new page" : "Omit from printed report"}
+                          </p>
+                        </div>
+                        {/* Indicator dot */}
+                        <span className={`ml-auto flex-shrink-0 w-1.5 h-1.5 rounded-full transition-all duration-200 ${
+                          includeAuditTrail ? "bg-emerald-500 shadow-sm shadow-emerald-400/50" : "bg-slate-300"
+                        }`} />
+                      </button>
+
+                      {/* ── Print button ────────────────────────────────── */}
                       <ActionBtn
                         onClick={() => setTimeout(() => window.print(), 100)}
                         gradient="from-emerald-500 to-emerald-700"

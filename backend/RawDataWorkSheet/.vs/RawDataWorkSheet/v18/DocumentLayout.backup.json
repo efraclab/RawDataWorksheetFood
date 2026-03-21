@@ -347,8 +347,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Controllers\\WorksheetController.cs",
               "ViewState": "AgIAAHwAAAAAAAAAAADwv5gAAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-12T06:18:17.315Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-12T06:18:17.315Z"
             },
             {
               "$type": "Document",
@@ -360,8 +359,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Services\\IWorksheetService.cs",
               "ViewState": "AgIAAA4AAAAAAAAAAAA9wBAAAAA5AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-29T09:12:26.621Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-29T09:12:26.621Z"
             },
             {
               "$type": "Document",
@@ -373,8 +371,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Repositories\\IWorksheetRepository.cs",
               "ViewState": "AgIAAA0AAAAAAAAAAAAkwBMAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-05T08:51:03.096Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-05T08:51:03.096Z"
             },
             {
               "$type": "Document",
@@ -386,8 +383,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\WorksheetLogDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAuwAcAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-20T06:34:31.332Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-20T06:34:31.332Z"
             },
             {
               "$type": "Document",
@@ -399,8 +395,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetLog.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAuwAgAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-20T06:29:33.356Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-20T06:29:33.356Z"
             },
             {
               "$type": "Document",
@@ -412,8 +407,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Services\\WorksheetService.cs",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAAAcAAAA1AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-12T05:53:28.743Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-12T05:53:28.743Z"
             },
             {
               "$type": "Document",
@@ -425,8 +419,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\WorksheetDetailDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-13T08:54:48.635Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-13T08:54:48.635Z"
             },
             {
               "$type": "Document",
@@ -438,8 +431,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Requests\\WorksheetLogRequest.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAA/AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-20T06:34:44.57Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-20T06:34:44.57Z"
             },
             {
               "$type": "Document",
@@ -451,8 +443,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Requests\\LogInRequest.cs",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-04T06:26:35.517Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-04T06:26:35.517Z"
             },
             {
               "$type": "Document",
@@ -464,8 +455,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\CalculationDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-18T07:41:15.936Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-18T07:41:15.936Z"
             },
             {
               "$type": "Document",

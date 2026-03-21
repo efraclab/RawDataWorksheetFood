@@ -16,5 +16,6 @@ namespace RawDataWorkSheet.Repositories
         Task UpdateParameterAsync(int parameterId, ParameterDto request);
         Task UpdateWorksheetAsync(SaveWorksheetRequest request);
         Task<int> AddParameterAsync(string worksheetId, ParameterDto parameter);
+        Task InsertLogAsync(WorksheetLogRequest request);
     }
 }

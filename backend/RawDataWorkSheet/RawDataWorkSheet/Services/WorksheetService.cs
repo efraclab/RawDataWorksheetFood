@@ -5,7 +5,6 @@ using RawDataWorkSheet.Repositories;
 
 namespace RawDataWorkSheet.Services
 {
-
     public class WorksheetService : IWorksheetService
     {
         private readonly IWorksheetRepository _repo;
@@ -43,7 +42,6 @@ namespace RawDataWorkSheet.Services
 
         public async Task<int> UpdateParameterAsync(int parameterId, ParameterDto request)
         {
-
             await _repo.UpdateParameterAsync(parameterId, request);
             return parameterId;
         }
@@ -72,7 +70,18 @@ namespace RawDataWorkSheet.Services
 
         public async Task<IEnumerable<WorksheetSummaryDto>> GetAllWorksheetsAsync(FetchWorksheetsRequest request)
         {
-            return (await _repo.GetAllWorksheetsAsync(request));
+            return await _repo.GetAllWorksheetsAsync(request);
         }
+
+
+
+        public async Task InsertLogAsync(WorksheetLogRequest request)
+        {
+            if (!await _repo.ExistsWorksheetAsync(request.WorksheetId))
+                throw new KeyNotFoundException("Worksheet not found.");
+
+            await _repo.InsertLogAsync(request);
+        }
+
     }
 }

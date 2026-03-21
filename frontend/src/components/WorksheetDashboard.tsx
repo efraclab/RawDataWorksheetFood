@@ -255,7 +255,7 @@ export default function WorksheetDashboard({
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-slate-50">
       <style>
         {`
           @keyframes fadeIn {
@@ -320,7 +320,7 @@ export default function WorksheetDashboard({
 
           .worksheet-card:hover {
             transform: translateY(-4px);
-            border-color: rgb(16 185 129);
+            border-color: rgb(5 150 105);
           }
 
           .worksheet-card:hover .shimmer-effect {
@@ -363,20 +363,23 @@ export default function WorksheetDashboard({
       </style>
 
       {/* Top Navigation Bar */}
-      <div className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
+      <div className="relative bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 border-b border-emerald-900/30 shadow-lg sticky top-0 z-50">
+      <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "radial-gradient(rgba(255,255,255,.8) 1px,transparent 1px)", backgroundSize: "18px 18px" }} />
+      <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none" />
+      <div className="absolute top-4 -left-8 w-32 h-32 rounded-full bg-teal-300/8 blur-2xl pointer-events-none" />
         <div className="max-w-[1800px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Left: Logo and Title */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-md">
+                <div className="w-10 h-10 bg-white/15 border border-white/25 rounded-lg flex items-center justify-center shadow-md">
                   <FileSpreadsheet className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-slate-800">
+                  <h1 className="text-xl font-bold text-white">
                     Raw Data Worksheets
                   </h1>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-emerald-300">
                     {role.includes("Reviewer")
                       ? "Laboratory Management"
                       : "Analysis Dashboard"}
@@ -391,7 +394,7 @@ export default function WorksheetDashboard({
               <button
                 onClick={fetchWorksheets}
                 disabled={isLoading}
-                className="p-2 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all disabled:opacity-50"
+                className="p-2 text-emerald-200/70 hover:text-white hover:bg-white/10 rounded-lg transition-all disabled:opacity-50"
                 title="Refresh worksheets"
               >
                 <RefreshCw
@@ -403,18 +406,18 @@ export default function WorksheetDashboard({
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg transition-colors"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-white/20 border border-white/30 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-white" />
                   </div>
                   <div className="text-left hidden md:block">
-                    <p className="text-xs font-semibold text-slate-800">
+                    <p className="text-xs font-semibold text-white">
                       {username}
                     </p>
-                    <p className="text-[10px] text-slate-500">{department}</p>
+                    <p className="text-[10px] text-emerald-200/70">{department}</p>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-slate-600" />
+                  <ChevronDown className="w-4 h-4 text-emerald-200/70" />
                 </button>
 
                 {showUserMenu && (
@@ -424,12 +427,12 @@ export default function WorksheetDashboard({
                       onClick={() => setShowUserMenu(false)}
                     />
                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-20 animate-fadeIn">
-                      <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 border-b border-slate-200">
-                        <p className="font-semibold text-slate-800">
+                      <div className="p-4 bg-gradient-to-br from-emerald-700 to-slate-800 border-b border-emerald-900/30">
+                        <p className="font-semibold text-white">
                           {username}
                         </p>
-                        <p className="text-xs text-slate-600">{department}</p>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs text-emerald-200/70">{department}</p>
+                        <p className="text-xs text-emerald-200/50 mt-1">
                           ID: {employeeId}
                         </p>
                       </div>
@@ -489,7 +492,7 @@ export default function WorksheetDashboard({
               <div className="relative p-5">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-100/30 to-teal-100/30 rounded-full blur-3xl -z-10 group-hover:scale-150 transition-transform duration-500"></div>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
                     <BarChart3 className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -502,7 +505,7 @@ export default function WorksheetDashboard({
                   </div>
                   <button
                     onClick={() => onNavigate("create")}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all shadow-md hover:shadow-lg group-hover:gap-3 flex-shrink-0"
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white text-sm font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all shadow-md hover:shadow-lg group-hover:gap-3 flex-shrink-0"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Create</span>
@@ -518,76 +521,77 @@ export default function WorksheetDashboard({
         {/* QA Hero Section - EMERALD THEME */}
         {role.includes("QA") && !role.includes("Reviewer") && (
         <div className="mb-8 mt-3">
-          <div className="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 rounded-2xl border-2 border-emerald-300 shadow-sm overflow-hidden">
+          <div className="relative bg-gradient-to-br from-emerald-700 via-emerald-800 to-slate-900 rounded-2xl border border-emerald-900/20 shadow-xl overflow-hidden">
+            <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "radial-gradient(rgba(255,255,255,.8) 1px,transparent 1px)", backgroundSize: "18px 18px" }} />
             <div className="relative py-8 px-10">
               <div className="mb-6">
-                <h2 className="text-3xl font-bold text-slate-800 mb-2 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                <h2 className="text-3xl font-bold text-white mb-2">
                   Welcome, {username.split(" ")[0]}!
                 </h2>
-                <p className="text-slate-600 text-sm leading-relaxed">
+                <p className="text-emerald-300 text-sm leading-relaxed">
                   You are the final quality gate. Check reviewer-approved parameters, request revisions if needed, and close worksheets with a full approval.
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                <div className="relative bg-white rounded-xl p-4 border-2 border-emerald-200 hover:shadow-lg transition-all group">
+                <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all group">
                   <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-white text-xs font-bold">1</span>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                    <div className="w-8 h-8 bg-emerald-400/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-200" />
                     </div>
-                    <h4 className="text-sm font-bold text-slate-800">Open Worksheet</h4>
+                    <h4 className="text-sm font-bold text-white">Open Worksheet</h4>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">Pick a worksheet submitted for QA review by the reviewer</p>
+                  <p className="text-xs text-emerald-100/70 leading-relaxed">Pick a worksheet submitted for QA review by the reviewer</p>
                 </div>
-                <div className="relative bg-white rounded-xl p-4 border-2 border-teal-200 hover:shadow-lg transition-all group">
+                <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all group">
                   <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-white text-xs font-bold">2</span>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <ClipboardCheck className="w-4 h-4 text-teal-600" />
+                    <div className="w-8 h-8 bg-teal-400/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <ClipboardCheck className="w-4 h-4 text-teal-200" />
                     </div>
-                    <h4 className="text-sm font-bold text-slate-800">Check Parameters</h4>
+                    <h4 className="text-sm font-bold text-white">Check Parameters</h4>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">Verify each parameter approved by the reviewer is accurate</p>
+                  <p className="text-xs text-emerald-100/70 leading-relaxed">Verify each parameter approved by the reviewer is accurate</p>
                 </div>
-                <div className="relative bg-white rounded-xl p-4 border-2 border-amber-200 hover:shadow-lg transition-all group">
+                <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all group">
                   <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-white text-xs font-bold">3</span>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <FileEdit className="w-4 h-4 text-amber-600" />
+                    <div className="w-8 h-8 bg-amber-400/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <FileEdit className="w-4 h-4 text-amber-200" />
                     </div>
-                    <h4 className="text-sm font-bold text-slate-800">Request Revision</h4>
+                    <h4 className="text-sm font-bold text-white">Request Revision</h4>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">Flag issues and return to analyst for corrections if needed</p>
+                  <p className="text-xs text-emerald-100/70 leading-relaxed">Flag issues and return to analyst for corrections if needed</p>
                 </div>
-                <div className="relative bg-white rounded-xl p-4 border-2 border-emerald-200 hover:shadow-lg transition-all group">
+                <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all group">
                   <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-white text-xs font-bold">4</span>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <div className="w-8 h-8 bg-emerald-400/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-200" />
                     </div>
-                    <h4 className="text-sm font-bold text-slate-800">Approve All</h4>
+                    <h4 className="text-sm font-bold text-white">Approve All</h4>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">Once all parameters pass, approve every parameter in the worksheet</p>
+                  <p className="text-xs text-emerald-100/70 leading-relaxed">Once all parameters pass, approve every parameter in the worksheet</p>
                 </div>
-                <div className="relative bg-white rounded-xl p-4 border-2 border-green-200 hover:shadow-lg transition-all group">
+                <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all group">
                   <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-white text-xs font-bold">5</span>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <BarChart3 className="w-4 h-4 text-green-600" />
+                    <div className="w-8 h-8 bg-green-400/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <BarChart3 className="w-4 h-4 text-green-200" />
                     </div>
-                    <h4 className="text-sm font-bold text-slate-800">Close Worksheet</h4>
+                    <h4 className="text-sm font-bold text-white">Close Worksheet</h4>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">Mark the full worksheet as approved and officially close it</p>
+                  <p className="text-xs text-emerald-100/70 leading-relaxed">Mark the full worksheet as approved and officially close it</p>
                 </div>
               </div>
             </div>
@@ -598,66 +602,67 @@ export default function WorksheetDashboard({
         {/* Analyst Hero Section - EMERALD THEME */}
         {!role.includes("Reviewer") && !role.includes("QA") && (
         <div className="mb-8 mt-3">
-          <div className="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 rounded-2xl border-2 border-emerald-300 shadow-sm overflow-hidden">
+          <div className="relative bg-gradient-to-br from-emerald-700 via-emerald-800 to-slate-900 rounded-2xl border border-emerald-900/20 shadow-xl overflow-hidden">
+            <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "radial-gradient(rgba(255,255,255,.8) 1px,transparent 1px)", backgroundSize: "18px 18px" }} />
             <div className="relative py-8 px-10">
               <div className="flex flex-col lg:flex-row items-center gap-8">
                 <div className="flex-1">
                   <div className="mb-6">
-                    <h2 className="text-3xl font-bold text-slate-800 mb-2 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                    <h2 className="text-3xl font-bold text-white mb-2">
                       Welcome, {username.split(" ")[0]}!
                     </h2>
-                    <p className="text-slate-600 text-sm leading-relaxed">
+                    <p className="text-emerald-300 text-sm leading-relaxed">
                       Review and analyze assigned worksheets with precision. Follow the workflow below to complete your analysis tasks.
                     </p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    <div className="relative bg-white rounded-xl p-4 mr-2 border-2 border-emerald-200 hover:shadow-lg transition-all group">
+                    <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all group">
                       <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
                         <span className="text-white text-xs font-bold">1</span>
                       </div>
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <Clock className="w-4 h-4 text-emerald-600" />
+                        <div className="w-8 h-8 bg-emerald-400/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Clock className="w-4 h-4 text-emerald-200" />
                         </div>
-                        <h4 className="text-sm font-bold text-slate-800">Start Analysis</h4>
+                        <h4 className="text-sm font-bold text-white">Start Analysis</h4>
                       </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">Select and begin analyzing assigned worksheets</p>
+                      <p className="text-xs text-emerald-100/70 leading-relaxed">Select and begin analyzing assigned worksheets</p>
                     </div>
-                    <div className="relative bg-white rounded-xl p-4 mr-2 border-2 border-teal-200 hover:shadow-lg transition-all group">
+                    <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all group">
                       <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-full flex items-center justify-center shadow-lg">
                         <span className="text-white text-xs font-bold">2</span>
                       </div>
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <ClipboardCheck className="w-4 h-4 text-teal-600" />
+                        <div className="w-8 h-8 bg-teal-400/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <ClipboardCheck className="w-4 h-4 text-teal-200" />
                         </div>
-                        <h4 className="text-sm font-bold text-slate-800">Submit Review</h4>
+                        <h4 className="text-sm font-bold text-white">Submit Review</h4>
                       </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">Complete analysis and wait for approval</p>
+                      <p className="text-xs text-emerald-100/70 leading-relaxed">Complete analysis and wait for approval</p>
                     </div>
-                    <div className="relative bg-white rounded-xl p-4 mr-2 border-2 border-amber-200 hover:shadow-lg transition-all group">
+                    <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all group">
                       <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
                         <span className="text-white text-xs font-bold">3</span>
                       </div>
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <FileEdit className="w-4 h-4 text-amber-600" />
+                        <div className="w-8 h-8 bg-amber-400/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <FileEdit className="w-4 h-4 text-amber-200" />
                         </div>
-                        <h4 className="text-sm font-bold text-slate-800">Revise if Needed</h4>
+                        <h4 className="text-sm font-bold text-white">Revise if Needed</h4>
                       </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">Update analysis based on reviewer feedback</p>
+                      <p className="text-xs text-emerald-100/70 leading-relaxed">Update analysis based on reviewer feedback</p>
                     </div>
-                    <div className="relative bg-white rounded-xl p-4 border-2 border-emerald-200 hover:shadow-lg transition-all group">
+                    <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all group">
                       <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
                         <span className="text-white text-xs font-bold">4</span>
                       </div>
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <div className="w-8 h-8 bg-emerald-400/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-200" />
                         </div>
-                        <h4 className="text-sm font-bold text-slate-800">Approved!</h4>
+                        <h4 className="text-sm font-bold text-white">Approved!</h4>
                       </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">Analysis complete and approved by reviewer</p>
+                      <p className="text-xs text-emerald-100/70 leading-relaxed">Analysis complete and approved by reviewer</p>
                     </div>
                   </div>
                 </div>
@@ -680,7 +685,7 @@ export default function WorksheetDashboard({
                     placeholder="Search by worksheet ID, registration number, or sample name..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-emerald-50/60 border border-emerald-200 rounded-lg text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
@@ -695,7 +700,7 @@ export default function WorksheetDashboard({
                       onClick={() => setStatusFilter(status.value)}
                       className={`px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200 border whitespace-nowrap ${
                         statusFilter === status.value
-                          ? "bg-emerald-500 text-white border-emerald-600 shadow-sm"
+                          ? "bg-gradient-to-r from-emerald-600 to-emerald-700 text-white border-emerald-700 shadow-sm"
                           : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
                       }`}
                     >
@@ -790,16 +795,17 @@ export default function WorksheetDashboard({
                       <div className="shimmer-effect absolute inset-0 pointer-events-none"></div>
 
                       {/* Card Header */}
-                      <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
-                        <div className="flex items-start justify-between gap-2">
+                      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-700 via-emerald-800 to-emerald-900 px-4 py-3 border-b border-emerald-900/20">
+                        <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "radial-gradient(rgba(255,255,255,.8) 1px,transparent 1px)", backgroundSize: "14px 14px" }} />
+                        <div className="relative flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <FileSpreadsheet className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                              <h3 className="text-sm font-bold text-slate-900 truncate">
+                              <FileSpreadsheet className="w-4 h-4 text-emerald-300 flex-shrink-0" />
+                              <h3 className="text-sm font-bold text-white truncate">
                                 {worksheet.worksheetId}
                               </h3>
                             </div>
-                            <p className="text-xs text-slate-500 font-mono truncate">
+                            <p className="text-xs text-emerald-200/70 font-mono truncate">
                               {worksheet.registrationNo}
                             </p>
                           </div>
@@ -811,7 +817,7 @@ export default function WorksheetDashboard({
                                   e.stopPropagation();
                                   setOpenMenuId(openMenuId === worksheet.id ? null : worksheet.id);
                                 }}
-                                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                className="w-7 h-7 rounded-lg flex items-center justify-center text-emerald-200/60 hover:text-white hover:bg-white/15 transition-colors"
                                 title="Options"
                               >
                                 <MoreVertical className="w-4 h-4" />

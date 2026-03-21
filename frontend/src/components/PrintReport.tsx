@@ -2465,6 +2465,12 @@ const PrintReport: React.FC<PrintReportProps> = ({
             thead {
               display: table-header-group;
             }
+
+            /* Audit log section always starts on a fresh page */
+            .audit-log-section {
+              break-before: page !important;
+              page-break-before: always !important;
+            }
           }
           
           @media screen {
@@ -3478,18 +3484,6 @@ const PrintReport: React.FC<PrintReportProps> = ({
                       </div>
                     )}
 
-                  {/* Other Information */}
-                  {param.otherInfo && (
-                    <div className="mb-2">
-                      <h4 className="text-sm font-bold mb-2 underline">
-                        Other Information:
-                      </h4>
-                      <div className="border border-black px-3 py-2 bg-gray-100 text-sm">
-                        {param.otherInfo}
-                      </div>
-                    </div>
-                  )}
-
                   {/* Digital Signature */}
                   {renderSignatureSection(param)}
 
@@ -3575,6 +3569,83 @@ const PrintReport: React.FC<PrintReportProps> = ({
           );
         })}
       </div>
+
+      {/* ── Audit Log ─────────────────────────────────────────────────────── */}
+      {(() => {
+        const logs: any[] = (worksheetInfo as any)?.logs ?? [];
+        if (!logs.length) return null;
+
+        return (
+          <div className="audit-log-section print-container" style={{ marginTop: 0 }}>
+            {/* Section header */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingBottom: "6px",
+              marginBottom: "12px",
+            }}>
+              <h4 className="text-lg font-bold">
+                Audit Logs
+              </h4>
+            </div>
+
+            {/* Log table */}
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#f3f4f6" }}>
+                  <th style={{ border: "1px solid black", padding: "5px 8px", textAlign: "left", width: "28px" }}>#</th>
+                  <th style={{ border: "1px solid black", padding: "5px 8px", textAlign: "left", width: "28px" }}>Parameter</th>
+                  <th style={{ border: "1px solid black", padding: "5px 8px", textAlign: "left", width: "128px" }}>Timestamp</th>
+                  <th style={{ border: "1px solid black", padding: "5px 8px", textAlign: "left", width: "170px" }}>Action</th>
+                  <th style={{ border: "1px solid black", padding: "5px 8px", textAlign: "left", width: "85px" }}>Employee</th>
+                  <th style={{ border: "1px solid black", padding: "5px 8px", textAlign: "left", width: "75px" }}>Role</th>
+                  <th style={{ border: "1px solid black", padding: "5px 8px", textAlign: "left" }}>Remarks</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((log: any, idx: number) => (
+                  <tr
+                    key={log.id ?? idx}
+                    style={{
+                      backgroundColor: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                      breakInside: "avoid",
+                      pageBreakInside: "avoid",
+                    }}
+                  >
+                    <td style={{ border: "1px solid black", padding: "4px 8px", color: "#9ca3af", textAlign: "center" }}>
+                      {idx + 1}
+                    </td>
+                    <td style={{ border: "1px solid black", padding: "4px 8px", whiteSpace: "nowrap" }}>
+                      {log.parameterCode && (`${log.parameterName} (${log.parameterCode})`)}
+                    </td>
+                    <td style={{ border: "1px solid black", padding: "4px 8px", whiteSpace: "nowrap" }}>
+                      {formatFileDt(log.timestamp)}
+                    </td>
+                    <td style={{ border: "1px solid black", padding: "4px 8px", fontWeight: 600 }}>
+                      {log.action}
+                    </td>
+                    <td style={{ border: "1px solid black", padding: "4px 8px" }}>
+                      {log.employeeName}
+                    </td>
+                    <td style={{ border: "1px solid black", padding: "4px 8px" }}>
+                      {log.role}
+                    </td>
+                    <td style={{
+                      border: "1px solid black",
+                      padding: "4px 8px",
+                      color: log.remarks ? "inherit" : "#d1d5db",
+                      fontStyle: log.remarks ? "normal" : "italic",
+                    }}>
+                      {log.remarks || "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
     </>
   );
 };

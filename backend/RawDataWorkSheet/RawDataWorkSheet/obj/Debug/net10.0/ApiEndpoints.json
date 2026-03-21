@@ -333,6 +333,22 @@
   },
   {
     "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
+    "Method": "InsertLog",
+    "RelativePath": "api/worksheets/logs",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RawDataWorkSheet.Models.Requests.WorksheetLogRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.WorksheetController",
     "Method": "UpdateParameter",
     "RelativePath": "api/worksheets/parameters/{parameterId}",
     "HttpMethod": "PUT",

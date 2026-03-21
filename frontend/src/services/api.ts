@@ -14,6 +14,8 @@ import type { FetchWorksheetRequest } from '../models/FetchWorksheetRequest';
 import type { ParameterDetail } from '../models/ParameterDetail';
 import type { WorksheetDbPayload } from '../helpers/WorksheetDbPayload';
 import type { SmapleDetailsRequest } from '../models/SmapleDetailsRequest';
+import type { WorksheetLog } from '../models/WorksheetLog';
+import type { WorksheetLogRequest } from '../models/WorksheetLogRequest';
 
 
 const API_BASE_URL = 'http://localhost:5162/api';
@@ -79,15 +81,7 @@ export const fetchColumns = async (): Promise<Column[]> => {
   }
 };
 
-// ========== WORKSHEET API FUNCTIONS ==========
 
-// ========== WORKSHEET API FUNCTIONS (UPDATED) ==========
-
-/**
- * Create a new worksheet
- * POST /api/worksheets
- * returns: { worksheetId }
- */
 export const createWorksheet = async (
   worksheetData: WorksheetRequest
 ): Promise<{ worksheetId: string }> => {
@@ -319,6 +313,38 @@ export const fetchAnalysts = async (
   }
 };
 
+// ========== WORKSHEET LOG API FUNCTIONS ==========
+
+/**
+ * Insert a new log entry for a worksheet action.
+ * POST /api/worksheets/logs
+ */
+export const insertWorksheetLog = async (
+  payload: WorksheetLogRequest
+): Promise<{ message: string }> => {
+  if (!payload.worksheetId) {
+    throw new Error("Worksheet ID is required.");
+  }
+
+  try {
+    const response = await axios.post<{ message: string }>(
+      `${API_BASE_URL}/worksheets/logs`,
+      payload,
+      { headers: { "Content-Type": "application/json" } }
+    );
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to insert log: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+
 // ========== CHEMICAL API FUNCTIONS ==========
 
 export const addChemical = async (payload: Chemical): Promise<void> => {
@@ -475,7 +501,6 @@ export const deleteStandard = async (serialNo: string): Promise<void> => {
 export const getInstruments = async (): Promise<Instrument[]> => {
   try {
     const response = await axios.get<Instrument[]>(`${API_BASE_URL}/instruments`);
-    //console.log("instruments", response.data);
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
@@ -489,7 +514,6 @@ export const getInstruments = async (): Promise<Instrument[]> => {
 export const getChemicals = async (): Promise<Chemical[]> => {
   try {
     const response = await axios.get<Chemical[]>(`${API_BASE_URL}/chemicals`);
-    //console.log("chemicals", response.data);
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
@@ -503,7 +527,6 @@ export const getChemicals = async (): Promise<Chemical[]> => {
 export const getStandards = async (): Promise<Standard[]> => {
   try {
     const response = await axios.get<Standard[]>(`${API_BASE_URL}/standards`);
-    //console.log("standards", response.data);
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {

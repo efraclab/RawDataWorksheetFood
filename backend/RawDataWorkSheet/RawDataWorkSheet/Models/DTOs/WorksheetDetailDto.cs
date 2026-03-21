@@ -4,5 +4,6 @@
     {
         public WorksheetDto Sample { get; set; }
         public List<ParameterDto> Parameters { get; set; }
+        public List<WorksheetLogDto> Logs { get; set; }
     }
 }

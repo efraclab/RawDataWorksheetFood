@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using RawDataWorkSheet.Models;
 using RawDataWorkSheet.Models.DTOs;
 using RawDataWorkSheet.Models.Requests;
@@ -33,9 +32,8 @@ namespace RawDataWorkSheet.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-        
 
-        [HttpPost()]
+        [HttpPost]
         public async Task<IActionResult> CreateWorksheet([FromBody] SaveWorksheetRequest request)
         {
             try
@@ -146,16 +144,29 @@ namespace RawDataWorkSheet.Controllers
             }
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> GetAll([FromQuery] string? status)
-        //{
-        //    return Ok(await _worksheetService.GetAllAsync(status));
-        //}
-
         [HttpPost("get-all")]
         public async Task<IActionResult> GetAllWorksheets([FromBody] FetchWorksheetsRequest request)
         {
             return Ok(await _worksheetService.GetAllWorksheetsAsync(request));
         }
+
+        [HttpPost("logs")]
+        public async Task<IActionResult> InsertLog([FromBody] WorksheetLogRequest request)
+        {
+            try
+            {
+                await _worksheetService.InsertLogAsync(request);
+                return Ok(new { message = "Log inserted successfully." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
     }
 }

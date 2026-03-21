@@ -11,7 +11,7 @@ import {
   Hash,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { fetchSample, createWorksheet } from "../services/api";
+import { fetchSample, createWorksheet, insertWorksheetLog } from "../services/api";
 import type { SampleData } from "../preparation_models/SampleData";
 import type { WorksheetRequest } from "../models/WorksheetRequest";
 import type { SmapleDetailsRequest } from "../models/SmapleDetailsRequest";
@@ -107,6 +107,16 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
 
       if (response && response.worksheetId) {
         console.log("Worksheet created with ID:", response.worksheetId);
+
+        insertWorksheetLog({
+          worksheetId: response.worksheetId,
+          action: "Worksheet Created",
+          remarks: `Worksheet created for registration no. ${firstSample.registrationNo} – sample: ${firstSample.sampleName}`,
+          employeeId,
+          role,
+        }).catch((err) =>
+          console.warn("Failed to insert worksheet creation log:", err),
+        );
         onWorksheetCreated(response.worksheetId, firstSample.registrationNo);
       } else {
         throw new Error("Failed to get worksheet ID from server");
@@ -131,7 +141,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
     sampleData && sampleData.length > 0 ? sampleData[0] : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 py-10 px-6">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-slate-50 py-10 px-6">
       <style>{`
         @keyframes shimmer {
           0% { background-position: -200% 0; }
@@ -153,12 +163,12 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
           className="relative"
         >
           {/* Card Content */}
-          <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden">
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-emerald-200/60 overflow-hidden">
             {/* Header Section */}
-            <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 px-8 py-6">
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
-              </div>
+            <div className="relative overflow-hidden bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 px-8 py-6">
+              <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "radial-gradient(rgba(255,255,255,.8) 1px,transparent 1px)", backgroundSize: "18px 18px" }} />
+              <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none" />
+              <div className="absolute top-6 -left-6 w-28 h-28 rounded-full bg-teal-300/8 blur-2xl pointer-events-none" />
 
               <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -173,7 +183,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                     <h1 className="text-2xl font-bold text-white tracking-tight">
                       Create New Worksheet
                     </h1>
-                    <p className="text-emerald-100 text-sm mt-0.5">
+                    <p className="text-emerald-200/80 text-sm mt-0.5">
                       Search registration number to begin the process
                     </p>
                   </div>
@@ -204,7 +214,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                   >
                     {/* Step Indicator */}
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full shadow-md">
+                      <div className="flex items-center justify-center w-9 h-9 bg-gradient-to-r from-emerald-700 to-emerald-900 rounded-full shadow-md">
                         <span className="text-white font-bold text-base">
                           1
                         </span>
@@ -244,10 +254,10 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                                 handleSearch(e);
                               }
                             }}
-                            className="w-full px-5 py-4 bg-slate-50 border border-slate-300 rounded-xl
+                            className="w-full px-5 py-4 bg-emerald-50/50 border border-emerald-200 rounded-xl
                                      text-slate-800 placeholder-slate-400 text-base font-medium
-                                     focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400
-                                     transition-all duration-200 hover:border-slate-400
+                                     focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-400
+                                     transition-all duration-200 hover:border-emerald-300
                                      disabled:bg-slate-100 disabled:cursor-not-allowed"
                             placeholder="e.g., EFRAC/DRG/RG/250413001"
                             disabled={isSearching}
@@ -277,12 +287,12 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                         type="button"
                         onClick={handleClear}
                         disabled={!registrationNo || isSearching}
-                        className="px-6 py-3 bg-white border border-slate-300 rounded-xl
-                                 text-slate-700 font-semibold text-base
-                                 hover:bg-slate-50 hover:border-slate-400
+                        className="px-6 py-3 bg-white border border-emerald-200 rounded-xl
+                                 text-emerald-700 font-semibold text-base
+                                 hover:bg-emerald-50 hover:border-emerald-300
                                  transition-all duration-200
                                  disabled:opacity-40 disabled:cursor-not-allowed
-                                 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                                 focus:outline-none focus:ring-2 focus:ring-emerald-200"
                       >
                         <span className="flex items-center gap-2">
                           <X size={18} />
@@ -294,13 +304,13 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                         type="button"
                         onClick={handleSearch}
                         disabled={isSearching || !registrationNo}
-                        className="group relative flex-1 px-8 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500
+                        className="group relative flex-1 px-8 py-3 bg-gradient-to-r from-emerald-700 to-slate-800
                                  rounded-xl text-white font-semibold text-base
-                                 hover:from-emerald-700 hover:to-emerald-600
+                                 hover:from-emerald-800 hover:to-slate-900
                                  shadow-lg hover:shadow-xl
                                  transition-all duration-200
                                  disabled:opacity-50 disabled:cursor-not-allowed
-                                 focus:outline-none focus:ring-2 focus:ring-emerald-400
+                                 focus:outline-none focus:ring-2 focus:ring-emerald-500
                                  overflow-hidden"
                       >
                         <div className="absolute inset-0 animate-shimmer"></div>
@@ -353,7 +363,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                   >
                     {/* Step Indicator */}
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full shadow-md">
+                      <div className="flex items-center justify-center w-9 h-9 bg-gradient-to-r from-emerald-700 to-emerald-900 rounded-full shadow-md">
                         <CheckCircle className="text-white" size={18} />
                       </div>
                       <div>
@@ -367,7 +377,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                     </div>
 
                     {/* Success Banner */}
-                    <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 p-5 shadow-lg">
+                    <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 p-5 shadow-lg border border-emerald-900/20">
                       <div className="relative flex items-center gap-4">
                         <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-md">
                           <CheckCircle className="text-emerald-600" size={24} />
@@ -385,9 +395,10 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                     </div>
 
                     {/* Sample Details Card */}
-                    <div className="bg-slate-50 rounded-xl border border-emerald-200 overflow-hidden">
-                      <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-3 border-b border-emerald-300">
-                        <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <div className="bg-white rounded-xl border border-emerald-200 overflow-hidden shadow-sm">
+                      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 px-5 py-3 border-b border-emerald-900/20">
+                        <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "radial-gradient(rgba(255,255,255,.8) 1px,transparent 1px)", backgroundSize: "14px 14px" }} />
+                        <h3 className="relative text-base font-bold text-white flex items-center gap-2">
                           <Beaker className="w-5 h-5" />
                           Sample Information Overview
                         </h3>
@@ -395,7 +406,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                       <div className="p-5 space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="bg-white rounded-xl p-4 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                            <p className="text-xs font-semibold text-emerald-700/70 uppercase tracking-wider mb-1.5">
                               Registration No.
                             </p>
                             <p className="text-base font-bold text-slate-800 truncate">
@@ -403,7 +414,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                             </p>
                           </div>
                           <div className="bg-white rounded-xl p-4 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                            <p className="text-xs font-semibold text-emerald-700/70 uppercase tracking-wider mb-1.5">
                               Date of Receipt
                             </p>
                             <p className="text-base font-bold text-slate-800">
@@ -413,7 +424,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                         </div>
 
                         <div className="bg-white rounded-xl p-4 border border-slate-200">
-                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                          <p className="text-xs font-semibold text-emerald-700/70 uppercase tracking-wider mb-1.5">
                             Sample Name / Description
                           </p>
                           <p className="text-base font-bold text-slate-800">
@@ -423,7 +434,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
 
                         <div className="grid grid-cols-2 gap-4">
                           <div className="bg-white rounded-xl p-4 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                            <p className="text-xs font-semibold text-emerald-700/70 uppercase tracking-wider mb-1.5">
                               Laboratory
                             </p>
                             <p className="text-base font-bold text-slate-800">
@@ -431,7 +442,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                             </p>
                           </div>
                           <div className="bg-white rounded-xl p-4 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                            <p className="text-xs font-semibold text-emerald-700/70 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                               <Hash className="w-4 h-4" />
                               Number of Parameters
                             </p>
@@ -443,7 +454,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
 
                         <div className="grid grid-cols-2 gap-4">
                           <div className="bg-white rounded-xl p-4 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                            <p className="text-xs font-semibold text-emerald-700/70 uppercase tracking-wider mb-1.5">
                               TAT Date
                             </p>
                             <p className="text-base font-bold text-slate-800">
@@ -451,7 +462,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                             </p>
                           </div>
                           <div className="bg-white rounded-xl p-4 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                            <p className="text-xs font-semibold text-emerald-700/70 uppercase tracking-wider mb-1.5">
                               Analysis Start Date
                             </p>
                             <p className="text-base font-bold text-slate-800">
@@ -468,12 +479,12 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                         type="button"
                         onClick={handleClear}
                         disabled={isCreating}
-                        className="px-6 py-3 bg-white border border-slate-300 rounded-xl
-                                 text-slate-700 font-semibold text-base
-                                 hover:bg-slate-50 hover:border-slate-400
+                        className="px-6 py-3 bg-white border border-emerald-200 rounded-xl
+                                 text-emerald-700 font-semibold text-base
+                                 hover:bg-emerald-50 hover:border-emerald-300
                                  transition-all duration-200
                                  disabled:opacity-50 disabled:cursor-not-allowed
-                                 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                                 focus:outline-none focus:ring-2 focus:ring-emerald-200"
                       >
                         <span className="flex items-center gap-2">
                           <Search size={18} />
@@ -485,13 +496,13 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                         type="button"
                         onClick={handleCreateWorksheet}
                         disabled={isCreating}
-                        className="group relative flex-1 px-8 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500
+                        className="group relative flex-1 px-8 py-3 bg-gradient-to-r from-emerald-700 to-slate-800
                                  rounded-xl text-white font-semibold text-base
-                                 hover:from-emerald-700 hover:to-emerald-600
+                                 hover:from-emerald-800 hover:to-slate-900
                                  shadow-lg hover:shadow-xl
                                  transition-all duration-200
                                  disabled:opacity-50 disabled:cursor-not-allowed
-                                 focus:outline-none focus:ring-2 focus:ring-emerald-400
+                                 focus:outline-none focus:ring-2 focus:ring-emerald-500
                                  overflow-hidden"
                       >
                         <div className="absolute inset-0 animate-shimmer"></div>
@@ -539,8 +550,8 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="px-8 py-4 bg-slate-50 border-t border-slate-200">
-              <div className="flex items-center justify-between text-xs text-slate-600">
+            <div className="px-8 py-4 bg-gradient-to-r from-emerald-50 to-white border-t border-emerald-100">
+              <div className="flex items-center justify-between text-xs text-slate-500">
                 <span className="flex items-center gap-2">
                   <span className="inline-block w-2 h-2 bg-emerald-500 rounded-full"></span>
                   <span className="font-medium">System Active</span>

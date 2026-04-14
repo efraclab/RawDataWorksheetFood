@@ -74,16 +74,6 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "RawDataWorkSheet.Controllers.RawDataController",
-    "Method": "GetColumns",
-    "RelativePath": "api/columns",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
     "ContainingType": "RawDataWorkSheet.Controllers.InstrumentController",
     "Method": "GetAll",
     "RelativePath": "api/instruments",
@@ -139,6 +129,16 @@
         "IsRequired": true
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RawDataWorkSheet.Controllers.MediaController",
+    "Method": "GetAll",
+    "RelativePath": "api/media",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {

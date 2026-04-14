@@ -308,7 +308,8 @@ const WorksheetSidebar: React.FC<WorksheetSidebarProps> = ({
                       className="flex flex-col gap-2.5"
                     >
                       {/* ── Audit Trail checkbox ────────────────────────── */}
-                      <button
+                      
+                      {/* <button
                         type="button"
                         onClick={actions.onToggleAuditTrail}
                         className={`group relative w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all duration-200 text-left ${
@@ -317,7 +318,6 @@ const WorksheetSidebar: React.FC<WorksheetSidebarProps> = ({
                             : "bg-white border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/40"
                         }`}
                       >
-                        {/* Custom checkbox */}
                         <div className={`flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-all duration-200 ${
                           includeAuditTrail
                             ? "bg-emerald-600 border-emerald-600"
@@ -341,11 +341,10 @@ const WorksheetSidebar: React.FC<WorksheetSidebarProps> = ({
                             {includeAuditTrail ? "Will print on new page" : "Omit from printed report"}
                           </p>
                         </div>
-                        {/* Indicator dot */}
                         <span className={`ml-auto flex-shrink-0 w-1.5 h-1.5 rounded-full transition-all duration-200 ${
                           includeAuditTrail ? "bg-emerald-500 shadow-sm shadow-emerald-400/50" : "bg-slate-300"
                         }`} />
-                      </button>
+                      </button> */}
 
                       {/* ── Print button ────────────────────────────────── */}
                       <ActionBtn

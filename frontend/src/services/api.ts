@@ -1,8 +1,7 @@
 import axios from 'axios';
 import type { Chemical } from '../preparation_models/Chemical';
-import type { Column } from '../preparation_models/Column';
 import type { Instrument } from '../preparation_models/Instrument';
-import type { SampleData } from '../preparation_models/SampleData';
+import type { SampleData } from '../models/SampleData';
 import type { Standard } from '../preparation_models/Standard';
 import type { WorksheetDetail } from '../models/WorksheetDetail';
 import type { WorksheetSummary } from '../models/WorksheetSummary';
@@ -14,11 +13,11 @@ import type { FetchWorksheetRequest } from '../models/FetchWorksheetRequest';
 import type { ParameterDetail } from '../models/ParameterDetail';
 import type { WorksheetDbPayload } from '../helpers/WorksheetDbPayload';
 import type { SmapleDetailsRequest } from '../models/SmapleDetailsRequest';
-import type { WorksheetLog } from '../models/WorksheetLog';
 import type { WorksheetLogRequest } from '../models/WorksheetLogRequest';
+import type { Media } from '../preparation_models/Media';
 
 
-const API_BASE_URL = 'http://localhost:5162/api';
+const API_BASE_URL = 'http://localhost:5076/api';
 
 export async function login(
   payload: LoginRequest
@@ -68,18 +67,18 @@ export const fetchSample = async (request: SmapleDetailsRequest): Promise<Sample
   }
 };
 
-export const fetchColumns = async (): Promise<Column[]> => {
-  try {
-    const response = await axios.get<Column[]>(`${API_BASE_URL}/columns`);
-    return response.data;
-  } catch (error: any) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.error || `Failed to fetch columns: ${error.message}`);
-    } else {
-      throw new Error(`An unexpected error occurred: ${error.message}`);
-    }
-  }
-};
+// export const fetchColumns = async (): Promise<Column[]> => {
+//   try {
+//     const response = await axios.get<Column[]>(`${API_BASE_URL}/columns`);
+//     return response.data;
+//   } catch (error: any) {
+//     if (axios.isAxiosError(error)) {
+//       throw new Error(error.response?.data?.error || `Failed to fetch columns: ${error.message}`);
+//     } else {
+//       throw new Error(`An unexpected error occurred: ${error.message}`);
+//     }
+//   }
+// };
 
 
 export const createWorksheet = async (
@@ -167,6 +166,9 @@ export const updateParameter = async (
   }
 
   try {
+
+    console.log("parameterData", parameterData);
+
     const response = await axios.put<{ parameterId: number }>(
       `${API_BASE_URL}/worksheets/parameters/${parameterId}`,
       parameterData,
@@ -531,6 +533,19 @@ export const getStandards = async (): Promise<Standard[]> => {
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.error || `Failed to fetch standards: ${error.message}`);
+    } else {
+      throw new Error(`An unexpected error occurred: ${error.message}`);
+    }
+  }
+};
+
+export const getMedia = async (): Promise<Media[]> => {
+  try {
+    const response = await axios.get<Media[]>(`${API_BASE_URL}/media`);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || `Failed to fetch media: ${error.message}`);
     } else {
       throw new Error(`An unexpected error occurred: ${error.message}`);
     }

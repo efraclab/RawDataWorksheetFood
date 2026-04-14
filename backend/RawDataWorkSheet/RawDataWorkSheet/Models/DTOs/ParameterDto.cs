@@ -8,7 +8,7 @@
         public string? MethodCode { get; set; }
         public string? MethodName { get; set; }
         public string? ColumnId { get; set; }
-        public string? OtherInfo { get; set; }
+        public string? AdditionalInfo { get; set; }
 
         public string? AnalyzedBy { get; set; }
         public string? AnalyzedByName { get; set; }
@@ -22,6 +22,7 @@
         public List<string>? InstrumentIds { get; set; }
         public List<string>? ChemicalIds { get; set; }
         public List<string>? StandardIds { get; set; }
+        public List<string>? MediaIds { get; set; }
 
         public List<PreparationDto>? Preparations { get; set; }
         public List<CalculationDto>? Calculations { get; set; }

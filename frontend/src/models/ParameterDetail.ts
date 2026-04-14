@@ -23,17 +23,18 @@ export interface ParameterDetail {
     approvedAtQA: string | null;
     remarksByReviewer: string | null;
     remarksByQA: string | null;
+    submittedQaByName: string | null;
+    submittedQaBy: string | null;
     status: string | null;
+    additional_info: string | null;
 
-    instrumentIds: string[];
-    chemicalIds: string[];
-    standardIds: string[];
+    instrumentIds?: string[];
+    chemicalIds?: string[];
+    standardIds?: string[];
+    mediaIds?: string[];
 
-    // standardPreparations: StandardPreparationData[];
-    // samplePreparations: SamplePreparationData[];
-
-    preparations: PreparationData[];
-    calculations: CalculationData[];
+    preparations?: PreparationData[];
+    calculations?: CalculationData[];
     files?: WorksheetFileData[];
 }
 

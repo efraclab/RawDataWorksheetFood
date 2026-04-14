@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchSample, createWorksheet, insertWorksheetLog } from "../services/api";
-import type { SampleData } from "../preparation_models/SampleData";
+import type { SampleData } from "../models/SampleData";
 import type { WorksheetRequest } from "../models/WorksheetRequest";
 import type { SmapleDetailsRequest } from "../models/SmapleDetailsRequest";
 
@@ -58,6 +58,9 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
       };
       const data = await fetchSample(request);
 
+    console.log('sampledata', data)
+
+
       if (data && Array.isArray(data) && data.length > 0) {
         setSampleData(data);
       } else {
@@ -84,6 +87,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
     setIsCreating(true);
     setCreationError(null);
 
+
     try {
       const firstSample = sampleData[0];
       const worksheetId = generateWorksheetId();
@@ -94,8 +98,10 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
         registrationInfo: {
           registrationNo: firstSample.registrationNo,
           sampleName: firstSample.sampleName,
+          sampleCode: firstSample.sampleCode,
           numberOfParameters: 0,
           dueDate: firstSample.tatDate,
+          lab: firstSample.lab,
         },
         documentInfo: {
           preparedBy: employeeId,

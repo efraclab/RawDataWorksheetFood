@@ -7,6 +7,7 @@
         public string SampleName { get; set; }
         public int NumberOfParameters { get; set; }
         public string Status { get; set; }
+        public string Lab { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

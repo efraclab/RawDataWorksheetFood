@@ -11,7 +11,7 @@
         public string MethodName { get; set; }
         public string ColumnId { get; set; }
         public string DiluentPreparation { get; set; }
-        public string OtherInfo { get; set; }
+        public string AdditionalInfo { get; set; }
         public DateTime? AnalysisStartDate { get; set; }
         public DateTime? AnalysisCompletionDate { get; set; }
         public string AnalyzedBy { get; set; }

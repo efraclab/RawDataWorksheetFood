@@ -1,0 +1,113 @@
+import React from "react";
+import { motion } from "framer-motion";
+import { Target } from "lucide-react";
+import type { MobilePhasePreparation } from "../../../preparation_models/drugs/MobilePhasePreparation";
+
+interface MobilePhasePreparationDetailProps {
+  mobilePhasePreparation: MobilePhasePreparation;
+  onEdit: (id: string) => void;
+  onRemove: (id: string) => void;
+}
+
+const MobilePhasePreparationDetail: React.FC<
+  MobilePhasePreparationDetailProps
+> = ({ mobilePhasePreparation, onEdit, onRemove }) => {
+  if (!mobilePhasePreparation) return null;
+
+  const getPlainTextLength = (html: string) =>
+    html.replace(/<[^>]*>/g, "").length;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="mb-4 bg-white/80 backdrop-blur-sm border-2 border-emerald-300/50 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden"
+    >
+      {/* Header */}
+      <div className="bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 px-4 py-3 border-b border-slate-700/40 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30 flex items-center justify-center shadow-sm">
+            <Target className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-white">
+              {mobilePhasePreparation.label}
+            </h4>
+            <p className="text-xs text-emerald-100">
+              {getPlainTextLength(mobilePhasePreparation.content || "")}{" "}
+              characters
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onEdit(mobilePhasePreparation.id)}
+            className="px-3 py-1.5 text-xs font-medium text-white bg-white/20 border border-white/30 rounded-lg hover:scale-103 transition-colors flex items-center gap-1.5"
+            title="Edit document"
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+            Edit
+          </button>
+          <button
+            onClick={() => onRemove(mobilePhasePreparation.id)}
+            className="px-3 py-1.5 text-xs font-medium text-white bg-white/20 border border-white/30 rounded-lg hover:scale-103 transition-colors flex items-center gap-1.5"
+            title="Delete document"
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            Delete
+          </button>
+        </div>
+      </div>
+
+      {/* Content Preview */}
+      <div className="px-4 py-4">
+        {mobilePhasePreparation.content ? (
+          <>
+            <style>{`.mobile-phase-content * { font-family: inherit !important; }`}</style>
+            <div
+              className="prose prose-sm max-w-none prose-emerald mobile-phase-content"
+              dangerouslySetInnerHTML={{ __html: mobilePhasePreparation.content }}
+              style={{
+                lineHeight: "1.6",
+                fontSize: "14px",
+                fontFamily: "inherit",
+              }}
+            />
+          </>
+        ) : (
+          <div className="text-center py-8 text-gray-400">
+            <p className="text-sm">No content available</p>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+export default MobilePhasePreparationDetail;

@@ -6,8 +6,12 @@ export interface WorksheetRequest {
   registrationInfo?: {
     registrationNo: string;
     sampleName?: string;
+    sampleCode?: string;
+    sampleQuantity?: number;
+    natureOfSample?: string;
     numberOfParameters: number;
     dueDate?: string;
+    lab: string;
   };
   documentInfo?: {
     preparedBy?: string;

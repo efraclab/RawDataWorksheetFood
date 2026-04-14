@@ -5,6 +5,7 @@ import {
   Route,
   useNavigate,
   useParams,
+  useLocation,
   Navigate,
 } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,8 +15,10 @@ import "./index.css";
 import Login from "./components/Login";
 import WorksheetDashboard from "./components/WorksheetDashboard";
 import CreateWorksheet from "./components/CreateWorksheet";
-import Worksheet from "./components/Worksheet";
-import PrintReport from "./components/PrintReport";
+import DrugWorksheet from "./components/DrugWorksheet";
+import MicroWorksheet from "./components/MicroWorksheet";
+import DrugPrintReport from "./components/DrugPrintReport";
+import MicroPrintReport from "./components/MicroPrintReport";
 import WorksheetSidebar from "./components/shared/WorksheetSidebar";
 import ReferenceDataManagement from "./components/ReferenceDataManagement";
 
@@ -23,17 +26,18 @@ import type { WorksheetSidebarState, WorksheetSidebarActions } from "./component
 import type { Instrument } from "./preparation_models/Instrument";
 import type { Chemical } from "./preparation_models/Chemical";
 import type { Standard } from "./preparation_models/Standard";
-import type { Column } from "./preparation_models/Column";
 import type { WorksheetDetail } from "./models/WorksheetDetail";
 
 import {
   getInstruments,
   getChemicals,
   getStandards,
-  fetchColumns,
+  getMedia,
+  // fetchColumns,
 } from "./services/api";
 import type { Analyst } from "./models/Analyst";
-import type { SampleData } from "./preparation_models/SampleData";
+import type { SampleData } from "./models/SampleData";
+import type { Media } from "./preparation_models/Media";
 
 const isTokenExpired = (token: string) => {
   try {
@@ -80,10 +84,11 @@ function DashboardPage({
   const handleNavigation = (
     screen: "create" | "worksheet" | "reference-data",
     worksheetId?: string,
+    lab?: string,
   ) => {
     if (screen === "create") navigate("/worksheets/new");
     else if (screen === "reference-data") navigate("/reference-data");
-    else if (worksheetId) navigate(`/worksheets/${worksheetId}`);
+    else if (worksheetId) navigate(`/worksheets/${worksheetId}`, { state: { lab } });
   };
   return (
     <motion.div variants={pageVariants} initial="initial" animate="animate">
@@ -142,7 +147,8 @@ function WorksheetPage(props: {
   instruments: Instrument[];
   chemicals: Chemical[];
   standards: Standard[];
-  columns: Column[];
+  media: Media[]
+  // columns: Column[];
   isReferenceDataLoading: boolean;
   referenceDataError: string | null;
   employeeId: string;
@@ -150,6 +156,12 @@ function WorksheetPage(props: {
   department: string;
 }) {
   const { worksheetId } = useParams<{ worksheetId: string }>();
+  const location = useLocation();
+
+  // lab comes from navigation state (set when clicking a worksheet card).
+  // Fall back to the user's department if not provided (e.g. direct URL access).
+  const lab: string = (location.state as any)?.lab ?? props.department ?? "";
+  const isMicro = lab.toLowerCase().includes("micro");
 
   // ── Sidebar state (bubbled up from Worksheet) ──────────────────────────
   const [sidebarState, setSidebarState] = useState<WorksheetSidebarState>({
@@ -262,16 +274,27 @@ function WorksheetPage(props: {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="bg-white"
             >
-              <PrintReport
-                worksheetInfo={printData.worksheetInfo}
-                analysts={printData.analysts}
-                sampleData={printData.sampleData}
-                instruments={props.instruments}
-                chemicals={props.chemicals}
-                standards={props.standards}
-                onClose={handleClosePrint}
-                includeAuditTrail={includeAuditTrail}
-              />
+              {isMicro ? (
+                <MicroPrintReport
+                  worksheetInfo={printData.worksheetInfo}
+                  analysts={printData.analysts}
+                  sampleData={printData.sampleData}
+                  instruments={props.instruments}
+                  chemicals={props.chemicals}
+                  media={props.media}
+                  onClose={handleClosePrint}
+                />
+              ) : (
+                <DrugPrintReport
+                  worksheetInfo={printData.worksheetInfo}
+                  analysts={printData.analysts}
+                  sampleData={printData.sampleData}
+                  instruments={props.instruments}
+                  chemicals={props.chemicals}
+                  standards={props.standards}
+                  onClose={handleClosePrint}
+                />
+              )}
             </motion.div>
           ) : (
             /* Worksheet view */
@@ -283,21 +306,39 @@ function WorksheetPage(props: {
               transition={{ duration: 0.2 }}
               className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30"
             >
-              <Worksheet
-                worksheetId={worksheetId}
-                instruments={props.instruments}
-                chemicals={props.chemicals}
-                standards={props.standards}
-                columns={props.columns}
-                isReferenceDataLoading={props.isReferenceDataLoading}
-                referenceDataError={props.referenceDataError}
-                employeeId={props.employeeId}
-                role={props.role}
-                department={props.department}
-                onPrint={handlePrintRequest}
-                onSidebarStateChange={handleSidebarStateChange}
-                onSidebarActionsReady={handleSidebarActionsReady}
-              />
+              {isMicro ? (
+                <MicroWorksheet
+                  worksheetId={worksheetId}
+                  instruments={props.instruments}
+                  chemicals={props.chemicals}
+                  media={props.media}
+                  // columns={props.columns}
+                  isReferenceDataLoading={props.isReferenceDataLoading}
+                  referenceDataError={props.referenceDataError}
+                  employeeId={props.employeeId}
+                  role={props.role}
+                  department={props.department}
+                  onPrint={handlePrintRequest}
+                  onSidebarStateChange={handleSidebarStateChange}
+                  onSidebarActionsReady={handleSidebarActionsReady}
+                />
+              ) : (
+                <DrugWorksheet
+                  worksheetId={worksheetId}
+                  instruments={props.instruments}
+                  chemicals={props.chemicals}
+                  standards={props.standards}
+                  // columns={props.columns}
+                  isReferenceDataLoading={props.isReferenceDataLoading}
+                  referenceDataError={props.referenceDataError}
+                  employeeId={props.employeeId}
+                  role={props.role}
+                  department={props.department}
+                  onPrint={handlePrintRequest}
+                  onSidebarStateChange={handleSidebarStateChange}
+                  onSidebarActionsReady={handleSidebarActionsReady}
+                />
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -314,23 +355,26 @@ function AuthenticatedApp({
   const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [chemicals, setChemicals] = useState<Chemical[]>([]);
   const [standards, setStandards] = useState<Standard[]>([]);
-  const [columns, setColumns] = useState<Column[]>([]);
+  const [media, setMedia] = useState<Media[]>([]);
+  // const [columns, setColumns] = useState<Column[]>([]);
   const [isReferenceDataLoading, setIsReferenceDataLoading] = useState(true);
   const [referenceDataError, setReferenceDataError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadReferenceData = async () => {
       try {
-        const [inst, chem, std, col] = await Promise.all([
+        const [inst, chem, std, med] = await Promise.all([
           getInstruments(),
           getChemicals(),
           getStandards(),
-          fetchColumns(),
+          getMedia(),
+          // fetchColumns(),
         ]);
         setInstruments(inst);
         setChemicals(chem);
         setStandards(std);
-        setColumns(col);
+        setMedia(med);
+        // setColumns(col);
       } catch (e: any) {
         setReferenceDataError(e.message || "Failed to load reference data");
       } finally {
@@ -360,7 +404,8 @@ function AuthenticatedApp({
               instruments={instruments}
               chemicals={chemicals}
               standards={standards}
-              columns={columns}
+              media={media}
+              // columns={columns}
               isReferenceDataLoading={isReferenceDataLoading}
               referenceDataError={referenceDataError}
               employeeId={employeeId}

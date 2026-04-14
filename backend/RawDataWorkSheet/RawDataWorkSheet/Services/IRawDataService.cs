@@ -9,6 +9,6 @@ namespace RawDataWorkSheet.Services
         //Task<IEnumerable<Instruments>> GetInstrumentsAsync();
         Task<IEnumerable<SampleDetails>> GetSampleDetailsByIdAsync(SampleDetailsRequest request);
         //Task<IEnumerable<Standard>> GetStandardsAsync();
-        Task<IEnumerable<Columns>> GetCloumnsAsync();
+        //Task<IEnumerable<Columns>> GetCloumnsAsync();
     }
 }

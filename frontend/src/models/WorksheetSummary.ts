@@ -4,8 +4,12 @@ export interface WorksheetSummary {
     worksheetId: string;
     registrationNo: string;
     sampleName: string;
+    sampleCode: string;
+    sampleQuantity: number | null;
+    natureOfSample: string | null;
     numberOfParameters: number;
     dueDate: string;
+    lab: string;
     preparedBy: string;
     preparedByName: string;
     revisionDate: string;

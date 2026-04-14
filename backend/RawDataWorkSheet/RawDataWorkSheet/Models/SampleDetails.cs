@@ -4,6 +4,7 @@
     {
         public string RegistrationNo { get; set; }
         public string SampleName { get; set; }
+        public string SampleCode { get; set; }
         public string Lab { get; set; }
         public string Parameter { get; set; }
         public string ParaCode { get; set; }

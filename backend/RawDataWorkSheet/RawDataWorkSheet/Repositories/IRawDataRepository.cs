@@ -6,6 +6,6 @@ namespace RawDataWorkSheet.Repositories
     public interface IRawDataRepository
     {
         Task<IEnumerable<SampleDetails>> GetSampleDetailsByIdAsync(SampleDetailsRequest request);
-        Task<IEnumerable<Columns>> GetColumnsAsync();
+        //Task<IEnumerable<Columns>> GetColumnsAsync();
     }
 }

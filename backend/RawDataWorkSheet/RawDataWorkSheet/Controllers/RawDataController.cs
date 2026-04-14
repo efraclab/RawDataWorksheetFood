@@ -71,18 +71,18 @@ namespace RawDataWorkSheet.Controllers
         //    }
         //}
 
-        [HttpGet("columns")]
-        public async Task<IActionResult> GetColumns()
-        {
-            try
-            {
-                var response = await _rawDataService.GetCloumnsAsync();
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
+        //[HttpGet("columns")]
+        //public async Task<IActionResult> GetColumns()
+        //{
+        //    try
+        //    {
+        //        var response = await _rawDataService.GetCloumnsAsync();
+        //        return Ok(response);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, ex.Message);
+        //    }
+        //}
     }
 }

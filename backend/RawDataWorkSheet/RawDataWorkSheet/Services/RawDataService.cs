@@ -40,9 +40,9 @@ namespace RawDataWorkSheet.Services
         //    return await _rawDataRepository.GetStandardsAsync();
         //}
 
-        public async Task<IEnumerable<Columns>> GetCloumnsAsync()
-        {
-            return await _rawDataRepository.GetColumnsAsync();
-        }
+        //public async Task<IEnumerable<Columns>> GetCloumnsAsync()
+        //{
+        //    return await _rawDataRepository.GetColumnsAsync();
+        //}
     }
 }

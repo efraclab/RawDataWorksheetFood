@@ -22,6 +22,7 @@ import {
   ArrowRight,
   BarChart3,
   Trash2,
+  Microscope,
 } from "lucide-react";
 import { fetchAllWorksheets, deleteWorksheet } from "../services/api";
 import type { FetchWorksheetRequest } from "../models/FetchWorksheetRequest";
@@ -37,12 +38,14 @@ interface WorksheetItem {
   numberOfParameters: number;
   status: string;
   createdAt: string;
+  lab?: string
 }
 
 interface WorksheetDashboardProps {
   onNavigate: (
     screen: "worksheet" | "create" | "reference-data",
-    worksheetId?: string
+    worksheetId?: string,
+    lab?: string
   ) => void;
   employeeId: string;
   username: string;
@@ -104,6 +107,7 @@ export default function WorksheetDashboard({
           sampleName: r.sampleName || "",
           dateOfReceipt: (r as any).dateOfReceipt || "",
           numberOfParameters: r.numberOfParameters || 0,
+          lab: r.lab,
           status: r.status || "Draft",
           createdAt: r.createdAt || new Date().toISOString(),
         }));
@@ -139,7 +143,13 @@ export default function WorksheetDashboard({
     }
 
     if (statusFilter !== "all") {
-      filtered = filtered.filter((ws) => ws.status === statusFilter);
+      if (statusFilter === "Pending For QA Review" || statusFilter === "Submitted For QA Review") {
+        filtered = filtered.filter(
+          (ws) => ws.status === "Submitted For QA Review" || ws.status === "Pending For QA Review"
+        );
+      } else {
+        filtered = filtered.filter((ws) => ws.status === statusFilter);
+      }
     }
 
     setFilteredWorksheets(filtered);
@@ -148,7 +158,7 @@ export default function WorksheetDashboard({
   const handleWorksheetClick = (worksheet: WorksheetItem) => {
     setOpenMenuId(null);
     const idToPass = worksheet.worksheetId;
-    onNavigate("worksheet", idToPass);
+    onNavigate("worksheet", idToPass, worksheet.lab);
   };
 
   // ── Delete handlers ──────────────────────────────────────────────────────
@@ -222,6 +232,20 @@ export default function WorksheetDashboard({
         icon: CheckCircle2,
         dot: "bg-emerald-500",
       },
+      "Pending For QA Review": {
+        bg: "bg-gradient-to-br from-purple-50 to-violet-50",
+        border: "border-purple-200",
+        text: "text-purple-700",
+        icon: ClipboardCheck,
+        dot: "bg-purple-500",
+      },
+      "Submitted For QA Review": {
+        bg: "bg-gradient-to-br from-purple-50 to-violet-50",
+        border: "border-purple-200",
+        text: "text-purple-700",
+        icon: ClipboardCheck,
+        dot: "bg-purple-500",
+      },
     };
     return configs[status as keyof typeof configs] || configs.Draft;
   };
@@ -233,26 +257,34 @@ export default function WorksheetDashboard({
       .length,
     pendingReview: worksheets.filter((f) => f.status === "Pending For Review")
       .length,
+    pendingQA: worksheets.filter((f) => f.status === "Submitted For QA Review" || f.status === "Pending For QA Review").length,
     approved: worksheets.filter((f) => f.status === "Approved").length,
   };
 
-  const statusFilters = [
-    { label: "All", value: "all", count: stats.total },
-    ...(role.includes("Reviewer")
-      ? [{ label: "Draft", value: "Draft", count: stats.draft }]
-      : []),
-    {
-      label: "In Analysis",
-      value: "Submitted For Analysis",
-      count: stats.inAnalysis,
-    },
-    {
-      label: "Pending Review",
-      value: "Pending For Review",
-      count: stats.pendingReview,
-    },
-    { label: "Approved", value: "Approved", count: stats.approved },
-  ];
+  const statusFilters = role.includes("QA") && !role.includes("Reviewer")
+    ? [
+        { label: "All", value: "all", count: stats.total },
+        { label: "Pending For QA Review", value: "Pending For QA Review", count: stats.pendingQA },
+        { label: "Approved", value: "Approved", count: stats.approved },
+      ]
+    : [
+        { label: "All", value: "all", count: stats.total },
+        ...(role.includes("Reviewer")
+          ? [{ label: "Draft", value: "Draft", count: stats.draft }]
+          : []),
+        {
+          label: "In Analysis",
+          value: "Submitted For Analysis",
+          count: stats.inAnalysis,
+        },
+        {
+          label: "Pending Review",
+          value: "Pending For Review",
+          count: stats.pendingReview,
+        },
+        { label: "Submitted For QA Review", value: "Submitted For QA Review", count: stats.pendingQA },
+        { label: "Approved", value: "Approved", count: stats.approved },
+      ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-slate-50">
@@ -795,7 +827,7 @@ export default function WorksheetDashboard({
                       <div className="shimmer-effect absolute inset-0 pointer-events-none"></div>
 
                       {/* Card Header */}
-                      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-700 via-emerald-800 to-emerald-900 px-4 py-3 border-b border-emerald-900/20">
+                      <div className="relative bg-gradient-to-r from-emerald-700 via-emerald-800 to-emerald-900 px-4 py-3 border-b border-emerald-900/20">
                         <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "radial-gradient(rgba(255,255,255,.8) 1px,transparent 1px)", backgroundSize: "14px 14px" }} />
                         <div className="relative flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
@@ -878,6 +910,15 @@ export default function WorksheetDashboard({
                             </span>
                             <span className="font-medium text-slate-600">
                               {formatDate(worksheet.createdAt)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-slate-500 flex items-center gap-1.5">
+                              <Microscope className="w-3.5 h-3.5" />
+                              Lab
+                            </span>
+                            <span className="font-medium text-slate-600">
+                              {worksheet.lab!}
                             </span>
                           </div>
                         </div>

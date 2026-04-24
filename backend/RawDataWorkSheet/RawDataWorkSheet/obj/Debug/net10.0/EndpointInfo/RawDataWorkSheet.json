@@ -281,10 +281,159 @@
         }
       }
     },
+    "/api/logs": {
+      "post": {
+        "tags": [
+          "Log"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorksheetLogRequest"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorksheetLogRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorksheetLogRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorksheetLogRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/logs/worksheet/{worksheetId}": {
+      "get": {
+        "tags": [
+          "Log"
+        ],
+        "parameters": [
+          {
+            "name": "worksheetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/media": {
       "get": {
         "tags": [
           "Media"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Media"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaMaster"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaMaster"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaMaster"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaMaster"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Media"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaMaster"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaMaster"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaMaster"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaMaster"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/media/{id}": {
+      "delete": {
+        "tags": [
+          "Media"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -740,42 +889,6 @@
           }
         }
       }
-    },
-    "/api/worksheets/logs": {
-      "post": {
-        "tags": [
-          "Worksheet"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json-patch+json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorksheetLogRequest"
-              }
-            },
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorksheetLogRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorksheetLogRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorksheetLogRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
     }
   },
   "components": {
@@ -977,6 +1090,38 @@
           "password": {
             "minLength": 1,
             "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MediaMaster": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "expDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "quantityValue": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "quantityUnit": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1908,6 +2053,14 @@
             "nullable": true
           },
           "role": {
+            "type": "string",
+            "nullable": true
+          },
+          "referenceType": {
+            "type": "string",
+            "nullable": true
+          },
+          "referenceId": {
             "type": "string",
             "nullable": true
           }

@@ -1,6 +1,6 @@
 
 export interface WorksheetLogRequest {
-    worksheetId?: string;
+    worksheetId?: string | null;
     parameterId?: number | null;
     remarks?: string | null;
     action: string;

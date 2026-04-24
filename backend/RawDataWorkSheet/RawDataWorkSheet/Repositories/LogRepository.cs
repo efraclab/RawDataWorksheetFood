@@ -12,7 +12,7 @@ namespace RawDataWorkSheet.Repositories
 
         public LogRepository(IConfiguration configuration)
         {
-            _connectionString = configuration["Connnectionstrings:Connection1"]!;
+            _connectionString = configuration["Connnectionstrings:Connection2"]!;
         }
 
         private IDbConnection CreateConnection() => new SqlConnection(_connectionString);

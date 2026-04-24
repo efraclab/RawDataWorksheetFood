@@ -83,7 +83,6 @@ export default function ReferenceDataManagement({
 
   const fireRefLog = (action: string, remarks: string, refId: string) => {
     insertWorksheetLog({
-      worksheetId: "",
       action,
       remarks,
       employeeId,

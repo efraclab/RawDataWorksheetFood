@@ -127,7 +127,6 @@ const SamplePreparationTitrationDetail: React.FC<
                   const isEPD = step.name === "End Point Determination";
                   const isDisso = type === "disso";
 
-                  console.log("is Disso ?", isDisso, type);
 
                   if (isWeighing && isDisso) return null;
                   if (isTablet && !isDisso) return null;

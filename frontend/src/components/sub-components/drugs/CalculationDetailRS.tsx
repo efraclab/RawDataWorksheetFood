@@ -460,13 +460,6 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
     const SW2_Sample = convertMassToMg(sampleWeight.value, sampleWeight.unit);
     const Purity = parseFloat(calculation.purity as string) || 1;
 
-    console.log("1. Raw Inputs:", {
-      AreaSample: AreaOfSample,
-      AreaStandard: AreaOfStandard,
-      SW1: SW1_Standard,
-      SW2: SW2_Sample,
-      Purity: Purity,
-    });
 
     const V1 = standardDilutions[0]
       ? convertVolumeToMl(standardDilutions[0].vol1, standardDilutions[0].unit1)
@@ -487,12 +480,10 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
       ? convertVolumeToMl(sampleDilutions[0].vol1, sampleDilutions[0].unit1)
       : 1;
 
-    console.log("2. Volumes (converted to mL):", { V1, V2, V3, V4, V5, V6 });
 
     const AreaRatio = AreaOfStandard !== 0 ? AreaOfSample / AreaOfStandard : 0;
     const PurityFactor = Purity / 100;
 
-    console.log("3. Ratios:", { AreaRatio, PurityFactor });
 
     let FinalResult = 0;
     const numerator = AreaOfSample * SW1_Standard * V2 * V4 * V6 * Purity;
@@ -504,8 +495,6 @@ const CalculationDetailRS: React.FC<CalculationDetailRSProps> = ({
 
     const formulaDebugString = `(${AreaOfSample} × ${SW1_Standard} × ${V2} × ${V4} × ${V6} × ${Purity}) / (${AreaOfStandard} × ${V1} × ${V3} × ${V5} × ${SW2_Sample} × 100)`;
 
-    console.log("4. Formula:", formulaDebugString);
-    console.log(`5. Result: ${FinalResult}`, "color: green; font-weight: bold");
     console.groupEnd();
 
     if (isNaN(FinalResult) || !isFinite(FinalResult)) {

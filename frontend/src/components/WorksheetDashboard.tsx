@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Search,
   FileSpreadsheet,
@@ -63,9 +63,6 @@ export default function WorksheetDashboard({
   onLogout,
 }: WorksheetDashboardProps) {
   const [worksheets, setWorksheets] = useState<WorksheetItem[]>([]);
-  const [filteredWorksheets, setFilteredWorksheets] = useState<WorksheetItem[]>(
-    []
-  );
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -86,21 +83,14 @@ export default function WorksheetDashboard({
     fetchWorksheets();
   }, []);
 
-  useEffect(() => {
-    filterWorksheets();
-  }, [searchQuery, worksheets, statusFilter]);
-
   const fetchWorksheets = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const requestData: FetchWorksheetRequest = { employeeId, role };
-
-      const response: WorksheetSummary[] = await fetchAllWorksheets(
-        requestData
-      );
+      const response: WorksheetSummary[] = await fetchAllWorksheets(requestData);
       if (response && Array.isArray(response)) {
-        const mapped = response.map((r, idx) => ({
+        setWorksheets(response.map((r, idx) => ({
           id: idx,
           worksheetId: (r as any).worksheetId || undefined,
           registrationNo: r.registrationNo,
@@ -110,50 +100,35 @@ export default function WorksheetDashboard({
           lab: r.lab,
           status: r.status || "Draft",
           createdAt: r.createdAt || new Date().toISOString(),
-        }));
-
-        setWorksheets(mapped);
-        setFilteredWorksheets(mapped);
+        })));
       } else {
         setWorksheets([]);
-        setFilteredWorksheets([]);
       }
     } catch (error: any) {
       console.error("Error fetching worksheets:", error);
       setError(error.message || "Failed to load worksheets");
       setWorksheets([]);
-      setFilteredWorksheets([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const filterWorksheets = () => {
-    let filtered = worksheets;
+  const filteredWorksheets = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return worksheets.filter((ws) => {
+      const matchesSearch = !q ||
+        ws.worksheetId?.toLowerCase().includes(q) ||
+        ws.registrationNo?.toLowerCase().includes(q) ||
+        ws.sampleName.toLowerCase().includes(q);
 
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (ws) =>
-          ws.worksheetId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          ws.registrationNo
-            ?.toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          ws.sampleName.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
+      const matchesStatus = statusFilter === "all" ||
+        (statusFilter === "Pending For QA Review" || statusFilter === "Submitted For QA Review"
+          ? ws.status === "Submitted For QA Review" || ws.status === "Pending For QA Review"
+          : ws.status === statusFilter);
 
-    if (statusFilter !== "all") {
-      if (statusFilter === "Pending For QA Review" || statusFilter === "Submitted For QA Review") {
-        filtered = filtered.filter(
-          (ws) => ws.status === "Submitted For QA Review" || ws.status === "Pending For QA Review"
-        );
-      } else {
-        filtered = filtered.filter((ws) => ws.status === statusFilter);
-      }
-    }
-
-    setFilteredWorksheets(filtered);
-  };
+      return matchesSearch && matchesStatus;
+    });
+  }, [worksheets, searchQuery, statusFilter]);
 
   const handleWorksheetClick = (worksheet: WorksheetItem) => {
     setOpenMenuId(null);
@@ -261,30 +236,23 @@ export default function WorksheetDashboard({
     approved: worksheets.filter((f) => f.status === "Approved").length,
   };
 
-  const statusFilters = role.includes("QA") && !role.includes("Reviewer")
-    ? [
-        { label: "All", value: "all", count: stats.total },
-        { label: "Pending For QA Review", value: "Pending For QA Review", count: stats.pendingQA },
-        { label: "Approved", value: "Approved", count: stats.approved },
-      ]
-    : [
-        { label: "All", value: "all", count: stats.total },
-        ...(role.includes("Reviewer")
-          ? [{ label: "Draft", value: "Draft", count: stats.draft }]
-          : []),
-        {
-          label: "In Analysis",
-          value: "Submitted For Analysis",
-          count: stats.inAnalysis,
-        },
-        {
-          label: "Pending Review",
-          value: "Pending For Review",
-          count: stats.pendingReview,
-        },
-        { label: "Submitted For QA Review", value: "Submitted For QA Review", count: stats.pendingQA },
-        { label: "Approved", value: "Approved", count: stats.approved },
-      ];
+  const statusFilters: { label: string; value: string; count: number; dot: string; active: string; pill: string }[] =
+    role.includes("QA") && !role.includes("Reviewer")
+      ? [
+          { label: "All",                   value: "all",                        count: stats.total,        dot: "bg-slate-400",   active: "bg-slate-700 text-white border-slate-700",          pill: "bg-slate-100 text-slate-600" },
+          { label: "Pending QA Review",     value: "Pending For QA Review",      count: stats.pendingQA,    dot: "bg-purple-500",  active: "bg-purple-600 text-white border-purple-600",        pill: "bg-purple-50 text-purple-700" },
+          { label: "Approved",              value: "Approved",                   count: stats.approved,     dot: "bg-emerald-500", active: "bg-emerald-600 text-white border-emerald-600",      pill: "bg-emerald-50 text-emerald-700" },
+        ]
+      : [
+          { label: "All",                   value: "all",                        count: stats.total,        dot: "bg-slate-400",   active: "bg-slate-700 text-white border-slate-700",          pill: "bg-slate-100 text-slate-600" },
+          ...(role.includes("Reviewer")
+            ? [{ label: "Draft",            value: "Draft",                      count: stats.draft,        dot: "bg-amber-500",   active: "bg-amber-500 text-white border-amber-500",          pill: "bg-amber-50 text-amber-700" }]
+            : []),
+          { label: "In Analysis",           value: "Submitted For Analysis",     count: stats.inAnalysis,   dot: "bg-blue-500",    active: "bg-blue-600 text-white border-blue-600",            pill: "bg-blue-50 text-blue-700" },
+          { label: "Pending Review",        value: "Pending For Review",         count: stats.pendingReview,dot: "bg-orange-500",  active: "bg-orange-500 text-white border-orange-500",        pill: "bg-orange-50 text-orange-700" },
+          { label: "Submitted For QA",      value: "Submitted For QA Review",    count: stats.pendingQA,    dot: "bg-purple-500",  active: "bg-purple-600 text-white border-purple-600",        pill: "bg-purple-50 text-purple-700" },
+          { label: "Approved",              value: "Approved",                   count: stats.approved,     dot: "bg-emerald-500", active: "bg-emerald-600 text-white border-emerald-600",      pill: "bg-emerald-50 text-emerald-700" },
+        ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-slate-50">
@@ -323,15 +291,6 @@ export default function WorksheetDashboard({
             }
           }
 
-          @keyframes shimmer {
-            0% {
-              transform: translateX(-100%);
-            }
-            100% {
-              transform: translateX(100%);
-            }
-          }
-
           .animate-fadeIn {
             animation: fadeIn 0.5s ease-out forwards;
           }
@@ -351,45 +310,8 @@ export default function WorksheetDashboard({
           }
 
           .worksheet-card:hover {
-            transform: translateY(-4px);
+            transform: translateY(-3px);
             border-color: rgb(5 150 105);
-          }
-
-          .worksheet-card:hover .shimmer-effect {
-            animation: shimmer 1.5s ease-in-out;
-          }
-
-          .shimmer-effect {
-            background: linear-gradient(
-              90deg,
-              transparent,
-              rgba(255, 255, 255, 0.3),
-              transparent
-            );
-          }
-
-          @keyframes blob {
-            0%, 100% {
-              transform: translate(0, 0) scale(1);
-            }
-            33% {
-              transform: translate(30px, -50px) scale(1.1);
-            }
-            66% {
-              transform: translate(-20px, 20px) scale(0.9);
-            }
-          }
-
-          .animate-blob {
-            animation: blob 7s infinite;
-          }
-
-          .animation-delay-2000 {
-            animation-delay: 2s;
-          }
-
-          .animation-delay-4000 {
-            animation-delay: 4s;
           }
         `}
       </style>
@@ -705,51 +627,58 @@ export default function WorksheetDashboard({
         )}
 
         {/* Search and Filter Bar */}
-        <div className="mb-6 animate-fadeIn">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-            <div className="flex flex-col lg:flex-row gap-4">
-              {/* Search */}
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search by worksheet ID, registration number, or sample name..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-emerald-50/60 border border-emerald-200 rounded-lg text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                  />
-                </div>
-              </div>
+        <div className="mb-5 animate-fadeIn">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
 
-              {/* Status Filter */}
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                <div className="flex gap-2 flex-wrap">
-                  {statusFilters.map((status) => (
-                    <button
-                      key={status.value}
-                      onClick={() => setStatusFilter(status.value)}
-                      className={`px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200 border whitespace-nowrap ${
-                        statusFilter === status.value
-                          ? "bg-gradient-to-r from-emerald-600 to-emerald-700 text-white border-emerald-700 shadow-sm"
-                          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
-                      }`}
-                    >
-                      {status.label}
-                      <span
-                        className={`ml-1.5 px-1.5 py-0.5 text-[10px] font-semibold rounded ${
-                          statusFilter === status.value
-                            ? "bg-emerald-600 text-emerald-100"
-                            : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {status.count}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+            {/* Search row */}
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search by worksheet ID, registration no., or sample name…"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                />
               </div>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="text-xs text-slate-400 hover:text-slate-600 font-medium px-2 py-1 rounded hover:bg-slate-100 transition-colors whitespace-nowrap"
+                >
+                  Clear
+                </button>
+              )}
+              <div className="h-5 w-px bg-slate-200" />
+              <span className="text-xs text-slate-500 whitespace-nowrap">
+                <span className="font-bold text-slate-800">{filteredWorksheets.length}</span> of {worksheets.length}
+              </span>
+            </div>
+
+            {/* Status filter tabs */}
+            <div className="flex items-center gap-1 px-3 py-2.5 overflow-x-auto scrollbar-none">
+              <Filter className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mr-1" />
+              {statusFilters.map((s) => {
+                const isActive = statusFilter === s.value;
+                return (
+                  <button
+                    key={s.value}
+                    onClick={() => setStatusFilter(s.value)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150 whitespace-nowrap cursor-pointer ${
+                      isActive
+                        ? `${s.active} shadow-sm`
+                        : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? "bg-white/70" : s.dot}`} />
+                    {s.label}
+                    <span className={`ml-0.5 px-1.5 py-px rounded text-[10px] font-bold ${isActive ? "bg-white/20 text-white" : s.pill}`}>
+                      {s.count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -824,8 +753,6 @@ export default function WorksheetDashboard({
                       style={{ animationDelay: `${index * 30}ms` }}
                       className="flex flex-col h-full worksheet-card group bg-white border border-slate-200 rounded-xl cursor-pointer overflow-hidden shadow-sm hover:shadow-xl"
                     >
-                      <div className="shimmer-effect absolute inset-0 pointer-events-none"></div>
-
                       {/* Card Header */}
                       <div className="relative bg-gradient-to-r from-emerald-700 via-emerald-800 to-emerald-900 px-4 py-3 border-b border-emerald-900/20">
                         <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "radial-gradient(rgba(255,255,255,.8) 1px,transparent 1px)", backgroundSize: "14px 14px" }} />
@@ -933,7 +860,7 @@ export default function WorksheetDashboard({
                               className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot} status-dot`}
                             ></div>
                             <span
-                              className={`text-[10px] font-bold uppercase tracking-wider ${statusConfig.text}`}
+                              className={`text-xs font-bold uppercase tracking-wider ${statusConfig.text}`}
                             >
                               {worksheet.status}
                             </span>

@@ -861,7 +861,6 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
       );
       onFieldChange(calculation.id, "calculationResultUnit", "% of LC");
 
-      console.log("Summary Results:", summaryData);
     } else {
       setSummaryResults(null);
       onFieldChange(calculation.id, "calculationResult", null);

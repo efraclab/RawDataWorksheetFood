@@ -2,6 +2,8 @@
 export interface Media {
   id: string;
   name: string;
-  lotNo?: string | null;
-  expDate?: string | null;
+  code?: string | null;
+  expDate?: Date | null;
+  quantityValue?: number | null;
+  quantityUnit?: number | null;
 }

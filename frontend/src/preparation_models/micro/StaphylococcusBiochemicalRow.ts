@@ -6,6 +6,8 @@ export interface StaphylococcusBiochemicalRow {
     medium: string;
     incubationTemp: string;
     incubationTime: string;
+    incubationTempUnit: string;
+    incubationTimeUnit: string;
     observation: string;
     referenceObservation: string;
     blankObservation: string;

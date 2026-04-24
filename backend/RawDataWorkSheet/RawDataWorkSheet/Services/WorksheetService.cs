@@ -75,13 +75,5 @@ namespace RawDataWorkSheet.Services
 
 
 
-        public async Task InsertLogAsync(WorksheetLogRequest request)
-        {
-            if (!await _repo.ExistsWorksheetAsync(request.WorksheetId))
-                throw new KeyNotFoundException("Worksheet not found.");
-
-            await _repo.InsertLogAsync(request);
-        }
-
     }
 }

@@ -58,7 +58,6 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
       };
       const data = await fetchSample(request);
 
-    console.log('sampledata', data)
 
 
       if (data && Array.isArray(data) && data.length > 0) {
@@ -112,7 +111,6 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
       const response = await createWorksheet(worksheetData);
 
       if (response && response.worksheetId) {
-        console.log("Worksheet created with ID:", response.worksheetId);
 
         insertWorksheetLog({
           worksheetId: response.worksheetId,
@@ -148,18 +146,6 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-slate-50 py-10 px-6">
-      <style>{`
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        .animate-shimmer {
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-          background-size: 200% 100%;
-          animation: shimmer 2s infinite;
-        }
-      `}</style>
-
       <div className="max-w-4xl mx-auto">
         {/* Main Card */}
         <motion.div
@@ -316,11 +302,8 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                                  shadow-lg hover:shadow-xl
                                  transition-all duration-200
                                  disabled:opacity-50 disabled:cursor-not-allowed
-                                 focus:outline-none focus:ring-2 focus:ring-emerald-500
-                                 overflow-hidden"
+                                 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       >
-                        <div className="absolute inset-0 animate-shimmer"></div>
-
                         <span className="relative flex items-center justify-center gap-2">
                           {isSearching ? (
                             <>
@@ -508,11 +491,8 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
                                  shadow-lg hover:shadow-xl
                                  transition-all duration-200
                                  disabled:opacity-50 disabled:cursor-not-allowed
-                                 focus:outline-none focus:ring-2 focus:ring-emerald-500
-                                 overflow-hidden"
+                                 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       >
-                        <div className="absolute inset-0 animate-shimmer"></div>
-
                         <span className="relative flex items-center justify-center gap-2">
                           {isCreating ? (
                             <>

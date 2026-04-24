@@ -628,7 +628,6 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                 setWorksheetInfo(worksheetData);
                 setRegistrationNo(worksheetData.sample.registrationNo);
 
-                console.log("map", WorksheetDbMapper.mapAll(worksheetData));
 
                 const request: SmapleDetailsRequest = {
                     regNo: worksheetData.sample.registrationNo,
@@ -889,7 +888,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
 
                     if (media && media.length) {
                         const paramMedia = media.filter((m) =>
-                            validMediaIds.includes(String(m.id).trim()),
+                            validMediaIds.includes(String(m.code).trim()),
                         );
                         setAddedMedia((prev) => ({
                             ...prev,
@@ -1494,7 +1493,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                         (chem) => chem.slno,
                     ),
                     mediaIds: (addedMedia[param.id] || []).map(
-                        (chem) => chem.id,
+                        (chem) => chem.code,
                     ),
                     standardIds: null,
                     preparations,
@@ -1519,7 +1518,6 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                 return;
             }
 
-            console.log(WorksheetDbMapper.mapAll(worksheetData));
 
             setWorksheetInfo(worksheetData);
             setRegistrationNo(worksheetData.sample.registrationNo);
@@ -8598,7 +8596,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                                 {m.name}
                                                                                             </div>
                                                                                             <div className="text-xs text-gray-600">
-                                                                                                {m.lotNo ? `Lot: ${m.lotNo}` : "No lot no."}
+                                                                                                {m.code ? `Code: ${m.code}` : "No Code"}
                                                                                                 {m.expDate ? ` • Exp: ${new Date(m.expDate).toLocaleDateString("en-GB")}` : ""}
                                                                                             </div>
                                                                                         </button>
@@ -8635,7 +8633,10 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                             Name of Media
                                                                         </th>
                                                                         <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
-                                                                            Lot No.
+                                                                            Code
+                                                                        </th>
+                                                                        <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                                                                            Quantity
                                                                         </th>
                                                                         <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
                                                                             Exp. Date
@@ -8660,7 +8661,10 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                         {m.name || "---"}
                                                                                     </td>
                                                                                     <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                                                                        {m.lotNo || "---"}
+                                                                                        {m.code || "---"}
+                                                                                    </td>
+                                                                                    <td className="px-3 py-2 border-r-2 border-emerald-500">
+                                                                                        {m.quantityValue} {m.quantityUnit}
                                                                                     </td>
                                                                                     <td className="px-3 py-2 border-r-2 border-emerald-500">
                                                                                         {m.expDate

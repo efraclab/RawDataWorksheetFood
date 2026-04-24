@@ -241,7 +241,7 @@ const BETPrepPrint: React.FC<{ prep: any; idx: number }> = ({ prep, idx }) => {
   const tubes: any[] = prep.observationTubes || [];
 
   return (
-    <div className="keep-together mb-4">
+    <div className="mb-4">
       {/* Sub-heading */}
       <p className="font-bold text-md mb-2 underline inline-block">
         {prep.label || `BET Preparation ${idx + 1}`}
@@ -526,6 +526,206 @@ const BileTolerantPrepPrint: React.FC<{ prep: any; idx: number }> = ({ prep, idx
   );
 };
 
+// ── B. cepacia Preparation print renderer ────────────────────────────────────
+
+const BCepaciaPrepPrint: React.FC<{ prep: any; idx: number }> = ({ prep, idx }) => {
+  const inoculationRows: any[] = prep.inoculationRows || [];
+  const identificationRows: any[] = prep.identificationRows || [];
+
+  return (
+    <div className="mb-4">
+      <div className="keep-together">
+        <p className="font-bold text-md mb-2 underline inline-block">
+          {prep.label || `B. cepacia Preparation ${idx + 1}`}
+        </p>
+
+        {/* Inoculation Observations */}
+        {inoculationRows.length > 0 && (
+          <div className="mb-3">
+            <p className="font-bold uppercase text-sm mb-2">Inoculation Observations</p>
+            <table className="w-full border border-black text-xs">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className={TH} style={{ width: "22%" }}>Medium</th>
+                  <th className={TH} style={{ width: "16%" }}>Colony / Growth Characteristics</th>
+                  <th className={TH} style={{ width: "7%" }}>Analysis Started</th>
+                  <th className={TH} style={{ width: "7%" }}>Analysis Completed</th>
+                  <th className={TH} style={{ width: "7%" }}>Incubation Temp. (°C)</th>
+                  <th className={TH} style={{ width: "7%" }}>Incubation Time (Hr.)</th>
+                  <th className={TH} style={{ width: "11%" }}>Observation</th>
+                  <th className={TH} style={{ width: "11%" }}>Reference Culture</th>
+                  <th className={TH} style={{ width: "12%" }}>Blank</th>
+                </tr>
+              </thead>
+              <tbody>
+                {inoculationRows.map((row: any, ri: number) => (
+                  <tr key={ri} className={ri % 2 === 0 ? "" : "bg-gray-50"}>
+                    <td className={TD}>{row.medium || "---"}</td>
+                    <td className={TD}>{row.colonyCharacteristics || "---"}</td>
+                    <td className={`${TD} text-center`}>{row.analysisStarted ? formatDateOnly(row.analysisStarted) : "---"}</td>
+                    <td className={`${TD} text-center`}>{row.analysisCompleted ? formatDateOnly(row.analysisCompleted) : "---"}</td>
+                    <td className={`${TD} text-center`}>{row.incubationTemp || "---"}</td>
+                    <td className={`${TD} text-center`}>{row.incubationTime || "---"}</td>
+                    <td className={TD}>{row.observation || "---"}</td>
+                    <td className={TD}>{row.referenceCulture || "---"}</td>
+                    <td className={TD}>{row.blank || "---"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Identification Tests (from BCSA growth) */}
+      {identificationRows.length > 0 && (
+        <div className="mb-3">
+          <p className="font-bold uppercase text-sm mb-2">
+            Identification Tests
+          </p>
+          <table className="w-full border border-black text-xs">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className={TH} style={{ width: "20%" }}>Name of the Test</th>
+                <th className={TH} style={{ width: "7%" }}>Analysis Started</th>
+                <th className={TH} style={{ width: "7%" }}>Analysis Completed</th>
+                <th className={TH} style={{ width: "16%" }}>Media / Reagent</th>
+                <th className={TH} style={{ width: "7%" }}>Incubation Temp. (°C)</th>
+                <th className={TH} style={{ width: "7%" }}>Incubation Time (Hr.)</th>
+                <th className={TH} style={{ width: "12%" }}>Observation</th>
+                <th className={TH} style={{ width: "12%" }}>Reference Culture</th>
+                <th className={TH} style={{ width: "12%" }}>Blank</th>
+              </tr>
+            </thead>
+            <tbody>
+              {identificationRows.map((row: any, ri: number) => (
+                <tr key={ri} className={ri % 2 === 0 ? "" : "bg-gray-50"}>
+                  <td className={TD}>{row.testName || "---"}</td>
+                  <td className={`${TD} text-center`}>{row.analysisStarted ? formatDateOnly(row.analysisStarted) : "---"}</td>
+                  <td className={`${TD} text-center`}>{row.analysisCompleted ? formatDateOnly(row.analysisCompleted) : "---"}</td>
+                  <td className={TD}>{row.mediaReagent || "---"}</td>
+                  <td className={`${TD} text-center`}>{row.incubationTemp || "---"}</td>
+                  <td className={`${TD} text-center`}>{row.incubationTime || "---"}</td>
+                  <td className={TD}>{row.observation || "---"}</td>
+                  <td className={TD}>{row.referenceCulture || "---"}</td>
+                  <td className={TD}>{row.blank || "---"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Final Result */}
+      {prep.result && (
+        <div className="mb-3">
+          <p className="font-bold uppercase text-sm">Final Result</p>
+          <span style={{ whiteSpace: "pre-wrap" }}>{prep.result}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Candida albicans Preparation print renderer ───────────────────────────────
+
+const CandidaAlbicansPrepPrint: React.FC<{ prep: any; idx: number }> = ({ prep, idx }) => {
+  const inoculationRows: any[] = prep.inoculationRows || [];
+  const identificationRows: any[] = prep.identificationRows || [];
+
+  return (
+    <div className="mb-4">
+        <p className="font-bold text-md mb-2 underline inline-block">
+          {prep.label || `C. albicans Preparation ${idx + 1}`}
+        </p>
+
+        {/* Inoculation Observations */}
+        {inoculationRows.length > 0 && (
+          <div className="mb-3">
+            <p className="font-bold uppercase text-sm mb-2">Inoculation Observations</p>
+            <table className="w-full border border-black text-xs">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className={TH} style={{ width: "22%" }}>Medium</th>
+                  <th className={TH} style={{ width: "16%" }}>Colony / Growth Characteristics</th>
+                  <th className={TH} style={{ width: "7%" }}>Analysis Started</th>
+                  <th className={TH} style={{ width: "7%" }}>Analysis Completed</th>
+                  <th className={TH} style={{ width: "7%" }}>Incubation Temp. (°C)</th>
+                  <th className={TH} style={{ width: "7%" }}>Incubation Time (Hr.)</th>
+                  <th className={TH} style={{ width: "11%" }}>Observation</th>
+                  <th className={TH} style={{ width: "11%" }}>Reference Culture</th>
+                  <th className={TH} style={{ width: "12%" }}>Blank</th>
+                </tr>
+              </thead>
+              <tbody>
+                {inoculationRows.map((row: any, ri: number) => (
+                  <tr key={ri} className={ri % 2 === 0 ? "" : "bg-gray-50"}>
+                    <td className={TD}>{row.medium || "---"}</td>
+                    <td className={TD}>{row.colonyCharacteristics || "---"}</td>
+                    <td className={`${TD} text-center`}>{row.analysisStarted ? formatDateOnly(row.analysisStarted) : "---"}</td>
+                    <td className={`${TD} text-center`}>{row.analysisCompleted ? formatDateOnly(row.analysisCompleted) : "---"}</td>
+                    <td className={`${TD} text-center`}>{row.incubationTemp || "---"}</td>
+                    <td className={`${TD} text-center`}>{row.incubationTime || "---"}</td>
+                    <td className={TD}>{row.observation || "---"}</td>
+                    <td className={TD}>{row.referenceCulture || "---"}</td>
+                    <td className={TD}>{row.blank || "---"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+      {/* Identification Tests (from SDA growth → Brain Heart Infusion Broth) */}
+      {identificationRows.length > 0 && (
+        <div className="mb-3">
+          <p className="font-bold uppercase text-sm mb-2">
+            Identification Tests
+          </p>
+          <table className="w-full border border-black text-xs">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className={TH} style={{ width: "20%" }}>Name of the Test</th>
+                <th className={TH} style={{ width: "7%" }}>Analysis Started</th>
+                <th className={TH} style={{ width: "7%" }}>Analysis Completed</th>
+                <th className={TH} style={{ width: "16%" }}>Media / Reagent</th>
+                <th className={TH} style={{ width: "7%" }}>Incubation Temp. (°C)</th>
+                <th className={TH} style={{ width: "7%" }}>Incubation Time (Hr.)</th>
+                <th className={TH} style={{ width: "12%" }}>Observation</th>
+                <th className={TH} style={{ width: "12%" }}>Reference Culture</th>
+                <th className={TH} style={{ width: "12%" }}>Blank</th>
+              </tr>
+            </thead>
+            <tbody>
+              {identificationRows.map((row: any, ri: number) => (
+                <tr key={ri} className={ri % 2 === 0 ? "" : "bg-gray-50"}>
+                  <td className={TD}>{row.testName || "---"}</td>
+                  <td className={`${TD} text-center`}>{row.analysisStarted ? formatDateOnly(row.analysisStarted) : "---"}</td>
+                  <td className={`${TD} text-center`}>{row.analysisCompleted ? formatDateOnly(row.analysisCompleted) : "---"}</td>
+                  <td className={TD}>{row.mediaReagent || "---"}</td>
+                  <td className={`${TD} text-center`}>{row.incubationTemp || "---"}</td>
+                  <td className={`${TD} text-center`}>{row.incubationTime || "---"}</td>
+                  <td className={TD}>{row.observation || "---"}</td>
+                  <td className={TD}>{row.referenceCulture || "---"}</td>
+                  <td className={TD}>{row.blank || "---"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Final Result */}
+      {prep.result && (
+        <div className="mb-3">
+          <p className="font-bold uppercase text-sm">Final Result</p>
+          <span style={{ whiteSpace: "pre-wrap" }}>{prep.result}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── Sterility Preparation print renderer ─────────────────────────────────────
 
 const SterilityPrepPrint: React.FC<{ prep: any; idx: number }> = ({ prep, idx }) => {
@@ -534,7 +734,6 @@ const SterilityPrepPrint: React.FC<{ prep: any; idx: number }> = ({ prep, idx })
 
   return (
     <div className="mb-4">
-      <div className="keep-together">
       <p className="font-bold text-md mb-2 underline inline-block">
         {prep.label || `Sterility Preparation ${idx + 1}`}
       </p>
@@ -581,7 +780,6 @@ const SterilityPrepPrint: React.FC<{ prep: any; idx: number }> = ({ prep, idx })
         </div>
       )}
 
-      </div>
 
       {/* 14-Day Observations */}
       {observationDays.length > 0 && (
@@ -686,7 +884,6 @@ const EcoliPrepPrint: React.FC<{ prep: any; idx: number }> = ({ prep, idx }) => 
 
   return (
     <div className="mb-4">
-      <div className="keep-together">
       <p className="font-bold text-md mb-2 underline inline-block">
         {prep.label || `E. coli Preparation ${idx + 1}`}
       </p>
@@ -728,7 +925,6 @@ const EcoliPrepPrint: React.FC<{ prep: any; idx: number }> = ({ prep, idx }) => 
         </div>
       )}
 
-      </div>
 
       {/* Biochemical Confirmation */}
       {biochemicalRows.length > 0 && (
@@ -795,7 +991,6 @@ const InoculationBiochemicalPrepPrint: React.FC<{
 
   return (
     <div className="mb-4">
-      <div className="keep-together">
       <p className="font-bold text-md mb-2 underline inline-block">
         {prep.label || `${typeLabel} ${idx + 1}`}
       </p>
@@ -837,7 +1032,6 @@ const InoculationBiochemicalPrepPrint: React.FC<{
         </div>
       )}
 
-      </div>
 
       {/* Biochemical Tests */}
       {biochemicalRows.length > 0 && (
@@ -932,7 +1126,6 @@ const GenericPrepPrint: React.FC<{
 
   return (
     <div className="mb-4">
-      <div className="keep-together">
       <p className="font-bold text-md mb-2 underline inline-block">
         {prep.label || `${typeLabel} ${idx + 1}`}
         <span className="ml-2 font-normal text-xs text-gray-500">— {typeLabel}</span>
@@ -998,7 +1191,6 @@ const GenericPrepPrint: React.FC<{
         </div>
       )}
 
-      </div>
 
       {biochemicalRows.length > 0 && (
         <div className="mb-3">
@@ -1376,9 +1568,17 @@ const MicroPrintReport: React.FC<MicroPrintReportProps> = ({
             .filter((p: any) => p.preparationType === "bileTolerant")
             .map((p: any) => safeJSONParse(p.content, {}));
 
-          // Other prep types (generic)
+          const bcepaciaPreps = allPreps
+            .filter((p: any) => p.preparationType === "bcepacia")
+            .map((p: any) => ({ ...safeJSONParse(p.content, {}), label: p.label }));
+
+          const calbicansPreps = allPreps
+            .filter((p: any) => p.preparationType === "calbicans")
+            .map((p: any) => ({ ...safeJSONParse(p.content, {}), label: p.label }));
+
+          // Other prep types (generic) — bcepacia and calbicans are handled explicitly above
           const otherPrepTypes = [
-            "calbicans", "bcepacia", "totalViableCountWater", "tymc", "tamc",
+            "totalViableCountWater", "tymc", "tamc",
           ];
           const otherPreps: { type: string; data: any }[] = [];
           for (const t of otherPrepTypes) {
@@ -1534,7 +1734,7 @@ const MicroPrintReport: React.FC<MicroPrintReportProps> = ({
               {/* ── Sterility Preparations ── */}
               {sterilityPreps.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="text-md mb-2"><strong>Test Method:</strong> Sterility Test by Direct Inoculation / Membrane Filtration</h4>
+                  <h4 className="text-md mb-2"><strong>Test Method:</strong>Sterility Testing</h4>
                   {sterilityPreps.map((prep, i) => (
                     <SterilityPrepPrint key={i} prep={prep} idx={i} />
                   ))}
@@ -1544,7 +1744,7 @@ const MicroPrintReport: React.FC<MicroPrintReportProps> = ({
               {/* ── E. coli Preparations ── */}
               {ecoliPreps.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="text-md mb-2"><strong>Test Method:</strong> Isolation and Detection of E. coli</h4>
+                  <h4 className="text-md mb-2"><strong>Test Method:</strong> Isolation and Detection of E.coli</h4>
                   {ecoliPreps.map((prep, i) => (
                     <EcoliPrepPrint key={i} prep={prep} idx={i} />
                   ))}
@@ -1571,7 +1771,7 @@ const MicroPrintReport: React.FC<MicroPrintReportProps> = ({
               {/* ── Clostridium Preparations ── */}
               {clostridiumPreps.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="text-md mb-2"> <strong>Test Method:</strong> BIsolation and Detection of Clostridium sp.</h4>
+                  <h4 className="text-md mb-2"> <strong>Test Method:</strong> Isolation and Detection of Clostridium sp.</h4>
                   {clostridiumPreps.map((prep, i) => (
                     <ClostridiumPrepPrint key={i} prep={prep} idx={i} />
                   ))}
@@ -1634,6 +1834,26 @@ const MicroPrintReport: React.FC<MicroPrintReportProps> = ({
                   <h4 className="text-md mb-2"><strong>Test Method:</strong> Isolation and Detection of Bile-Tolerant Gram-Negative Bacteria</h4>
                   {bileTolerantPreps.map((prep, i) => (
                     <BileTolerantPrepPrint key={i} prep={prep} idx={i} />
+                  ))}
+                </div>
+              )}
+
+              {/* ── B. cepacia Preparations ── */}
+              {bcepaciaPreps.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-md mb-2"><strong>Test Method:</strong> Isolation and Detection of Burkholderia cepacia complex</h4>
+                  {bcepaciaPreps.map((prep, i) => (
+                    <BCepaciaPrepPrint key={i} prep={prep} idx={i} />
+                  ))}
+                </div>
+              )}
+
+              {/* ── C. albicans Preparations ── */}
+              {calbicansPreps.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-md mb-2"><strong>Test Method:</strong> Isolation and Detection of Candida albicans</h4>
+                  {calbicansPreps.map((prep, i) => (
+                    <CandidaAlbicansPrepPrint key={i} prep={prep} idx={i} />
                   ))}
                 </div>
               )}

@@ -55,7 +55,6 @@ export const fetchSample = async (request: SmapleDetailsRequest): Promise<Sample
     const response = await axios.post(`${API_BASE_URL}/sample-details`, request,
     { headers: { "Content-Type": "application/json" } });
     const data = response.data;
-    console.log(data)
     if (Array.isArray(data)) return data as SampleData[];
     return [];
   } catch (error: any) {
@@ -109,8 +108,6 @@ export const updateWorksheet = async (
   if (!worksheetId) {
     throw new Error("Worksheet ID is required.");
   }
-
-  console.log("Updating worksheet with ID:", worksheetData);
 
   try {
     const response = await axios.put<{ worksheetId: string }>(
@@ -166,9 +163,6 @@ export const updateParameter = async (
   }
 
   try {
-
-    console.log("parameterData", parameterData);
-
     const response = await axios.put<{ parameterId: number }>(
       `${API_BASE_URL}/worksheets/parameters/${parameterId}`,
       parameterData,
@@ -317,20 +311,12 @@ export const fetchAnalysts = async (
 
 // ========== WORKSHEET LOG API FUNCTIONS ==========
 
-/**
- * Insert a new log entry for a worksheet action.
- * POST /api/worksheets/logs
- */
 export const insertWorksheetLog = async (
   payload: WorksheetLogRequest
 ): Promise<{ message: string }> => {
-  if (!payload.worksheetId) {
-    throw new Error("Worksheet ID is required.");
-  }
-
   try {
     const response = await axios.post<{ message: string }>(
-      `${API_BASE_URL}/worksheets/logs`,
+      `${API_BASE_URL}/logs`,
       payload,
       { headers: { "Content-Type": "application/json" } }
     );
@@ -549,5 +535,127 @@ export const getMedia = async (): Promise<Media[]> => {
     } else {
       throw new Error(`An unexpected error occurred: ${error.message}`);
     }
+  }
+};
+
+export const addMedia = async (payload: Media): Promise<void> => {
+  try {
+    await axios.post(`${API_BASE_URL}/media`, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || `Failed to add media: ${error.message}`);
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+export const updateMedia = async (payload: Media): Promise<void> => {
+  try {
+    await axios.put(`${API_BASE_URL}/media`, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || `Failed to update media: ${error.message}`);
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+export const deleteMedia = async (id: number): Promise<void> => {
+  if (!id) throw new Error("Media ID is required.");
+  try {
+    await axios.delete(`${API_BASE_URL}/media/${id}`);
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || `Failed to delete media: ${error.message}`);
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
+
+// ========== AI REVIEW API ==========
+
+const LIMS_AI_BASE_URL = 'https://localhost:7278/api';
+
+export const AI_REVIEW_PROMPT =
+`You are a GxP-compliant laboratory data integrity auditor operating within a regulated pharmaceutical LIMS (Laboratory Information Management System). Your role is to perform a structured data quality review of raw analytical worksheet records prior to QA submission, in accordance with ICH Q10, 21 CFR Part 11, and WHO GMP data integrity guidelines.
+
+You will receive a JSON object representing a lab worksheet — including sample metadata, test parameters, preparation records, instruments, chemicals, standards, and media used.
+
+Your task is to identify and classify data quality issues into:
+- ERRORS: Definite data integrity violations — missing required values in completed records, logical impossibilities (e.g. createdAt after dueDate), organism/method/media mismatches, malformed identifiers.
+- WARNINGS: Potential compliance concerns — non-specific analyst identifiers, inconsistent formatting, missing reference standards for identification tests, traceability gaps.
+
+For each issue, report:
+- field: the JSON path or descriptive location of the issue
+- message: a clear, user-understandable explanation of the problem
+
+Also provide:
+- isValid: boolean (false if any ERRORs exist)
+- summary: one concise sentence summarising the overall audit finding
+
+Respond ONLY with a valid JSON object in this exact structure:
+{
+  "isValid": true|false,
+  "errors": [{ "field": "...", "message": "..." }],
+  "warnings": [{ "field": "...", "message": "..." }],
+  "summary": "..."
+}
+
+Do not include any text outside the JSON object.`;
+
+export interface AiReviewIssue {
+  field: string;
+  message: string;
+}
+
+export interface AiReviewResult {
+  isValid: boolean;
+  errors: AiReviewIssue[];
+  warnings: AiReviewIssue[];
+  summary: string;
+}
+
+export interface AiReviewPayload {
+  source: string;
+  operation: string;
+  prompt: string;
+  data: {
+    sample: any;
+    parameters: any[];
+  };
+}
+
+export const reviewWorksheetWithAI = async (
+  payload: AiReviewPayload
+): Promise<AiReviewResult> => {
+  try {
+    console.log("[AI Review] Sending payload to", `${LIMS_AI_BASE_URL}/lims/process`, payload);
+    const response = await axios.post<any>(
+      `${LIMS_AI_BASE_URL}/lims/process`,
+      payload,
+      { headers: { "Content-Type": "application/json" } }
+    );
+    const result = response.data?.result;
+    if (result && typeof result === "object" && "isValid" in result) {
+      return {
+        isValid: result.isValid ?? true,
+        errors: Array.isArray(result.errors) ? result.errors : [],
+        warnings: Array.isArray(result.warnings) ? result.warnings : [],
+        summary: result.summary ?? "",
+      };
+    }
+    throw new Error("Unexpected response format from AI service");
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || `AI review failed: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
   }
 };

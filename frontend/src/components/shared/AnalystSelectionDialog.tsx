@@ -17,7 +17,6 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
   onSelectAnalyst,
 }) => {
 
-  console.log("Analysts passed to dialog:", analysts);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedId, setSelectedId] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);

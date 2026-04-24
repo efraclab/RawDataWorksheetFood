@@ -13,5 +13,7 @@
         public string? EmployeeId { get; set; }
         public string? EmployeeName { get; set; }
         public string? Role { get; set; }
+        public string? ReferenceType { get; set; }
+        public string? ReferenceId { get; set; }
     }
 }

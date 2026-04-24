@@ -6,6 +6,8 @@ export interface BCepaciaIdentificationRow {
     mediaReagent: string;
     incubationTemp: string;
     incubationTime: string;
+    incubationTempUnit: string;
+    incubationTimeUnit: string;
     observation: string;
     referenceCulture: string;
     blank: string;

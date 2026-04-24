@@ -35,9 +35,6 @@ export const useRawDataTransform = (): UseRawDataTransformResult => {
 
       if (result.success) {
         setTransformSuccess(true);
-        console.log(
-          `Successfully transformed: ${result.trnRowsInserted} TRN rows, ${result.trn2RowsInserted} TRN2 rows`
-        );
       } else {
         setTransformError(result.message || 'Transformation failed');
       }

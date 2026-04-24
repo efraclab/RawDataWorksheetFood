@@ -1593,7 +1593,6 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         setWorksheetInfo(worksheetData);
         setRegistrationNo(worksheetData.sample.registrationNo);
 
-        console.log("map", WorksheetDbMapper.mapAll(worksheetData));
 
         const request: SmapleDetailsRequest = {
           regNo: worksheetData.sample.registrationNo,
@@ -3746,7 +3745,6 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         return;
       }
 
-      console.log(WorksheetDbMapper.mapAll(worksheetData));
 
       setWorksheetInfo(worksheetData);
       setRegistrationNo(worksheetData.sample.registrationNo);

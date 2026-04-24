@@ -10,22 +10,26 @@ const makeDefaultInoculationRows = (): PseudomonasInoculationRow[] => [
         colonyCharacteristics: "Turbidity",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "30-35°C",
-        incubationTime: "24 h",
+        incubationTemp: "30-35",
+        incubationTime: "24",
         sampleResult: "",
         referenceResult: "",
         blankResult: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "Cetrimide Agar (from Incubated SCDB)",
         colonyCharacteristics: "Pigmented Colony",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "30-35°C",
-        incubationTime: "18-72 h",
+        incubationTemp: "30-35",
+        incubationTime: "18-72",
         sampleResult: "",
         referenceResult: "",
         blankResult: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
 ];
 
@@ -61,6 +65,8 @@ const makeEmptyInoculationRow = (): PseudomonasInoculationRow => ({
     sampleResult: "",
     referenceResult: "",
     blankResult: "",
+    incubationTempUnit: "℃",
+    incubationTimeUnit: "Hr."
 });
 
 const makeEmptyBiochemicalRow = (): PseudomonasBiochemicalRow => ({
@@ -346,10 +352,10 @@ const PseudomonasPreparationDetail: React.FC<PseudomonasPreparationDetailProps> 
                     }
                 />
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse min-w-[1400px]">
+                    <table className="w-full text-sm border-collapse min-w-[1800px]">
                         <thead>
                             <tr className="bg-emerald-700 text-white">
-                                <th className={thClass + " text-white border-emerald-600 w-[30%]"}>Medium</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[22%]"}>Medium</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[12%]"}>Colony / Growth Characteristics</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[6%]"}>Analysis Started</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[6%]"}>Analysis Completed</th>
@@ -358,7 +364,7 @@ const PseudomonasPreparationDetail: React.FC<PseudomonasPreparationDetailProps> 
                                 <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[12%]">Sample</th>
                                 <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[12%]">Reference</th>
                                 <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[12%]">Blank</th>
-                                {!isLocked && <th className="px-2 py-3 w-10 border-l border-emerald-600"></th>}
+                                {!isLocked && <th className="px-2 py-3 w-10 border-l border-emerald-600">Action</th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -482,16 +488,16 @@ const PseudomonasPreparationDetail: React.FC<PseudomonasPreparationDetailProps> 
                     </div>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse min-w-[1200px]">
+                    <table className="w-full text-sm border-collapse min-w-[1400px]">
                         <thead>
                             <tr className="bg-emerald-700 text-white">
-                                <th className={thClass + " text-white border-emerald-600 w-[24%]"}>Test Name</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[20%]"}>Test Name</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[8%]"}>Analysis Started</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[8%]"}>Analysis Completed</th>
-                                <th className={thClass + " text-white border-emerald-600 w-[12%]"}>Medium</th>
-                                <th className={thClass + " text-white border-emerald-600 w-[12%]"}>Observation</th>
-                                <th className={thClass + " text-white border-emerald-600 w-[12%]"}>Reference</th>
-                                <th className={thClass + " text-white border-emerald-600 w-[12%]"}>Blank</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[14%]"}>Medium</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[14%]"}>Observation</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[14%]"}>Reference</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[14%]"}>Blank</th>
                                 {!isLocked && <th className="px-2 py-3 w-10 border-l border-emerald-600"></th>}
                             </tr>
                         </thead>

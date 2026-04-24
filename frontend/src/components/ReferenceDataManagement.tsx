@@ -3,6 +3,7 @@ import {
   Beaker,
   Wrench,
   FlaskConical,
+  TestTube2,
   Plus,
   Edit2,
   Trash2,
@@ -21,18 +22,23 @@ import {
   getChemicals,
   getInstruments,
   getStandards,
+  getMedia,
   deleteChemical,
   deleteInstrument,
   deleteStandard,
+  deleteMedia,
   addChemical,
   updateChemical,
   addInstrument,
   updateInstrument,
   addStandard,
   updateStandard,
+  addMedia,
+  updateMedia,
+  insertWorksheetLog,
 } from "../services/api";
 
-type TabType = "chemicals" | "instruments" | "standards";
+type TabType = "chemicals" | "instruments" | "standards" | "media";
 
 interface ReferenceDataManagementProps {
   onBack: () => void;
@@ -41,6 +47,9 @@ interface ReferenceDataManagementProps {
 export default function ReferenceDataManagement({
   onBack = () => {},
 }: ReferenceDataManagementProps) {
+  const employeeId = localStorage.getItem("EmployeeId") || "";
+  const role = localStorage.getItem("Role") || "";
+
   const [activeTab, setActiveTab] = useState<TabType>("chemicals");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -53,6 +62,7 @@ export default function ReferenceDataManagement({
   const [chemicals, setChemicals] = useState<any[]>([]);
   const [instruments, setInstruments] = useState<any[]>([]);
   const [standards, setStandards] = useState<any[]>([]);
+  const [media, setMedia] = useState<any[]>([]);
 
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -60,6 +70,28 @@ export default function ReferenceDataManagement({
   const [editingItem, setEditingItem] = useState<any>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<any>(null);
+
+  const refTypeLabel = (tab: TabType): string =>
+    ({ chemicals: "Chemical", instruments: "Instrument", standards: "Standard", media: "Media" })[tab];
+
+  const refIdFromItem = (tab: TabType, item: any): string => {
+    if (tab === "chemicals") return String(item.slno || "");
+    if (tab === "instruments") return String(item.id || "");
+    if (tab === "standards") return String(item.serialNo || "");
+    return String(item.id || "");
+  };
+
+  const fireRefLog = (action: string, remarks: string, refId: string) => {
+    insertWorksheetLog({
+      worksheetId: "",
+      action,
+      remarks,
+      employeeId,
+      role,
+      referenceType: refTypeLabel(activeTab),
+      referenceId: refId,
+    }).catch((err) => console.warn("Failed to insert reference log:", err));
+  };
 
   useEffect(() => {
     loadData();
@@ -82,6 +114,9 @@ export default function ReferenceDataManagement({
       } else if (activeTab === "standards") {
         const data = await getStandards();
         setStandards(data);
+      } else if (activeTab === "media") {
+        const data = await getMedia();
+        setMedia(data);
       }
     } catch (err: any) {
       setError(err.message || "Failed to load data");
@@ -105,13 +140,15 @@ export default function ReferenceDataManagement({
       if (instruments.length === 0) return "0001";
       const maxId = Math.max(...instruments.map(i => parseInt(i.id) || 0));
       return String(maxId + 1).padStart(4, "0");
-    } else {
+    } else if (activeTab === "standards") {
       if (standards.length === 0) return "STN-0001";
       const maxId = Math.max(...standards.map(s => {
         const num = s.serialNo.replace("STN-", "");
         return parseInt(num) || 0;
       }));
       return `STN-${String(maxId + 1).padStart(4, "0")}`;
+    } else {
+      return "";
     }
   };
 
@@ -125,8 +162,10 @@ export default function ReferenceDataManagement({
       initialData = { slno: nextKey };
     } else if (activeTab === "instruments") {
       initialData = { id: nextKey };
-    } else {
+    } else if (activeTab === "standards") {
       initialData = { serialNo: nextKey };
+    } else {
+      initialData = {};
     }
     
     setEditingItem(initialData);
@@ -150,13 +189,21 @@ export default function ReferenceDataManagement({
     setIsLoading(true);
     setError(null);
     try {
+      const refId = refIdFromItem(activeTab, itemToDelete);
       if (activeTab === "chemicals") {
         await deleteChemical(itemToDelete.slno);
       } else if (activeTab === "instruments") {
         await deleteInstrument(itemToDelete.id);
       } else if (activeTab === "standards") {
         await deleteStandard(itemToDelete.serialNo);
+      } else if (activeTab === "media") {
+        await deleteMedia(itemToDelete.id);
       }
+      fireRefLog(
+        `${refTypeLabel(activeTab)} Deleted`,
+        `${refTypeLabel(activeTab)} '${itemToDelete.name || refId}' deleted`,
+        refId
+      );
       showSuccess("Item deleted successfully");
       setShowDeleteDialog(false);
       setItemToDelete(null);
@@ -190,7 +237,22 @@ export default function ReferenceDataManagement({
         } else {
           await updateStandard(data);
         }
+      } else if (activeTab === "media") {
+        if (modalMode === "add") {
+          await addMedia(data);
+        } else {
+          await updateMedia(data);
+        }
       }
+      const refId = activeTab === "media" && modalMode === "add"
+        ? ""
+        : refIdFromItem(activeTab, data);
+      const verb = modalMode === "add" ? "Added" : "Updated";
+      fireRefLog(
+        `${refTypeLabel(activeTab)} ${verb}`,
+        `${refTypeLabel(activeTab)} '${data.name || refId}' ${verb.toLowerCase()}`,
+        refId
+      );
       showSuccess(
         `Item ${modalMode === "add" ? "added" : "updated"} successfully`
       );
@@ -208,6 +270,7 @@ export default function ReferenceDataManagement({
     if (activeTab === "chemicals") data = chemicals;
     else if (activeTab === "instruments") data = instruments;
     else if (activeTab === "standards") data = standards;
+    else if (activeTab === "media") data = media;
 
     if (!searchQuery) return data;
 
@@ -233,6 +296,7 @@ export default function ReferenceDataManagement({
     { id: "chemicals" as TabType, label: "Chemicals", icon: Beaker },
     { id: "instruments" as TabType, label: "Instruments", icon: Wrench },
     { id: "standards" as TabType, label: "Standards", icon: FlaskConical },
+    { id: "media" as TabType, label: "Media", icon: TestTube2 },
   ];
 
   return (
@@ -265,7 +329,7 @@ export default function ReferenceDataManagement({
                   Reference Data Management
                 </h1>
                 <p className="text-sm text-slate-500 mt-0.5">
-                  Manage chemicals, instruments, and standards
+                  Manage chemicals, instruments, standards, and media
                 </p>
               </div>
             </div>
@@ -424,6 +488,13 @@ export default function ReferenceDataManagement({
                   onDelete={handleDeleteClick}
                 />
               )}
+              {activeTab === "media" && (
+                <MediaTable
+                  data={getPaginatedData()}
+                  onEdit={handleEdit}
+                  onDelete={handleDeleteClick}
+                />
+              )}
 
               {/* Bottom Pagination */}
               {getFilteredData().length > 0 && (
@@ -498,8 +569,8 @@ export default function ReferenceDataManagement({
           itemName={
             itemToDelete?.name ||
             itemToDelete?.slno ||
-            itemToDelete?.id ||
-            itemToDelete?.serialNo
+            itemToDelete?.serialNo ||
+            String(itemToDelete?.id ?? "")
           }
           type={activeTab}
           onConfirm={handleDeleteConfirm}
@@ -724,8 +795,9 @@ function FormModal({
     // List of all date fields
     const dateFields = [
       'exp_Date', 'manufacturer_Date', // Chemicals
-      'purchaseDate', 'warrenty_UOTO', 'amc_UPTO', 'cmc_UPTO', 
-      'calibrationDoneDate', 'calibrationDueDate' // Instruments
+      'purchaseDate', 'warrenty_UOTO', 'amc_UPTO', 'cmc_UPTO',
+      'calibrationDoneDate', 'calibrationDueDate', // Instruments
+      'expDate', // Media
     ];
     
     dateFields.forEach(field => {
@@ -896,6 +968,49 @@ function FormModal({
           />
         </>
       );
+    } else if (type === "media") {
+      return (
+        <>
+          {mode === "edit" && (
+            <FormField
+              label="ID"
+              value={formData.id !== undefined ? String(formData.id) : ""}
+              onChange={() => {}}
+              disabled={true}
+              isLocked={true}
+              helperText="Auto-generated by database"
+            />
+          )}
+          <FormField
+            label="Name *"
+            value={formData.name || ""}
+            onChange={(v) => handleChange("name", v)}
+            required
+          />
+          <FormField
+            label="Code"
+            value={formData.code || ""}
+            onChange={(v) => handleChange("code", v)}
+          />
+          <FormField
+            label="Expiry Date"
+            type="date"
+            value={formatDateForInput(formData.expDate || "")}
+            onChange={(v) => handleChange("expDate", v)}
+          />
+          <FormField
+            label="Quantity Value"
+            type="number"
+            value={formData.quantityValue !== undefined && formData.quantityValue !== null ? String(formData.quantityValue) : ""}
+            onChange={(v) => handleChange("quantityValue", v)}
+          />
+          <FormField
+            label="Quantity Unit"
+            value={formData.quantityUnit || ""}
+            onChange={(v) => handleChange("quantityUnit", v)}
+          />
+        </>
+      );
     } else {
       return (
         <>
@@ -966,7 +1081,13 @@ function FormModal({
   };
 
   const getModalTitle = () => {
-    const typeLabel = type.charAt(0).toUpperCase() + type.slice(0, -1);
+    const singularMap: Record<TabType, string> = {
+      chemicals: "Chemical",
+      instruments: "Instrument",
+      standards: "Standard",
+      media: "Media",
+    };
+    const typeLabel = singularMap[type];
     return mode === "add" ? `Add New ${typeLabel}` : `Edit ${typeLabel}`;
   };
 
@@ -1212,15 +1333,13 @@ function ChemicalsTable({
                 <div className="flex items-center justify-end gap-2">
                   <button
                     onClick={() => onEdit(item)}
-                    disabled={true}
-                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => onDelete(item)}
-                    disabled={true}
-                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -1353,15 +1472,82 @@ function InstrumentsTable({
                 <div className="flex items-center justify-end gap-2">
                   <button
                     onClick={() => onEdit(item)}
-                    disabled={true}
-                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => onDelete(item)}
-                    disabled={true}
-                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// Media Table
+function MediaTable({
+  data,
+  onEdit,
+  onDelete,
+}: {
+  data: any[];
+  onEdit: (item: any) => void;
+  onDelete: (item: any) => void;
+}) {
+  if (data.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <TestTube2 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+        <p className="text-slate-500 font-medium">No media found</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead className="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">ID</th>
+            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Name</th>
+            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Code</th>
+            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Expiry Date</th>
+            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Qty Value</th>
+            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Qty Unit</th>
+            <th className="px-4 py-3 text-right text-xs font-bold text-slate-700 uppercase sticky right-0 bg-slate-50">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-200">
+          {data.map((item, idx) => (
+            <tr
+              key={item.id}
+              className={`hover:bg-emerald-50 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-slate-50"}`}
+            >
+              <td className="px-4 py-3 text-sm font-semibold text-slate-700">{item.id}</td>
+              <td className="px-4 py-3 text-sm font-bold text-slate-900">{item.name}</td>
+              <td className="px-4 py-3 text-sm text-slate-700">{item.code || "-"}</td>
+              <td className="px-4 py-3 text-sm text-slate-700">{formatDateForDisplay(item.expDate)}</td>
+              <td className="px-4 py-3 text-sm text-slate-700">{item.quantityValue ?? "-"}</td>
+              <td className="px-4 py-3 text-sm text-slate-700">{item.quantityUnit || "-"}</td>
+              <td className="px-4 py-3 text-right sticky right-0 bg-white">
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => onEdit(item)}
+                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => onDelete(item)}
+                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -1482,15 +1668,13 @@ function StandardsTable({
                 <div className="flex items-center justify-end gap-2">
                   <button
                     onClick={() => onEdit(item)}
-                    disabled={true}
-                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => onDelete(item)}
-                    disabled={true}
-                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

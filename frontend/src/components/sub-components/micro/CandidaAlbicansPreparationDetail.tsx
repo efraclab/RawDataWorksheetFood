@@ -15,6 +15,8 @@ const makeDefaultInoculationRows = (): CandidaInoculationRow[] => [
         observation: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "Sabouraud Dextrose Agar (from Incubated SDB) or Sabouraud Chloramphenicol Agar (SCA)",
@@ -26,6 +28,8 @@ const makeDefaultInoculationRows = (): CandidaInoculationRow[] => [
         observation: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
 ];
 
@@ -40,6 +44,8 @@ const makeDefaultIdentificationRows = (): CandidaIdentificationRow[] => [
         observation: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
 ];
 
@@ -53,6 +59,8 @@ const makeEmptyInoculationRow = (): CandidaInoculationRow => ({
     observation: "",
     referenceCulture: "",
     blank: "",
+    incubationTempUnit: "℃",
+    incubationTimeUnit: "Hr."
 });
 
 const makeEmptyIdentificationRow = (): CandidaIdentificationRow => ({
@@ -65,11 +73,13 @@ const makeEmptyIdentificationRow = (): CandidaIdentificationRow => ({
     observation: "",
     referenceCulture: "",
     blank: "",
+    incubationTempUnit: "℃",
+    incubationTimeUnit: "Hr."
 });
 
 export const createDefaultCandidaAlbicansPreparation = (index: number): CandidaAlbicansPreparation => ({
     id: Date.now() + index,
-    label: `C. albicans Preparation ${index + 1}`,
+    label: `Candida Albicans Preparation ${index + 1}`,
     inoculationRows: makeDefaultInoculationRows(),
     identificationRows: makeDefaultIdentificationRows(),
     result: "",
@@ -275,7 +285,7 @@ const CandidaAlbicansPreparationDetail: React.FC<CandidaAlbicansPreparationDetai
                 <SectionHeader
                     icon={<FlaskIcon className="w-4 h-4 text-white" />}
                     title="Inoculation Observations"
-                    subtitle="Media inoculation steps for C. albicans detection"
+                    subtitle="Media inoculation steps for Candida Albicans detection"
                     badge={
                         !isLocked && (
                             <motion.button
@@ -466,7 +476,7 @@ const CandidaAlbicansPreparationDetail: React.FC<CandidaAlbicansPreparationDetai
                 <SectionHeader
                     icon={<MicroscopeIcon className="w-4 h-4 text-white" />}
                     title="Final Result"
-                    subtitle="Overall compliance determination for C. albicans detection"
+                    subtitle="Overall compliance determination for Candida Albicans detection"
                 />
                 <div className="p-5">
                     <textarea

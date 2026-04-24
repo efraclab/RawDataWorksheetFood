@@ -6,6 +6,8 @@ export interface ClostridiumBiochemicalRow {
     mediaReagent: string;
     incubationTemp: string;
     incubationTime: string;
+    incubationTempUnit: string;
+    incubationTimeUnit: string;
     observation: string;
     blank: string;
 }

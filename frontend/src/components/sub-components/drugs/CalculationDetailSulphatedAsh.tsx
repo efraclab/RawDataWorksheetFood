@@ -299,21 +299,11 @@ const CalculationDetailSulphatedAsh: React.FC<
     onFieldChange(calculation.id, "w2", W2.toString());
     onFieldChange(calculation.id, "w3", W3.toString());
 
-    console.log("1. Raw Inputs from Sample Preparation:", {
-      W1_EmptyCrucible: W1_raw,
-      W2_CrucibleWithSample: W2_raw,
-      W3_CrucibleAfterAsh: W3_raw,
-    });
 
-    console.log("2. Converted to grams:", { W1, W2, W3 });
 
     const numerator = W2 - W3;
     const denominator = W2 - W1;
 
-    console.log("3. Calculation Steps:", {
-      "W2 - W3 (numerator)": numerator,
-      "W2 - W1 (denominator)": denominator,
-    });
 
     if (denominator === 0) {
       console.error("Division by zero: W2 - W1 = 0");
@@ -328,10 +318,6 @@ const CalculationDetailSulphatedAsh: React.FC<
 
     const AshContent_Percentage = (numerator / denominator) * 100;
 
-    console.log(`4. FINAL FORMULA: [(${W3} - ${W1}) / (${W2} - ${W1})] x 100`);
-    console.log(
-      `Calculated Sulphated Ash Result: ${AshContent_Percentage.toFixed(4)} %`
-    );
     console.groupEnd();
 
     if (isNaN(AshContent_Percentage) || !isFinite(AshContent_Percentage)) {

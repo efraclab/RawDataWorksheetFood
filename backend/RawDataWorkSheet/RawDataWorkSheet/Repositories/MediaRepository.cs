@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using Microsoft.Data.SqlClient;
 using RawDataWorkSheet.Models.References;
 using System.Data;
@@ -7,12 +7,11 @@ namespace RawDataWorkSheet.Repositories
 {
     public class MediaRepository : IMediaRepository
     {
-
         private readonly string _connectionString;
 
         public MediaRepository(IConfiguration configuration)
         {
-            _connectionString = configuration["Connnectionstrings:Connection2"];
+            _connectionString = configuration["Connnectionstrings:Connection1"];
         }
 
         private IDbConnection CreateConnection()
@@ -21,13 +20,38 @@ namespace RawDataWorkSheet.Repositories
         public async Task<IEnumerable<MediaMaster>> GetAllAsync()
         {
             using var conn = CreateConnection();
-            return await conn.QueryAsync<MediaMaster>(
-                @"SELECT 
-                    id AS Id,
-                    media_name AS Name,
-                    lot_no AS LotNo,
-                    exp_date AS ExpDate
-                FROM temp_media");
+            return await conn.QueryAsync<MediaMaster>("SELECT * FROM MediaMaster");
+        }
+
+        public async Task AddAsync(MediaMaster request)
+        {
+            const string sql = @"
+                INSERT INTO MediaMaster (Name, Code, ExpDate, QuantityValue, QuantityUnit)
+                VALUES (@Name, @Code, @ExpDate, @QuantityValue, @QuantityUnit)";
+            using var conn = CreateConnection();
+            await conn.ExecuteAsync(sql, request);
+        }
+
+        public async Task UpdateAsync(MediaMaster request)
+        {
+            const string sql = @"
+                UPDATE MediaMaster SET
+                    Name         = @Name,
+                    Code         = @Code,
+                    ExpDate      = @ExpDate,
+                    QuantityValue = @QuantityValue,
+                    QuantityUnit = @QuantityUnit
+                WHERE Id = @Id";
+            using var conn = CreateConnection();
+            await conn.ExecuteAsync(sql, request);
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            using var conn = CreateConnection();
+            await conn.ExecuteAsync(
+                "DELETE FROM MediaMaster WHERE Id = @Id",
+                new { Id = id });
         }
     }
 }

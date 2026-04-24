@@ -20,6 +20,7 @@ import MicroWorksheet from "./components/MicroWorksheet";
 import DrugPrintReport from "./components/DrugPrintReport";
 import MicroPrintReport from "./components/MicroPrintReport";
 import WorksheetSidebar from "./components/shared/WorksheetSidebar";
+import AiReviewTerminal from "./components/AiReviewTerminal";
 import ReferenceDataManagement from "./components/ReferenceDataManagement";
 
 import type { WorksheetSidebarState, WorksheetSidebarActions } from "./components/shared/WorksheetSidebar";
@@ -33,6 +34,9 @@ import {
   getChemicals,
   getStandards,
   getMedia,
+  fetchWorksheetById,
+  reviewWorksheetWithAI,
+  AI_REVIEW_PROMPT,
   // fetchColumns,
 } from "./services/api";
 import type { Analyst } from "./models/Analyst";
@@ -163,6 +167,24 @@ function WorksheetPage(props: {
   const lab: string = (location.state as any)?.lab ?? props.department ?? "";
   const isMicro = lab.toLowerCase().includes("micro");
 
+  // Always-current reference data for use inside stable refs (updated every render, no re-render triggered).
+  const latestRefDataRef = useRef({
+    instruments: props.instruments,
+    chemicals: props.chemicals,
+    standards: props.standards,
+    media: props.media,
+    employeeId: props.employeeId,
+    role: props.role,
+  });
+  latestRefDataRef.current = {
+    instruments: props.instruments,
+    chemicals: props.chemicals,
+    standards: props.standards,
+    media: props.media,
+    employeeId: props.employeeId,
+    role: props.role,
+  };
+
   // ── Sidebar state (bubbled up from Worksheet) ──────────────────────────
   const [sidebarState, setSidebarState] = useState<WorksheetSidebarState>({
     worksheetId: worksheetId ?? "",
@@ -213,6 +235,42 @@ function WorksheetPage(props: {
     onToggleAuditTrail:  () => setIncludeAuditTrail(v => !v),
   });
 
+  const stableAiReviewRef = useRef(async () => {
+    const { instruments, chemicals, standards, media, employeeId, role } = latestRefDataRef.current;
+
+    const detail = await fetchWorksheetById(worksheetId!, { employeeId, role });
+    if (!detail) throw new Error("Could not fetch worksheet data");
+
+    // Keep only fields relevant to raw data review — strip admin/workflow/timestamp noise
+    const { sampleName, sampleCode, sampleQuantity, natureOfSample, lab } = detail.sample;
+    const sample = { sampleName, sampleCode, sampleQuantity, natureOfSample, lab };
+
+    const parameters = detail.parameters.map(({
+      files, instrumentIds, chemicalIds, standardIds, mediaIds,
+      // strip admin / workflow / timestamp fields
+      id, paraCode, preparationCompletedBy, preparationCompletedAt,
+      approvedByReviewer, approvedByReviewerName, approvedAtReviewer,
+      approvedByQA, approvedByQAName, approvedAtQA,
+      remarksByReviewer, remarksByQA, submittedQaBy, submittedQaByName,
+      analysisStartDate, analysisCompletionDate,
+      calculations,
+      ...rest
+    }: any) => ({
+      ...rest,
+      instruments: (instrumentIds ?? []).map((i: string) => instruments.find((x: Instrument) => x.id === i.trim())?.name).filter(Boolean),
+      chemicals:   (chemicalIds   ?? []).map((i: string) => chemicals.find((x: Chemical)   => x.slno === i.trim())?.name).filter(Boolean),
+      standards:   (standardIds   ?? []).map((i: string) => standards.find((x: Standard)   => x.serialNo === i.trim())?.name).filter(Boolean),
+      media:       (mediaIds       ?? []).map((i: string) => media.find((x: Media)          => x.id === i.trim())?.name).filter(Boolean),
+    }));
+
+    return reviewWorksheetWithAI({
+      source: "RawData",
+      operation: "validate_report",
+      prompt: AI_REVIEW_PROMPT,
+      data: { sample, parameters },
+    });
+  });
+
   // ── Print overlay state ────────────────────────────────────────────────
   const [printData, setPrintData] = useState<{
     worksheetInfo: WorksheetDetail;
@@ -259,6 +317,11 @@ function WorksheetPage(props: {
         actions={stableActionsRef.current}
         mode={sidebarMode}
         onClosePrint={handleClosePrint}
+      />
+
+      <AiReviewTerminal
+        visible={sidebarState.showSubmitForQA && sidebarState.role.toLowerCase() === "reviewer"}
+        onReview={() => stableAiReviewRef.current()}
       />
 
       {/* ── Only the main content area transitions ── */}

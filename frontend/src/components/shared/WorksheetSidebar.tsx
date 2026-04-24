@@ -52,12 +52,12 @@ interface WorksheetSidebarProps {
 // ─── Status colour map ────────────────────────────────────────────────────────
 function statusConfig(status: string): { dot: string; badge: string } {
   const s = status.toLowerCase();
-  if (s.includes("approved"))  return { dot: "bg-emerald-400", badge: "bg-emerald-500/20 text-emerald-200 border-emerald-400/40" };
-  if (s.includes("qa"))        return { dot: "bg-violet-400",  badge: "bg-violet-500/20  text-violet-200  border-violet-400/40"  };
-  if (s.includes("analysis"))  return { dot: "bg-sky-400",     badge: "bg-sky-500/20     text-sky-200     border-sky-400/40"     };
-  if (s.includes("review"))    return { dot: "bg-amber-400",   badge: "bg-amber-500/20   text-amber-200   border-amber-400/40"   };
-  if (s.includes("draft"))     return { dot: "bg-slate-400",   badge: "bg-slate-500/20   text-slate-200   border-slate-400/40"   };
-  return                              { dot: "bg-slate-400",   badge: "bg-white/10       text-white/80    border-white/20"       };
+  if (s.includes("approved"))  return { dot: "bg-emerald-500", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+  if (s.includes("qa"))        return { dot: "bg-violet-500",  badge: "bg-violet-50  text-violet-700  border-violet-200"  };
+  if (s.includes("analysis"))  return { dot: "bg-sky-500",     badge: "bg-sky-50     text-sky-700     border-sky-200"     };
+  if (s.includes("review"))    return { dot: "bg-amber-500",   badge: "bg-amber-50   text-amber-700   border-amber-200"   };
+  if (s.includes("draft"))     return { dot: "bg-slate-400",   badge: "bg-slate-100  text-slate-600   border-slate-200"   };
+  return                              { dot: "bg-slate-400",   badge: "bg-slate-100  text-slate-600   border-slate-200"   };
 }
 
 // ─── Role pill config ─────────────────────────────────────────────────────────
@@ -138,6 +138,7 @@ const InfoCard: React.FC<{ icon: React.ReactNode; label: string; value: string; 
   </div>
 );
 
+
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 const WorksheetSidebar: React.FC<WorksheetSidebarProps> = ({
@@ -148,7 +149,7 @@ const WorksheetSidebar: React.FC<WorksheetSidebarProps> = ({
     role,
     isSaving, saveSuccess, isSubmitting, isSubmittingForQA, isApprovingWorksheet,
     showSaveDraft, showSubmitForAnalysis, showSubmitForQA, showApproveWorksheet, showPrintReport,
-    isContentLoading, includeAuditTrail,
+    isContentLoading,
   } = state;
 
   const sc = displayStatus ? statusConfig(displayStatus) : null;
@@ -229,265 +230,226 @@ const WorksheetSidebar: React.FC<WorksheetSidebarProps> = ({
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
-           SCROLLABLE MIDDLE  — info cards + action buttons
+           SCROLLABLE MIDDLE
           ═══════════════════════════════════════════════════════════ */}
       <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="flex flex-col">
+              {/* Info cards */}
+              <div className="pt-4 pb-1">
+                <InfoCard
+                  label="Reg No"
+                  value={registrationNo}
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                    </svg>
+                  }
+                />
+                <InfoCard
+                  label="Sample"
+                  value={sampleName}
+                  multiline
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                  }
+                />
+              </div>
 
-        {/* Info cards */}
-        <div className="pt-4 pb-1">
-          <InfoCard
-            label="Reg No"
-            value={registrationNo}
-            icon={
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-              </svg>
-            }
-          />
-          <InfoCard
-            label="Sample"
-            value={sampleName}
-            multiline
-            icon={
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-              </svg>
-            }
-          />
-        </div>
-
-        {/* Loading state */}
-        {isContentLoading && (
-          <div className="px-3 py-3">
-            <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full flex-shrink-0"
-              />
-              <span className="text-[11px] font-semibold text-slate-500">
-                {mode === "print" ? "Loading report…" : "Loading worksheet…"}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Actions panel — fades in once content is ready */}
-        <AnimatePresence>
-          {!isContentLoading && (
-            <motion.div
-              key="actions-panel"
-              className="flex flex-col pb-4"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.25 }}
-            >
-              {/* Divider */}
-              <div className="px-3 sm:px-5 py-2 sm:py-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent" />
-                  <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.18em] sm:tracking-[0.2em] text-slate-400">
-                    {mode === "print" ? "Print Options" : "Actions"}
-                  </span>
-                  <div className="flex-1 h-px bg-gradient-to-l from-slate-200 to-transparent" />
+              {/* Loading state */}
+              {isContentLoading && (
+                <div className="px-3 py-3">
+                  <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-white border border-slate-200 shadow-sm">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full flex-shrink-0"
+                    />
+                    <span className="text-[11px] font-semibold text-slate-500">
+                      {mode === "print" ? "Loading report…" : "Loading worksheet…"}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="px-2 sm:px-3 flex flex-col gap-2 sm:gap-2.5">
+              {/* Actions panel */}
+              <AnimatePresence>
+                {!isContentLoading && (
+                  <motion.div
+                    key="actions-panel"
+                    className="flex flex-col pb-4"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    {/* Divider */}
+                    <div className="px-3 sm:px-5 py-2 sm:py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent" />
+                        <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.18em] sm:tracking-[0.2em] text-slate-400">
+                          {mode === "print" ? "Print Options" : "Actions"}
+                        </span>
+                        <div className="flex-1 h-px bg-gradient-to-l from-slate-200 to-transparent" />
+                      </div>
+                    </div>
 
-                {/* Print mode */}
-                <AnimatePresence>
-                  {mode === "print" && (
-                    <motion.div
-                      key="print-actions"
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 6 }}
-                      transition={{ duration: 0.25 }}
-                      className="flex flex-col gap-2.5"
-                    >
-                      {/* ── Audit Trail checkbox ────────────────────────── */}
-                      
-                      {/* <button
-                        type="button"
-                        onClick={actions.onToggleAuditTrail}
-                        className={`group relative w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all duration-200 text-left ${
-                          includeAuditTrail
-                            ? "bg-emerald-50 border-emerald-300 shadow-sm"
-                            : "bg-white border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/40"
-                        }`}
-                      >
-                        <div className={`flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-all duration-200 ${
-                          includeAuditTrail
-                            ? "bg-emerald-600 border-emerald-600"
-                            : "bg-white border-slate-300 group-hover:border-emerald-400"
-                        }`}>
-                          {includeAuditTrail && (
-                            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className={`text-[10px] sm:text-xs font-bold leading-tight transition-colors ${
-                            includeAuditTrail ? "text-emerald-800" : "text-slate-700 group-hover:text-emerald-700"
-                          }`}>
-                            Include Audit Trail
-                          </p>
-                          <p className={`text-[8px] sm:text-[9px] leading-tight mt-0.5 transition-colors ${
-                            includeAuditTrail ? "text-emerald-600/80" : "text-slate-400"
-                          }`}>
-                            {includeAuditTrail ? "Will print on new page" : "Omit from printed report"}
-                          </p>
-                        </div>
-                        <span className={`ml-auto flex-shrink-0 w-1.5 h-1.5 rounded-full transition-all duration-200 ${
-                          includeAuditTrail ? "bg-emerald-500 shadow-sm shadow-emerald-400/50" : "bg-slate-300"
-                        }`} />
-                      </button> */}
+                    <div className="px-2 sm:px-3 flex flex-col gap-2 sm:gap-2.5">
 
-                      {/* ── Print button ────────────────────────────────── */}
-                      <ActionBtn
-                        onClick={() => setTimeout(() => window.print(), 100)}
-                        gradient="from-emerald-500 to-emerald-700"
-                        hoverGradient="hover:from-emerald-400 hover:to-emerald-600"
-                        shadow="shadow-emerald-500/30"
-                        disabledBg="bg-emerald-500/50"
-                        label="Print Report"
-                        icon={
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                          </svg>
-                        }
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      {/* Print mode */}
+                      <AnimatePresence>
+                        {mode === "print" && (
+                          <motion.div
+                            key="print-actions"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 6 }}
+                            transition={{ duration: 0.25 }}
+                            className="flex flex-col gap-2.5"
+                          >
+                            <ActionBtn
+                              onClick={() => setTimeout(() => window.print(), 100)}
+                              gradient="from-emerald-500 to-emerald-700"
+                              hoverGradient="hover:from-emerald-400 hover:to-emerald-600"
+                              shadow="shadow-emerald-500/30"
+                              disabledBg="bg-emerald-500/50"
+                              label="Print Report"
+                              icon={
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
+                              }
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
 
-                {/* Worksheet mode */}
-                <AnimatePresence>
-                  {mode === "worksheet" && (
-                    <motion.div
-                      key="worksheet-actions"
-                      className="flex flex-col gap-2.5"
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 6 }}
-                      transition={{ duration: 0.25 }}
-                    >
-                      {showSaveDraft && (
-                        <div className="relative">
-                          <ActionBtn
-                            onClick={actions.onSaveDraft}
-                            disabled={isSaving}
-                            loading={isSaving}
-                            loadingLabel="Saving…"
-                            gradient="from-emerald-500 to-emerald-700"
-                            hoverGradient="hover:from-emerald-400 hover:to-emerald-600"
-                            shadow="shadow-emerald-500/30"
-                            disabledBg="bg-emerald-500/50"
-                            label="Save Draft"
-                            icon={
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                              </svg>
-                            }
-                          />
-                          <AnimatePresence>
-                            {saveSuccess && (
-                              <motion.span
-                                initial={{ opacity: 0, scale: 0 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0 }}
-                                className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-emerald-400 rounded-full flex items-center justify-center shadow-lg shadow-emerald-400/50 z-10"
-                              >
-                                <Check className="w-3 h-3 text-white" />
-                              </motion.span>
+                      {/* Worksheet mode — default actions */}
+                      <AnimatePresence>
+                        {mode === "worksheet" && (
+                          <motion.div
+                            key="worksheet-actions"
+                            className="flex flex-col gap-2.5"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 6 }}
+                            transition={{ duration: 0.25 }}
+                          >
+                            {showSaveDraft && (
+                              <div className="relative">
+                                <ActionBtn
+                                  onClick={actions.onSaveDraft}
+                                  disabled={isSaving}
+                                  loading={isSaving}
+                                  loadingLabel="Saving…"
+                                  gradient="from-emerald-500 to-emerald-700"
+                                  hoverGradient="hover:from-emerald-400 hover:to-emerald-600"
+                                  shadow="shadow-emerald-500/30"
+                                  disabledBg="bg-emerald-500/50"
+                                  label="Save Draft"
+                                  icon={
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                                    </svg>
+                                  }
+                                />
+                                <AnimatePresence>
+                                  {saveSuccess && (
+                                    <motion.span
+                                      initial={{ opacity: 0, scale: 0 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      exit={{ opacity: 0, scale: 0 }}
+                                      className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-emerald-400 rounded-full flex items-center justify-center shadow-lg shadow-emerald-400/50 z-10"
+                                    >
+                                      <Check className="w-3 h-3 text-white" />
+                                    </motion.span>
+                                  )}
+                                </AnimatePresence>
+                              </div>
                             )}
-                          </AnimatePresence>
-                        </div>
-                      )}
 
-                      {showSubmitForAnalysis && (
-                        <ActionBtn
-                          onClick={actions.onSubmitForAnalysis}
-                          disabled={isSubmitting}
-                          loading={isSubmitting}
-                          loadingLabel="Submitting…"
-                          gradient="from-sky-500 to-blue-700"
-                          hoverGradient="hover:from-sky-400 hover:to-blue-600"
-                          shadow="shadow-blue-500/30"
-                          disabledBg="bg-blue-500/50"
-                          label="Submit for Analysis"
-                          icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          }
-                        />
-                      )}
+                            {showSubmitForAnalysis && (
+                              <ActionBtn
+                                onClick={actions.onSubmitForAnalysis}
+                                disabled={isSubmitting}
+                                loading={isSubmitting}
+                                loadingLabel="Submitting…"
+                                gradient="from-sky-500 to-blue-700"
+                                hoverGradient="hover:from-sky-400 hover:to-blue-600"
+                                shadow="shadow-blue-500/30"
+                                disabledBg="bg-blue-500/50"
+                                label="Submit for Analysis"
+                                icon={
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                }
+                              />
+                            )}
 
-                      {showSubmitForQA && (
-                        <ActionBtn
-                          onClick={actions.onSubmitForQA}
-                          disabled={isSubmittingForQA}
-                          loading={isSubmittingForQA}
-                          loadingLabel="Submitting…"
-                          gradient="from-violet-500 to-purple-700"
-                          hoverGradient="hover:from-violet-400 hover:to-purple-600"
-                          shadow="shadow-purple-500/30"
-                          disabledBg="bg-purple-500/50"
-                          label="Submit for QA Review"
-                          icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                            </svg>
-                          }
-                        />
-                      )}
+                            {showSubmitForQA && (
+                              <ActionBtn
+                                onClick={actions.onSubmitForQA}
+                                disabled={isSubmittingForQA}
+                                loading={isSubmittingForQA}
+                                loadingLabel="Submitting…"
+                                gradient="from-violet-500 to-purple-700"
+                                hoverGradient="hover:from-violet-400 hover:to-purple-600"
+                                shadow="shadow-purple-500/30"
+                                disabledBg="bg-purple-500/50"
+                                label="Submit for QA Review"
+                                icon={
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                  </svg>
+                                }
+                              />
+                            )}
 
-                      {showApproveWorksheet && (
-                        <ActionBtn
-                          onClick={actions.onApproveWorksheet}
-                          disabled={isApprovingWorksheet}
-                          loading={isApprovingWorksheet}
-                          loadingLabel="Approving…"
-                          gradient="from-green-500 to-green-700"
-                          hoverGradient="hover:from-green-400 hover:to-green-600"
-                          shadow="shadow-green-500/30"
-                          disabledBg="bg-green-500/50"
-                          label="Approve Worksheet"
-                          icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                            </svg>
-                          }
-                        />
-                      )}
+                            {showApproveWorksheet && (
+                              <ActionBtn
+                                onClick={actions.onApproveWorksheet}
+                                disabled={isApprovingWorksheet}
+                                loading={isApprovingWorksheet}
+                                loadingLabel="Approving…"
+                                gradient="from-green-500 to-green-700"
+                                hoverGradient="hover:from-green-400 hover:to-green-600"
+                                shadow="shadow-green-500/30"
+                                disabledBg="bg-green-500/50"
+                                label="Approve Worksheet"
+                                icon={
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                  </svg>
+                                }
+                              />
+                            )}
 
-                      {showPrintReport && (
-                        <ActionBtn
-                          onClick={actions.onPrintReport}
-                          gradient="from-slate-600 to-slate-800"
-                          hoverGradient="hover:from-slate-500 hover:to-slate-700"
-                          shadow="shadow-slate-500/25"
-                          disabledBg="bg-slate-500/50"
-                          label="Print Report"
-                          icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                            </svg>
-                          }
-                        />
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                            {showPrintReport && (
+                              <ActionBtn
+                                onClick={actions.onPrintReport}
+                                gradient="from-slate-600 to-slate-800"
+                                hoverGradient="hover:from-slate-500 hover:to-slate-700"
+                                shadow="shadow-slate-500/25"
+                                disabledBg="bg-slate-500/50"
+                                label="Print Report"
+                                icon={
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-full h-full">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                  </svg>
+                                }
+                              />
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
 
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+        </div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════

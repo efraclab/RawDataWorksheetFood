@@ -1,5 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { LockOpen, X, Info, Loader2 } from "lucide-react";
 
 interface UnlockParameterDialogProps {
   isOpen: boolean;
@@ -40,84 +41,36 @@ const UnlockParameterDialog: React.FC<UnlockParameterDialogProps> = ({
             className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden"
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5">
+            <div className="bg-gradient-to-r from-emerald-700 to-slate-900 px-6 py-5">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
-                    />
-                  </svg>
+                  <LockOpen className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-white">
-                    Unlock Parameter
-                  </h3>
-                  <p className="text-sm text-emerald-100 mt-0.5">
-                    Revert to draft status for editing
-                  </p>
+                  <h3 className="text-xl font-semibold text-white">Unlock Parameter</h3>
+                  <p className="text-sm text-emerald-200 mt-0.5">Revert to draft status for editing</p>
                 </div>
                 <button
                   onClick={onClose}
                   className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
                 >
-                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <X className="w-5 h-5 text-white" />
                 </button>
               </div>
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-5">
+            <div className="p-6 space-y-4">
               {/* Parameter Details */}
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between pb-2.5 border-b border-gray-200">
-                    <span className="text-xs text-gray-500 font-medium">Parameter Name</span>
-                    <p className="text-sm text-gray-900 font-semibold">
-                      {parameterName}
-                    </p>
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
+                    <span className="text-xs text-slate-500 font-medium">Parameter Name</span>
+                    <p className="text-sm text-slate-900 font-semibold">{parameterName}</p>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500 font-medium">Parameter Code</span>
-                    <p className="text-sm text-gray-900 font-semibold font-mono">
-                      {parameterCode}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Confirmation Message */}
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg
-                      className="w-4 h-4 text-emerald-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-emerald-800 leading-relaxed">
-                      Are you sure you want to unlock <strong>{parameterName}</strong> ({parameterCode})?
-                    </p>
+                    <span className="text-xs text-slate-500 font-medium">Parameter Code</span>
+                    <p className="text-sm text-slate-900 font-semibold font-mono">{parameterCode}</p>
                   </div>
                 </div>
               </div>
@@ -125,15 +78,11 @@ const UnlockParameterDialog: React.FC<UnlockParameterDialogProps> = ({
               {/* What Will Happen */}
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                  <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Info className="w-4 h-4 text-blue-600" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-2">
-                      What will happen:
-                    </h4>
+                    <h4 className="text-sm font-semibold text-blue-900 mb-2">What will happen:</h4>
                     <ul className="space-y-1.5 text-sm text-blue-800">
                       <li className="flex items-center gap-2">
                         <span className="w-1 h-1 bg-blue-500 rounded-full flex-shrink-0" />
@@ -158,47 +107,27 @@ const UnlockParameterDialog: React.FC<UnlockParameterDialogProps> = ({
             </div>
 
             {/* Actions */}
-            <div className="bg-gray-50 px-6 py-4 flex gap-3 border-t border-gray-200">
+            <div className="bg-slate-50 px-6 py-4 flex gap-3 border-t border-slate-200">
               <button
                 onClick={onClose}
                 disabled={isUnlocking}
-                className="flex-1 px-6 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-2.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={onConfirm}
                 disabled={isUnlocking}
-                className="flex-1 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-medium rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 px-6 py-2.5 bg-gradient-to-r from-emerald-700 to-slate-800 text-white font-medium rounded-lg hover:from-emerald-800 hover:to-slate-900 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isUnlocking ? (
                   <>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        ease: "linear",
-                      }}
-                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                    />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Unlocking...</span>
                   </>
                 ) : (
                   <>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
-                      />
-                    </svg>
+                    <LockOpen className="w-4 h-4" />
                     <span>Unlock Parameter</span>
                   </>
                 )}

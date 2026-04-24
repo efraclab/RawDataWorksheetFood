@@ -3563,13 +3563,10 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
       {/* ── Audit Log ─────────────────────────────────────────────────────── */}
       {/* AUDIT TRAIL COMMENTED OUT — no longer required
       {(() => {
-        console.log("[PrintReport] includeAuditTrail:", includeAuditTrail);
-        console.log("[PrintReport] worksheetInfo.logs:", (worksheetInfo as any)?.logs);
         return null;
       })()}
       {includeAuditTrail && (() => {
         const logs: any[] = (worksheetInfo as any)?.logs ?? [];
-        console.log("[PrintReport] logs count:", logs.length, "logs:", logs);
         if (!logs.length) return null;
 
         return (

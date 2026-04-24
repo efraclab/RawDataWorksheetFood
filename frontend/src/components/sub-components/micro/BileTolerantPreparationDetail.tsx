@@ -9,33 +9,39 @@ const makeDefaultInoculationRows = (): BileTolerantInoculationRow[] => [
         colonyCharacteristics: "",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "20-25°C",
-        incubationTime: "2-5 hrs",
+        incubationTemp: "20-25",
+        incubationTime: "2-5",
         sample: "",
         reference: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "Enterobacteria Enrichment Broth-Mossel",
         colonyCharacteristics: "Turbidity",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "30-35°C",
-        incubationTime: "24-48 hrs",
+        incubationTemp: "30-35",
+        incubationTime: "24-48",
         sample: "",
         reference: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "Violet Red Bile Glucose Agar",
         colonyCharacteristics: "Pink to red or purple colonies",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "30-35°C",
-        incubationTime: "24 hrs",
+        incubationTemp: "30-35",
+        incubationTime: "24",
         sample: "",
         reference: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
 ];
 
@@ -50,6 +56,8 @@ const makeEmptyInoculationRow = (): BileTolerantInoculationRow => ({
     sample: "",
     reference: "",
     blank: "",
+    incubationTempUnit: "℃",
+    incubationTimeUnit: "Hr."
 });
 
 export const createDefaultBileTolerantPreparation = (index: number): BileTolerantPreparation => ({
@@ -293,10 +301,10 @@ const BileTolerantPreparationDetail: React.FC<BileTolerantPreparationDetailProps
                     }
                 />
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse min-w-[1600px]">
+                    <table className="w-full text-sm border-collapse min-w-[1800px]">
                         <thead>
                             <tr className="bg-emerald-700 text-white">
-                                <th className={thClass + " text-white border-emerald-600 w-[24%]"}>Medium</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[22%]"}>Medium</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[12%]"}>Colony / Growth Characteristics</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[6%]"}>Analysis Started</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[6%]"}>Analysis Completed</th>

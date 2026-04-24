@@ -1450,41 +1450,6 @@ namespace RawDataWorkSheet.Repositories
             };
         }
 
-        public async Task InsertLogAsync(WorksheetLogRequest request)
-        {
-            const string query = """
-        INSERT INTO worksheet_logs (
-            worksheet_id,
-            parameter_id,
-            [timestamp],
-            remarks,
-            action,
-            employee_id,
-            role
-        )
-        VALUES (
-            @WorksheetId,
-            @ParameterId,
-            SYSDATETIME(),
-            @Remarks,
-            @Action,
-            @EmployeeId,
-            @Role
-        )
-    """;
-
-            using var conn = Createconnection();
-            await conn.ExecuteAsync(query, new
-            {
-                request.WorksheetId,
-                request.ParameterId,
-                request.Remarks,
-                request.Action,
-                request.EmployeeId,
-                request.Role
-            });
-        }
-
         private DateTime? ParseDateTime(string dateTimeString)
         {
             if (string.IsNullOrWhiteSpace(dateTimeString))

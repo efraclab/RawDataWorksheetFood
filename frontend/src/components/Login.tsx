@@ -144,29 +144,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes shimmer {
-          0% { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
         .animate-float { animation: float 3s ease-in-out infinite; }
         .animate-fadeInUp { animation: fadeInUp 0.6s ease-out; }
-        .shimmer-bg {
-          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
-          background-size: 200% 100%;
-          animation: shimmer 3s ease-in-out infinite;
-        }
-        .feature-card {
-          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .feature-card:hover {
-          transform: translateX(4px);
-        }
-        .input-focus {
-          transition: all 0.3s ease;
-        }
-        .input-focus:focus {
-          transform: translateY(-2px);
-        }
       `}</style>
 
       <div className="flex flex-col lg:flex-row min-h-screen">
@@ -177,8 +156,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           <div className="absolute bottom-0 left-1/4 w-48 h-48 bg-white/5 rounded-full translate-y-1/2"></div>
           <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-white/10 rounded-full animate-float"></div>
           
-          <div className="shimmer-bg absolute inset-0 opacity-20"></div>
-
           <div className="relative z-10 max-w-lg mx-auto w-full">
             {/* Logo and Title Section Combined */}
             <div className="flex items-center justify-center lg:justify-start gap-4 mb-10 animate-fadeInUp">
@@ -233,7 +210,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               ].map((feature, index) => (
                 <div
                   key={index}
-                  className="feature-card flex items-start gap-3 p-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 animate-fadeInUp"
+                  className="flex items-start gap-3 p-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-colors animate-fadeInUp"
                   style={{ animationDelay: feature.delay }}
                 >
                   <div className="p-1.5 rounded-lg bg-white/20 flex-shrink-0">
@@ -294,7 +271,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                     name="employeeId"
                     value={formData.employeeId}
                     onChange={handleChange}
-                    className={`input-focus w-full pl-11 pr-4 py-3 border rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 transition-all bg-slate-50 ${
+                    className={`w-full pl-11 pr-4 py-3 border rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 transition-all bg-slate-50 ${
                       validationErrors.employeeId
                         ? "border-red-300 focus:ring-red-500 focus:bg-red-50"
                         : "border-slate-200 focus:ring-emerald-500 focus:bg-white focus:border-emerald-500"
@@ -328,7 +305,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className={`input-focus w-full pl-11 pr-12 py-3 border rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 transition-all bg-slate-50 ${
+                    className={`w-full pl-11 pr-12 py-3 border rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 transition-all bg-slate-50 ${
                       validationErrors.password
                         ? "border-red-300 focus:ring-red-500 focus:bg-red-50"
                         : "border-slate-200 focus:ring-emerald-500 focus:bg-white focus:border-emerald-500"

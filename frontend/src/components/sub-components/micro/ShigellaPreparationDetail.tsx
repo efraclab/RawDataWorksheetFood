@@ -15,6 +15,8 @@ const makeDefaultInoculationRow = (): ShigellaInoculationRow => ({
     sampleResult: "",
     referenceResult: "",
     blankResult: "",
+    incubationTempUnit: "℃",
+    incubationTimeUnit: "Hr."
 });
 
 const makeDefaultBiochemicalRow = (): ShigellaBiochemicalRow => ({
@@ -34,33 +36,39 @@ const makeDefaultInoculationRows = (): ShigellaInoculationRow[] => [
         colonyCharacteristics: "Turbidity",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "30-35°C",
-        incubationTime: "18-24 hrs",
+        incubationTemp: "30-35",
+        incubationTime: "18-24 ",
         sampleResult: "",
         referenceResult: "",
         blankResult: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "GN Broth (From Incubated SCDM)",
         colonyCharacteristics: "Turbidity",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "30-35°C",
-        incubationTime: "24-48 hrs",
+        incubationTemp: "30-35",
+        incubationTime: "24-48 ",
         sampleResult: "",
         referenceResult: "",
         blankResult: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "XLD Agar (From Incubated GN Broth)",
         colonyCharacteristics: "Red coloemerald translucent colony without black center",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "30-35°C",
-        incubationTime: "24-28 hrs",
+        incubationTemp: "30-35",
+        incubationTime: "24-28 ",
         sampleResult: "",
         referenceResult: "",
         blankResult: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
 ];
 
@@ -323,18 +331,18 @@ const ShigellaPreparationDetail: React.FC<ShigellaPreparationDetailProps> = ({
                     }
                 />
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse min-w-[1400px]">
+                    <table className="w-full text-sm border-collapse min-w-[1800px]">
                         <thead>
                             <tr className="bg-emerald-700 text-white">
-                                <th className={thClass + " text-white border-emerald-600 w-[22%]"}>Medium</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[20%]"}>Medium</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[18%]"}>Colony / Growth Characteristics</th>
-                                <th className={thClass + " text-white border-emerald-600 w-[11%]"}>Analysis Started</th>
-                                <th className={thClass + " text-white border-emerald-600 w-[11%]"}>Analysis Completed</th>
-                                <th className={thClass + " text-white border-emerald-600 w-[14%]"}>Incubation Temp. (℃)</th>
-                                <th className={thClass + " text-white border-emerald-600"}>Incubation Time (Hr.)</th>
-                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600">Sample</th>
-                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600">Reference</th>
-                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600">Culture Blank</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[8%]"}>Analysis Started</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[8%]"}>Analysis Completed</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[6%]"}>Incubation Temp. (℃)</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[6%]"}>Incubation Time (Hr.)</th>
+                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[12%]">Sample</th>
+                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[12%]">Reference</th>
+                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[12%]">Culture Blank</th>
                                 {!isLocked && <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center">Action</th>}
                             </tr>
                         </thead>
@@ -449,17 +457,17 @@ const ShigellaPreparationDetail: React.FC<ShigellaPreparationDetailProps> = ({
                     }
                 />
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse min-w-[1400px]">
+                    <table className="w-full text-sm border-collapse min-w-[1800px]">
                         <thead>
                             <tr className="bg-emerald-700 text-white">
-                                <th className={thClass + " text-white border-emerald-600 w-[22%]"}>Test Name</th>
-                                <th className={thClass + " text-white border-emerald-600"}>Analysis Started</th>
-                                <th className={thClass + " text-white border-emerald-600"}>Analysis Completed</th>
-                                <th className={thClass + " text-white border-emerald-600"}>Media / Reagent</th>
-                                <th className={thClass + " text-white border-emerald-600"}>Incubation Condition</th>
-                                <th className={thClass + " text-white border-emerald-600"}>Observation</th>
-                                <th className={thClass + " text-white border-emerald-600"}>Reference</th>
-                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600">Blank</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[18%]"}>Test Name</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[8%]"}>Analysis Started</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[8%]"}>Analysis Completed</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[14%]"}>Media / Reagent</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[14%]"}>Incubation Condition</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[14%]"}>Observation</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[14%]"}>Reference</th>
+                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[14%]">Blank</th>
                                 {!isLocked && <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center">Action</th>}
                             </tr>
                         </thead>

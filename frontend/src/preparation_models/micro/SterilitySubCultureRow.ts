@@ -7,7 +7,6 @@ export interface SterilitySubCultureRow {
     ftmSampleResult: GrowthResult;
     ftmPositiveControlResult: GrowthResult;
     ftmBlankResult: GrowthResult;
-
     scdmSampleResult: GrowthResult;
     scdmPositiveControlResult: GrowthResult;
     scdmBlankResult: GrowthResult;

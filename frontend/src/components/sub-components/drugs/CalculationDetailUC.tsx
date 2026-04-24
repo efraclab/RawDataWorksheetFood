@@ -219,7 +219,6 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
       calculation.mgPerTabletResultTablet10,
     ];
 
-    console.log("Loading mg/Tablet results:", calculation);
     const loadedMgResults: (number | null)[] = mgFields.map((v) => {
       if (v !== null && v !== undefined && String(v).trim() !== "") {
         const n = parseFloat(String(v));
@@ -840,7 +839,6 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
 
     const result_mg_per_tablet_raw = numerator / denominator;
 
-    console.log(`Step 1 - mg/Tablet: ${numerator} / ${denominator} = ${result_mg_per_tablet_raw}`);
 
     if (isNaN(result_mg_per_tablet_raw) || !isFinite(result_mg_per_tablet_raw)) {
       return { percentLC: "Error: Invalid calculation", mgPerTablet: null };
@@ -856,7 +854,6 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
 
     const result = (result_mg_per_tablet * 100) / Claim;
 
-    console.log(`Step 2 - % of LC: ${result_mg_per_tablet} x 100 / ${Claim} = ${result}`);
 
     if (isNaN(result) || !isFinite(result)) {
       return { percentLC: "Error: Invalid calculation", mgPerTablet: result_mg_per_tablet };
@@ -1001,7 +998,6 @@ const CalculationDetailUC: React.FC<CalculationDetailUCProps> = ({
       onFieldChange(calculation.id, "calculationResultUnit", "% of LC");
       onFieldChange(calculation.id, "mgPerTabletResultUnit", "mg/Tablet");
 
-      console.log("Summary Results:", summaryData);
     } else {
       setSummaryResults(null);
       onFieldChange(calculation.id, "calculationResultUnit", null);

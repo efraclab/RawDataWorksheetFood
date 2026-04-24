@@ -1,9 +1,11 @@
 
 export interface WorksheetLogRequest {
-    worksheetId: string;
+    worksheetId?: string;
     parameterId?: number | null;
     remarks?: string | null;
     action: string;
     employeeId: string;
     role: string;
+    referenceType?: string | null;
+    referenceId?: string | null;
 }

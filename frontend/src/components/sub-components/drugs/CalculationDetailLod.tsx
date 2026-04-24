@@ -303,21 +303,11 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
     onFieldChange(calculation.id, "w2", W2.toString());
     onFieldChange(calculation.id, "w3", W3.toString());
 
-    console.log("1. Raw Inputs from Sample Preparation:", {
-      W1_EmptyDish: W1_raw,
-      W2_DishWithSample: W2_raw,
-      W3_DishAfterIgnition: W3_raw,
-    });
 
-    console.log("2. Converted to grams:", { W1, W2, W3 });
 
     const numerator = W2 - W3;
     const denominator = W2 - W1;
 
-    console.log("3. Calculation Steps:", {
-      "W2 - W3 (numerator)": numerator,
-      "W2 - W1 (denominator)": denominator,
-    });
 
     if (denominator === 0) {
       console.error("Division by zero: W2 - W1 = 0");
@@ -332,8 +322,6 @@ const CalculationDetailLod: React.FC<CalculationDetailLodProps> = ({
 
     const Lod_Percentage = (numerator / denominator) * 100;
 
-    console.log(`4. FINAL FORMULA: [(${W2} - ${W3}) / (${W2} - ${W1})] x 100`);
-    console.log(`Calculated LOD Result: ${Lod_Percentage.toFixedNoRound(4).toFixed(3)} %`);
     console.groupEnd();
 
     if (isNaN(Lod_Percentage) || !isFinite(Lod_Percentage)) {

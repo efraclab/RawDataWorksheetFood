@@ -24,10 +24,12 @@ builder.Services.AddScoped <IChemicalRepository, ChemicalRepository>();
 builder.Services.AddScoped <IStandardRepository, StandardRepository>();
 builder.Services.AddScoped <IInstrumentRepository, InstrumentRepository>();
 builder.Services.AddScoped <IMediaRepository, MediaRepository>();
+builder.Services.AddScoped <ILogRepository, LogRepository>();
 builder.Services.AddScoped <IChemicalService, ChemicalService>();
 builder.Services.AddScoped <IInstrumentService, InstrumentService>();
 builder.Services.AddScoped <IStandardService, StandardService>();
 builder.Services.AddScoped <IMediaService, MediaService>();
+builder.Services.AddScoped <ILogService, LogService>();
 builder.Services.AddScoped<JwtService>();
 
 builder.Services.AddCors(options =>

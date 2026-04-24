@@ -10,66 +10,78 @@ const makeDefaultInoculationRows = (): SalmonellaInoculationRow[] => [
         colonyCharacteristics: "Turbidity",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "37°C",
-        incubationTime: "18-24 hrs",
+        incubationTemp: "37",
+        incubationTime: "18-24",
         sampleResult: "",
         referenceResult: "",
         blankResult: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "Rappaport-Vassiliadis (RV) Broth",
         colonyCharacteristics: "Turbidity with color change",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "42°C",
-        incubationTime: "24-48 hrs",
+        incubationTemp: "42",
+        incubationTime: "24-48",
         sampleResult: "",
         referenceResult: "",
         blankResult: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "Selenite Cystine Broth",
         colonyCharacteristics: "Turbidity",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "37°C",
-        incubationTime: "24 hrs",
+        incubationTemp: "37",
+        incubationTime: "24",
         sampleResult: "",
         referenceResult: "",
         blankResult: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "XLD Agar (From RV Broth)",
         colonyCharacteristics: "Red colonies with black centers (H2S positive)",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "37°C",
-        incubationTime: "24-48 hrs",
+        incubationTemp: "37",
+        incubationTime: "24-48",
         sampleResult: "",
         referenceResult: "",
         blankResult: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "Bismuth Sulfite Agar",
         colonyCharacteristics: "Black colonies with metallic sheen",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "37°C",
-        incubationTime: "24-48 hrs",
+        incubationTemp: "37",
+        incubationTime: "24-48",
         sampleResult: "",
         referenceResult: "",
         blankResult: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "Hektoen Enteric (HE) Agar",
         colonyCharacteristics: "Blue-green colonies with black centers",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "37°C",
-        incubationTime: "24 hrs",
+        incubationTemp: "37",
+        incubationTime: "24",
         sampleResult: "",
         referenceResult: "",
         blankResult: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
 ];
 
@@ -102,6 +114,8 @@ const makeEmptyInoculationRow = (): SalmonellaInoculationRow => ({
     sampleResult: "",
     referenceResult: "",
     blankResult: "",
+    incubationTempUnit: "℃",
+    incubationTimeUnit: "Hr."
 });
 
 const makeEmptyBiochemicalRow = (): SalmonellaBiochemicalRow => ({
@@ -394,18 +408,18 @@ const SalmonellaPreparationDetail: React.FC<SalmonellaPreparationDetailProps> = 
                     }
                 />
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse min-w-[1400px]">
+                    <table className="w-full text-sm border-collapse min-w-[1800px]">
                         <thead>
                             <tr className="bg-emerald-700 text-white">
                                 <th className={thClass + " text-white border-emerald-600 w-[22%]"}>Medium</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[14%]"}>Colony / Growth Characteristics</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[8%]"}>Analysis Started</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[8%]"}>Analysis Completed</th>
-                                <th className={thClass + " text-white border-emerald-600 w-[5%]"}>Incubation Temp. (℃)</th>
-                                <th className={thClass + " text-white border-emerald-600 w-[5%]"}>Incubation Time (Hr.)</th>
-                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[8%]">Sample</th>
-                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[8%]">Reference</th>
-                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[8%]">Blank</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[6%]"}>Incubation Temp. (℃)</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[6%]"}>Incubation Time (Hr.)</th>
+                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[12%]">Sample</th>
+                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[12%]">Reference</th>
+                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[12%]">Blank</th>
                                 {!isLocked && <th className="px-2 py-3 w-10 border-l border-emerald-600 "></th>}
                             </tr>
                         </thead>
@@ -525,7 +539,7 @@ const SalmonellaPreparationDetail: React.FC<SalmonellaPreparationDetailProps> = 
                     }
                 />
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse min-w-[1100px]">
+                    <table className="w-full text-sm border-collapse min-w-[1800px]">
                         <thead>
                             <tr className="bg-emerald-700 text-white">
                                 <th className={thClass + " text-white border-emerald-600"}>Test Name</th>

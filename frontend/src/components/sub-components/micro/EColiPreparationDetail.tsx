@@ -56,6 +56,8 @@ const DEFAULT_OBSERVATION_ROWS: Omit<EcoliObservationRow, "id">[] = [
         sample: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "MacConkey Broth (from incubated SCDM)",
@@ -67,6 +69,8 @@ const DEFAULT_OBSERVATION_ROWS: Omit<EcoliObservationRow, "id">[] = [
         sample: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "MacConkey Agar (from incubated MacConkey Broth)",
@@ -78,6 +82,8 @@ const DEFAULT_OBSERVATION_ROWS: Omit<EcoliObservationRow, "id">[] = [
         sample: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "EMB Agar",
@@ -89,6 +95,8 @@ const DEFAULT_OBSERVATION_ROWS: Omit<EcoliObservationRow, "id">[] = [
         sample: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
 ];
 
@@ -103,6 +111,8 @@ const DEFAULT_BIOCHEMICAL_ROWS: Omit<EcoliObservationRow, "id">[] = [
         sample: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "Gram's Staining",
@@ -114,6 +124,8 @@ const DEFAULT_BIOCHEMICAL_ROWS: Omit<EcoliObservationRow, "id">[] = [
         sample: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "Test for Indole",
@@ -125,6 +137,8 @@ const DEFAULT_BIOCHEMICAL_ROWS: Omit<EcoliObservationRow, "id">[] = [
         sample: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "MR Test",
@@ -136,6 +150,8 @@ const DEFAULT_BIOCHEMICAL_ROWS: Omit<EcoliObservationRow, "id">[] = [
         sample: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "Voges-Proskauer Reaction",
@@ -147,6 +163,8 @@ const DEFAULT_BIOCHEMICAL_ROWS: Omit<EcoliObservationRow, "id">[] = [
         sample: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "Citrate Utilization",
@@ -158,6 +176,8 @@ const DEFAULT_BIOCHEMICAL_ROWS: Omit<EcoliObservationRow, "id">[] = [
         sample: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
 ];
 
@@ -238,6 +258,8 @@ const EcoliPreparationDetail: React.FC<EcoliPreparationDetailProps> = ({
             sample: "",
             referenceCulture: "",
             blank: "",
+            incubationTempUnit: "℃",
+            incubationTimeUnit: "Hr."
         };
         onChange({ ...preparation, observationRows: [...preparation.observationRows, newRow] });
     };
@@ -258,6 +280,8 @@ const EcoliPreparationDetail: React.FC<EcoliPreparationDetailProps> = ({
             sample: "",
             referenceCulture: "",
             blank: "",
+            incubationTempUnit: "℃",
+            incubationTimeUnit: "Hr."
         };
         onChange({ ...preparation, biochemicalRows: [...preparation.biochemicalRows, newRow] });
     };
@@ -340,19 +364,19 @@ const EcoliPreparationDetail: React.FC<EcoliPreparationDetailProps> = ({
                 />
                 <div className="p-5">
                     <div className="overflow-x-auto rounded-xl border-2 border-emerald-100">
-                        <table className="w-full text-sm border-collapse min-w-[1400px]">
+                        <table className="w-full text-sm border-collapse min-w-[1800px]">
                             <thead>
                                 <tr className="bg-gradient-to-r from-emerald-700 to-emerald-900 text-white">
-                                    <th className="px-3 py-3 text-left text-xs font-bold border-r border-emerald-600 w-[22%]">Medium</th>
-                                    <th className="px-3 py-3 text-left text-xs font-bold border-r border-emerald-600 w-[18%]">Colony / Growth Characteristics</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[11%]">Analysis Started</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[11%]">Analysis Completed</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[14%]">Incubation Temp. (℃)</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[14%]">Incubation Time (Hr.)</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600">Sample</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600">Ref. Culture</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold">Blank</th>
-                                    {!isLocked && <th className="px-3 py-3 w-10" />}
+                                    <th className="px-3 py-3 text-left text-xs font-bold border-r border-emerald-600 w-[20%]">Medium</th>
+                                    <th className="px-3 py-3 text-left text-xs font-bold border-r border-emerald-600 w-[16%]">Colony / Growth Characteristics</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[8%]">Analysis Started</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[8%]">Analysis Completed</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[6%]">Incubation Temp. (℃)</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[6%]">Incubation Time (Hr.)</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[12%]">Sample</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[12%]">Ref. Culture</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald w-[12%]">Blank</th>
+                                    {!isLocked && <th className="px-3 py-3 w-10" >Action</th>}
                                 </tr>
                             </thead>
                             <tbody>
@@ -486,19 +510,19 @@ const EcoliPreparationDetail: React.FC<EcoliPreparationDetailProps> = ({
                 <div className="p-5">
 
                     <div className="overflow-x-auto rounded-xl border-2 border-emerald-100">
-                        <table className="w-full text-sm border-collapse min-w-[1400px]">
+                        <table className="w-full text-sm border-collapse min-w-[1800px]">
                             <thead>
                                 <tr className="bg-gradient-to-r from-emerald-700 to-emerald-900 text-white">
-                                    <th className="px-3 py-3 text-left text-xs font-bold border-r border-emerald-600 w-[22%]">Medium</th>
-                                    <th className="px-3 py-3 text-left text-xs font-bold border-r border-emerald-600 w-[18%]">Colony / Growth Characteristics</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[11%]">Analysis Started</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[11%]">Analysis Completed</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[14%]">Incubation Temp. (℃)</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[14%]">Incubation Time (Hr.)</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600">Sample</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600">Ref. Culture</th>
-                                    <th className="px-3 py-3 text-center text-xs font-bold">Blank</th>
-                                    {!isLocked && <th className="px-3 py-3 w-10" />}
+                                    <th className="px-3 py-3 text-left text-xs font-bold border-r border-emerald-600 w-[20%]">Medium</th>
+                                    <th className="px-3 py-3 text-left text-xs font-bold border-r border-emerald-600 w-[16%]">Colony / Growth Characteristics</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[8%]">Analysis Started</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[8%]">Analysis Completed</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[6%]">Incubation Temp. (℃)</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[6%]">Incubation Time (Hr.)</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[12%]">Sample</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[12%]">Ref. Culture</th>
+                                    <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[12%]">Blank</th>
+                                    {!isLocked && <th className="px-3 py-3 w-10" >Action</th>}
                                 </tr>
                             </thead>
                             <tbody>

@@ -16,6 +16,8 @@ const makeDefaultInoculationRows = (): BCepaciaInoculationRow[] => [
         observation: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         medium: "Burkholderia cepacia Selective Agar (from Incubated SCDM)",
@@ -27,6 +29,8 @@ const makeDefaultInoculationRows = (): BCepaciaInoculationRow[] => [
         observation: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
 ];
 
@@ -41,6 +45,8 @@ const makeDefaultIdentificationRows = (): BCepaciaIdentificationRow[] => [
         observation: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
     {
         testName: "Gram Staining",
@@ -52,6 +58,8 @@ const makeDefaultIdentificationRows = (): BCepaciaIdentificationRow[] => [
         observation: "",
         referenceCulture: "",
         blank: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr."
     },
 ];
 
@@ -65,6 +73,8 @@ const makeEmptyInoculationRow = (): BCepaciaInoculationRow => ({
     observation: "",
     referenceCulture: "",
     blank: "",
+    incubationTempUnit: "℃",
+    incubationTimeUnit: "Hr."
 });
 
 const makeEmptyIdentificationRow = (): BCepaciaIdentificationRow => ({
@@ -77,11 +87,13 @@ const makeEmptyIdentificationRow = (): BCepaciaIdentificationRow => ({
     observation: "",
     referenceCulture: "",
     blank: "",
+    incubationTempUnit: "℃",
+    incubationTimeUnit: "Hr."
 });
 
 export const createDefaultBCepaciaPreparation = (index: number): BCepaciaPreparation => ({
     id: Date.now() + index,
-    label: `B. cepacia Preparation ${index + 1}`,
+    label: `B.cepacia Preparation ${index + 1}`,
     inoculationRows: makeDefaultInoculationRows(),
     identificationRows: makeDefaultIdentificationRows(),
     result: "",
@@ -287,7 +299,7 @@ const BCepaciaPreparationDetail: React.FC<BCepaciaPreparationDetailProps> = ({
                 <SectionHeader
                     icon={<FlaskIcon className="w-4 h-4 text-white" />}
                     title="Inoculation Observations"
-                    subtitle="Media inoculation steps for B. cepacia detection"
+                    subtitle="Media inoculation steps for B.cepacia detection"
                     badge={
                         !isLocked && (
                             <motion.button
@@ -478,7 +490,7 @@ const BCepaciaPreparationDetail: React.FC<BCepaciaPreparationDetailProps> = ({
                 <SectionHeader
                     icon={<MicroscopeIcon className="w-4 h-4 text-white" />}
                     title="Final Result"
-                    subtitle="Overall compliance determination for B. cepacia detection"
+                    subtitle="Overall compliance determination for B.cepacia detection"
                 />
                 <div className="p-5">
                     <textarea

@@ -10,22 +10,26 @@ const makeDefaultInoculationRows = (): StaphylococcusInoculationRow[] => [
         colonyCharacteristics: "Turbidity",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "30-35°C",
-        incubationTime: "24 hrs",
+        incubationTemp: "30-35",
+        incubationTime: "24",
         sampleResult: "",
         referenceResult: "",
         blankResult: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr.",
     },
     {
         medium: "Mannitol Salt Agar (from Incubated SCDM)",
         colonyCharacteristics: "Yellow/White Colony surrounded by yellow Zone",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "30-35°C",
-        incubationTime: "18-72 hrs",
+        incubationTemp: "30-35",
+        incubationTime: "18-72",
         sampleResult: "",
         referenceResult: "",
         blankResult: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr.",
     },
 ];
 
@@ -40,6 +44,8 @@ const makeDefaultBiochemicalRows = (): StaphylococcusBiochemicalRow[] => [
         observation: "",
         referenceObservation: "",
         blankObservation: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr.",
     },
     {
         testName: "Gram Staining",
@@ -51,6 +57,8 @@ const makeDefaultBiochemicalRows = (): StaphylococcusBiochemicalRow[] => [
         observation: "",
         referenceObservation: "",
         blankObservation: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr.",
     },
     {
         testName: "Coagulase Test",
@@ -62,6 +70,8 @@ const makeDefaultBiochemicalRows = (): StaphylococcusBiochemicalRow[] => [
         observation: "",
         referenceObservation: "",
         blankObservation: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr.",
     },
     {
         testName: "Catalase Test",
@@ -73,6 +83,8 @@ const makeDefaultBiochemicalRows = (): StaphylococcusBiochemicalRow[] => [
         observation: "",
         referenceObservation: "",
         blankObservation: "",
+        incubationTempUnit: "℃",
+        incubationTimeUnit: "Hr.",
     },
 ];
 
@@ -87,6 +99,8 @@ const makeEmptyInoculationRow = (): StaphylococcusInoculationRow => ({
     sampleResult: "",
     referenceResult: "",
     blankResult: "",
+    incubationTempUnit: "℃",
+    incubationTimeUnit: "Hr.",
 });
 
 const makeEmptyBiochemicalRow = (): StaphylococcusBiochemicalRow => ({
@@ -99,6 +113,8 @@ const makeEmptyBiochemicalRow = (): StaphylococcusBiochemicalRow => ({
     observation: "",
     referenceObservation: "",
     blankObservation: "",
+    incubationTempUnit: "℃",
+    incubationTimeUnit: "Hr.",
 });
 
 export const createDefaultStaphylococcusPreparation = (index: number): StaphylococcusPreparation => ({
@@ -378,18 +394,18 @@ const StaphylococcusPreparationDetail: React.FC<StaphylococcusPreparationDetailP
                     }
                 />
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse min-w-[1600px]">
+                    <table className="w-full text-sm border-collapse min-w-[1800px]">
                         <thead>
                             <tr className="bg-emerald-700 text-white">
-                                <th className={thClass + " text-white border-emerald-600 w-[24%"}>Medium</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[22%"}>Medium</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[12%]"}>Colony / Growth Characteristics</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[8%]"}>Analysis Started</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[8%]"}>Analysis Completed</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[6%]"}>Incubation Temp. (℃)</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[6%]"}>Incubation Time (Hr.)</th>
-                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[10%]">Sample</th>
-                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[10%]">Reference</th>
-                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[10%]">Blank</th>
+                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[12%]">Sample</th>
+                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[12%]">Reference</th>
+                                <th className="px-3 py-2.5 text-[11px] font-bold text-white uppercase tracking-wider text-center border-r border-emerald-600 w-[12%]">Blank</th>
                                 {!isLocked && <th className="px-2 py-3 w-10 border-l border-emerald-600"></th>}
                             </tr>
                         </thead>
@@ -514,19 +530,19 @@ const StaphylococcusPreparationDetail: React.FC<StaphylococcusPreparationDetailP
                     </div>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse min-w-[1400px]">
+                    <table className="w-full text-sm border-collapse min-w-[2000px]">
                         <thead>
                             <tr className="bg-emerald-700 text-white">
-                                <th className={thClass + " text-white border-emerald-600 w-[22%]"}>Test Name</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[16%]"}>Test Name</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[8%]"}>Analysis Started</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[8%]"}>Analysis Completed</th>
-                                <th className={thClass + " text-white border-emerald-600 w-[18%]"}>Medium</th>
+                                <th className={thClass + " text-white border-emerald-600 w-[14%]"}>Medium</th>
                                 <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[8%]">Incubation Temp (℃)</th>
                                 <th className="px-3 py-3 text-center text-xs font-bold border-r border-emerald-600 w-[8%]">Incubation Time (Hr.)</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[12%]"}>Observation</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[12%]"}>Reference</th>
                                 <th className={thClass + " text-white border-emerald-600 w-[12%]"}>Blank</th>
-                                {!isLocked && <th className="px-2 py-3 w-10 border-l border-emerald-600"></th>}
+                                {!isLocked && <th className="px-2 py-3 w-10 border-l border-emerald-600">Action</th>}
                             </tr>
                         </thead>
                         <tbody>

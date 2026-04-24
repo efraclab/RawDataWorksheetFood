@@ -7,6 +7,8 @@ export interface EcoliObservationRow {
     analysisCompleted: string;
     incubationTemp: string;
     incubationTime: string;
+    incubationTempUnit: string;
+    incubationTimeUnit: string;
     sample: string;
     referenceCulture: string;
     blank: string;

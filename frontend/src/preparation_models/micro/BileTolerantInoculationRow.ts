@@ -5,6 +5,8 @@ export interface BileTolerantInoculationRow {
     analysisCompleted: string;
     incubationTemp: string;
     incubationTime: string;
+    incubationTempUnit: string;
+    incubationTimeUnit: string;
     sample: string;
     reference: string;
     blank: string;

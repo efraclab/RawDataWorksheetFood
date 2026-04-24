@@ -7,7 +7,9 @@ export interface WorksheetLog {
   remarks: string | null;
   action: string;
   employeeId: string;
-  employeeName: string
+  employeeName: string;
   role: string;
+  referenceType: string | null;
+  referenceId: string | null;
 }
 

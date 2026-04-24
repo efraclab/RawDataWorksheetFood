@@ -767,12 +767,6 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
     onFieldChange(calculation.id, "v14", (splVols.V14 || 0).toString());
 
     const allVols = { ...stdVols, ...splVols };
-    console.log(
-      "2. Volume Inputs Detected (All volumes converted to ML):",
-      allVols,
-    );
-    console.log(`   SW1 (Std Wt) converted to mg: ${SW1_Standard}`);
-    console.log(`   SW2 (Spl Wt) converted to mg: ${SW2_Sample}`);
 
     let productEvens = 1;
     let productOdds = 1;
@@ -793,21 +787,12 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
       }
     }
 
-    console.log("3. Volume sorting:", volumeLog);
     const V_factor = productEvens / productOdds;
-    console.log(
-      `   V_factor Result: ${V_factor} (Evens: ${productEvens} / Odds: ${productOdds})`,
-    );
 
     const AreaRatio = AreaOfStandard !== 0 ? AreaOfSample / AreaOfStandard : 0;
     const MWRatio = MWSalt !== 0 ? MWBase / MWSalt : 1;
     const PurityFactor = Purity / 100;
 
-    console.log("4. Intermediate Ratios:", {
-      "Area Ratio (Spl/Std)": `${AreaOfSample} / ${AreaOfStandard} = ${AreaRatio}`,
-      "MW Ratio (Base/Salt)": `${MWBase} / ${MWSalt} = ${MWRatio}`,
-      "Purity Factor": `${Purity} / 100 = ${PurityFactor}`,
-    });
 
     let FinalResult = 0;
     let unit = "";
@@ -900,8 +885,6 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
         unit = "";
     }
 
-    console.log("5. Final Calculation Formula:", formulaDebugString);
-    console.log(`6. Final Result: ${FinalResult.toString()} ${unit}`);
 
     FinalResult = FinalResult.toFixedNoRound(4);
 
@@ -924,9 +907,6 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
           "labelClaimPercent",
           `${labelClaimPercentage.toFixedNoRound(3).toFixed(2)}`,
         );
-        console.log(
-          `7. Label Claim %: (${FinalResult} / ${labelClaim}) * 100 = ${labelClaimPercentage} %`,
-        );
       }
     } else {
       onFieldChange(calculation.id, "labelClaimPercent", null);
@@ -945,9 +925,6 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
         calculation.id,
         "lodWaterBasisResult",
         `${adjustedResult}`,
-      );
-      console.log(
-        `8. LOD/Water Basis: (${FinalResult} * 100) / (100 - ${lodWaterBasisValue}) = ${adjustedResult}`,
       );
     } else {
       onFieldChange(calculation.id, "lodWaterBasisResult", null);

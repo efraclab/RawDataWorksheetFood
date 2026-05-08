@@ -1,9 +1,9 @@
 
 export interface Media {
-  id: string;
+  id: number;
   name: string;
   code?: string | null;
-  expDate?: Date | null;
+  expDate?: string | null;
   quantityValue?: number | null;
-  quantityUnit?: number | null;
+  quantityUnit?: string | null;
 }

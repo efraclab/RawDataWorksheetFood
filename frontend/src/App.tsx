@@ -17,9 +17,11 @@ import WorksheetDashboard from "./components/WorksheetDashboard";
 import CreateWorksheet from "./components/CreateWorksheet";
 import DrugWorksheet from "./components/DrugWorksheet";
 import MicroWorksheet from "./components/MicroWorksheet";
+import MetalWorksheet from "./components/MetalWorksheet";
 import DrugPrintReport from "./components/DrugPrintReport";
 import MicroPrintReport from "./components/MicroPrintReport";
 import WorksheetSidebar from "./components/shared/WorksheetSidebar";
+import ResizableSidebar from "./components/shared/ResizableSidebar";
 import AiReviewTerminal from "./components/AiReviewTerminal";
 import ReferenceDataManagement from "./components/ReferenceDataManagement";
 
@@ -166,6 +168,7 @@ function WorksheetPage(props: {
   // Fall back to the user's department if not provided (e.g. direct URL access).
   const lab: string = (location.state as any)?.lab ?? props.department ?? "";
   const isMicro = lab.toLowerCase().includes("micro");
+  const isMetal = lab.toLowerCase().includes("metal");
 
   // Always-current reference data for use inside stable refs (updated every render, no re-render triggered).
   const latestRefDataRef = useRef({
@@ -312,12 +315,14 @@ function WorksheetPage(props: {
   return (
     /* ── Sidebar is OUTSIDE all transitions — rendered once, always present ── */
     <div className="flex min-h-screen">
-      <WorksheetSidebar
-        state={{ ...sidebarState, includeAuditTrail }}
-        actions={stableActionsRef.current}
-        mode={sidebarMode}
-        onClosePrint={handleClosePrint}
-      />
+      <ResizableSidebar>
+        <WorksheetSidebar
+          state={{ ...sidebarState, includeAuditTrail }}
+          actions={stableActionsRef.current}
+          mode={sidebarMode}
+          onClosePrint={handleClosePrint}
+        />
+      </ResizableSidebar>
 
       <AiReviewTerminal
         visible={sidebarState.showSubmitForQA && sidebarState.role.toLowerCase() === "reviewer"}
@@ -375,6 +380,22 @@ function WorksheetPage(props: {
                   instruments={props.instruments}
                   chemicals={props.chemicals}
                   media={props.media}
+                  // columns={props.columns}
+                  isReferenceDataLoading={props.isReferenceDataLoading}
+                  referenceDataError={props.referenceDataError}
+                  employeeId={props.employeeId}
+                  role={props.role}
+                  department={props.department}
+                  onPrint={handlePrintRequest}
+                  onSidebarStateChange={handleSidebarStateChange}
+                  onSidebarActionsReady={handleSidebarActionsReady}
+                />
+              ) : isMetal ? (
+                <MetalWorksheet
+                  worksheetId={worksheetId}
+                  instruments={props.instruments}
+                  chemicals={props.chemicals}
+                  standards={props.standards}
                   // columns={props.columns}
                   isReferenceDataLoading={props.isReferenceDataLoading}
                   referenceDataError={props.referenceDataError}

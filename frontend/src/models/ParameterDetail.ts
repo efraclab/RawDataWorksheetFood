@@ -1,6 +1,10 @@
 import type { CalculationData } from "./CalculationData";
 import type { PreparationData } from "./PreparationData";
+import type { WorksheetChemical } from "./WorksheetChemical";
 import type { WorksheetFileData } from "./WorksheetFileData";
+import type { WorksheetInstrument } from "./WorksheetInstrument";
+import type { WorksheetMedia } from "./WorksheetMedia";
+import type { WorksheetStandard } from "./WorksheetStandard";
 
 export interface ParameterDetail {
     preparationCompletedBy: string | null;
@@ -28,10 +32,10 @@ export interface ParameterDetail {
     status: string | null;
     additional_info: string | null;
 
-    instrumentIds?: string[];
-    chemicalIds?: string[];
-    standardIds?: string[];
-    mediaIds?: string[];
+    instruments?: WorksheetInstrument[];
+    chemicals?: WorksheetChemical[];
+    standards?: WorksheetStandard[];
+    media?: WorksheetMedia[];
 
     preparations?: PreparationData[];
     calculations?: CalculationData[];

@@ -16,7 +16,6 @@
         public string? RecieptDate { get; set; }
         public string? AnalysisStartDate { get; set; }
         public string? AnalysisCompletionDate { get; set; }
-        public decimal? DistributedRegisVal { get; set; }
         public string Status { get; set; }
     }
 }

@@ -68,6 +68,9 @@ import type { BCepaciaPreparation } from "../preparation_models/micro/BCepaciaPr
 import type { CandidaAlbicansPreparation } from "../preparation_models/micro/CandidaAlbicansPreparation";
 import CandidaAlbicansPreparationDetail, { createDefaultCandidaAlbicansPreparation } from "./sub-components/micro/CandidaAlbicansPreparationDetail";
 import BCepaciaPreparationDetail, { createDefaultBCepaciaPreparation } from "./sub-components/micro/BCepaciaPreparationDetail";
+import type { WorksheetChemical } from "../models/WorksheetChemical";
+import type { WorksheetInstrument } from "../models/WorksheetInstrument";
+import type { WorksheetMedia } from "../models/WorksheetMedia";
 
 // SVG Icons
 const Target: React.FC<{ className: string }> = ({ className }) => (
@@ -310,24 +313,13 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
     >({});
 
     const [addedInstruments, setAddedInstruments] = useState<
-        Record<number, Instrument[]>
+        Record<number, WorksheetInstrument[]>
     >({});
     const [addedChemicals, setAddedChemicals] = useState<
-        Record<number, Chemical[]>
+        Record<number, WorksheetChemical[]>
     >({});
     const [addedMedia, setAddedMedia] = useState<
-        Record<number, Media[]>
-    >({});
-
-    // Per-parameter id caches (string ids trimmed) to resolve when parent refs arrive
-    const [addedInstrumentIdsPerParam, setAddedInstrumentIdsPerParam] = useState<
-        Record<number, string[]>
-    >({});
-    const [addedChemicalIdsPerParam, setAddedChemicalIdsPerParam] = useState<
-        Record<number, string[]>
-    >({});
-    const [addedMediaIdsPerParam, setAddedMediaIdsPerParam] = useState<
-        Record<number, string[]>
+        Record<number, WorksheetMedia[]>
     >({});
 
     const [additionalInfoPerParam, setAdditionalInfoPerParam] = useState<
@@ -823,78 +815,39 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
             // ------------------------------------------------------------------------
             // 2.3: Instruments
             // ------------------------------------------------------------------------
-            if (param.instrumentIds && Array.isArray(param.instrumentIds)) {
-                const validInstrumentIds = param.instrumentIds
-                    .filter((id: any) => id != null)
-                    .map((id: any) => String(id).trim());
-
-                if (validInstrumentIds.length > 0) {
-                    setAddedInstrumentIdsPerParam((prev) => ({
-                        ...prev,
-                        [paramId]: validInstrumentIds,
-                    }));
-
-                    if (instruments && instruments.length) {
-                        const paramInstruments = instruments.filter((inst) =>
-                            validInstrumentIds.includes(String(inst.id).trim()),
-                        );
-                        setAddedInstruments((prev) => ({
-                            ...prev,
-                            [paramId]: paramInstruments,
-                        }));
-                    }
-                }
+            if (param.instruments && Array.isArray(param.instruments)) {
+            const worksheetInstruments = param.instruments as WorksheetInstrument[];
+            if (worksheetInstruments.length > 0) {
+                setAddedInstruments((prev) => ({
+                ...prev,
+                [paramId]: worksheetInstruments,
+                }));
             }
-
+            }
+    
             // ------------------------------------------------------------------------
             // 2.4: Chemicals
             // ------------------------------------------------------------------------
-            if (param.chemicalIds && Array.isArray(param.chemicalIds)) {
-                const validChemicalIds = param.chemicalIds
-                    .filter((id: any) => id != null)
-                    .map((id: any) => String(id).trim());
-
-                if (validChemicalIds.length > 0) {
-                    setAddedChemicalIdsPerParam((prev) => ({
-                        ...prev,
-                        [paramId]: validChemicalIds,
+            if (param.chemicals && Array.isArray(param.chemicals)) {
+                const worksheetChemicals = param.chemicals as WorksheetChemical[];
+                if (worksheetChemicals.length > 0) {
+                    setAddedChemicals((prev) => ({
+                    ...prev,
+                    [paramId]: worksheetChemicals,
                     }));
-
-                    if (chemicals && chemicals.length) {
-                        const paramChemicals = chemicals.filter((chem) =>
-                            validChemicalIds.includes(String(chem.slno).trim()),
-                        );
-                        setAddedChemicals((prev) => ({
-                            ...prev,
-                            [paramId]: paramChemicals,
-                        }));
-                    }
                 }
             }
 
             // ------------------------------------------------------------------------
             // 2.5: Media
             // ------------------------------------------------------------------------
-            if (param.mediaIds && Array.isArray(param.mediaIds)) {
-                const validMediaIds = param.mediaIds
-                    .filter((id: any) => id != null)
-                    .map((id: any) => String(id).trim());
-
-                if (validMediaIds.length > 0) {
-                    setAddedMediaIdsPerParam((prev) => ({
-                        ...prev,
-                        [paramId]: validMediaIds,
+            if (param.media && Array.isArray(param.media)) {
+                const worksheetMedia = param.media as WorksheetMedia[];
+                if (worksheetMedia.length > 0) {
+                    setAddedMedia((prev) => ({
+                    ...prev,
+                    [paramId]: worksheetMedia,
                     }));
-
-                    if (media && media.length) {
-                        const paramMedia = media.filter((m) =>
-                            validMediaIds.includes(String(m.code).trim()),
-                        );
-                        setAddedMedia((prev) => ({
-                            ...prev,
-                            [paramId]: paramMedia,
-                        }));
-                    }
                 }
             }
 
@@ -1297,45 +1250,6 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
         setSelectedParamsForDetail(restoredParams.map((p) => p.id));
     };
 
-    useEffect(() => {
-        if (!instruments || !Object.keys(addedInstrumentIdsPerParam).length) return;
-        Object.entries(addedInstrumentIdsPerParam).forEach(([paramId, idList]) => {
-            const ids = Array.isArray(idList)
-                ? idList.map(String).map((s) => s.trim())
-                : [];
-            const matched = instruments.filter((inst) =>
-                ids.includes(String(inst.id).trim()),
-            );
-            setAddedInstruments((prev) => ({ ...prev, [Number(paramId)]: matched }));
-        });
-    }, [instruments, addedInstrumentIdsPerParam]);
-
-    useEffect(() => {
-        if (!chemicals || !Object.keys(addedChemicalIdsPerParam).length) return;
-        Object.entries(addedChemicalIdsPerParam).forEach(([paramId, idList]) => {
-            const ids = Array.isArray(idList)
-                ? idList.map(String).map((s) => s.trim())
-                : [];
-            const matched = chemicals.filter((chem) =>
-                ids.includes(String(chem.slno).trim()),
-            );
-            setAddedChemicals((prev) => ({ ...prev, [Number(paramId)]: matched }));
-        });
-    }, [chemicals, addedChemicalIdsPerParam]);
-
-    useEffect(() => {
-        if (!media || !Object.keys(addedMediaIdsPerParam).length) return;
-        Object.entries(addedMediaIdsPerParam).forEach(([paramId, idList]) => {
-            const ids = Array.isArray(idList)
-                ? idList.map(String).map((s) => s.trim())
-                : [];
-            const matched = media.filter((m) =>
-                ids.includes(String(m.id).trim()),
-            );
-            setAddedMedia((prev) => ({ ...prev, [Number(paramId)]: matched }));
-        });
-    }, [media, addedMediaIdsPerParam]);
-
 
     useEffect(() => {
         if (!instruments) return;
@@ -1486,15 +1400,30 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                     preparationCompletedAt:
                         preparationCompletedAtPerParam[param.id] || null,
                     status: parameterStatusPerParam[param.id] || "Created",
-                    instrumentIds: (addedInstruments[param.id] || []).map(
-                        (inst) => inst.id,
-                    ),
-                    chemicalIds: (addedChemicals[param.id] || []).map(
-                        (chem) => chem.slno,
-                    ),
-                    mediaIds: (addedMedia[param.id] || []).map(
-                        (chem) => chem.code,
-                    ),
+                    instruments: (addedInstruments[param.id] || []).map((inst) => ({
+                        instrumentId: inst.instrumentId,
+                        name: inst.name,
+                        instrumentTag: inst.instrumentTag,
+                        make: inst.make,
+                        calibrationDoneDate: inst.calibrationDoneDate,
+                        calibrationDueDate: inst.calibrationDueDate,
+                    })),
+                    chemicals: (addedChemicals[param.id] || []).map((chem) => ({
+                        slno: chem.slno,
+                        name: chem.name,
+                        code: chem.code,
+                        make: chem.make,
+                        batchNo: chem.batchNo,
+                        expDate: chem.expDate,
+                    })),
+                    media: (addedMedia[param.id] || []).map((m) => ({
+                        mediaId: m.id,
+                        name: m.name,
+                        code: m.code,
+                        expDate: m.expDate,
+                        quantityValue: m.quantityValue,
+                        quantityUnit: m.quantityUnit,
+                    })),
                     standardIds: null,
                     preparations,
                     files: collectFilesForParam(param.id),
@@ -1883,10 +1812,6 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                             const { [newId]: instruments, ...rest } = prev;
                             return { ...rest, [serverParameterId]: instruments };
                         });
-                        setAddedInstrumentIdsPerParam((prev) => {
-                            const { [newId]: ids, ...rest } = prev;
-                            return { ...rest, [serverParameterId]: ids };
-                        });
                     }
 
                     if (addedChemicals[newId]) {
@@ -1894,20 +1819,12 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                             const { [newId]: chemicals, ...rest } = prev;
                             return { ...rest, [serverParameterId]: chemicals };
                         });
-                        setAddedChemicalIdsPerParam((prev) => {
-                            const { [newId]: ids, ...rest } = prev;
-                            return { ...rest, [serverParameterId]: ids };
-                        });
                     }
 
                     if (addedMedia[newId]) {
                         setAddedMedia((prev) => {
                             const { [newId]: media, ...rest } = prev;
                             return { ...rest, [serverParameterId]: media };
-                        });
-                        setAddedMediaIdsPerParam((prev) => {
-                            const { [newId]: ids, ...rest } = prev;
-                            return { ...rest, [serverParameterId]: ids };
                         });
                     }
 
@@ -1951,9 +1868,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                     cleanupState(setAdditionalInfoPerParam);
                     cleanupState(setShowAdditionalInfo);
                     cleanupState(setAddedInstruments);
-                    cleanupState(setAddedInstrumentIdsPerParam);
                     cleanupState(setAddedChemicals);
-                    cleanupState(setAddedChemicalIdsPerParam);
 
                     setToastMessage(
                         error instanceof Error
@@ -2119,8 +2034,6 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
         cleanupState(setAdditionalInfoPerParam);
         cleanupState(setShowAdditionalInfo);
         cleanupState(setActivePreparationGroups);
-        cleanupState(setAddedInstrumentIdsPerParam);
-        cleanupState(setAddedChemicalIdsPerParam);
         cleanupState(setRemarksByAnalystPerParam);
         cleanupState(setPreparationCompletedByPerParam);
         cleanupState(setPreparationCompletedAtPerParam);
@@ -3346,10 +3259,10 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                 chem.make.toLowerCase().includes(chemicalSearch.toLowerCase())),
     );
 
-    const handleAddInstrument = (parameterId: number, instrument: Instrument) => {
+    const handleAddInstrument = (instrument: WorksheetInstrument) => {
         setAddedInstruments((prev) => ({
             ...prev,
-            [parameterId]: [...(prev[parameterId] || []), instrument],
+            [instrument.parameterId]: [...(prev[instrument.parameterId] || []), instrument],
         }));
         setShowInstrumentDropdown(false);
         setInstrumentSearch("");
@@ -3362,15 +3275,15 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
         setAddedInstruments((prev) => ({
             ...prev,
             [parameterId]: (prev[parameterId] || []).filter(
-                (inst) => inst.id !== instrumentId,
+                (inst) => inst.instrumentId !== instrumentId,
             ),
         }));
     };
 
-    const handleAddChemical = (parameterId: number, chemical: Chemical) => {
+    const handleAddChemical = (chemical: WorksheetChemical) => {
         setAddedChemicals((prev) => ({
             ...prev,
-            [parameterId]: [...(prev[parameterId] || []), chemical],
+            [chemical.parameterId]: [...(prev[chemical.parameterId] || []), chemical],
         }));
         setShowChemicalDropdown(false);
         setChemicalSearch("");
@@ -3388,23 +3301,23 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
     const searchFilteredMedia = media.filter(
         (m) =>
             m.name.toLowerCase().includes(mediaSearch.toLowerCase()) ||
-            (m.lotNo !== null && m.lotNo!.toLowerCase().includes(mediaSearch.toLowerCase())),
+            (m.code !== null && m.code!.toLowerCase().includes(mediaSearch.toLowerCase())),
     );
 
-    const handleAddMedia = (parameterId: number, m: Media) => {
+    const handleAddMedia = (media: WorksheetMedia) => {
         setAddedMedia((prev) => ({
             ...prev,
-            [parameterId]: [...(prev[parameterId] || []), m],
+            [media.parameterId]: [...(prev[media.parameterId] || []), media],
         }));
         setShowMediaDropdown(false);
         setMediaSearch("");
     };
 
-    const handleRemoveMedia = (parameterId: number, mediaId: string) => {
+    const handleRemoveMedia = (parameterId: number, mediaId: number) => {
         setAddedMedia((prev) => ({
             ...prev,
             [parameterId]: (prev[parameterId] || []).filter(
-                (m) => m.id !== mediaId,
+                (m) => m.mediaId !== mediaId,
             ),
         }));
     };
@@ -7313,10 +7226,6 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                 methodCode: param.methodCode,
                                                                                 parameterName: param.parameter,
                                                                                 id: 0,
-                                                                                instrumentIds: [],
-                                                                                chemicalIds: [],
-                                                                                mediaIds: [],
-                                                                                standardIds: [],
                                                                                 preparations: [],
                                                                                 calculations: [],
                                                                                 files: [],
@@ -8118,7 +8027,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                 <div
                                                     className={
                                                         isPreparationLocked
-                                                            ? "pointer-events-none opacity-70"
+                                                            ? "opacity-70"
                                                             : ""
                                                     }
                                                 >
@@ -8138,6 +8047,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                         )
                                                                     }
                                                                     disabled={
+                                                                        isPreparationLocked ||
                                                                         isReferenceDataLoading ||
                                                                         !!referenceDataError ||
                                                                         instruments.length === 0
@@ -8177,7 +8087,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                             !addedInstruments[
                                                                                                 selectedParam.id
                                                                                             ]?.find(
-                                                                                                (added) => added.id === inst.id,
+                                                                                                (added) => added.instrumentId === inst.id,
                                                                                             ),
                                                                                     )
                                                                                     .map((inst) => (
@@ -8185,8 +8095,16 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                             key={inst.id}
                                                                                             onClick={() =>
                                                                                                 handleAddInstrument(
-                                                                                                    selectedParam.id,
-                                                                                                    inst,
+                                                                                                    {
+                                                                                                        id: null,
+                                                                                                        parameterId: selectedParam.id,
+                                                                                                        instrumentId: inst.id,
+                                                                                                        name: inst.name,
+                                                                                                        instrumentTag: inst.instrumentTag ?? null,
+                                                                                                        make: inst.make ?? null,
+                                                                                                        calibrationDoneDate: inst.calibrationDoneDate ?? null,
+                                                                                                        calibrationDueDate: inst.calibrationDueDate ?? null,
+                                                                                                    },
                                                                                                 )
                                                                                             }
                                                                                             className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
@@ -8204,7 +8122,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                         !addedInstruments[
                                                                                             selectedParam.id
                                                                                         ]?.find(
-                                                                                            (added) => added.id === inst.id,
+                                                                                            (added) => added.instrumentId === inst.id,
                                                                                         ),
                                                                                 ).length === 0 && (
                                                                                         <div className="px-3 py-4 text-center text-gray-500 text-sm">
@@ -8280,22 +8198,24 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                                 : "---"}
                                                                                         </td>
                                                                                         <td className="px-3 py-2 text-center">
-                                                                                            <motion.button
-                                                                                                onClick={() =>
-                                                                                                    handleRemoveInstrument(
-                                                                                                        selectedParam.id,
-                                                                                                        instrument.id,
-                                                                                                    )
-                                                                                                }
-                                                                                                whileHover={{
-                                                                                                    scale: 1.1,
-                                                                                                    rotate: 10,
-                                                                                                }}
-                                                                                                whileTap={{ scale: 0.9 }}
-                                                                                                className="mx-2"
-                                                                                            >
-                                                                                                <CgTrash className="w-5 h-5 text-red-500" />
-                                                                                            </motion.button>
+                                                                                            {!isPreparationLocked && (
+                                                                                                <motion.button
+                                                                                                    onClick={() =>
+                                                                                                        handleRemoveInstrument(
+                                                                                                            selectedParam.id,
+                                                                                                            instrument.instrumentId!,
+                                                                                                        )
+                                                                                                    }
+                                                                                                    whileHover={{
+                                                                                                        scale: 1.1,
+                                                                                                        rotate: 10,
+                                                                                                    }}
+                                                                                                    whileTap={{ scale: 0.9 }}
+                                                                                                    className="mx-2"
+                                                                                                >
+                                                                                                    <CgTrash className="w-5 h-5 text-red-500" />
+                                                                                                </motion.button>
+                                                                                            )}
                                                                                         </td>
                                                                                     </motion.tr>
                                                                                 ),
@@ -8337,6 +8257,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                         setShowChemicalDropdown(!showChemicalDropdown)
                                                                     }
                                                                     disabled={
+                                                                        isPreparationLocked ||
                                                                         isReferenceDataLoading ||
                                                                         !!referenceDataError ||
                                                                         chemicals.length === 0
@@ -8384,8 +8305,16 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                             key={chem.slno}
                                                                                             onClick={() =>
                                                                                                 handleAddChemical(
-                                                                                                    selectedParam.id,
-                                                                                                    chem,
+                                                                                                    {
+                                                                                                        id: null,
+                                                                                                        parameterId: selectedParam.id,
+                                                                                                        slno: chem.slno,
+                                                                                                        name: chem.name,
+                                                                                                        code: chem.code ?? null,
+                                                                                                        make: chem.make ?? null,
+                                                                                                        batchNo: chem.batchNo ?? null,
+                                                                                                        expDate: chem.exp_Date ?? null,
+                                                                                                    },
                                                                                                 )
                                                                                             }
                                                                                             className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
@@ -8473,29 +8402,31 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                             {chemical.batchNo || "---"}
                                                                                         </td>
                                                                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                                                                            {chemical.exp_Date
+                                                                                            {chemical.expDate
                                                                                                 ? new Date(
-                                                                                                    chemical.exp_Date,
+                                                                                                    chemical.expDate,
                                                                                                 ).toLocaleDateString("en-GB")
                                                                                                 : "---"}
                                                                                         </td>
                                                                                         <td className="px-3 py-2 text-center">
-                                                                                            <motion.button
-                                                                                                onClick={() =>
-                                                                                                    handleRemoveChemical(
-                                                                                                        selectedParam.id,
-                                                                                                        chemical.slno,
-                                                                                                    )
-                                                                                                }
-                                                                                                whileHover={{
-                                                                                                    scale: 1.1,
-                                                                                                    rotate: 10,
-                                                                                                }}
-                                                                                                whileTap={{ scale: 0.9 }}
-                                                                                                className="mx-2"
-                                                                                            >
-                                                                                                <CgTrash className="w-5 h-5 text-red-500" />
-                                                                                            </motion.button>
+                                                                                            {!isPreparationLocked && (
+                                                                                                <motion.button
+                                                                                                    onClick={() =>
+                                                                                                        handleRemoveChemical(
+                                                                                                            selectedParam.id,
+                                                                                                            chemical.slno,
+                                                                                                        )
+                                                                                                    }
+                                                                                                    whileHover={{
+                                                                                                        scale: 1.1,
+                                                                                                        rotate: 10,
+                                                                                                    }}
+                                                                                                    whileTap={{ scale: 0.9 }}
+                                                                                                    className="mx-2"
+                                                                                                >
+                                                                                                    <CgTrash className="w-5 h-5 text-red-500" />
+                                                                                                </motion.button>
+                                                                                            )}
                                                                                         </td>
                                                                                     </motion.tr>
                                                                                 ),
@@ -8539,6 +8470,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                         setShowMediaDropdown(!showMediaDropdown)
                                                                     }
                                                                     disabled={
+                                                                        isPreparationLocked ||
                                                                         isReferenceDataLoading ||
                                                                         !!referenceDataError ||
                                                                         media.length === 0
@@ -8578,7 +8510,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                             !addedMedia[
                                                                                                 selectedParam.id
                                                                                             ]?.find(
-                                                                                                (added) => added.id === m.id,
+                                                                                                (added) => added.mediaId === m.id,
                                                                                             ),
                                                                                     )
                                                                                     .map((m) => (
@@ -8586,8 +8518,16 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                             key={m.id}
                                                                                             onClick={() =>
                                                                                                 handleAddMedia(
-                                                                                                    selectedParam.id,
-                                                                                                    m,
+                                                                                                    {
+                                                                                                        id: null,
+                                                                                                        parameterId: selectedParam.id,
+                                                                                                        mediaId: m.id ?? null,
+                                                                                                        name: m.name ?? null,
+                                                                                                        code: m.code ?? null,
+                                                                                                        expDate: m.expDate ?? null,
+                                                                                                        quantityValue: m.quantityValue ?? null,
+                                                                                                        quantityUnit: m.quantityUnit ?? null,
+                                                                                                    },
                                                                                                 )
                                                                                             }
                                                                                             className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
@@ -8672,19 +8612,21 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                             : "---"}
                                                                                     </td>
                                                                                     <td className="px-3 py-2 text-center">
-                                                                                        <motion.button
-                                                                                            onClick={() =>
-                                                                                                handleRemoveMedia(
-                                                                                                    selectedParam.id,
-                                                                                                    m.id,
-                                                                                                )
-                                                                                            }
-                                                                                            whileHover={{ scale: 1.1, rotate: 10 }}
-                                                                                            whileTap={{ scale: 0.9 }}
-                                                                                            className="mx-2"
-                                                                                        >
-                                                                                            <CgTrash className="w-5 h-5 text-red-500" />
-                                                                                        </motion.button>
+                                                                                        {!isPreparationLocked && (
+                                                                                            <motion.button
+                                                                                                onClick={() =>
+                                                                                                    handleRemoveMedia(
+                                                                                                        selectedParam.id,
+                                                                                                        m.id,
+                                                                                                    )
+                                                                                                }
+                                                                                                whileHover={{ scale: 1.1, rotate: 10 }}
+                                                                                                whileTap={{ scale: 0.9 }}
+                                                                                                className="mx-2"
+                                                                                            >
+                                                                                                <CgTrash className="w-5 h-5 text-red-500" />
+                                                                                            </motion.button>
+                                                                                        )}
                                                                                     </td>
                                                                                 </motion.tr>
                                                                             ))
@@ -8713,7 +8655,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                     {/* ============= PREPARATIONS MANAGEMENT SECTION ============= */}
                                                     <div className="mb-8 p-6 bg-gradient-to-br from-emerald-50 via-emerald-50 to-emerald-50 border border-emerald-200 rounded-2xl shadow-2xl">
                                                         <div
-                                                            className={`flex items-center justify-between mb-6${isPreparationLocked ? " pointer-events-none " : ""}`}
+                                                            className="flex items-center justify-between mb-6"
                                                         >
                                                             <div className="flex items-center gap-3">
                                                                 <div className="relative">
@@ -8742,6 +8684,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                             [selectedParam.id]: !prev[selectedParam.id],
                                                                         }))
                                                                     }
+                                                                    disabled={isPreparationLocked}
                                                                     className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                                                                 >
                                                                     <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -8854,22 +8797,24 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                                     </span>
                                                                                                 </div>
 
-                                                                                                <motion.button
-                                                                                                    onClick={() =>
-                                                                                                        handleTogglePreparationGroup(
-                                                                                                            selectedParam.id,
-                                                                                                            groupId,
-                                                                                                        )
-                                                                                                    }
-                                                                                                    whileHover={{ scale: 1.2, rotate: 90 }}
-                                                                                                    whileTap={{ scale: 0.9 }}
-                                                                                                    className="relative z-10 w-5 h-5 flex items-center justify-center rounded-full bg-emerald-800 hover:bg-red-500 text-gray-600 hover:text-white transition-all font-bold border-1 border-white/50 hover:border-red-600 shadow-sm"
-                                                                                                    title={`Remove ${info.label} group`}
-                                                                                                >
-                                                                                                    <span className="text-[9px] text-white inline-flex items-center justify-center h-full w-full">
-                                                                                                        ✕
-                                                                                                    </span>
-                                                                                                </motion.button>
+                                                                                                {!isPreparationLocked && (
+                                                                                                    <motion.button
+                                                                                                        onClick={() =>
+                                                                                                            handleTogglePreparationGroup(
+                                                                                                                selectedParam.id,
+                                                                                                                groupId,
+                                                                                                            )
+                                                                                                        }
+                                                                                                        whileHover={{ scale: 1.2, rotate: 90 }}
+                                                                                                        whileTap={{ scale: 0.9 }}
+                                                                                                        className="relative z-10 w-5 h-5 flex items-center justify-center rounded-full bg-emerald-800 hover:bg-red-500 text-gray-600 hover:text-white transition-all font-bold border-1 border-white/50 hover:border-red-600 shadow-sm"
+                                                                                                        title={`Remove ${info.label} group`}
+                                                                                                    >
+                                                                                                        <span className="text-[9px] text-white inline-flex items-center justify-center h-full w-full">
+                                                                                                            ✕
+                                                                                                        </span>
+                                                                                                    </motion.button>
+                                                                                                )}
                                                                                             </motion.div>
                                                                                         );
                                                                                     })}
@@ -9600,13 +9545,22 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                 </div>
 
                                                 {/* ===== Parameter Files Toggle ===== */}
-                                                <div className="mb-6 mt-4">
-                                                    <label className="flex items-center gap-4 cursor-pointer group relative">
+                                                {(() => {
+                                                    const paramFiles = getParamLevelFiles(selectedParam.id);
+                                                    const hasParamFiles = paramFiles.length > 0;
+                                                    const sectionVisible =
+                                                        !!showParamFiles[selectedParam.id] ||
+                                                        (isLocked && hasParamFiles);
+                                                    return (
+                                                <>
+                                                <div className={`mb-6 mt-4 ${isLocked ? "opacity-70" : ""}`}>
+                                                    <label className={`flex items-center gap-4 group relative ${isLocked ? "cursor-not-allowed" : "cursor-pointer"}`}>
                                                         <div className="relative flex items-center justify-center">
                                                             <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-900 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
                                                             <input
                                                                 type="checkbox"
                                                                 checked={showParamFiles[selectedParam.id] || false}
+                                                                disabled={isLocked}
                                                                 onChange={(e) => {
                                                                     setShowParamFiles((prev) => ({
                                                                         ...prev,
@@ -9684,7 +9638,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
 
                                                 {/* Parameter Files Section (Conditional) */}
                                                 <AnimatePresence>
-                                                    {showParamFiles[selectedParam.id] && (
+                                                    {sectionVisible && (
                                                         <motion.div
                                                             initial={{ opacity: 0, y: 20 }}
                                                             animate={{ opacity: 1, y: 0 }}
@@ -9699,7 +9653,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                             </div>
                                                             <div className="pointer-events-auto">
                                                                 <WorksheetFileAttacher
-                                                                    files={getParamLevelFiles(selectedParam.id)}
+                                                                    files={paramFiles}
                                                                     onAdd={(newFiles) =>
                                                                         handleAddParamFiles(selectedParam.id, newFiles)
                                                                     }
@@ -9709,12 +9663,15 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                     preparationType={null}
                                                                     sectionLabel="Other Files"
                                                                     isForPrep={false}
-                                                                    isLocked={shouldDisableContent}
+                                                                    isLocked={isLocked || shouldDisableContent}
                                                                 />
                                                             </div>
                                                         </motion.div>
                                                     )}
                                                 </AnimatePresence>
+                                                </>
+                                                    );
+                                                })()}
                                                 {/* ===== END Parameter Files Toggle ===== */}
 
                                                 {isLocked && (
@@ -9740,6 +9697,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                 }}
                                 analysts={analysts}
                                 onSelectAnalyst={handleAnalystSelected}
+                                lab={worksheetInfo?.sample.lab}
                             />
                         )}
                     </AnimatePresence>

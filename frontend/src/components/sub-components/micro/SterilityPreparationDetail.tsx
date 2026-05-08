@@ -273,7 +273,9 @@ const SterilityPreparationDetail: React.FC<SterilityPreparationDetailProps> = ({
     };
 
     const isMembrane = preparation.testType === "Membrane Filtration";
-    const wrapperClass = isLocked ? "pointer-events-none opacity-75 select-none" : "";
+    const wrapperClass = isLocked
+        ? "opacity-75 select-none [&_input]:pointer-events-none [&_input]:cursor-not-allowed [&_select]:pointer-events-none [&_select]:cursor-not-allowed [&_textarea]:pointer-events-none [&_textarea]:cursor-not-allowed"
+        : "";
 
     // Column group header style
     const colGroupHeader = "px-2 py-2 text-center text-[11px] font-bold uppercase tracking-wider";

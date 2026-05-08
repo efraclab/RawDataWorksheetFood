@@ -156,7 +156,7 @@ const WorksheetSidebar: React.FC<WorksheetSidebarProps> = ({
   const rc = role ? roleConfig(role) : null;
 
   return (
-    <div className="no-print sticky top-0 h-screen w-52 sm:w-60 lg:w-72 flex-shrink-0 flex flex-col bg-slate-50 border-r border-slate-200/60 shadow-[4px_0_32px_-4px_rgba(0,0,0,0.10)] z-30">
+    <div className="no-print h-full w-full flex flex-col bg-slate-50 border-r border-slate-200/60 shadow-[4px_0_32px_-4px_rgba(0,0,0,0.10)]">
 
       {/* ═══════════════════════════════════════════════════════════
            HEADER  — dark gradient, always at top, never scrolls

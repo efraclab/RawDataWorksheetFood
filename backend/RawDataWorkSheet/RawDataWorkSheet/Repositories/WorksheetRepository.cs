@@ -6,6 +6,8 @@ using RawDataWorkSheet.Models.Requests;
 using RawDataWorkSheet.Models.Worksheets;
 using System.Data;
 
+
+
 namespace RawDataWorkSheet.Repositories
 {
     public class WorksheetRepository : IWorksheetRepository
@@ -193,10 +195,10 @@ namespace RawDataWorkSheet.Repositories
                         var parameterId = existing.Id;
 
                         await UpdateParameter(connection, transaction, parameterId, request.WorksheetId, param);
-                        await UpsertInstruments(connection, transaction, parameterId, param.InstrumentIds);
-                        await UpsertChemicals(connection, transaction, parameterId, param.ChemicalIds);
-                        await UpsertStandards(connection, transaction, parameterId, param.StandardIds);
-                        await UpsertMedia(connection, transaction, parameterId, param.MediaIds);
+                        await UpsertInstruments(connection, transaction, parameterId, param.Instruments);
+                        await UpsertChemicals(connection, transaction, parameterId, param.Chemicals);
+                        await UpsertStandards(connection, transaction, parameterId, param.Standards);
+                        await UpsertMedia(connection, transaction, parameterId, param.Media);
                         var prepLabelToId1 = await UpsertPreparations(connection, transaction, parameterId, param.Preparations);
                         await UpsertCalculations(connection, transaction, parameterId, param.Calculations);
                         await UpsertFiles(connection, transaction, parameterId, param.Files, request.WorksheetId, prepLabelToId1);
@@ -205,10 +207,10 @@ namespace RawDataWorkSheet.Repositories
                     {
                         var parameterId = await InsertParameter(connection, transaction, request.WorksheetId, param);
 
-                        await UpsertInstruments(connection, transaction, parameterId, param.InstrumentIds);
-                        await UpsertChemicals(connection, transaction, parameterId, param.ChemicalIds);
-                        await UpsertStandards(connection, transaction, parameterId, param.StandardIds);
-                        await UpsertMedia(connection, transaction, parameterId, param.MediaIds);
+                        await UpsertInstruments(connection, transaction, parameterId, param.Instruments);
+                        await UpsertChemicals(connection, transaction, parameterId, param.Chemicals);
+                        await UpsertStandards(connection, transaction, parameterId, param.Standards);
+                        await UpsertMedia(connection, transaction, parameterId, param.Media);
                         var prepLabelToId2 = await UpsertPreparations(connection, transaction, parameterId, param.Preparations);
                         await UpsertCalculations(connection, transaction, parameterId, param.Calculations);
                         await UpsertFiles(connection, transaction, parameterId, param.Files, request.WorksheetId, prepLabelToId2);
@@ -253,10 +255,10 @@ namespace RawDataWorkSheet.Repositories
                     throw new InvalidOperationException($"Parameter with id {parameterId} not found");
 
                 await UpdateParameter(connection, transaction, parameterId, worksheetId, request);
-                await UpsertInstruments(connection, transaction, parameterId, request.InstrumentIds);
-                await UpsertChemicals(connection, transaction, parameterId, request.ChemicalIds);
-                await UpsertStandards(connection, transaction, parameterId, request.StandardIds);
-                await UpsertMedia(connection, transaction, parameterId, request.MediaIds);
+                await UpsertInstruments(connection, transaction, parameterId, request.Instruments);
+                await UpsertChemicals(connection, transaction, parameterId, request.Chemicals);
+                await UpsertStandards(connection, transaction, parameterId, request.Standards);
+                await UpsertMedia(connection, transaction, parameterId, request.Media);
                 var prepLabelToId = await UpsertPreparations(connection, transaction, parameterId, request.Preparations);
                 await UpsertCalculations(connection, transaction, parameterId, request.Calculations);
                 await UpsertFiles(connection, transaction, parameterId, request.Files, worksheetId, prepLabelToId);
@@ -340,10 +342,10 @@ namespace RawDataWorkSheet.Repositories
 
                 var parameterId = await InsertParameter(connection, transaction, worksheetId, parameter);
 
-                await UpsertInstruments(connection, transaction, parameterId, parameter.InstrumentIds);
-                await UpsertChemicals(connection, transaction, parameterId, parameter.ChemicalIds);
-                await UpsertStandards(connection, transaction, parameterId, parameter.StandardIds);
-                await UpsertMedia(connection, transaction, parameterId, parameter.MediaIds);
+                await UpsertInstruments(connection, transaction, parameterId, parameter.Instruments);
+                await UpsertChemicals(connection, transaction, parameterId, parameter.Chemicals);
+                await UpsertStandards(connection, transaction, parameterId, parameter.Standards);
+                await UpsertMedia(connection, transaction, parameterId, parameter.Media);
                 var prepLabelToId = await UpsertPreparations(connection, transaction, parameterId, parameter.Preparations);
                 await UpsertCalculations(connection, transaction, parameterId, parameter.Calculations);
                 await UpsertFiles(connection, transaction, parameterId, parameter.Files, worksheetId, prepLabelToId);
@@ -449,11 +451,11 @@ namespace RawDataWorkSheet.Repositories
 
             return new WorksheetFileDto
             {
-                Id = (int)row.Id,
-                ParameterId = (int)row.ParameterId,
-                PreparationType = (string?)row.PreparationType,
-                Label = (string?)row.Label,
-                FileName = (string)row.FileName,
+                Id = row.Id,
+                ParameterId = row.ParameterId,
+                PreparationType = row.PreparationType,
+                Label = row.Label,
+                FileName = row.FileName,
                 FileDataBase64 = row.FileData != null
                                         ? Convert.ToBase64String((byte[])row.FileData)
                                         : null,
@@ -757,75 +759,189 @@ namespace RawDataWorkSheet.Repositories
             IDbConnection connection,
             IDbTransaction transaction,
             int parameterId,
-            List<string> instrumentIds)
+            List<InstrumentDto> instruments)
         {
+            instruments ??= new List<InstrumentDto>();
+
             var existing = await connection.QueryAsync<string>(
-                "SELECT instrument_id FROM worksheet_instruments WHERE parameter_id = @ParameterId",
+                "SELECT InstrumentId FROM worksheet_instruments WHERE parameter_id = @ParameterId",
                 new { ParameterId = parameterId }, transaction);
 
             var existingSet = existing.ToHashSet();
-            var newSet = (instrumentIds ?? new List<string>()).ToHashSet();
+            var newSet = instruments.Select(i => i.InstrumentId).ToHashSet();
 
             var toDelete = existingSet.Except(newSet).ToList();
             if (toDelete.Any())
                 await connection.ExecuteAsync(
-                    "DELETE FROM worksheet_instruments WHERE parameter_id = @ParameterId AND instrument_id IN @Ids",
+                    "DELETE FROM worksheet_instruments WHERE parameter_id = @ParameterId AND InstrumentId IN @Ids",
                     new { ParameterId = parameterId, Ids = toDelete }, transaction);
 
-            foreach (var id in newSet.Except(existingSet))
-                await connection.ExecuteAsync(
-                    "INSERT INTO worksheet_instruments (parameter_id, instrument_id) VALUES (@ParameterId, @InstrumentId)",
-                    new { ParameterId = parameterId, InstrumentId = id }, transaction);
+            foreach (var inst in instruments)
+            {
+                if (existingSet.Contains(inst.InstrumentId))
+                {
+                    await connection.ExecuteAsync(
+                        """
+                        UPDATE worksheet_instruments
+                        SET Name = @Name, InstrumentTag = @InstrumentTag, Make = @Make,
+                            CalibrationDoneDate = @CalibrationDoneDate, CalibrationDueDate = @CalibrationDueDate
+                        WHERE parameter_id = @ParameterId AND InstrumentId = @InstrumentId
+                        """,
+                        new
+                        {
+                            ParameterId = parameterId,
+                            inst.InstrumentId,
+                            inst.Name,
+                            inst.InstrumentTag,
+                            inst.Make,
+                            CalibrationDoneDate = ParseDateTime(inst.CalibrationDoneDate),
+                            CalibrationDueDate = ParseDateTime(inst.CalibrationDueDate),
+                        }, transaction);
+                }
+                else
+                {
+                    await connection.ExecuteAsync(
+                        """
+                        INSERT INTO worksheet_instruments
+                            (parameter_id, InstrumentId, Name, InstrumentTag, Make, CalibrationDoneDate, CalibrationDueDate)
+                        VALUES
+                            (@ParameterId, @InstrumentId, @Name, @InstrumentTag, @Make, @CalibrationDoneDate, @CalibrationDueDate)
+                        """,
+                        new
+                        {
+                            ParameterId = parameterId,
+                            inst.InstrumentId,
+                            inst.Name,
+                            inst.InstrumentTag,
+                            inst.Make,
+                            CalibrationDoneDate = ParseDateTime(inst.CalibrationDoneDate),
+                            CalibrationDueDate = ParseDateTime(inst.CalibrationDueDate),
+                        }, transaction);
+                }
+            }
         }
 
         private async Task UpsertChemicals(
             IDbConnection connection,
             IDbTransaction transaction,
             int parameterId,
-            List<string> chemicalIds)
+            List<ChemicalDto> chemicals)
         {
+            chemicals ??= new List<ChemicalDto>();
+
             var existing = await connection.QueryAsync<string>(
-                "SELECT chemical_id FROM worksheet_chemicals WHERE parameter_id = @ParameterId",
+                "SELECT SLNO FROM worksheet_chemicals WHERE parameter_id = @ParameterId",
                 new { ParameterId = parameterId }, transaction);
 
             var existingSet = existing.ToHashSet();
-            var newSet = (chemicalIds ?? new List<string>()).ToHashSet();
+            var newSet = chemicals.Select(c => c.SLNO).ToHashSet();
 
             var toDelete = existingSet.Except(newSet).ToList();
             if (toDelete.Any())
                 await connection.ExecuteAsync(
-                    "DELETE FROM worksheet_chemicals WHERE parameter_id = @ParameterId AND chemical_id IN @Ids",
+                    "DELETE FROM worksheet_chemicals WHERE parameter_id = @ParameterId AND SLNO IN @Ids",
                     new { ParameterId = parameterId, Ids = toDelete }, transaction);
 
-            foreach (var id in newSet.Except(existingSet))
-                await connection.ExecuteAsync(
-                    "INSERT INTO worksheet_chemicals (parameter_id, chemical_id) VALUES (@ParameterId, @ChemicalId)",
-                    new { ParameterId = parameterId, ChemicalId = id }, transaction);
+            foreach (var chem in chemicals)
+            {
+                if (existingSet.Contains(chem.SLNO))
+                {
+                    await connection.ExecuteAsync(
+                        @"UPDATE worksheet_chemicals
+                        SET Name = @Name, Code = @Code, Make = @Make, BatchNo = @BatchNo, ExpDate = @ExpDate
+                        WHERE parameter_id = @ParameterId AND SLNO = @SLNO",
+                        new
+                        {
+                            ParameterId = parameterId,
+                            chem.SLNO,
+                            chem.Name,
+                            chem.Code,
+                            chem.Make,
+                            chem.BatchNo,
+                            ExpDate = ParseDateTime(chem.ExpDate)
+                        }, transaction);
+                }
+                else
+                {
+                    await connection.ExecuteAsync(
+                        @"INSERT INTO worksheet_chemicals
+                            (parameter_id, SLNO, Name, Code, Make, BatchNo, ExpDate)
+                        VALUES
+                            (@ParameterId, @SLNO, @Name, @Code, @Make, @BatchNo, @ExpDate)",
+                        new
+                        {
+                            ParameterId = parameterId,
+                            chem.SLNO,
+                            chem.Name,
+                            chem.Code,
+                            chem.Make,
+                            chem.BatchNo,
+                            ExpDate = ParseDateTime(chem.ExpDate)
+                        }, transaction);
+                }
+            }
         }
 
         private async Task UpsertMedia(
             IDbConnection connection,
             IDbTransaction transaction,
             int parameterId,
-            List<string> mediaIds)
+            List<MediaDto> mediaItems)
         {
-            var existing = await connection.QueryAsync<string>(
-                "SELECT media_id FROM worksheet_media WHERE parameter_id = @ParameterId",
+            mediaItems ??= new List<MediaDto>();
+
+            var existing = await connection.QueryAsync<int>(
+                "SELECT MediaId FROM worksheet_media WHERE parameter_id = @ParameterId",
                 new { ParameterId = parameterId }, transaction);
 
             var existingSet = existing.ToHashSet();
-            var newSet = (mediaIds ?? []).ToHashSet();
+            var newSet = mediaItems.Select(m => m.MediaId).ToHashSet();
 
             var toDelete = existingSet.Except(newSet).ToList();
             if (toDelete.Any())
                 await connection.ExecuteAsync(
-                    "DELETE FROM worksheet_media WHERE parameter_id = @ParameterId AND media_id IN @Ids",
+                    "DELETE FROM worksheet_media WHERE parameter_id = @ParameterId AND MediaId IN @Ids",
                     new { ParameterId = parameterId, Ids = toDelete }, transaction);
 
-            foreach (var id in newSet.Except(existingSet))
-                await connection.ExecuteAsync(
-                    "INSERT INTO worksheet_media (parameter_id, media_id) VALUES (@ParameterId, @MediaId)",
-                    new { ParameterId = parameterId, MediaId = id }, transaction);
+            foreach (var media in mediaItems)
+            {
+                if (existingSet.Contains(media.MediaId))
+                {
+                    await connection.ExecuteAsync(
+                        @"UPDATE worksheet_media
+                        SET Name = @Name, Code = @Code, QuantityValue = @QuantityValue,
+                            QuantityUnit = @QuantityUnit, ExpDate = @ExpDate
+                        WHERE parameter_id = @ParameterId AND MediaId = @MediaId",
+                        new
+                        {
+                            ParameterId = parameterId,
+                            media.MediaId,
+                            media.Name,
+                            media.Code,
+                            media.QuantityValue,
+                            media.QuantityUnit,
+                            ExpDate = ParseDateTime(media.ExpDate)
+                        }, transaction);
+                }
+                else
+                {
+                    await connection.ExecuteAsync(
+                        @"INSERT INTO worksheet_media
+                            (parameter_id, MediaId, Name, Code, QuantityValue, QuantityUnit, ExpDate)
+                        VALUES
+                            (@ParameterId, @MediaId, @Name, @Code, @QuantityValue, @QuantityUnit, @ExpDate)",
+                        new
+                        {
+                            ParameterId = parameterId,
+                            media.MediaId,
+                            media.Name,
+                            media.Code,
+                            media.QuantityValue,
+                            media.QuantityUnit,
+                            ExpDate = ParseDateTime(media.ExpDate)
+                        }, transaction);
+                }
+            }
         }
 
 
@@ -833,25 +949,62 @@ namespace RawDataWorkSheet.Repositories
             IDbConnection connection,
             IDbTransaction transaction,
             int parameterId,
-            List<string> standardIds)
+            List<StandardDto> standards)
         {
+            standards ??= new List<StandardDto>();
+
             var existing = await connection.QueryAsync<string>(
-                "SELECT standard_id FROM worksheet_standards WHERE parameter_id = @ParameterId",
+                "SELECT SerialNo FROM worksheet_standards WHERE parameter_id = @ParameterId",
                 new { ParameterId = parameterId }, transaction);
 
             var existingSet = existing.ToHashSet();
-            var newSet = (standardIds ?? new List<string>()).ToHashSet();
+            var newSet = standards.Select(s => s.SerialNo).ToHashSet();
 
             var toDelete = existingSet.Except(newSet).ToList();
             if (toDelete.Any())
                 await connection.ExecuteAsync(
-                    "DELETE FROM worksheet_standards WHERE parameter_id = @ParameterId AND standard_id IN @Ids",
+                    "DELETE FROM worksheet_standards WHERE parameter_id = @ParameterId AND SerialNo IN @Ids",
                     new { ParameterId = parameterId, Ids = toDelete }, transaction);
 
-            foreach (var id in newSet.Except(existingSet))
-                await connection.ExecuteAsync(
-                    "INSERT INTO worksheet_standards (parameter_id, standard_id) VALUES (@ParameterId, @StandardId)",
-                    new { ParameterId = parameterId, StandardId = id }, transaction);
+            foreach (var std in standards)
+            {
+                if (existingSet.Contains(std.SerialNo))
+                {
+                    await connection.ExecuteAsync(
+                        @"UPDATE worksheet_standards
+                        SET Name = @Name, BatchNo = @BatchNo, Make = @Make,
+                            Purity = @Purity, Validity = @Validity
+                        WHERE parameter_id = @ParameterId AND SerialNo = @SerialNo",
+                        new
+                        {
+                            ParameterId = parameterId,
+                            std.SerialNo,
+                            std.Name,
+                            std.BatchNo,
+                            std.Make,
+                            std.Purity,
+                            Validity = ParseDateTime(std.Validity)
+                        }, transaction);
+                }
+                else
+                {
+                    await connection.ExecuteAsync(
+                        @"INSERT INTO worksheet_standards
+                            (parameter_id, SerialNo, Name, BatchNo, Make, Purity, Validity)
+                        VALUES
+                            (@ParameterId, @SerialNo, @Name, @BatchNo, @Make, @Purity, @Validity)",
+                        new
+                        {
+                            ParameterId = parameterId,
+                            std.SerialNo,
+                            std.Name,
+                            std.BatchNo,
+                            std.Make,
+                            std.Purity,
+                            Validity = ParseDateTime(std.Validity)
+                        }, transaction);
+                }
+            }
         }
 
 
@@ -1293,25 +1446,64 @@ namespace RawDataWorkSheet.Repositories
                         query, new { EmployeeId = paramDetail.PreparationCompletedBy });
                 }
 
-                var instruments = await connection.QueryAsync<WorksheetInstrument>(
-                    "SELECT instrument_id AS InstrumentId FROM worksheet_instruments WHERE parameter_id = @ParameterId",
+                var instrumentRows = await connection.QueryAsync<WorksheetInstrument>(
+                    @"SELECT InstrumentId, Name, InstrumentTag, Make,
+                             CalibrationDoneDate, CalibrationDueDate
+                      FROM worksheet_instruments WHERE parameter_id = @ParameterId",
                     new { ParameterId = param.Id });
-                paramDetail.InstrumentIds = [.. instruments.Select(i => i.InstrumentId)];
+                paramDetail.Instruments = instrumentRows
+                .Select(i => new InstrumentDto
+                {
+                    InstrumentId = i.InstrumentId,
+                    Name = i.Name,
+                    InstrumentTag = i.InstrumentTag,
+                    Make = i.Make,
+                    CalibrationDoneDate = FormatDateTime(i.CalibrationDoneDate),
+                    CalibrationDueDate = FormatDateTime(i.CalibrationDueDate)
+                })
+                .ToList();
 
-                var chemicals = await connection.QueryAsync<WorksheetChemical>(
-                    "SELECT chemical_id AS ChemicalId FROM worksheet_chemicals WHERE parameter_id = @ParameterId",
+                var chemicalRows = await connection.QueryAsync<WorksheetChemical>(
+                    @"SELECT SLNO, Name, Code, Make, BatchNo, ExpDate
+                      FROM worksheet_chemicals WHERE parameter_id = @ParameterId",
                     new { ParameterId = param.Id });
-                paramDetail.ChemicalIds = [.. chemicals.Select(c => c.ChemicalId)];
+                paramDetail.Chemicals = chemicalRows.Select(c => new ChemicalDto
+                {
+                    SLNO = c.SLNO,
+                    Name = c.Name,
+                    Code = c.Code,
+                    Make = c.Make,
+                    BatchNo = c.BatchNo,
+                    ExpDate = FormatDateTime(c.ExpDate)
+                }).ToList();
 
-                var standards = await connection.QueryAsync<WorksheetStandard>(
-                    "SELECT standard_id AS StandardId FROM worksheet_standards WHERE parameter_id = @ParameterId",
+                var standardRows = await connection.QueryAsync<WorksheetStandard>(
+                    @"SELECT SerialNo, Name, BatchNo, Make, Purity, Validity
+                      FROM worksheet_standards WHERE parameter_id = @ParameterId",
                     new { ParameterId = param.Id });
-                paramDetail.StandardIds = [.. standards.Select(s => s.StandardId)];
+                paramDetail.Standards = standardRows.Select(s => new StandardDto
+                {
+                    SerialNo = s.SerialNo,
+                    Name = s.Name,
+                    BatchNo = s.BatchNo,
+                    Make = s.Make,
+                    Purity = s.Purity,
+                    Validity = FormatDateTime(s.Validity)
+                }).ToList();
 
-                var media = await connection.QueryAsync<WorksheetMedia>(
-                    "SELECT media_id AS MediaId FROM worksheet_media WHERE parameter_id = @ParameterId",
+                var mediaRows = await connection.QueryAsync<WorksheetMedia>(
+                    @"SELECT MediaId, Name, Code, QuantityValue, QuantityUnit, ExpDate
+                      FROM worksheet_media WHERE parameter_id = @ParameterId",
                     new { ParameterId = param.Id });
-                paramDetail.MediaIds = [.. media.Select(m => m.MediaId)];
+                paramDetail.Media = mediaRows.Select(m => new MediaDto
+                {
+                    MediaId = m.MediaId,
+                    Name = m.Name,
+                    Code = m.Code,
+                    QuantityValue = m.QuantityValue,
+                    QuantityUnit = m.QuantityUnit,
+                    ExpDate = FormatDateTime(m.ExpDate)
+                }).ToList();
 
                 var preparations = await connection.QueryAsync<WorksheetPreparation>(
                     @"SELECT 

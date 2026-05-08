@@ -1,4 +1,6 @@
-﻿namespace RawDataWorkSheet.Models.DTOs
+﻿using RawDataWorkSheet.Models.References;
+
+namespace RawDataWorkSheet.Models.DTOs
 {
     public class ParameterDto
     {
@@ -19,10 +21,10 @@
         public string? ApprovedAtReviewer { get; set; }
         public string? Status { get; set; }
 
-        public List<string>? InstrumentIds { get; set; }
-        public List<string>? ChemicalIds { get; set; }
-        public List<string>? StandardIds { get; set; }
-        public List<string>? MediaIds { get; set; }
+        public List<InstrumentDto>? Instruments { get; set; }
+        public List<ChemicalDto>? Chemicals { get; set; }
+        public List<StandardDto>? Standards { get; set; }
+        public List<MediaDto>? Media { get; set; }
 
         public List<PreparationDto>? Preparations { get; set; }
         public List<CalculationDto>? Calculations { get; set; }

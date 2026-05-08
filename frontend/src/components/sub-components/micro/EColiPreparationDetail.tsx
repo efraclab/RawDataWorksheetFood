@@ -299,7 +299,9 @@ const EcoliPreparationDetail: React.FC<EcoliPreparationDetailProps> = ({
         onChange({ ...preparation, biochemicalRows: preparation.biochemicalRows.filter((r) => r.id !== id) });
     };
 
-    const wrapperClass = isLocked ? "pointer-events-none opacity-75 select-none" : "";
+    const wrapperClass = isLocked
+        ? "opacity-75 select-none [&_input]:pointer-events-none [&_input]:cursor-not-allowed [&_select]:pointer-events-none [&_select]:cursor-not-allowed [&_textarea]:pointer-events-none [&_textarea]:cursor-not-allowed"
+        : "";
 
     const cellInputCls =
         "w-full text-xs text-center text-gray-700 bg-transparent outline-none " +

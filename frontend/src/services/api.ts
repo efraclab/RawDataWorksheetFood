@@ -178,6 +178,7 @@ export const updateParameter = async (
     }
     throw new Error(`Unexpected error: ${error.message}`);
   }
+  
 };
 
 

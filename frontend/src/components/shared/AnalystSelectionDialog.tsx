@@ -8,6 +8,8 @@ interface AnalystSelectionDialogProps {
   onClose: () => void;
   analysts: Analyst[];
   onSelectAnalyst: (employeeId: string, employeeName: string) => void;
+  /** Worksheet lab — when set, only analysts whose department matches this lab are shown. */
+  lab?: string;
 }
 
 const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
@@ -15,7 +17,17 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
   onClose,
   analysts,
   onSelectAnalyst,
+  lab,
 }) => {
+  const labFilteredAnalysts = (() => {
+    const labKey = (lab ?? "").trim().toLowerCase();
+    if (!labKey) return analysts;
+    return analysts.filter((a) => {
+      const dept = (a.department ?? "").trim().toLowerCase();
+      if (!dept) return false;
+      return dept.includes(labKey) || labKey.includes(dept);
+    });
+  })();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedId, setSelectedId] = useState("");
@@ -44,7 +56,7 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
 
   if (!isOpen) return null;
 
-  const filteredAnalysts = analysts.filter((analyst) => {
+  const filteredAnalysts = labFilteredAnalysts.filter((analyst) => {
   const name = analyst.username?.toLowerCase() ?? "";
   const employeeId = analyst.employeeId?.toLowerCase() ?? "";
   const department = analyst.department?.toLowerCase() ?? "";
@@ -58,7 +70,7 @@ const AnalystSelectionDialog: React.FC<AnalystSelectionDialogProps> = ({
 });
 
 
-  const selectedAnalyst = analysts.find(a => a.employeeId === selectedId);
+  const selectedAnalyst = labFilteredAnalysts.find(a => a.employeeId === selectedId);
 
   const handleConfirm = () => {
     if (selectedId) {

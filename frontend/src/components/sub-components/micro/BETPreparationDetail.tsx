@@ -47,9 +47,10 @@ const TrashIcon: React.FC<{ className?: string }> = ({ className }) => (
 interface TubeTypeDropdownProps {
     value: string;
     onChange: (v: string) => void;
+    disabled?: boolean;
 }
 
-const TubeTypeDropdown: React.FC<TubeTypeDropdownProps> = ({ value, onChange }) => {
+const TubeTypeDropdown: React.FC<TubeTypeDropdownProps> = ({ value, onChange, disabled = false }) => {
     const [open, setOpen] = useState(false);
     const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({});
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -76,6 +77,7 @@ const TubeTypeDropdown: React.FC<TubeTypeDropdownProps> = ({ value, onChange }) 
     }, []);
 
     const handleOpen = () => {
+        if (disabled) return;
         updatePosition();
         setOpen(o => !o);
     };
@@ -158,7 +160,8 @@ const TubeTypeDropdown: React.FC<TubeTypeDropdownProps> = ({ value, onChange }) 
                 ref={triggerRef}
                 type="button"
                 onClick={handleOpen}
-                className={`inline-flex items-center gap-1.5 pl-2.5 pr-2 py-1.5 rounded-lg border text-xs font-semibold transition-all duration-150 ${isPositive
+                disabled={disabled}
+                className={`inline-flex items-center gap-1.5 pl-2.5 pr-2 py-1.5 rounded-lg border text-xs font-semibold transition-all duration-150 ${disabled ? "cursor-not-allowed" : ""} ${isPositive
                         ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:border-emerald-400 hover:bg-emerald-100"
                         : "bg-sky-50 text-sky-800 border-sky-200 hover:border-sky-400 hover:bg-sky-100"
                     }`}
@@ -215,27 +218,31 @@ interface FieldProps {
     type?: string;
     unit?: string;
     readOnly?: boolean;
+    disabled?: boolean;
     className?: string;
 }
 
-const Field: React.FC<FieldProps> = ({ label, value, onChange, placeholder = "", type = "text", unit, readOnly = false, className = "" }) => (
-    <div className={`flex flex-col gap-1 ${className}`}>
-        <label className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider">{label}</label>
-        <div className={`flex items-center gap-1.5 ${readOnly ? "bg-emerald-50" : "bg-white"} border ${readOnly ? "border-emerald-200" : "border-gray-200"} rounded-lg px-3 py-2 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all`}>
-            <input
-                type={type}
-                value={value}
-                onChange={e => onChange(e.target.value)}
-                placeholder={placeholder}
-                readOnly={readOnly}
-                className={`flex-1 text-sm ${readOnly ? "text-emerald-700 font-semibold" : "text-gray-800"} bg-transparent outline-none placeholder-gray-300 min-w-0`}
-            />
-            {unit && <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{unit}</span>}
+const Field: React.FC<FieldProps> = ({ label, value, onChange, placeholder = "", type = "text", unit, readOnly = false, disabled = false, className = "" }) => {
+    const effectiveReadOnly = readOnly || disabled;
+    return (
+        <div className={`flex flex-col gap-1 ${className}`}>
+            <label className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider">{label}</label>
+            <div className={`flex items-center gap-1.5 ${effectiveReadOnly ? "bg-emerald-50" : "bg-white"} border ${effectiveReadOnly ? "border-emerald-200" : "border-gray-200"} rounded-lg px-3 py-2 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all`}>
+                <input
+                    type={type}
+                    value={value}
+                    onChange={e => onChange(e.target.value)}
+                    placeholder={placeholder}
+                    readOnly={effectiveReadOnly}
+                    className={`flex-1 text-sm ${effectiveReadOnly ? "text-emerald-700 font-semibold" : "text-gray-800"} bg-transparent outline-none placeholder-gray-300 min-w-0 ${disabled ? "cursor-not-allowed" : ""}`}
+                />
+                {unit && <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{unit}</span>}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
-const TextAreaField: React.FC<{ label: string; value: string; onChange: (v: string) => void; placeholder?: string; rows?: number }> = ({ label, value, onChange, placeholder = "", rows = 3 }) => (
+const TextAreaField: React.FC<{ label: string; value: string; onChange: (v: string) => void; placeholder?: string; rows?: number; disabled?: boolean }> = ({ label, value, onChange, placeholder = "", rows = 3, disabled = false }) => (
     <div className="flex flex-col gap-1">
         <label className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider">{label}</label>
         <textarea
@@ -243,7 +250,8 @@ const TextAreaField: React.FC<{ label: string; value: string; onChange: (v: stri
             value={value}
             onChange={e => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full text-sm text-gray-800 bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all resize-none placeholder-gray-300"
+            readOnly={disabled}
+            className={`w-full text-sm text-gray-800 bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all resize-none placeholder-gray-300 ${disabled ? "cursor-not-allowed bg-gray-50" : ""}`}
         />
     </div>
 );
@@ -349,7 +357,7 @@ const BETPreparationDetail: React.FC<BETPreparationDetailProps> = ({
         return "";
     })();
 
-    const wrapperClass = isLocked ? "pointer-events-none opacity-75 select-none" : "";
+    const wrapperClass = isLocked ? "opacity-75 select-none" : "";
 
     return (
         <motion.div
@@ -401,6 +409,7 @@ const BETPreparationDetail: React.FC<BETPreparationDetailProps> = ({
                         onChange={v => update("dilutionProcedure", v)}
                         placeholder="Describe the dilution steps performed..."
                         rows={3}
+                        disabled={isLocked}
                     />
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -411,6 +420,7 @@ const BETPreparationDetail: React.FC<BETPreparationDetailProps> = ({
                             onChange={v => update("endotoxinLimit", v)}
                             placeholder="e.g. 0.25"
                             unit="EU/mL"
+                            disabled={isLocked}
                         />
                         <Field
                             label="Concentration of Sample"
@@ -419,6 +429,7 @@ const BETPreparationDetail: React.FC<BETPreparationDetailProps> = ({
                             onChange={v => update("concentrationOfSample", v)}
                             placeholder="e.g. 10"
                             unit="mg/mL"
+                            disabled={isLocked}
                         />
                         <Field
                             label="Lysate Sensitivity (λ)"
@@ -427,6 +438,7 @@ const BETPreparationDetail: React.FC<BETPreparationDetailProps> = ({
                             onChange={v => update("lysateSensitivity", v)}
                             placeholder="e.g. 0.125"
                             unit="EU/mL"
+                            disabled={isLocked}
                         />
                         <Field
                             label="MVD (Computed)"
@@ -435,6 +447,7 @@ const BETPreparationDetail: React.FC<BETPreparationDetailProps> = ({
                             onChange={v => update("mvd", v)}
                             readOnly={!!computedMVD}
                             placeholder="Auto-calculated"
+                            disabled={isLocked}
                         />
                     </div>
 
@@ -543,6 +556,7 @@ const BETPreparationDetail: React.FC<BETPreparationDetailProps> = ({
                                                     <TubeTypeDropdown
                                                         value={tube.tubeType}
                                                         onChange={v => updateTube(idx, "tubeType", v)}
+                                                        disabled={isLocked}
                                                     />
                                                 </td>
 
@@ -551,7 +565,8 @@ const BETPreparationDetail: React.FC<BETPreparationDetailProps> = ({
                                                     <input
                                                         value={tube.waterForBET}
                                                         onChange={e => updateTube(idx, "waterForBET", e.target.value)}
-                                                        className={cellInputCls}
+                                                        readOnly={isLocked}
+                                                        className={`${cellInputCls} ${isLocked ? "cursor-not-allowed" : ""}`}
                                                         placeholder="—"
                                                     />
                                                 </td>
@@ -561,7 +576,8 @@ const BETPreparationDetail: React.FC<BETPreparationDetailProps> = ({
                                                     <input
                                                         value={tube.endotoxinCSE}
                                                         onChange={e => updateTube(idx, "endotoxinCSE", e.target.value)}
-                                                        className={cellInputCls}
+                                                        readOnly={isLocked}
+                                                        className={`${cellInputCls} ${isLocked ? "cursor-not-allowed" : ""}`}
                                                         placeholder="—"
                                                     />
                                                 </td>
@@ -571,7 +587,8 @@ const BETPreparationDetail: React.FC<BETPreparationDetailProps> = ({
                                                     <input
                                                         value={tube.sample}
                                                         onChange={e => updateTube(idx, "sample", e.target.value)}
-                                                        className={cellInputCls}
+                                                        readOnly={isLocked}
+                                                        className={`${cellInputCls} ${isLocked ? "cursor-not-allowed" : ""}`}
                                                         placeholder="—"
                                                     />
                                                 </td>
@@ -581,7 +598,8 @@ const BETPreparationDetail: React.FC<BETPreparationDetailProps> = ({
                                                     <input
                                                         value={tube.lysate}
                                                         onChange={e => updateTube(idx, "lysate", e.target.value)}
-                                                        className={cellInputCls}
+                                                        readOnly={isLocked}
+                                                        className={`${cellInputCls} ${isLocked ? "cursor-not-allowed" : ""}`}
                                                         placeholder="—"
                                                     />
                                                 </td>
@@ -607,7 +625,8 @@ const BETPreparationDetail: React.FC<BETPreparationDetailProps> = ({
                                                     <input
                                                         value={tube.result}
                                                         onChange={e => updateTube(idx, "result", e.target.value)}
-                                                        className={cellInputCls}
+                                                        readOnly={isLocked}
+                                                        className={`${cellInputCls} ${isLocked ? "cursor-not-allowed" : ""}`}
                                                         placeholder="—"
                                                     />
                                                 </td>
@@ -665,10 +684,14 @@ const BETPreparationDetail: React.FC<BETPreparationDetailProps> = ({
                                 return (
                                     <motion.button
                                         key={opt}
-                                        whileHover={{ scale: 1.03 }}
-                                        whileTap={{ scale: 0.97 }}
-                                        onClick={() => update("finalResult", isSelected ? "" : opt)}
-                                        className={`px-5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all shadow-sm ${isSelected
+                                        whileHover={isLocked ? undefined : { scale: 1.03 }}
+                                        whileTap={isLocked ? undefined : { scale: 0.97 }}
+                                        onClick={() => {
+                                            if (isLocked) return;
+                                            update("finalResult", isSelected ? "" : opt);
+                                        }}
+                                        disabled={isLocked}
+                                        className={`px-5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all shadow-sm ${isLocked ? "cursor-not-allowed" : ""} ${isSelected
                                                 ? isComplies
                                                     ? "bg-emerald-600 text-white border-emerald-600 shadow-emerald-200"
                                                     : "bg-red-500 text-white border-red-500 shadow-red-200"

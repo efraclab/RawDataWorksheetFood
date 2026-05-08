@@ -108,6 +108,9 @@ import type { WorksheetFileData } from "../models/WorksheetFileData";
 import WorksheetFileAttacher from "./shared/WorksheetFileAttacher";
 
 import type { WorksheetSidebarState, WorksheetSidebarActions } from "./shared/WorksheetSidebar";
+import type { WorksheetStandard } from "../models/WorksheetStandard";
+import type { WorksheetInstrument } from "../models/WorksheetInstrument";
+import type { WorksheetChemical } from "../models/WorksheetChemical";
 
 // SVG Icons
 const Target: React.FC<{ className: string }> = ({ className }) => (
@@ -1201,23 +1204,13 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
   const [samplePreparationDissoPerParam, setSamplePreparationDissoPerParam] =
     useState<Record<number, SamplePreparationDisso[]>>({});
   const [addedInstruments, setAddedInstruments] = useState<
-    Record<number, Instrument[]>
+    Record<number, WorksheetInstrument[]>
   >({});
   const [addedChemicals, setAddedChemicals] = useState<
-    Record<number, Chemical[]>
+    Record<number, WorksheetChemical[]>
   >({});
   const [addedStandards, setAddedStandards] = useState<
-    Record<number, Standard[]>
-  >({});
-  // Per-parameter id caches (string ids trimmed) to resolve when parent refs arrive
-  const [addedInstrumentIdsPerParam, setAddedInstrumentIdsPerParam] = useState<
-    Record<number, string[]>
-  >({});
-  const [addedChemicalIdsPerParam, setAddedChemicalIdsPerParam] = useState<
-    Record<number, string[]>
-  >({});
-  const [addedStandardIdsPerParam, setAddedStandardIdsPerParam] = useState<
-    Record<number, string[]>
+    Record<number, WorksheetStandard[]>
   >({});
   const [otherInfoPerParam, setOtherInfoPerParam] = useState<
     Record<number, string>
@@ -1555,7 +1548,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         const analysts = await fetchAnalysts();
 
         setAnalysts(analysts.filter((a) =>
-          a.department?.toLowerCase().includes("drugs")
+          a.department?.toLowerCase().includes("drug")
         ));
       } catch (error) {
         console.error("Error fetching analysts:", error);
@@ -1852,78 +1845,39 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
       // ------------------------------------------------------------------------
       // 2.3: Instruments
       // ------------------------------------------------------------------------
-      if (param.instrumentIds && Array.isArray(param.instrumentIds)) {
-        const validInstrumentIds = param.instrumentIds
-          .filter((id: any) => id != null)
-          .map((id: any) => String(id).trim());
-
-        if (validInstrumentIds.length > 0) {
-          setAddedInstrumentIdsPerParam((prev) => ({
+      if (param.instruments && Array.isArray(param.instruments)) {
+        const worksheetInstruments = param.instruments as WorksheetInstrument[];
+        if (worksheetInstruments.length > 0) {
+          setAddedInstruments((prev) => ({
             ...prev,
-            [paramId]: validInstrumentIds,
+            [paramId]: worksheetInstruments,
           }));
-
-          if (instruments && instruments.length) {
-            const paramInstruments = instruments.filter((inst) =>
-              validInstrumentIds.includes(String(inst.id).trim()),
-            );
-            setAddedInstruments((prev) => ({
-              ...prev,
-              [paramId]: paramInstruments,
-            }));
-          }
         }
       }
 
       // ------------------------------------------------------------------------
       // 2.4: Chemicals
       // ------------------------------------------------------------------------
-      if (param.chemicalIds && Array.isArray(param.chemicalIds)) {
-        const validChemicalIds = param.chemicalIds
-          .filter((id: any) => id != null)
-          .map((id: any) => String(id).trim());
-
-        if (validChemicalIds.length > 0) {
-          setAddedChemicalIdsPerParam((prev) => ({
+      if (param.chemicals && Array.isArray(param.chemicals)) {
+        const worksheetChemicals = param.chemicals as WorksheetChemical[];
+        if (worksheetChemicals.length > 0) {
+          setAddedChemicals((prev) => ({
             ...prev,
-            [paramId]: validChemicalIds,
+            [paramId]: worksheetChemicals,
           }));
-
-          if (chemicals && chemicals.length) {
-            const paramChemicals = chemicals.filter((chem) =>
-              validChemicalIds.includes(String(chem.slno).trim()),
-            );
-            setAddedChemicals((prev) => ({
-              ...prev,
-              [paramId]: paramChemicals,
-            }));
-          }
         }
       }
 
       // ------------------------------------------------------------------------
       // 2.5: Standards
       // ------------------------------------------------------------------------
-      if (param.standardIds && Array.isArray(param.standardIds)) {
-        const validStandardIds = param.standardIds
-          .filter((id: any) => id != null)
-          .map((id: any) => String(id).trim());
-
-        if (validStandardIds.length > 0) {
-          setAddedStandardIdsPerParam((prev) => ({
+      if (param.standards && Array.isArray(param.standards)) {
+        const worksheetStandards = param.standards as WorksheetStandard[];
+        if (worksheetStandards.length > 0) {
+          setAddedStandards((prev) => ({
             ...prev,
-            [paramId]: validStandardIds,
+            [paramId]: worksheetStandards,
           }));
-
-          if (standards && standards.length) {
-            const paramStandards = standards.filter((std) =>
-              validStandardIds.includes(String(std.serialNo).trim()),
-            );
-            setAddedStandards((prev) => ({
-              ...prev,
-              [paramId]: paramStandards,
-            }));
-          }
         }
       }
 
@@ -3299,45 +3253,6 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
   };
 
   useEffect(() => {
-    if (!instruments || !Object.keys(addedInstrumentIdsPerParam).length) return;
-    Object.entries(addedInstrumentIdsPerParam).forEach(([paramId, idList]) => {
-      const ids = Array.isArray(idList)
-        ? idList.map(String).map((s) => s.trim())
-        : [];
-      const matched = instruments.filter((inst) =>
-        ids.includes(String(inst.id).trim()),
-      );
-      setAddedInstruments((prev) => ({ ...prev, [Number(paramId)]: matched }));
-    });
-  }, [instruments, addedInstrumentIdsPerParam]);
-
-  useEffect(() => {
-    if (!chemicals || !Object.keys(addedChemicalIdsPerParam).length) return;
-    Object.entries(addedChemicalIdsPerParam).forEach(([paramId, idList]) => {
-      const ids = Array.isArray(idList)
-        ? idList.map(String).map((s) => s.trim())
-        : [];
-      const matched = chemicals.filter((chem) =>
-        ids.includes(String(chem.slno).trim()),
-      );
-      setAddedChemicals((prev) => ({ ...prev, [Number(paramId)]: matched }));
-    });
-  }, [chemicals, addedChemicalIdsPerParam]);
-
-  useEffect(() => {
-    if (!standards || !Object.keys(addedStandardIdsPerParam).length) return;
-    Object.entries(addedStandardIdsPerParam).forEach(([paramId, idList]) => {
-      const ids = Array.isArray(idList)
-        ? idList.map(String).map((s) => s.trim())
-        : [];
-      const matched = standards.filter((std) =>
-        ids.includes(String(std.serialNo).trim()),
-      );
-      setAddedStandards((prev) => ({ ...prev, [Number(paramId)]: matched }));
-    });
-  }, [standards, addedStandardIdsPerParam]);
-
-  useEffect(() => {
     if (!instruments) return;
   }, [instruments]);
 
@@ -3713,15 +3628,30 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
           preparationCompletedAt:
             preparationCompletedAtPerParam[param.id] || null,
           status: parameterStatusPerParam[param.id] || "Created",
-          instrumentIds: (addedInstruments[param.id] || []).map(
-            (inst) => inst.id,
-          ),
-          chemicalIds: (addedChemicals[param.id] || []).map(
-            (chem) => chem.slno,
-          ),
-          standardIds: (addedStandards[param.id] || []).map(
-            (std) => std.serialNo,
-          ),
+          instruments: (addedInstruments[param.id] || []).map((inst) => ({
+            instrumentId: inst.instrumentId,
+            name: inst.name,
+            instrumentTag: inst.instrumentTag,
+            make: inst.make,
+            calibrationDoneDate: inst.calibrationDoneDate,
+            calibrationDueDate: inst.calibrationDueDate,
+          })),
+          chemicals: (addedChemicals[param.id] || []).map((chem) => ({
+            slno: chem.slno,
+            name: chem.name,
+            code: chem.code,
+            make: chem.make,
+            batchNo: chem.batchNo,
+            expDate: chem.expDate,
+          })),
+          standards: (addedStandards[param.id] || []).map((std) => ({
+            serialNo: std.serialNo,
+            name: std.name,
+            batchNo: std.batchNo,
+            make: std.make,
+            purity: std.purity,
+            validity: std.validity,
+          })),
           preparations, // ← Unified preparations array
           calculations,
           files: collectFilesForParam(param.id),
@@ -4042,13 +3972,30 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
             analysisCompletionDate: null,
             approvedAtReviewer: null,
             status: "Created",
-            instrumentIds: (addedInstruments[newId] || []).map(
-              (inst) => inst.id,
-            ),
-            chemicalIds: (addedChemicals[newId] || []).map((chem) => chem.slno),
-            standardIds: (addedStandards[newId] || []).map(
-              (std) => std.serialNo,
-            ),
+            instruments: (addedInstruments[newId] || []).map((inst) => ({
+            instrumentId: inst.instrumentId,
+            name: inst.name,
+            instrumentTag: inst.instrumentTag,
+            make: inst.make,
+            calibrationDoneDate: inst.calibrationDoneDate,
+            calibrationDueDate: inst.calibrationDueDate,
+          })),
+          chemicals: (addedChemicals[newId] || []).map((chem) => ({
+            slno: chem.slno,
+            name: chem.name,
+            code: chem.code,
+            make: chem.make,
+            batchNo: chem.batchNo,
+            expDate: chem.expDate,
+          })),
+          standards: (addedStandards[newId] || []).map((std) => ({
+            serialNo: std.serialNo,
+            name: std.name,
+            batchNo: std.batchNo,
+            make: std.make,
+            purity: std.purity,
+            validity: std.validity,
+          })),
             preparations: [
               // Standard Preparations
               ...(standardPreparationAssayPerParam[newId] || []).map((sp) => ({
@@ -4321,10 +4268,6 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
               const { [newId]: instruments, ...rest } = prev;
               return { ...rest, [serverParameterId]: instruments };
             });
-            setAddedInstrumentIdsPerParam((prev) => {
-              const { [newId]: ids, ...rest } = prev;
-              return { ...rest, [serverParameterId]: ids };
-            });
           }
 
           if (addedChemicals[newId]) {
@@ -4332,20 +4275,12 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
               const { [newId]: chemicals, ...rest } = prev;
               return { ...rest, [serverParameterId]: chemicals };
             });
-            setAddedChemicalIdsPerParam((prev) => {
-              const { [newId]: ids, ...rest } = prev;
-              return { ...rest, [serverParameterId]: ids };
-            });
           }
 
           if (addedStandards[newId]) {
             setAddedStandards((prev) => {
               const { [newId]: standards, ...rest } = prev;
               return { ...rest, [serverParameterId]: standards };
-            });
-            setAddedStandardIdsPerParam((prev) => {
-              const { [newId]: ids, ...rest } = prev;
-              return { ...rest, [serverParameterId]: ids };
             });
           }
 
@@ -4517,11 +4452,8 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
           cleanupState(setAdditionalInfoPerParam);
           cleanupState(setShowAdditionalInfo);
           cleanupState(setAddedInstruments);
-          cleanupState(setAddedInstrumentIdsPerParam);
           cleanupState(setAddedChemicals);
-          cleanupState(setAddedChemicalIdsPerParam);
           cleanupState(setAddedStandards);
-          cleanupState(setAddedStandardIdsPerParam);
           cleanupState(setStandardPreparationAssayPerParam);
           cleanupState(setSamplePreparationPerParam);
           cleanupState(setStandardPreparationResidualSolventPerParam);
@@ -4594,15 +4526,30 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                 preparationCompletedAtPerParam[paramId] || null,
               remarksByAnalyst: remarksByAnalystPerParam[paramId] || null,
               status: parameterStatusPerParam[paramId] || "Created",
-              instrumentIds: (addedInstruments[paramId] || []).map(
-                (inst) => inst.id,
-              ),
-              chemicalIds: (addedChemicals[paramId] || []).map(
-                (chem) => chem.slno,
-              ),
-              standardIds: (addedStandards[paramId] || []).map(
-                (std) => std.serialNo,
-              ),
+              instruments: (addedInstruments[param.id] || []).map((inst) => ({
+                instrumentId: inst.instrumentId,
+                name: inst.name,
+                instrumentTag: inst.instrumentTag,
+                make: inst.make,
+                calibrationDoneDate: inst.calibrationDoneDate,
+                calibrationDueDate: inst.calibrationDueDate,
+              })),
+              chemicals: (addedChemicals[param.id] || []).map((chem) => ({
+                slno: chem.slno,
+                name: chem.name,
+                code: chem.code,
+                make: chem.make,
+                batchNo: chem.batchNo,
+                expDate: chem.expDate,
+              })),
+              standards: (addedStandards[param.id] || []).map((std) => ({
+                serialNo: std.serialNo,
+                name: std.name,
+                batchNo: std.batchNo,
+                make: std.make,
+                purity: std.purity,
+                validity: std.validity,
+              })),
               standardPreparations: [],
               samplePreparations: [],
               calculations: [],
@@ -4730,9 +4677,6 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     cleanupState(setSamplePreparationROIPerParam);
     cleanupState(setSamplePreparationSulphatedAshPerParam);
     cleanupState(setActivePreparationGroups);
-    cleanupState(setAddedInstrumentIdsPerParam);
-    cleanupState(setAddedChemicalIdsPerParam);
-    cleanupState(setAddedStandardIdsPerParam);
     cleanupState(setDissoMediaPerParam);
     cleanupState(setMobilePhasePerParam);
     cleanupState(setShowMobilePhasePreparation);
@@ -5243,9 +5187,30 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
           ? (overrides.preparationCompletedAt ?? null)
           : preparationCompletedAtPerParam[paramId] || null,
       status: parameterStatusPerParam[paramId] || "Created",
-      instrumentIds: (addedInstruments[paramId] || []).map((i) => i.id),
-      chemicalIds: (addedChemicals[paramId] || []).map((c) => c.slno),
-      standardIds: (addedStandards[paramId] || []).map((s) => s.serialNo),
+      instruments: (addedInstruments[paramId] || []).map((inst) => ({
+            instrumentId: inst.instrumentId,
+            name: inst.name,
+            instrumentTag: inst.instrumentTag,
+            make: inst.make,
+            calibrationDoneDate: inst.calibrationDoneDate,
+            calibrationDueDate: inst.calibrationDueDate,
+          })),
+          chemicals: (addedChemicals[paramId] || []).map((chem) => ({
+            slno: chem.slno,
+            name: chem.name,
+            code: chem.code,
+            make: chem.make,
+            batchNo: chem.batchNo,
+            expDate: chem.expDate,
+          })),
+          standards: (addedStandards[paramId] || []).map((std) => ({
+            serialNo: std.serialNo,
+            name: std.name,
+            batchNo: std.batchNo,
+            make: std.make,
+            purity: std.purity,
+            validity: std.validity,
+          })),
       preparations,
       calculations,
       files: collectFilesForParam(paramId),
@@ -6681,10 +6646,10 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         std.make.toLowerCase().includes(standardSearch.toLowerCase())),
   );
 
-  const handleAddInstrument = (parameterId: number, instrument: Instrument) => {
+  const handleAddInstrument = (instrument: WorksheetInstrument) => {
     setAddedInstruments((prev) => ({
       ...prev,
-      [parameterId]: [...(prev[parameterId] || []), instrument],
+      [instrument.parameterId!]: [...(prev[instrument.parameterId] || []), instrument],
     }));
     setShowInstrumentDropdown(false);
     setInstrumentSearch("");
@@ -6697,15 +6662,15 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     setAddedInstruments((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).filter(
-        (inst) => inst.id !== instrumentId,
+        (inst) => inst.instrumentId !== instrumentId,
       ),
     }));
   };
 
-  const handleAddChemical = (parameterId: number, chemical: Chemical) => {
+  const handleAddChemical = (chemical: WorksheetChemical) => {
     setAddedChemicals((prev) => ({
       ...prev,
-      [parameterId]: [...(prev[parameterId] || []), chemical],
+      [chemical.parameterId]: [...(prev[chemical.parameterId] || []), chemical],
     }));
     setShowChemicalDropdown(false);
     setChemicalSearch("");
@@ -6720,10 +6685,10 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     }));
   };
 
-  const handleAddStandard = (parameterId: number, standard: Standard) => {
+  const handleAddStandard = (standard: WorksheetStandard) => {
     setAddedStandards((prev) => ({
       ...prev,
-      [parameterId]: [...(prev[parameterId] || []), standard],
+      [standard.parameterId]: [...(prev[standard.parameterId] || []), standard],
     }));
     setShowStandardDropdown(false);
     setStandardSearch("");
@@ -8010,17 +7975,6 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
   };
 
   // Dissolution Media Preparation Handlers
-  const handleAddDissoMedia = (parameterId: number) => {
-    setDissoMediaPerParam((prev) => {
-      const current = prev[parameterId] || [];
-      const newIndex = current.length;
-      return {
-        ...prev,
-        [parameterId]: [...current, createNewDissoMediaPreparation(newIndex)],
-      };
-    });
-  };
-
   const handleRemoveDissoMedia = (
     parameterId: number,
     dissoMediaId: number,
@@ -12545,9 +12499,9 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                         methodCode: param.methodCode,
                                         parameterName: param.parameter,
                                         id: 0,
-                                        instrumentIds: [],
-                                        chemicalIds: [],
-                                        standardIds: [],
+                                        instruments: [],
+                                        chemicals: [],
+                                        standards: [],
                                         preparations: [],
                                         calculations: [],
                                         files: [],
@@ -13417,7 +13371,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                               !addedInstruments[
                                                 selectedParam.id
                                               ]?.find(
-                                                (added) => added.id === inst.id,
+                                                (added) => added.instrumentId === inst.id,
                                               ),
                                           )
                                           .map((inst) => (
@@ -13425,8 +13379,16 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                               key={inst.id}
                                               onClick={() =>
                                                 handleAddInstrument(
-                                                  selectedParam.id,
-                                                  inst,
+                                                  {
+                                                    id: null,
+                                                    parameterId: selectedParam.id,
+                                                    instrumentId: inst.id,
+                                                    name: inst.name,
+                                                    instrumentTag: inst.instrumentTag ?? null,
+                                                    make: inst.make ?? null,
+                                                    calibrationDoneDate: inst.calibrationDoneDate ?? null,
+                                                    calibrationDueDate: inst.calibrationDueDate ?? null,
+                                                  },
                                                 )
                                               }
                                               className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
@@ -13444,7 +13406,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                             !addedInstruments[
                                               selectedParam.id
                                             ]?.find(
-                                              (added) => added.id === inst.id,
+                                              (added) => added.instrumentId === inst.id,
                                             ),
                                         ).length === 0 && (
                                             <div className="px-3 py-4 text-center text-gray-500 text-sm">
@@ -13495,7 +13457,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                       addedInstruments[selectedParam.id].map(
                                         (instrument) => (
                                           <motion.tr
-                                            key={instrument.id}
+                                            key={instrument.instrumentId}
                                             initial={{ opacity: 0, x: -20 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: 20 }}
@@ -13508,25 +13470,17 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                               {instrument.name || "---"}
                                             </td>
                                             <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                              {instrument.calibrationDoneDate
-                                                ? new Date(
-                                                  instrument.calibrationDoneDate,
-                                                ).toLocaleDateString("en-GB")
-                                                : "---"}
+                                              {formatDate(instrument.calibrationDoneDate)}
                                             </td>
                                             <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                              {instrument.calibrationDueDate
-                                                ? new Date(
-                                                  instrument.calibrationDueDate,
-                                                ).toLocaleDateString("en-GB")
-                                                : "---"}
+                                              {formatDate(instrument.calibrationDueDate)}
                                             </td>
                                             <td className="px-3 py-2 text-center">
                                               <motion.button
                                                 onClick={() =>
                                                   handleRemoveInstrument(
                                                     selectedParam.id,
-                                                    instrument.id,
+                                                    instrument.instrumentId!,
                                                   )
                                                 }
                                                 whileHover={{
@@ -13626,8 +13580,16 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                               key={chem.slno}
                                               onClick={() =>
                                                 handleAddChemical(
-                                                  selectedParam.id,
-                                                  chem,
+                                                  {
+                                                    id: null,
+                                                    parameterId: selectedParam.id,
+                                                    slno: chem.slno,
+                                                    name: chem.name,
+                                                    code: chem.code ?? null,
+                                                    make: chem.make ?? null,
+                                                    batchNo: chem.batchNo ?? null,
+                                                    expDate: chem.exp_Date ?? null,
+                                                  },
                                                 )
                                               }
                                               className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
@@ -13716,11 +13678,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                               {chemical.batchNo || "---"}
                                             </td>
                                             <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                              {chemical.exp_Date
-                                                ? new Date(
-                                                  chemical.exp_Date,
-                                                ).toLocaleDateString("en-GB")
-                                                : "---"}
+                                              {formatDate(chemical.expDate)}
                                             </td>
                                             <td className="px-3 py-2 text-center">
                                               <motion.button
@@ -13828,8 +13786,16 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                               key={std.serialNo}
                                               onClick={() =>
                                                 handleAddStandard(
-                                                  selectedParam.id,
-                                                  std,
+                                                  {
+                                                    id: null,
+                                                    parameterId: selectedParam.id,
+                                                    serialNo: std.serialNo,
+                                                    name: std.name,
+                                                    batchNo: std.batchNo ?? null,
+                                                    make: std.make ?? null,
+                                                    purity: std.purity ?? null,
+                                                    validity: std.validity ?? null,
+                                                  },
                                                 )
                                               }
                                               className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
@@ -13919,11 +13885,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                               {standard.batchNo || "---"}
                                             </td>
                                             <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                              {standard.validity
-                                                ? new Date(
-                                                  standard.validity,
-                                                ).toLocaleDateString("en-GB")
-                                                : "---"}
+                                              {formatDate(standard.validity)}
                                             </td>
                                             <td className="px-3 py-2 text-center">
                                               <motion.button
@@ -21035,6 +20997,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                 }}
                 analysts={analysts}
                 onSelectAnalyst={handleAnalystSelected}
+                lab={worksheetInfo?.sample.lab}
               />
             )}
           </AnimatePresence>

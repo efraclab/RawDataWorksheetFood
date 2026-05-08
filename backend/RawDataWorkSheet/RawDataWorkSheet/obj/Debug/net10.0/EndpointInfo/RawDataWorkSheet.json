@@ -910,6 +910,36 @@
         },
         "additionalProperties": false
       },
+      "ChemicalDto": {
+        "type": "object",
+        "properties": {
+          "slno": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "make": {
+            "type": "string",
+            "nullable": true
+          },
+          "expDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "batchNo": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "ChemicalMaster": {
         "type": "object",
         "properties": {
@@ -1014,6 +1044,36 @@
         },
         "additionalProperties": false
       },
+      "InstrumentDto": {
+        "type": "object",
+        "properties": {
+          "instrumentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "make": {
+            "type": "string",
+            "nullable": true
+          },
+          "instrumentTag": {
+            "type": "string",
+            "nullable": true
+          },
+          "calibrationDoneDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "calibrationDueDate": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "InstrumentMaster": {
         "type": "object",
         "properties": {
@@ -1090,6 +1150,37 @@
           "password": {
             "minLength": 1,
             "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MediaDto": {
+        "type": "object",
+        "properties": {
+          "mediaId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "expDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "quantityValue": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "quantityUnit": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1190,31 +1281,31 @@
             "type": "string",
             "nullable": true
           },
-          "instrumentIds": {
+          "instruments": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/InstrumentDto"
             },
             "nullable": true
           },
-          "chemicalIds": {
+          "chemicals": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/ChemicalDto"
             },
             "nullable": true
           },
-          "standardIds": {
+          "standards": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/StandardDto"
             },
             "nullable": true
           },
-          "mediaIds": {
+          "media": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/MediaDto"
             },
             "nullable": true
           },
@@ -1927,6 +2018,36 @@
             "items": {
               "$ref": "#/components/schemas/ParameterDto"
             },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "StandardDto": {
+        "type": "object",
+        "properties": {
+          "serialNo": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "batchNo": {
+            "type": "string",
+            "nullable": true
+          },
+          "make": {
+            "type": "string",
+            "nullable": true
+          },
+          "purity": {
+            "type": "string",
+            "nullable": true
+          },
+          "validity": {
+            "type": "string",
             "nullable": true
           }
         },

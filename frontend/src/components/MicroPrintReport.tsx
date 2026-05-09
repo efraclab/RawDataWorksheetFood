@@ -1240,6 +1240,143 @@ const GenericPrepPrint: React.FC<{
   );
 };
 
+
+// ── TVC (Water) / TYMC / TAMC Preparation print renderer ─────────────────────
+// All three share the same data shape from TVCWaterPreparation:
+//   inoculationVolume, incubationTemp(Unit), incubationTime(Unit),
+//   observationRows[{replicate, dilutionExponent, dilutionCount, blank}],
+//   calculatedResult, result
+
+const formatDilutionExponent = (exp: number | null | undefined): string => {
+  if (exp === null || exp === undefined) return "—";
+  if (exp === 0) return "10⁰";
+  const chars = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+  const sup = String(Math.abs(exp))
+    .split("")
+    .map((d) => chars[parseInt(d)])
+    .join("");
+  return `10⁻${sup}`;
+};
+
+const TVCStylePrepPrint: React.FC<{
+  prep: any;
+  idx: number;
+  typeLabel: string;
+}> = ({ prep, idx, typeLabel }) => {
+  const observationRows: any[] = prep.observationRows || [];
+  // shared dilution exponent is the same on both rows
+  const dilutionExp =
+    observationRows.length > 0 ? observationRows[0].dilutionExponent : null;
+
+  return (
+    <div className="mb-4">
+      <p className="font-bold text-md mb-1 underline inline-block">
+        {prep.label || `${typeLabel} ${idx + 1}`}
+      </p>
+
+      {/* ── Plating Setup ── */}
+      {prep.inoculationVolume && (
+        <div className="mb-3">
+          <p className="font-bold uppercase text-sm mb-1">Plating Setup</p>
+          <table className="w-full border border-black text-xs">
+            <tbody>
+              <tr>
+                <td className={`${TH} w-1/3`}>Inoculation Volume (Pour Plate)</td>
+                <td className={TD}>{prep.inoculationVolume} mL</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ── Observation ── */}
+      {observationRows.length > 0 && (
+        <div className="mb-3">
+          <p className="font-bold uppercase text-sm mb-1">Observation</p>
+          <table className="w-full border border-black text-xs">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className={TH} style={{ width: "18%" }}>
+                  Incubation Temp.&nbsp;({prep.incubationTempUnit || "℃"})
+                </th>
+                <th className={TH} style={{ width: "18%" }}>
+                  Time&nbsp;({prep.incubationTimeUnit || "Hr."})
+                </th>
+                <th className={TH} style={{ width: "18%" }}>Replicate</th>
+                <th className={TH} style={{ width: "20%" }}>
+                  Dilution Factor&nbsp;({formatDilutionExponent(dilutionExp)})
+                </th>
+                <th className={TH} style={{ width: "26%" }}>Blank</th>
+              </tr>
+            </thead>
+            <tbody>
+              {observationRows.map((row: any, ri: number) => (
+                <tr key={ri} className={ri % 2 === 0 ? "" : "bg-gray-50"}>
+                  {/* Incubation Temp — rowspan 2, rendered only for first row */}
+                  {ri === 0 && (
+                    <td
+                      className={`${TD} text-center align-middle`}
+                      rowSpan={observationRows.length}
+                    >
+                      {prep.incubationTemp || "---"}
+                    </td>
+                  )}
+                  {/* Time — rowspan 2, rendered only for first row */}
+                  {ri === 0 && (
+                    <td
+                      className={`${TD} text-center align-middle`}
+                      rowSpan={observationRows.length}
+                    >
+                      {prep.incubationTime || "---"}
+                    </td>
+                  )}
+                  <td className={`${TD} text-center`}>
+                    {row.replicate || `R${ri + 1}`}
+                  </td>
+                  
+                  <td className={`${TD} text-center`}>
+                    {row.dilutionCount || "---"}
+                  </td>
+                  <td className={`${TD} text-center`}>
+                    {row.blank || "---"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ── Result Calculation ── */}
+      {prep.calculatedResult && (
+        <div className="mb-3">
+          <p className="font-bold uppercase text-sm mb-1">Result Calculation</p>
+          <table className="w-full border border-black text-xs">
+            <tbody>
+              <tr>
+                <td className={`${TH} w-1/3`}>Final Result</td>
+                <td className={`${TD} font-bold`}>
+                  {prep.calculatedResult === "<10"
+                    ? "<10"
+                    : `${prep.calculatedResult} cfu/g`}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ── Final Result ── */}
+      {prep.result && (
+        <div className="mb-3">
+          <p className="font-bold uppercase text-sm">Final Result</p>
+          <span style={{ whiteSpace: "pre-wrap" }}>{prep.result}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── renderSignatureSection ────────────────────────────────────────────────────
 
 const renderSignatureSection = (param: any) => (
@@ -1414,9 +1551,9 @@ const PREP_TYPE_LABELS: Record<string, string> = {
   bileTolerant: "Bile-Tolerant Gram-Negative Bacteria",
   calbicans: "C. albicans Detection",
   bcepacia: "B. cepacia Detection",
-  totalViableCountWater: "Total Viable Count — Water",
-  tymc: "TYMC",
-  tamc: "TAMC",
+  totalViableCountWater: "Total Viable Count – Water Sample",
+  tymc: "Total Yeast And Mould Count (TYMC)",
+  tamc: "Total Aerobic Microbial Count (TAMC)",
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -1576,18 +1713,30 @@ const MicroPrintReport: React.FC<MicroPrintReportProps> = ({
             .filter((p: any) => p.preparationType === "calbicans")
             .map((p: any) => ({ ...safeJSONParse(p.content, {}), label: p.label }));
 
-          // Other prep types (generic) — bcepacia and calbicans are handled explicitly above
-          const otherPrepTypes = [
+          const tvcWaterPreps = allPreps
+            .filter((p: any) => p.preparationType === "totalViableCountWater")
+            .map((p: any) => ({ ...safeJSONParse(p.content, {}), label: p.label }));
+
+          const tymcPreps = allPreps
+            .filter((p: any) => p.preparationType === "tymc")
+            .map((p: any) => ({ ...safeJSONParse(p.content, {}), label: p.label }));
+
+          const tamcPreps = allPreps
+            .filter((p: any) => p.preparationType === "tamc")
+            .map((p: any) => ({ ...safeJSONParse(p.content, {}), label: p.label }));
+
+          // Other prep types (generic) — known types are all handled explicitly above
+          const knownPrepTypes = new Set([
+            "bet", "sterility", "ecoli", "shigella", "clostridium", "salmonella",
+            "staphylococcus", "pseudomonas", "bileTolerant", "bcepacia", "calbicans",
             "totalViableCountWater", "tymc", "tamc",
-          ];
+          ]);
           const otherPreps: { type: string; data: any }[] = [];
-          for (const t of otherPrepTypes) {
-            allPreps
-              .filter((p: any) => p.preparationType === t)
-              .forEach((p: any) => {
-                otherPreps.push({ type: t, data: { ...safeJSONParse(p.content, {}), label: p.label } });
-              });
-          }
+          allPreps
+            .filter((p: any) => !knownPrepTypes.has(p.preparationType))
+            .forEach((p: any) => {
+              otherPreps.push({ type: p.preparationType, data: { ...safeJSONParse(p.content, {}), label: p.label } });
+            });
 
           // Signature data for attached files
           const fileSig: FileSignatureData = {
@@ -1858,7 +2007,58 @@ const MicroPrintReport: React.FC<MicroPrintReportProps> = ({
                 </div>
               )}
 
-              {/* ── Other / remaining prep types ── */}
+              {/* ── TVC (Water) Preparations ── */}
+              {tvcWaterPreps.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-md mb-2">
+                    <strong>Test Method:</strong> Total Viable Count – Water Sample
+                  </h4>
+                  {tvcWaterPreps.map((prep, i) => (
+                    <TVCStylePrepPrint
+                      key={i}
+                      prep={prep}
+                      idx={i}
+                      typeLabel="TVC (Water) Preparation"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* ── TYMC Preparations ── */}
+              {tymcPreps.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-md mb-2">
+                    <strong>Test Method:</strong> Total Yeast And Mould Count (TYMC)
+                  </h4>
+                  {tymcPreps.map((prep, i) => (
+                    <TVCStylePrepPrint
+                      key={i}
+                      prep={prep}
+                      idx={i}
+                      typeLabel="TYMC Preparation"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* ── TAMC Preparations ── */}
+              {tamcPreps.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-md mb-2">
+                    <strong>Test Method:</strong> Total Aerobic Microbial Count (TAMC)
+                  </h4>
+                  {tamcPreps.map((prep, i) => (
+                    <TVCStylePrepPrint
+                      key={i}
+                      prep={prep}
+                      idx={i}
+                      typeLabel="TAMC Preparation"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* ── Other / remaining prep types (truly unknown) ── */}
               {otherPreps.length > 0 && (() => {
                 // Group by type for section headings
                 const grouped: Record<string, { data: any; idx: number }[]> = {};

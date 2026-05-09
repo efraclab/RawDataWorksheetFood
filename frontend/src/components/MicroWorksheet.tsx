@@ -71,6 +71,10 @@ import BCepaciaPreparationDetail, { createDefaultBCepaciaPreparation } from "./s
 import type { WorksheetChemical } from "../models/WorksheetChemical";
 import type { WorksheetInstrument } from "../models/WorksheetInstrument";
 import type { WorksheetMedia } from "../models/WorksheetMedia";
+import type { TVCWaterPreparation } from "../preparation_models/micro/TVCWaterPreparation";
+import TVCWaterPreparationDetail, { createDefaultTVCWaterPreparation } from "./sub-components/micro/TVCWaterPreparationDetail";
+import TYMCPreparationDetail, { createDefaultTYMCPreparation, type TYMCPreparation } from "./sub-components/micro/TYMCPreparationDetail";
+import TAMCPreparationDetail, { createDefaultTAMCPreparation, type TAMCPreparation } from "./sub-components/micro/TAMCPreparationDetail";
 
 // SVG Icons
 const Target: React.FC<{ className: string }> = ({ className }) => (
@@ -193,7 +197,7 @@ const PREPARATION_GROUPS = {
     bileTolerant: { id: "bileTolerant", label: "Preparation for Bile Tolerant Gram Negative", color: "emerald" },
     calbicans: { id: "calbicans", label: "Preparation for C.albicans", color: "emerald" },
     bcepacia: { id: "bcepacia", label: "Preparation for B.cepacia", color: "emerald" },
-    totalViableCountWater: { id: "totalViableCountWater", label: "Preparation for Total Viable Count Water", color: "emerald" },
+    tvcw: { id: "tvcw", label: "Preparation for TVC (Water)", color: "emerald" },
     tymc: { id: "tymc", label: "Preparation for TYMC", color: "emerald" },
     tamc: { id: "tamc", label: "Preparation for TAMC", color: "emerald" },
 } as const;
@@ -448,6 +452,18 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
 
     const [calbicansPreparationsPerParam, setCalbicansPreparationsPerParam] = useState<
         Record<number, CandidaAlbicansPreparation[]>
+    >({});
+
+    const [tvcWaterPreparationsPerParam, setTvcWaterPreparationsPerParam] = useState<
+        Record<number, TVCWaterPreparation[]>
+    >({});
+
+    const [tymcPreparationsPerParam, setTymcPreparationsPerParam] = useState<
+        Record<number, TYMCPreparation[]>
+    >({});
+
+    const [tamcPreparationsPerParam, setTamcPreparationsPerParam] = useState<
+        Record<number, TAMCPreparation[]>
     >({});
 
     const [filesPerParam, setFilesPerParam] = useState<
@@ -851,7 +867,6 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                 }
             }
 
-
             // ------------------------------------------------------------------------
             // 2.6: PREPARATIONS (Main Logic - FIXED)
             // ------------------------------------------------------------------------
@@ -872,7 +887,10 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                     pseudomonasPrep: [] as any[],
                     bileTolerantPrep: [] as any[],
                     bcepaciaPrep: [] as any[],
-                    calbicansPrep: [] as any[]
+                    calbicansPrep: [] as any[],
+                    tvcWaterPrep: [] as any[],
+                    tymcPrep: [] as any[],
+                    tamcPrep: [] as any[],
                 };
 
                 // Process each preparation
@@ -1048,6 +1066,51 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                             console.warn(`  [WARNING]  Failed to parse B.cepacia prep content for: "${prep.label}"`, e);
                         }
                     }
+
+                     if (prepType === "tvcw") {
+                        try {
+                            const tvcData = typeof prep.content === "string"
+                                ? JSON.parse(prep.content)
+                                : prep.content;
+                            preparationCollections.tvcWaterPrep.push({
+                                ...tvcData,
+                                id: Date.now() + i + 4000 + Math.random() * 1000,
+                                label: prep.label || tvcData?.label || `TVC (Water) Preparation ${i + 1}`,
+                            });
+                        } catch (e) {
+                            console.warn(`  [WARNING]  Failed to parse TVC Water prep content for: "${prep.label}"`, e);
+                        }
+                    }
+
+                    if (prepType === "tymc") {
+                        try {
+                            const tymcData = typeof prep.content === "string"
+                                ? JSON.parse(prep.content)
+                                : prep.content;
+                            preparationCollections.tymcPrep.push({
+                                ...tymcData,
+                                id: Date.now() + i + 5000 + Math.random() * 1000,
+                                label: prep.label || tymcData?.label || `TYMC Preparation ${i + 1}`,
+                            });
+                        } catch (e) {
+                            console.warn(`  [WARNING]  Failed to parse TYMC prep content for: "${prep.label}"`, e);
+                        }
+                    }
+
+                    if (prepType === "tamc") {
+                        try {
+                            const tamcData = typeof prep.content === "string"
+                                ? JSON.parse(prep.content)
+                                : prep.content;
+                            preparationCollections.tamcPrep.push({
+                                ...tamcData,
+                                id: Date.now() + i + 6000 + Math.random() * 1000,
+                                label: prep.label || tamcData?.label || `TAMC Preparation ${i + 1}`,
+                            });
+                        } catch (e) {
+                            console.warn(`  [WARNING]  Failed to parse TAMC prep content for: "${prep.label}"`, e);
+                        }
+                    }
                 });
 
                 // BET preparations
@@ -1179,6 +1242,42 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                     setActivePreparationGroups((prev) => ({
                         ...prev,
                         [paramId]: [...(prev[paramId] || []).filter((g) => g !== "calbicans"), "calbicans"],
+                    }));
+                }
+
+                // TVC Water preparations
+                if (preparationCollections.tvcWaterPrep.length > 0) {
+                    setTvcWaterPreparationsPerParam((prev) => ({
+                        ...prev,
+                        [paramId]: preparationCollections.tvcWaterPrep,
+                    }));
+                    setActivePreparationGroups((prev) => ({
+                        ...prev,
+                        [paramId]: [...(prev[paramId] || []).filter((g) => g !== "tvcw"), "tvcw"],
+                    }));
+                }
+
+                // TYMC preparations
+                if (preparationCollections.tymcPrep.length > 0) {
+                    setTymcPreparationsPerParam((prev) => ({
+                        ...prev,
+                        [paramId]: preparationCollections.tymcPrep,
+                    }));
+                    setActivePreparationGroups((prev) => ({
+                        ...prev,
+                        [paramId]: [...(prev[paramId] || []).filter((g) => g !== "tymc"), "tymc"],
+                    }));
+                }
+
+                // TAMC preparations
+                if (preparationCollections.tamcPrep.length > 0) {
+                    setTamcPreparationsPerParam((prev) => ({
+                        ...prev,
+                        [paramId]: preparationCollections.tamcPrep,
+                    }));
+                    setActivePreparationGroups((prev) => ({
+                        ...prev,
+                        [paramId]: [...(prev[paramId] || []).filter((g) => g !== "tamc"), "tamc"],
                     }));
                 }
             }
@@ -1373,6 +1472,30 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                         steps: null,
                         content: JSON.stringify(bc),
                     })),
+                    ...(tvcWaterPreparationsPerParam[param.id] || []).map((tw) => ({
+                        label: tw.label,
+                        preparationType: "tvcw",
+                        preparationCategory: null,
+                        assignedStandardId: null,
+                        steps: null,
+                        content: JSON.stringify(tw),
+                    })),
+                    ...(tymcPreparationsPerParam[param.id] || []).map((ty) => ({
+                        label: ty.label,
+                        preparationType: "tymc",
+                        preparationCategory: null,
+                        assignedStandardId: null,
+                        steps: null,
+                        content: JSON.stringify(ty),
+                    })),
+                    ...(tamcPreparationsPerParam[param.id] || []).map((ta) => ({
+                        label: ta.label,
+                        preparationType: "tamc",
+                        preparationCategory: null,
+                        assignedStandardId: null,
+                        steps: null,
+                        content: JSON.stringify(ta),
+                    })),
                 ];
 
                 return {
@@ -1424,7 +1547,6 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                         quantityValue: m.quantityValue,
                         quantityUnit: m.quantityUnit,
                     })),
-                    standardIds: null,
                     preparations,
                     files: collectFilesForParam(param.id),
                 };
@@ -1745,26 +1867,10 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                         analysisCompletionDate: null,
                         approvedAtReviewer: null,
                         status: "Created",
-                        instrumentIds: (addedInstruments[newId] || []).map(
-                            (inst) => inst.id,
-                        ),
-                        chemicalIds: (addedChemicals[newId] || []).map((chem) => chem.slno),
-                        mediaIds: (addedMedia[newId] || []).map(
-                            (chem) => chem.id,
-                        ),
-                        standardIds: null,
-                        preparations: [
-
-                            // BET Preparations
-                            ...(betPreparationsPerParam[newId] || []).map((bp) => ({
-                                label: bp.label,
-                                preparationType: "bet",
-                                preparationCategory: null,
-                                assignedStandardId: null,
-                                steps: null,
-                                content: JSON.stringify(bp),
-                            })),
-                        ],
+                        instruments: [],
+                        chemicals: [],
+                        media: [],
+                        preparations: [],
                         files: collectFilesForParam(newId),
                     };
 
@@ -1915,19 +2021,30 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                 preparationCompletedAtPerParam[paramId] || null,
                             remarksByAnalyst: remarksByAnalystPerParam[paramId] || null,
                             status: parameterStatusPerParam[paramId] || "Created",
-                            instrumentIds: (addedInstruments[paramId] || []).map(
-                                (inst) => inst.id,
-                            ),
-                            chemicalIds: (addedChemicals[paramId] || []).map(
-                                (chem) => chem.slno,
-                            ),
-                            mediaIds: (addedMedia[paramId] || []).map(
-                                (chem) => chem.id,
-                            ),
-                            standardIds: null,
-                            standardPreparations: [],
-                            samplePreparations: [],
-                            calculations: [],
+                            instruments: (addedInstruments[param.id] || []).map((inst) => ({
+                                name: inst.name,
+                                instrumentTag: inst.instrumentTag,
+                                make: inst.make,
+                                calibrationDoneDate: inst.calibrationDoneDate,
+                                calibrationDueDate: inst.calibrationDueDate,
+                            })),
+                            chemicals: (addedChemicals[param.id] || []).map((chem) => ({
+                                slno: chem.slno,
+                                name: chem.name,
+                                code: chem.code,
+                                make: chem.make,
+                                batchNo: chem.batchNo,
+                                expDate: chem.expDate,
+                            })),
+                            media: (addedMedia[param.id] || []).map((m) => ({
+                                mediaId: m.id,
+                                name: m.name,
+                                code: m.code,
+                                expDate: m.expDate,
+                                quantityValue: m.quantityValue,
+                                quantityUnit: m.quantityUnit,
+                            })),
+                            preparations: [],
                             files: [],
                         };
 
@@ -2302,6 +2419,30 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                 assignedStandardId: null,
                 steps: null,
                 content: JSON.stringify(bc),
+            })),
+            ...(tvcWaterPreparationsPerParam[param.id] || []).map((tw) => ({
+                label: tw.label,
+                preparationType: "tvcw",
+                preparationCategory: null,
+                assignedStandardId: null,
+                steps: null,
+                content: JSON.stringify(tw),
+            })),
+            ...(tymcPreparationsPerParam[param.id] || []).map((ty) => ({
+                label: ty.label,
+                preparationType: "tymc",
+                preparationCategory: null,
+                assignedStandardId: null,
+                steps: null,
+                content: JSON.stringify(ty),
+            })),
+            ...(tamcPreparationsPerParam[param.id] || []).map((ta) => ({
+                label: ta.label,
+                preparationType: "tamc",
+                preparationCategory: null,
+                assignedStandardId: null,
+                steps: null,
+                content: JSON.stringify(ta),
             })),
         ];
 
@@ -3485,21 +3626,21 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                     const { [parameterId]: _, ...rest } = p;
                     return rest;
                 });
-            } else if (group.id === "totalViableCountWater") {
-                // setTotalViableCountWaterPreparationsPerParam((p) => {
-                //     const { [parameterId]: _, ...rest } = p;
-                //     return rest;
-                // });
+            } else if (group.id === "tvcw") {
+                setTvcWaterPreparationsPerParam((p) => {
+                    const { [parameterId]: _, ...rest } = p;
+                    return rest;
+                });
             } else if (group.id === "tymc") {
-                // setTymcPreparationsPerParam((p) => {
-                //     const { [parameterId]: _, ...rest } = p;
-                //     return rest;
-                //});
+                setTymcPreparationsPerParam((p) => {
+                    const { [parameterId]: _, ...rest } = p;
+                    return rest;
+                });
             } else if (group.id === "tamc") {
-                // setTamcPreparationsPerParam((p) => {
-                //     const { [parameterId]: _, ...rest } = p;
-                //     return rest;
-                // });
+                setTamcPreparationsPerParam((p) => {
+                    const { [parameterId]: _, ...rest } = p;
+                    return rest;
+                });
             }
 
             return {
@@ -3568,21 +3709,21 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                     const { [parameterId]: _, ...r } = p;
                     return r;
                 });
-            } else if (oldGroupId === "totalViableCountWater") {
-                // setTotalViableCountWaterPreparationsPerParam((p) => {
-                //     const { [parameterId]: _, ...r } = p;
-                //     return r;
-                // });
+            } else if (oldGroupId === "tvcw") {
+                setTvcWaterPreparationsPerParam((p) => {
+                    const { [parameterId]: _, ...r } = p;
+                    return r;
+                });
             } else if (oldGroupId === "tymc") {
-                // setTymcPreparationsPerParam((p) => {
-                //     const { [parameterId]: _, ...r } = p;
-                //     return r;
-                // });
+                setTymcPreparationsPerParam((p) => {
+                    const { [parameterId]: _, ...r } = p;
+                    return r;
+                });
             } else if (oldGroupId === "tamc") {
-                // setTamcPreparationsPerParam((p) => {
-                //     const { [parameterId]: _, ...r } = p;
-                //     return r;
-                // });
+                setTamcPreparationsPerParam((p) => {
+                    const { [parameterId]: _, ...r } = p;
+                    return r;
+                });
             }
             
             // Also clear preparationCompleted when changing group
@@ -3694,6 +3835,30 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
             }
             return prev;
         });
+    } else if (groupId === "tvcw") {
+        setTvcWaterPreparationsPerParam((prev) => {
+            const existing = prev[parameterId] || [];
+            if (existing.length === 0) {
+                return { ...prev, [parameterId]: [createDefaultTVCWaterPreparation(0)] };
+            }
+            return prev;
+        });
+    } else if (groupId === "tymc") {
+        setTymcPreparationsPerParam((prev) => {
+            const existing = prev[parameterId] || [];
+            if (existing.length === 0) {
+                return { ...prev, [parameterId]: [createDefaultTYMCPreparation(0)] };
+            }
+            return prev;
+        });
+    } else if (groupId === "tamc") {
+        setTamcPreparationsPerParam((prev) => {
+            const existing = prev[parameterId] || [];
+            if (existing.length === 0) {
+                return { ...prev, [parameterId]: [createDefaultTAMCPreparation(0)] };
+            }
+            return prev;
+        });
     }
 
     setShowPreparationDropdown({});
@@ -3712,7 +3877,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
             { id: "bileTolerant", label: "Preparation for Bile-Tolerant", color: "emerald" },
             { id: "calbicans", label: "Preparation for C.albicans", color: "emerald" },
             { id: "bcepacia", label: "Preparation for B.cepacia", color: "emerald" },
-            { id: "totalViableCountWater", label: "Preparation for Total Viable Count Water", color: "emerald" },
+            { id: "tvcw", label: "Preparation for TVC (Water)", color: "emerald" },
             { id: "tymc", label: "Preparation for TYMC", color: "emerald" },
             { id: "tamc", label: "Preparation for TAMC", color: "emerald" },
         ];
@@ -9540,6 +9705,189 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                         </div>
                                                     )}
                                                     {/* ============= END OF B.cepacia PREPARATION SECTION ============= */}
+
+                                                    {/* ============= TVC (WATER) PREPARATION SECTION ============= */}
+                                                    {(activePreparationGroups[selectedParam.id] || []).includes("tvcw") && (
+                                                        <div className="mt-6 space-y-4">
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-emerald-600 to-transparent" />
+                                                                <div className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-emerald-700 via-teal-800 to-slate-900 rounded-full shadow-lg">
+                                                                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                                                                        Preparation for Total Viable Count (Water)
+                                                                    </span>
+                                                                </div>
+                                                                <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-emerald-600 to-transparent" />
+                                                            </div>
+                                                    
+                                                            {(tvcWaterPreparationsPerParam[selectedParam.id] || []).map((tw) => (
+                                                                <TVCWaterPreparationDetail
+                                                                    key={tw.id}
+                                                                    preparation={tw}
+                                                                    isLocked={isPreparationLocked}
+                                                                    onChange={(updated) =>
+                                                                        setTvcWaterPreparationsPerParam((prev) => ({
+                                                                            ...prev,
+                                                                            [selectedParam.id]: (prev[selectedParam.id] || []).map((p) =>
+                                                                                p.id === updated.id ? updated : p
+                                                                            ),
+                                                                        }))
+                                                                    }
+                                                                    onRemove={() =>
+                                                                        setTvcWaterPreparationsPerParam((prev) => ({
+                                                                            ...prev,
+                                                                            [selectedParam.id]: (prev[selectedParam.id] || []).filter(
+                                                                                (p) => p.id !== tw.id
+                                                                            ),
+                                                                        }))
+                                                                    }
+                                                                />
+                                                            ))}
+                                                    
+                                                            {!isPreparationLocked && (
+                                                                <button
+                                                                    onClick={() =>
+                                                                        setTvcWaterPreparationsPerParam((prev) => {
+                                                                            const existing = prev[selectedParam.id] || [];
+                                                                            return {
+                                                                                ...prev,
+                                                                                [selectedParam.id]: [
+                                                                                    ...existing,
+                                                                                    createDefaultTVCWaterPreparation(existing.length),
+                                                                                ],
+                                                                            };
+                                                                        })
+                                                                    }
+                                                                    className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-dashed border-emerald-300 text-emerald-700 font-semibold rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition-all text-sm w-full justify-center"
+                                                                >
+                                                                    <span className="text-lg leading-none">+</span>
+                                                                    Add TVC (Water) Preparation
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    {/* ============= END OF TVC (WATER) PREPARATION SECTION ============= */}
+
+                                                    {/* ============= TYMC PREPARATION SECTION ============= */}
+                                                    {(activePreparationGroups[selectedParam.id] || []).includes("tymc") && (
+                                                        <div className="mt-6 space-y-4">
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-emerald-600 to-transparent" />
+                                                                <div className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-emerald-700 via-teal-800 to-slate-900 rounded-full shadow-lg">
+                                                                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                                                                        Preparation for Total Yeast And Mould Count (TYMC)
+                                                                    </span>
+                                                                </div>
+                                                                <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-emerald-600 to-transparent" />
+                                                            </div>
+
+                                                            {(tymcPreparationsPerParam[selectedParam.id] || []).map((ty) => (
+                                                                <TYMCPreparationDetail
+                                                                    key={ty.id}
+                                                                    preparation={ty}
+                                                                    isLocked={isPreparationLocked}
+                                                                    onChange={(updated) =>
+                                                                        setTymcPreparationsPerParam((prev) => ({
+                                                                            ...prev,
+                                                                            [selectedParam.id]: (prev[selectedParam.id] || []).map((p) =>
+                                                                                p.id === updated.id ? updated : p
+                                                                            ),
+                                                                        }))
+                                                                    }
+                                                                    onRemove={() =>
+                                                                        setTymcPreparationsPerParam((prev) => ({
+                                                                            ...prev,
+                                                                            [selectedParam.id]: (prev[selectedParam.id] || []).filter(
+                                                                                (p) => p.id !== ty.id
+                                                                            ),
+                                                                        }))
+                                                                    }
+                                                                />
+                                                            ))}
+
+                                                            {!isPreparationLocked && (
+                                                                <button
+                                                                    onClick={() =>
+                                                                        setTymcPreparationsPerParam((prev) => {
+                                                                            const existing = prev[selectedParam.id] || [];
+                                                                            return {
+                                                                                ...prev,
+                                                                                [selectedParam.id]: [
+                                                                                    ...existing,
+                                                                                    createDefaultTYMCPreparation(existing.length),
+                                                                                ],
+                                                                            };
+                                                                        })
+                                                                    }
+                                                                    className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-dashed border-emerald-300 text-emerald-700 font-semibold rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition-all text-sm w-full justify-center"
+                                                                >
+                                                                    <span className="text-lg leading-none">+</span>
+                                                                    Add TYMC Preparation
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    {/* ============= END OF TYMC PREPARATION SECTION ============= */}
+
+                                                    {/* ============= TAMC PREPARATION SECTION ============= */}
+                                                    {(activePreparationGroups[selectedParam.id] || []).includes("tamc") && (
+                                                        <div className="mt-6 space-y-4">
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-emerald-600 to-transparent" />
+                                                                <div className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-emerald-700 via-teal-800 to-slate-900 rounded-full shadow-lg">
+                                                                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                                                                        Preparation for Total Aerobic Microbial Count (TAMC)
+                                                                    </span>
+                                                                </div>
+                                                                <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-emerald-600 to-transparent" />
+                                                            </div>
+
+                                                            {(tamcPreparationsPerParam[selectedParam.id] || []).map((ta) => (
+                                                                <TAMCPreparationDetail
+                                                                    key={ta.id}
+                                                                    preparation={ta}
+                                                                    isLocked={isPreparationLocked}
+                                                                    onChange={(updated) =>
+                                                                        setTamcPreparationsPerParam((prev) => ({
+                                                                            ...prev,
+                                                                            [selectedParam.id]: (prev[selectedParam.id] || []).map((p) =>
+                                                                                p.id === updated.id ? updated : p
+                                                                            ),
+                                                                        }))
+                                                                    }
+                                                                    onRemove={() =>
+                                                                        setTamcPreparationsPerParam((prev) => ({
+                                                                            ...prev,
+                                                                            [selectedParam.id]: (prev[selectedParam.id] || []).filter(
+                                                                                (p) => p.id !== ta.id
+                                                                            ),
+                                                                        }))
+                                                                    }
+                                                                />
+                                                            ))}
+
+                                                            {!isPreparationLocked && (
+                                                                <button
+                                                                    onClick={() =>
+                                                                        setTamcPreparationsPerParam((prev) => {
+                                                                            const existing = prev[selectedParam.id] || [];
+                                                                            return {
+                                                                                ...prev,
+                                                                                [selectedParam.id]: [
+                                                                                    ...existing,
+                                                                                    createDefaultTAMCPreparation(existing.length),
+                                                                                ],
+                                                                            };
+                                                                        })
+                                                                    }
+                                                                    className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-dashed border-emerald-300 text-emerald-700 font-semibold rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition-all text-sm w-full justify-center"
+                                                                >
+                                                                    <span className="text-lg leading-none">+</span>
+                                                                    Add TAMC Preparation
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    {/* ============= END OF TAMC PREPARATION SECTION ============= */}
 
                                                     {/* ============= END OF MICRO WORKSHEET CONTENT ============= */}
                                                 </div>

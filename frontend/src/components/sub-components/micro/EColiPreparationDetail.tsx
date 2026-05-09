@@ -47,7 +47,7 @@ const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
 const DEFAULT_OBSERVATION_ROWS: Omit<EcoliObservationRow, "id">[] = [
     {
-        medium: "Soya bean Casein Digest Medium",
+        medium: "Inoculation in Soya bean Casein Digest Medium",
         colonyGrowthCharacteristics: "Turbidity",
         analysisStarted: "",
         analysisCompleted: "",
@@ -60,12 +60,12 @@ const DEFAULT_OBSERVATION_ROWS: Omit<EcoliObservationRow, "id">[] = [
         incubationTimeUnit: "Hr."
     },
     {
-        medium: "MacConkey Broth (from incubated SCDM)",
+        medium: "Inoculation in MacConkey Broth (From Incubated SCDM)",
         colonyGrowthCharacteristics: "Turbidity with acid production",
         analysisStarted: "",
         analysisCompleted: "",
         incubationTemp: "30-35",
-        incubationTime: "24–48",
+        incubationTime: "24-48",
         sample: "",
         referenceCulture: "",
         blank: "",
@@ -73,25 +73,12 @@ const DEFAULT_OBSERVATION_ROWS: Omit<EcoliObservationRow, "id">[] = [
         incubationTimeUnit: "Hr."
     },
     {
-        medium: "MacConkey Agar (from incubated MacConkey Broth)",
+        medium: "Inoculation in MacConkey Agar (From Incubated MacConkey Broth)",
         colonyGrowthCharacteristics: "Pink non-mucoid colony",
         analysisStarted: "",
         analysisCompleted: "",
         incubationTemp: "30-35",
         incubationTime: "24-72",
-        sample: "",
-        referenceCulture: "",
-        blank: "",
-        incubationTempUnit: "℃",
-        incubationTimeUnit: "Hr."
-    },
-    {
-        medium: "EMB Agar",
-        colonyGrowthCharacteristics: "Metallic sheen",
-        analysisStarted: "",
-        analysisCompleted: "",
-        incubationTemp: "30-35",
-        incubationTime: "24",
         sample: "",
         referenceCulture: "",
         blank: "",
@@ -115,12 +102,12 @@ const DEFAULT_BIOCHEMICAL_ROWS: Omit<EcoliObservationRow, "id">[] = [
         incubationTimeUnit: "Hr."
     },
     {
-        medium: "Gram's Staining",
+        medium: "Gram's staining",
         colonyGrowthCharacteristics: "",
         analysisStarted: "",
         analysisCompleted: "",
-        incubationTemp: "35",
-        incubationTime: "24-48",
+        incubationTemp: "",
+        incubationTime: "",
         sample: "",
         referenceCulture: "",
         blank: "",
@@ -167,7 +154,7 @@ const DEFAULT_BIOCHEMICAL_ROWS: Omit<EcoliObservationRow, "id">[] = [
         incubationTimeUnit: "Hr."
     },
     {
-        medium: "Citrate Utilization",
+        medium: "Citrate utilization",
         colonyGrowthCharacteristics: "",
         analysisStarted: "",
         analysisCompleted: "",
@@ -289,7 +276,7 @@ const EcoliPreparationDetail: React.FC<EcoliPreparationDetailProps> = ({
     const updateBiocRow = (id: string, field: keyof EcoliObservationRow, value: string) => {
         onChange({
             ...preparation,
-            observationRows: preparation.observationRows.map((r) =>
+            biochemicalRows: preparation.biochemicalRows.map((r) =>
                 r.id === id ? { ...r, [field]: value } : r
             ),
         });

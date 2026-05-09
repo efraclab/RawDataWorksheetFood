@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|c:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\rawdataworksheet\\rawdataworksheet\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|solutionrelative:rawdataworksheet\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|c:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\rawdataworksheet\\rawdataworksheet\\repositories\\worksheetrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|solutionrelative:rawdataworksheet\\repositories\\worksheetrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -85,10 +89,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|c:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\rawdataworksheet\\rawdataworksheet\\repositories\\standardrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|solutionrelative:rawdataworksheet\\repositories\\standardrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|c:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\rawdataworksheet\\rawdataworksheet\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|solutionrelative:rawdataworksheet\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DA92399B-D75F-4F42-9783-BD9DA5F1A18C}|RawDataWorkSheet\\RawDataWorkSheet.csproj|c:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\rawdataworksheet\\rawdataworksheet\\repositories\\rawdatarepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -354,20 +354,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "WorksheetMedia.cs",
-              "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Worksheets\\WorksheetMedia.cs",
-              "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetMedia.cs",
-              "ToolTip": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Worksheets\\WorksheetMedia.cs",
-              "RelativeToolTip": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetMedia.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAsAAAAxAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-06T04:56:17.483Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "WorksheetInstrument.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Worksheets\\WorksheetInstrument.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetInstrument.cs",
@@ -375,12 +362,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetInstrument.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAuwAsAAAA5AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-06T08:51:33.681Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-06T08:51:33.681Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "WorksheetStandard.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Worksheets\\WorksheetStandard.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetStandard.cs",
@@ -388,12 +374,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetStandard.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAuwAsAAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-03T10:07:20.185Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-03T10:07:20.185Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "SaveWorksheetRequest.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Requests\\SaveWorksheetRequest.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Requests\\SaveWorksheetRequest.cs",
@@ -401,12 +386,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Requests\\SaveWorksheetRequest.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAuwAoAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-12T05:41:44.995Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-12T05:41:44.995Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "ParameterDto.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\ParameterDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\ParameterDto.cs",
@@ -414,25 +398,49 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\ParameterDto.cs",
               "ViewState": "AgIAAA4AAAAAAAAAAAAswBoAAAAyAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-01T05:55:36.547Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-01T05:55:36.547Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "WorksheetRepository.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\WorksheetRepository.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Repositories\\WorksheetRepository.cs",
               "ToolTip": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\WorksheetRepository.cs",
               "RelativeToolTip": "RawDataWorkSheet\\Repositories\\WorksheetRepository.cs",
-              "ViewState": "AgIAAOAFAAAAAAAAAAAkwPUFAAA/AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-12T05:22:01.095Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 0,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\appsettings.json",
+              "RelativeDocumentMoniker": "RawDataWorkSheet\\appsettings.json",
+              "ToolTip": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\appsettings.json",
+              "RelativeToolTip": "RawDataWorkSheet\\appsettings.json",
+              "ViewState": "AgIAABEAAAAAAAAAAAAAABEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-11-04T07:15:04.895Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "WorksheetMedia.cs",
+              "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Worksheets\\WorksheetMedia.cs",
+              "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetMedia.cs",
+              "ToolTip": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Worksheets\\WorksheetMedia.cs",
+              "RelativeToolTip": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetMedia.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAsAAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-06T04:56:17.483Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "CalculationDto.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\CalculationDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\CalculationDto.cs",
@@ -440,12 +448,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\CalculationDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-18T07:41:15.936Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-18T07:41:15.936Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "WorksheetChemical.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Worksheets\\WorksheetChemical.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetChemical.cs",
@@ -453,12 +460,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetChemical.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAuwAoAAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-06T08:47:28.059Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-06T08:47:28.059Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "WorksheetDetailDto.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\WorksheetDetailDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\WorksheetDetailDto.cs",
@@ -466,12 +472,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\WorksheetDetailDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAuwAUAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-13T08:54:48.635Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-13T08:54:48.635Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "IWorksheetService.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Services\\IWorksheetService.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Services\\IWorksheetService.cs",
@@ -479,12 +484,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Services\\IWorksheetService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-29T09:12:26.621Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-29T09:12:26.621Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "WorksheetController.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Controllers\\WorksheetController.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Controllers\\WorksheetController.cs",
@@ -492,12 +496,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Controllers\\WorksheetController.cs",
               "ViewState": "AgIAAH8AAAAAAAAAAADwv4oAAABHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-12T06:18:17.315Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-12T06:18:17.315Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "WorksheetParameter.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Worksheets\\WorksheetParameter.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetParameter.cs",
@@ -505,12 +508,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetParameter.cs",
               "ViewState": "AgIAABEAAAAAAAAAAAA6wB4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-28T09:01:43.693Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-28T09:01:43.693Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "WorksheetSummaryDto.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\DTOs\\WorksheetSummaryDto.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\DTOs\\WorksheetSummaryDto.cs",
@@ -518,12 +520,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\DTOs\\WorksheetSummaryDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-13T08:55:20.583Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-13T08:55:20.583Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 14,
               "Title": "StandardMaster.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\References\\StandardMaster.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\References\\StandardMaster.cs",
@@ -531,12 +532,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\References\\StandardMaster.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-12T06:03:26.067Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-12T06:03:26.067Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "MediaMaster.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\References\\MediaMaster.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\References\\MediaMaster.cs",
@@ -544,12 +544,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\References\\MediaMaster.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-16T12:04:59.683Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-16T12:04:59.683Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 16,
               "Title": "ChemicalMaster.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\References\\ChemicalMaster.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\References\\ChemicalMaster.cs",
@@ -557,12 +556,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\References\\ChemicalMaster.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-12T06:34:06.328Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-12T06:34:06.328Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 17,
               "Title": "Standard.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Standard.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Standard.cs",
@@ -570,12 +568,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Standard.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-08T09:36:33.82Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-08T09:36:33.82Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 18,
               "Title": "InstrumentMaster.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\References\\InstrumentMaster.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\References\\InstrumentMaster.cs",
@@ -583,12 +580,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\References\\InstrumentMaster.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-12T05:53:40.288Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-12T05:53:40.288Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 19,
               "Title": "WorksheetLog.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Worksheets\\WorksheetLog.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetLog.cs",
@@ -596,12 +592,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetLog.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAuwBAAAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-20T06:29:33.356Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-20T06:29:33.356Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 20,
               "Title": "WorksheetFile.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\Worksheets\\WorksheetFile.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetFile.cs",
@@ -609,12 +604,11 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Worksheets\\WorksheetFile.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-02T05:08:02.058Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-02T05:08:02.058Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 21,
               "Title": "StandardRepository.cs",
               "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Repositories\\StandardRepository.cs",
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Repositories\\StandardRepository.cs",
@@ -622,21 +616,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Repositories\\StandardRepository.cs",
               "ViewState": "AgIAAAsAAAAAAAAAAAAAwBYAAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-12T06:08:29.329Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 21,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\appsettings.json",
-              "RelativeDocumentMoniker": "RawDataWorkSheet\\appsettings.json",
-              "ToolTip": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\appsettings.json",
-              "RelativeToolTip": "RawDataWorkSheet\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-11-04T07:15:04.895Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-12T06:08:29.329Z"
             },
             {
               "$type": "Document",

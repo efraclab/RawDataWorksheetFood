@@ -20,8 +20,12 @@ const formatExponent = (exp: number | null): string => {
 
 // ─── Calculation helper ───────────────────────────────────────────────────────
 
+const TNTC_VALUES = ["TNTC", "> 300"];
+
 const calculateResult = (rows: TVCWaterObservationRow[]): string => {
     if (rows.length < 2) return "";
+    // If either row has a TNTC special value selected, result is TNTC
+    if (TNTC_VALUES.includes(rows[0].dilutionCount) || TNTC_VALUES.includes(rows[1].dilutionCount)) return "TNTC";
     const v1 = parseFloat(rows[0].dilutionCount);
     const v2 = parseFloat(rows[1].dilutionCount);
     if (rows[0].dilutionCount === "" || rows[1].dilutionCount === "") return "";
@@ -147,6 +151,129 @@ const CellInput: React.FC<{
         className={`w-full text-xs text-gray-700 bg-white outline-none border border-emerald-200 rounded-lg px-2 py-1.5 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all placeholder-gray-300 disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
     />
 );
+
+// ─── Dilution Combo Input — numeric input + TNTC/> 300 dropdown ──────────────
+
+const DILUTION_SPECIAL_OPTIONS = ["TNTC", "> 300"] as const;
+
+const DilutionComboInput: React.FC<{
+    value: string;
+    onChange: (v: string) => void;
+    placeholder?: string;
+    disabled?: boolean;
+}> = ({ value, onChange, placeholder = "Enter dil. value", disabled }) => {
+    const [dropOpen, setDropOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    const isSpecial = DILUTION_SPECIAL_OPTIONS.includes(value as typeof DILUTION_SPECIAL_OPTIONS[number]);
+
+    useEffect(() => {
+        if (!dropOpen) return;
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setDropOpen(false);
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [dropOpen]);
+
+    return (
+        <div ref={ref} className="relative flex items-center gap-1.5 w-full">
+            {/* Numeric / text input */}
+            <input
+                type={isSpecial ? "text" : "number"}
+                value={isSpecial ? "" : value}
+                onChange={e => !disabled && onChange(e.target.value)}
+                placeholder={isSpecial ? value : placeholder}
+                disabled={disabled || isSpecial}
+                className={[
+                    "flex-1 min-w-0 text-xs text-gray-700 bg-white outline-none border border-emerald-200 rounded-lg px-2 py-1.5",
+                    "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all",
+                    isSpecial
+                        ? "placeholder-emerald-600 font-semibold border-emerald-400 bg-emerald-50 cursor-not-allowed"
+                        : "placeholder-gray-300",
+                    disabled ? "opacity-60 cursor-not-allowed" : "",
+                ].join(" ")}
+            />
+
+            {/* Custom dropdown trigger */}
+            <div className="relative flex-shrink-0">
+                <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => !disabled && setDropOpen(v => !v)}
+                    className={[
+                        "flex items-center gap-0.5 px-1.5 py-1.5 rounded-lg border text-[10px] font-bold transition-all select-none",
+                        dropOpen
+                            ? "bg-emerald-700 border-emerald-700 text-white shadow"
+                            : isSpecial
+                                ? "bg-emerald-600 border-emerald-500 text-white hover:bg-emerald-500"
+                                : "bg-white border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-400",
+                        disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
+                    ].join(" ")}
+                    title="Select special value"
+                >
+                    <ChevronDownIcon className={`w-3 h-3 flex-shrink-0 transition-transform duration-200 ${dropOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                <AnimatePresence>
+                    {dropOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                            transition={{ duration: 0.12 }}
+                            style={{ position: "fixed", zIndex: 9999 }}
+                            className="min-w-[100px] bg-white border border-emerald-200 rounded-xl shadow-2xl overflow-hidden"
+                            ref={(el) => {
+                                if (el && ref.current) {
+                                    const btn = ref.current.querySelector("button");
+                                    if (btn) {
+                                        const r = btn.getBoundingClientRect();
+                                        el.style.top = `${r.bottom + 4}px`;
+                                        el.style.left = `${r.left}px`;
+                                    }
+                                }
+                            }}
+                        >
+                            <div className="py-1">
+                                {/* Clear option */}
+                                {isSpecial && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { onChange(""); setDropOpen(false); }}
+                                        className="w-full text-left px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50 flex items-center gap-1.5 transition-colors"
+                                    >
+                                        <span className="text-[10px]">✕</span> Clear
+                                    </button>
+                                )}
+                                {DILUTION_SPECIAL_OPTIONS.map(opt => {
+                                    const isSel = value === opt;
+                                    return (
+                                        <button
+                                            key={opt}
+                                            type="button"
+                                            onClick={() => { onChange(opt); setDropOpen(false); }}
+                                            className={[
+                                                "w-full text-left px-3 py-1.5 text-xs font-semibold tracking-wide",
+                                                "flex items-center justify-between transition-colors duration-100",
+                                                isSel
+                                                    ? "bg-emerald-700 text-white"
+                                                    : "text-emerald-900 hover:bg-emerald-50",
+                                            ].join(" ")}
+                                        >
+                                            <span>{opt}</span>
+                                            {isSel && <span className="text-emerald-200 text-[10px]">✓</span>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+        </div>
+    );
+};
 
 // ─── Custom Dilution Dropdown — lives inside the dark green <th> ──────────────
 
@@ -465,20 +592,18 @@ const TVCWaterPreparationDetail: React.FC<TVCWaterPreparationDetailProps> = ({
                                 <td rowSpan={2} className="border-r border-emerald-100 align-top p-0">
                                     <div className="flex flex-col divide-y divide-emerald-50">
                                         <div className="px-3 py-2.5">
-                                            <CellInput
-                                                type="number"
+                                            <DilutionComboInput
                                                 value={rows[0].dilutionCount}
                                                 onChange={v => updateRow(0, "dilutionCount", v)}
-                                                placeholder="R1 Colony count"
+                                                placeholder="Enter dil. value"
                                                 disabled={isLocked}
                                             />
                                         </div>
                                         <div className="px-3 py-2.5">
-                                            <CellInput
-                                                type="number"
+                                            <DilutionComboInput
                                                 value={rows[1].dilutionCount}
                                                 onChange={v => updateRow(1, "dilutionCount", v)}
-                                                placeholder="R2 Colony count"
+                                                placeholder="Enter dil. value"
                                                 disabled={isLocked}
                                             />
                                         </div>
@@ -488,7 +613,7 @@ const TVCWaterPreparationDetail: React.FC<TVCWaterPreparationDetailProps> = ({
                                 {/* Blank R1 */}
                                 <td className={tdBase}>
                                     <CellInput
-                                        type="number"
+                                        type="text"
                                         value={rows[0].blank}
                                         onChange={v => updateRow(0, "blank", v)}
                                         placeholder="Blank"
@@ -514,7 +639,7 @@ const TVCWaterPreparationDetail: React.FC<TVCWaterPreparationDetailProps> = ({
                                 {/* Blank R2 */}
                                 <td className={tdBase}>
                                     <CellInput
-                                        type="number"
+                                        type="text"
                                         value={rows[1].blank}
                                         onChange={v => updateRow(1, "blank", v)}
                                         placeholder="Blank"
@@ -540,7 +665,7 @@ const TVCWaterPreparationDetail: React.FC<TVCWaterPreparationDetailProps> = ({
                         {/* Formula */}
                         <div className="flex-1 leading-relaxed">
                             <span className="text-emerald-500 font-bold mr-2">Formula:</span>
-                            ({rows[0].dilutionCount || "R1"} + {rows[1].dilutionCount || "R2"})
+                            ({TNTC_VALUES.includes(rows[0].dilutionCount) ? <span className="text-red-500">{rows[0].dilutionCount}</span> : (rows[0].dilutionCount || "R1")} + {TNTC_VALUES.includes(rows[1].dilutionCount) ? <span className="text-red-500">{rows[1].dilutionCount}</span> : (rows[1].dilutionCount || "R2")})
                             {" ÷ "}
                             (2 × {formatExponent(sharedDilutionExponent)})
                         </div>
@@ -550,7 +675,9 @@ const TVCWaterPreparationDetail: React.FC<TVCWaterPreparationDetailProps> = ({
 
                         {/* Result */}
                         <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-bold whitespace-nowrap ${
-                            isLessThan10
+                            preparation.calculatedResult === "TNTC"
+                                ? "bg-red-50 border-red-300 text-red-700"
+                                : isLessThan10
                                 ? "bg-amber-50 border-amber-300 text-amber-700"
                                 : preparation.calculatedResult
                                     ? "bg-white border-emerald-300 text-emerald-800"
@@ -558,7 +685,7 @@ const TVCWaterPreparationDetail: React.FC<TVCWaterPreparationDetailProps> = ({
                         }`}>
                             <span className="text-[10px] font-semibold text-emerald-400 mr-1">=</span>
                             {preparation.calculatedResult
-                                ? <>{preparation.calculatedResult}{!isLessThan10 && <span className="ml-1 text-xs font-medium opacity-60">cfu/g</span>}</>
+                                ? <>{preparation.calculatedResult}{!isLessThan10 && preparation.calculatedResult !== "TNTC" && <span className="ml-1 text-xs font-medium opacity-60">cfu/g</span>}</>
                                 : <span className="italic text-xs font-normal">—</span>
                             }
                         </div>

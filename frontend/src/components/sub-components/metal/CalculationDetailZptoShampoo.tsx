@@ -26,7 +26,10 @@ const weightUnitOptions = [
   { value: "kg", label: "kg" },
 ];
 
-const RESULT_UNIT = "% of L.C.";
+const trimZeros = (n: number): string =>
+  Number.isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—";
+
+const RESULT_UNIT = "% of LC";
 
 const toCanonicalPpm = (value: number, unit: string): number => {
   if (!Number.isFinite(value)) return value;
@@ -55,6 +58,29 @@ const toCanonicalGrams = (value: number, unit: string): number => {
   }
 };
 
+/** Any volume unit → mL */
+const toCanonicalML = (value: number, unit?: string | null): number => {
+  if (!Number.isFinite(value)) return NaN;
+  if (!unit) return value;
+  switch (unit.trim().toLowerCase()) {
+    case "ml": return value;
+    case "l":  return value * 1000;
+    case "µl":
+    case "ul": return value / 1000;
+    default:   return value;
+  }
+};
+
+/** Unit-aware DF = makeup[mL] / take[mL] */
+const calcDF = (
+  makeup: string | null, makeupUnit: string | null,
+  take: string | null,   takeUnit: string | null,
+): number => {
+  const m = toCanonicalML(parseFloat(makeup ?? ""), makeupUnit);
+  const t = toCanonicalML(parseFloat(take ?? ""), takeUnit);
+  return Number.isFinite(m) && Number.isFinite(t) && t !== 0 ? m / t : NaN;
+};
+
 const fmt4 = (v: string | null | undefined): string => {
   if (v === null || v === undefined || v === "") return "—";
   const n = parseFloat(v);
@@ -70,12 +96,6 @@ const prepNum = (v: string | null): number => {
 };
 const isPrepEmpty = (v: string | null): boolean =>
   !v || v === "" || !Number.isFinite(parseFloat(v));
-
-const calcDF = (makeup: string | null, take: string | null): number => {
-  const m = parseFloat(makeup ?? "");
-  const t = parseFloat(take ?? "");
-  return Number.isFinite(m) && Number.isFinite(t) && t !== 0 ? m / t : NaN;
-};
 
 const CalculationDetailZptoShampoo: React.FC<Props> = ({
   calculation,
@@ -128,17 +148,21 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
   const DFChip = ({
     label,
     makeup,
+    makeupUnit,
     take,
+    takeUnit,
     makeupLabel,
     takeLabel,
   }: {
     label: string;
     makeup: string | null;
+    makeupUnit: string | null;
     take: string | null;
+    takeUnit: string | null;
     makeupLabel: string;
     takeLabel: string;
   }) => {
-    const df = calcDF(makeup, take);
+    const df = calcDF(makeup, makeupUnit, take, takeUnit);
     const ready = Number.isFinite(df);
     return (
       <div
@@ -168,34 +192,35 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
   );
 
   const extractValues = (sp?: SamplePreparationMetal) => {
-    if (!sp) return { sw1: null, v1: null, v2: null, v3: null };
+    if (!sp) return { sw: null, swUnit: null, v1: null, v1Unit: null, v2: null, v2Unit: null, v3: null, v3Unit: null };
     const stepsArr = Array.isArray(sp.steps) ? sp.steps : [];
     const weighing = stepsArr.find((s) => s.name === "Weighing");
     const d1 = stepsArr.find((s) => s.name === "1st Dilution");
     const d2 = stepsArr.find((s) => s.name === "2nd Dilution");
     return {
-      sw1: weighing?.value1 ?? null,
-      v1: d1?.value1 ?? null,   // Volume Makeup
-      v2: d2?.value1 ?? null,   // 2nd Dil take
-      v3: d2?.value2 ?? null,   // 2nd Dil makeup → DF = V3/V2
+      sw: weighing?.value1 ?? null,     swUnit: (weighing as any)?.unit1 ?? "g",
+      v1: d1?.value1 ?? null,           v1Unit: (d1 as any)?.unit1 ?? "mL",
+      v2: d2?.value1 ?? null,           v2Unit: (d2 as any)?.unit1 ?? "mL",
+      v3: d2?.value2 ?? null,           v3Unit: (d2 as any)?.unit2 ?? "mL",
     };
   };
 
   // ZPTO Shampoo formula: % of L.C. =
-  //   (Sample − Blank) × V1 × DF × Specific Gravity × MW₁ × 100
-  //   ────────────────────────────────────────────────────────────
-  //              SW1 × 10000 × MW₂ × Label Claim
+  //   (Sample_ppm − Blank_ppm) × V1[mL] × DF × Specific Gravity × MW₁ × 100
+  //   ─────────────────────────────────────────────────────────────────────────
+  //              SW1[g] × 10000 × MW₂ × Label Claim
   //
-  // DF = V3/V2 (2nd dilution makeup / take)
+  // DF = V3[mL] / V2[mL]
+  // All volumes normalised to mL; SW normalised to g before arithmetic.
   const compute = (
     instSample: string,
     instSampleUnit: string,
     instBlank: string,
     instBlankUnit: string,
-    sw1: string | null,
-    v1: string | null,
-    v2: string | null,
-    v3: string | null,
+    sw: string | null,     swUnit: string | null,
+    v1: string | null,     v1Unit: string | null,
+    v2: string | null,     v2Unit: string | null,
+    v3: string | null,     v3Unit: string | null,
     specificGravity: string,
     molecularWeight1: string,
     molecularWeight2: string,
@@ -203,14 +228,24 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
   ): string | null => {
     const sample = toCanonicalPpm(parseFloat(instSample), instSampleUnit);
     if (!Number.isFinite(sample)) return null;
-    const blank = toCanonicalPpm(parseFloat(instBlank), instBlankUnit);
+    const blankParsed = parseFloat(instBlank);
+    const blank = toCanonicalPpm(Number.isFinite(blankParsed) ? blankParsed : 0, instBlankUnit);
     if (!Number.isFinite(blank)) return null;
-    const sw1n = prepNum(sw1);
-    const v1n = prepNum(v1);
-    const v2n = prepNum(v2);
-    const v3n = prepNum(v3);
-    const df = v3n / v2n;
-    const sg = parseFloat(specificGravity);
+
+    // SW → g (missing → 1)
+    const swMl = toCanonicalGrams(parseFloat(sw ?? ""), swUnit ?? "g");
+    const swn  = Number.isFinite(swMl) ? swMl : 1;
+
+    // V1 → mL (missing → 1)
+    const v1Ml = toCanonicalML(parseFloat(v1 ?? ""), v1Unit);
+    const v1n  = Number.isFinite(v1Ml) ? v1Ml : 1;
+
+    // DF = V3[mL] / V2[mL] (missing → 1)
+    const v2Ml = toCanonicalML(parseFloat(v2 ?? ""), v2Unit);
+    const v3Ml = toCanonicalML(parseFloat(v3 ?? ""), v3Unit);
+    const df   = Number.isFinite(v2Ml) && Number.isFinite(v3Ml) && v2Ml !== 0 ? v3Ml / v2Ml : 1;
+
+    const sg  = parseFloat(specificGravity);
     const mw1 = parseFloat(molecularWeight1);
     const mw2 = parseFloat(molecularWeight2);
     const lcN = parseFloat(labelClaim);
@@ -225,12 +260,11 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
       return null;
     }
     const numerator = (sample - blank) * v1n * df * sg * mw1 * 100;
-    const denominator = sw1n * 10000 * mw2 * lcN;
+    const denominator = swn * 10000 * mw2 * lcN;
     const result = numerator / denominator;
     if (!Number.isFinite(result)) return null;
-    return result.toFixed(4);
+    return result.toFixedNoRound(4).toFixed(3);
   };
-
   useEffect(() => {
     const extracted = extractValues(selectedSamplePrep);
 
@@ -239,10 +273,10 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
       calculation.instrumentConcentrationSampleUnit,
       calculation.instrumentConcentrationBlank,
       calculation.instrumentConcentrationBlankUnit,
-      extracted.sw1,
-      extracted.v1,
-      extracted.v2,
-      extracted.v3,
+      extracted.sw,     extracted.swUnit,
+      extracted.v1,     extracted.v1Unit,
+      extracted.v2,     extracted.v2Unit,
+      extracted.v3,     extracted.v3Unit,
       calculation.specificGravity,
       calculation.molecularWeight1,
       calculation.molecularWeight2,
@@ -254,7 +288,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
       : calculation.label;
 
     if (
-      extracted.sw1 !== calculation.sw1 ||
+      extracted.sw !== calculation.sw ||
       extracted.v1 !== calculation.v1 ||
       extracted.v2 !== calculation.v2 ||
       extracted.v3 !== calculation.v3 ||
@@ -264,10 +298,14 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
     ) {
       onUpdate({
         ...calculation,
-        sw1: extracted.sw1,
+        sw: extracted.sw,
         v1: extracted.v1,
         v2: extracted.v2,
         v3: extracted.v3,
+        ...(extracted.swUnit ? { swUnit: extracted.swUnit } : {}),
+        ...(extracted.v1Unit ? { v1Unit: extracted.v1Unit } : {}),
+        ...(extracted.v2Unit ? { v2Unit: extracted.v2Unit } : {}),
+        ...(extracted.v3Unit ? { v3Unit: extracted.v3Unit } : {}),
         calculationResult: newResult,
         calculationResultUnit: RESULT_UNIT,
         label: newLabel,
@@ -303,11 +341,20 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
       ? (w2g - w1g) / (w3g - w1g)
       : NaN;
 
-  const sw1Eff = prepNum(calculation.sw1);
-  const v1Eff = prepNum(calculation.v1);
-  const v2Eff = prepNum(calculation.v2);
-  const v3Eff = prepNum(calculation.v3);
-  const dfEff = v3Eff / v2Eff;
+  // Canonical display values — all converted to their base units
+  const cZpto = calculation as any;
+
+  const swGrams = toCanonicalGrams(parseFloat(calculation.sw ?? ""), cZpto.swUnit ?? "g");
+  const swEff   = Number.isFinite(swGrams) ? swGrams : prepNum(calculation.sw);
+
+  const v1MlZ = toCanonicalML(parseFloat(calculation.v1 ?? ""), cZpto.v1Unit);
+  const v1Eff  = Number.isFinite(v1MlZ) ? v1MlZ : prepNum(calculation.v1);
+
+  const v2MlZ = toCanonicalML(parseFloat(calculation.v2 ?? ""), cZpto.v2Unit);
+  const v3MlZ = toCanonicalML(parseFloat(calculation.v3 ?? ""), cZpto.v3Unit);
+  const dfEff  = Number.isFinite(v2MlZ) && Number.isFinite(v3MlZ) && v2MlZ !== 0
+    ? v3MlZ / v2MlZ
+    : prepNum(calculation.v3) / prepNum(calculation.v2);
 
   const sampleNum = toCanonicalPpm(
     parseFloat(calculation.instrumentConcentrationSample),
@@ -438,7 +485,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
               {/* Formula header */}
               <div className="bg-white rounded-lg p-4 border-2 border-emerald-200 shadow-sm">
                 <h4 className="text-sm font-bold text-gray-900 mb-3">
-                  Content in (% of L.C.)
+                  Formula
                 </h4>
                 <div className="bg-gray-50 rounded p-3">
                   <div className="flex items-center gap-2">
@@ -446,9 +493,6 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                       <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
                           (Inst. Conc. Sample − Blank) × Vol. Makeup × DF × Specific Gravity × MW₁ × 100
-                        </p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">
-                          DF = V3/V2 (2nd dil. makeup / take)
                         </p>
                       </div>
                       <div className="text-center px-2 w-full">
@@ -503,7 +547,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                           handleField("instrumentConcentrationSample", e.target.value)
                         }
                         onWheel={(e) => e.currentTarget.blur()}
-                        placeholder="0.0"
+                        placeholder="Enter value"
                         className={`flex-1 min-w-0 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
                           !calculation.instrumentConcentrationSample
                             ? "border-amber-400"
@@ -542,7 +586,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                           handleField("instrumentConcentrationBlank", e.target.value)
                         }
                         onWheel={(e) => e.currentTarget.blur()}
-                        placeholder="0.0"
+                        placeholder="Enter value"
                         className={`flex-1 min-w-0 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
                           !calculation.instrumentConcentrationBlank
                             ? "border-amber-400"
@@ -588,7 +632,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                         readOnly={isLocked}
                         onChange={(e) => handleField("w1EmptyPycnometer", e.target.value)}
                         onWheel={(e) => e.currentTarget.blur()}
-                        placeholder="0.0"
+                        placeholder="Enter value"
                         className="flex-1 min-w-0 px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
                       />
                       <div className="w-20 shrink-0">
@@ -614,7 +658,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                         readOnly={isLocked}
                         onChange={(e) => handleField("w2PycnometerWithSample", e.target.value)}
                         onWheel={(e) => e.currentTarget.blur()}
-                        placeholder="0.0"
+                        placeholder="Enter value"
                         className="flex-1 min-w-0 px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
                       />
                       <div className="w-20 shrink-0">
@@ -640,7 +684,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                         readOnly={isLocked}
                         onChange={(e) => handleField("w3PycnometerWithWater", e.target.value)}
                         onWheel={(e) => e.currentTarget.blur()}
-                        placeholder="0.0"
+                        placeholder="Enter value"
                         className="flex-1 min-w-0 px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
                       />
                       <div className="w-20 shrink-0">
@@ -670,7 +714,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                       readOnly={isLocked}
                       onChange={(e) => handleField("specificGravity", e.target.value)}
                       onWheel={(e) => e.currentTarget.blur()}
-                      placeholder="0.0"
+                      placeholder="Enter value"
                       className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
                         !calculation.specificGravity ? "border-amber-400" : "border-emerald-300"
                       }`}
@@ -701,7 +745,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                       readOnly={isLocked}
                       onChange={(e) => handleField("molecularWeight1", e.target.value)}
                       onWheel={(e) => e.currentTarget.blur()}
-                      placeholder="0.0"
+                      placeholder="Enter value"
                       className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
                         !calculation.molecularWeight1 ? "border-amber-400" : "border-emerald-300"
                       }`}
@@ -723,7 +767,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                       readOnly={isLocked}
                       onChange={(e) => handleField("molecularWeight2", e.target.value)}
                       onWheel={(e) => e.currentTarget.blur()}
-                      placeholder="0.0"
+                      placeholder="Enter value"
                       className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
                         !calculation.molecularWeight2 ? "border-amber-400" : "border-emerald-300"
                       }`}
@@ -745,7 +789,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                       readOnly={isLocked}
                       onChange={(e) => handleField("labelClaim", e.target.value)}
                       onWheel={(e) => e.currentTarget.blur()}
-                      placeholder="0.0"
+                      placeholder="Enter value"
                       className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
                         !calculation.labelClaim ? "border-amber-400" : "border-emerald-300"
                       }`}
@@ -759,23 +803,25 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Formula Breakdown */}
+              {/* Formula Derivation */}
               <div className="bg-white rounded-lg border-2 border-emerald-200 overflow-hidden">
                 <div className="bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 px-4 py-2">
                   <h5 className="text-sm font-bold text-white">
-                    Formula Breakdown
+                    Formula Derivation
                   </h5>
                 </div>
                 <div className="p-5 space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <PrepChip label="SW1 (Sample Wt.)" value={calculation.sw1} unit="g" />
-                    <PrepChip label="V1 (Vol. Makeup)" value={calculation.v1} unit="mL" />
-                    <PrepChip label="V2 (2nd Dil. Take)" value={calculation.v2} unit="mL" />
-                    <PrepChip label="V3 (2nd Dil. Makeup)" value={calculation.v3} unit="mL" />
+                    <PrepChip label="SW1 (Sample Wt.)" value={Number.isFinite(swGrams) ? swGrams.toFixed(4) : calculation.sw} unit="g" />
+                    <PrepChip label="V1 (Vol. Makeup)" value={Number.isFinite(v1MlZ) ? v1MlZ.toFixed(4) : calculation.v1} unit="mL" />
+                    <PrepChip label="V2 (2nd Dil. Take)" value={Number.isFinite(v2MlZ) ? v2MlZ.toFixed(4) : calculation.v2} unit="mL" />
+                    <PrepChip label="V3 (2nd Dil. Makeup)" value={Number.isFinite(v3MlZ) ? v3MlZ.toFixed(4) : calculation.v3} unit="mL" />
                     <DFChip
                       label="DF = V3/V2"
-                      makeup={calculation.v3}
-                      take={calculation.v2}
+                      makeup={Number.isFinite(v3MlZ) ? v3MlZ.toFixed(4) : calculation.v3}
+                      makeupUnit={null}
+                      take={Number.isFinite(v2MlZ) ? v2MlZ.toFixed(4) : calculation.v2}
+                      takeUnit={null}
                       makeupLabel="V3"
                       takeLabel="V2"
                     />
@@ -823,12 +869,12 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                           {fmtN4(mw1Num)} × 100
                         </p>
                         <p className="text-[10px] text-gray-500 mt-0.5">
-                          (Sample/Blank in ppm; DF=V3/V2={fmtN4(dfEff)})
+                          (Sample/Blank in ppm; V1, V2, V3 in mL; SW in g; DF=V3/V2={fmtN4(dfEff)})
                         </p>
                       </div>
                       <div className="text-center px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
-                          {fmtN4(sw1Eff)} × 10000 × {fmtN4(mw2Num)} × {fmtN4(lcNum)}
+                          {fmtN4(swEff)} × 10000 × {fmtN4(mw2Num)} × {fmtN4(lcNum)}
                         </p>
                       </div>
                     </div>
@@ -907,7 +953,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                   <div className="flex items-center justify-between p-4 flex-wrap gap-3">
                     <div className="flex items-baseline gap-2">
                       <p className="text-3xl font-bold text-gray-800">
-                        {calculation.calculationResult}
+                        {trimZeros(parseFloat(calculation.calculationResult))}
                       </p>
                       <span className="text-lg font-semibold text-gray-600">
                         {RESULT_UNIT}

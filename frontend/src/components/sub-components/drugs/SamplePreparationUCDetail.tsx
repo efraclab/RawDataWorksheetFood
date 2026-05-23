@@ -612,7 +612,7 @@ const SamplePreparationUCDetail: React.FC<SamplePreparationUCDetailProps> = ({
                                 <div className="w-20">
                                   <CustomDropdown
                                     options={filtrationUnitOptions}
-                                    value={step.unit1 || "µm"}
+                                    value={step.unit1 || "micron"}
                                     onChange={(newUnit) =>
                                       onStepChange(
                                         samplePreparationUC.id,

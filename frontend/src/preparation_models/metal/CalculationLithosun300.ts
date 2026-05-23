@@ -2,36 +2,39 @@ export interface CalculationLithosun300 {
   id: number;
   label: string;
 
-  /** Label of the SamplePreparation whose V1/V2/V3 feed this calculation. */
   selectedSamplePreparationLabel: string | null;
 
-  /** Auto-populated from selected sample preparation.
-   *  V1 = 1st Dilution value1 (dissolution vessel volume, e.g. 900 mL)
-   *  V2 = 2nd Dilution value1 (take volume, e.g. 25 mL)
-   *  V3 = 2nd Dilution value2 (make-up volume, e.g. 50 mL)
-   */
   v1: string | null;
   v2: string | null;
   v3: string | null;
 
-  /** Conversion factor: Li → Li₂CO₃  (= 2×MW(Li)/MW(Li₂CO₃) ≈ 0.188). */
-  conversionFactor: string;
 
-  /** Label claim of the tablet (e.g. 300 for Lithosun 300). */
-  labelClaim: string;
-  labelClaimUnit: string;   // "mg" | "g" | "kg"
+  conversionFactor: string | null;
+  labelClaim: string | null;
+  labelClaimUnit: string | null;
 
-  /** User-entered instrument readings. */
-  instrumentConcentrationSample: string;
   instrumentConcentrationSampleUnit: string;
+
   instrumentConcentrationBlank: string;
   instrumentConcentrationBlankUnit: string;
 
-  /** Acceptance limits (as-text). */
+  instrumentConcentrationSampleTablet1: string | null;
+  instrumentConcentrationSampleTablet2: string | null;
+  instrumentConcentrationSampleTablet3: string | null;
+  instrumentConcentrationSampleTablet4: string | null;
+  instrumentConcentrationSampleTablet5: string | null;
+  instrumentConcentrationSampleTablet6: string | null;
+
   acceptanceLimitMin: string;
   acceptanceLimitMax: string;
 
-  /** Computed result. */
+  calculationResultTablet1: string | null;
+  calculationResultTablet2: string | null;
+  calculationResultTablet3: string | null;
+  calculationResultTablet4: string | null;
+  calculationResultTablet5: string | null;
+  calculationResultTablet6: string | null;
+
   calculationResult: string | null;
-  calculationResultUnit: string | null;   // "% of L.C."
+  calculationResultUnit: string | null;
 }

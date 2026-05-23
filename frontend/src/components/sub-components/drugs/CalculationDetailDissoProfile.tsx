@@ -1070,7 +1070,7 @@ const CalculationDetailDissoProfile: React.FC<
                           return (
                             <div key={tpNum} className="flex items-center gap-3">
                               <span className="text-xs font-bold text-emerald-800 w-28 shrink-0 truncate" title={tpLabel}>
-                                Time Point {tpLabel}
+                                {tpLabel}
                               </span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input

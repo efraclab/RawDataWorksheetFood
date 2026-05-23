@@ -4,20 +4,9 @@ import { type SampleData } from "../models/SampleData";
 import type { Instrument } from "../preparation_models/Instrument";
 import type { Standard } from "../preparation_models/Standard";
 import type { Chemical } from "../preparation_models/Chemical";
-import type { StandardPreparation } from "../preparation_models/drugs/StandardPreparation";
-import type { SamplePreparation } from "../preparation_models/drugs/SamplePreparation";
 import { CgTrash } from "react-icons/cg";
-import type { SamplePreparationLod } from "../preparation_models/drugs/SamplePreparationLod";
-import type { SamplePreparationSulphatedAsh } from "../preparation_models/drugs/SamplePreparationSulphatedAsh";
-import type { SamplePreparationROI } from "../preparation_models/drugs/SamplePreparationROI";
-import type { SamplePreparationDisso } from "../preparation_models/drugs/SamplePreparationDisso";
-import StandardSelectionDialog from "./shared/StandardSelectionDialog";
-import type { CalculationAssay } from "../preparation_models/drugs/CalculationAssay";
 import { BiTestTube } from "react-icons/bi";
 import { IoFlask } from "react-icons/io5";
-import type { CalculationSulphatedAsh } from "../preparation_models/drugs/CalculationSulphatedAsh";
-import type { CalculationROI } from "../preparation_models/drugs/CalculationROI";
-import type { CalculationLod } from "../preparation_models/drugs/CalculationLod";
 import type { CalculationIcpmsFood } from "../preparation_models/metal/CalculationIcpmsFood";
 import type { CalculationIcpoesFood } from "../preparation_models/metal/CalculationIcpoesFood";
 import type { CalculationIcpmsWater } from "../preparation_models/metal/CalculationIcpmsWater";
@@ -45,10 +34,6 @@ import CalculationDetailAnofer from "./sub-components/metal/CalculationDetailAno
 import CalculationDetailZptoShampoo from "./sub-components/metal/CalculationDetailZptoShampoo";
 import CalculationDetailSodiumLactate from "./sub-components/metal/CalculationDetailSodiumLactate";
 import CalculationDetailLithosun300 from "./sub-components/metal/CalculationDetailLithosun300";
-import type { CalculationRS } from "../preparation_models/drugs/CalculationRS";
-import type { CalculationRelatedSubstance } from "../preparation_models/drugs/CalculationRelatedSubstance";
-import type { CalculationDisso } from "../preparation_models/drugs/CalculationDisso";
-import type { CalculationDissoProfile } from "../preparation_models/drugs/CalculationDissoProfile";
 import AnalystSelectionDialog from "./shared/AnalystSelectionDialog";
 import {
   fetchWorksheetById,
@@ -82,19 +67,10 @@ import SubmitForQAReviewDialog from "./shared/SubmitForQAReviewDialog";
 import Toast from "./shared/Toast";
 import { WorksheetDbMapper } from "../helpers/WorksheetDbMapper";
 import { MdDone } from "react-icons/md";
-import type { SamplePreparationTitration } from "../preparation_models/drugs/SamplePreparationTitration";
-import type { DissoMediaPreparation } from "../preparation_models/drugs/DissoMediaPreparation";
-import type { CalculationAssayFerrousFumarate } from "../preparation_models/drugs/CalculationAssayFerrousFumarate";
-import type { CalculationDissoFerrousFumarate } from "../preparation_models/drugs/CalculationDissoFerrousFumarate";
-import type { CalculationUC } from "../preparation_models/drugs/CalculationUC";
-import type { SamplePreparationUC } from "../preparation_models/drugs/SamplePreparationUC";
-import type { SystemSuitability } from "../preparation_models/drugs/SystemSuitability";
 import type { SmapleDetailsRequest } from "../models/SmapleDetailsRequest";
 import type { BlankPreparation as BlankPreparationModel } from "../preparation_models/drugs/BlankPreparation";
-import BufferPreparationDetail from "./sub-components/drugs/BufferPreparationDetail";
-import type { BufferPreparation as BufferPreparationModel } from "../preparation_models/drugs/BufferPreparation";
-import type { MobilePhasePreparation } from "../preparation_models/drugs/MobilePhasePreparation";
-import type { DiluentPreparation } from "../preparation_models/drugs/DiluentPreparation";
+import BlankPreparation from "./sub-components/drugs/BlankPreparation";
+import BlankPreparationDetail from "./sub-components/drugs/BlankPreparationDetail";
 import type { AttachedFile } from "../models/AttachedFile";
 import type { WorksheetFileData } from "../models/WorksheetFileData";
 import WorksheetFileAttacher from "./shared/WorksheetFileAttacher";
@@ -103,6 +79,14 @@ import type { WorksheetSidebarState, WorksheetSidebarActions } from "./shared/Wo
 import type { WorksheetInstrument } from "../models/WorksheetInstrument";
 import type { WorksheetChemical } from "../models/WorksheetChemical";
 import type { WorksheetStandard } from "../models/WorksheetStandard";
+import type { CalculationLithosun400 } from "../preparation_models/metal/CalculationLithosun400";
+import CalculationDetailLithosun400 from "./sub-components/metal/CalculationDetailLithosun400";
+import type { CalculationMeropenam } from "../preparation_models/metal/CalculationMeropenam";
+import type { CalculationSFGC } from "../preparation_models/metal/CalculationSFGC";
+import type { CalculationTalc } from "../preparation_models/metal/CalculationTalc";
+import CalculationDetailMeropenam from "./sub-components/metal/CalculationDetailMeropenam";
+import CalculationDetailSFGC from "./sub-components/metal/CalculationDetailSFGC";
+import CalculationDetailTalc from "./sub-components/metal/CalculationDetailTalc";
 
 
 const Target: React.FC<{ className: string }> = ({ className }) => (
@@ -214,141 +198,11 @@ interface WorksheetProps {
   onSidebarActionsReady?: (actions: WorksheetSidebarActions) => void;
 }
 
-// Factory functions for creating new preparation objects
-
-
-const createNewStandardPreparation = (index: number): StandardPreparation => ({
-  id: Date.now() + index,
-  label: `Standard Preparation ${index + 1}`,
-  assignedStandardId: null,
-  steps: [
-    {
-      name: "Weighing",
-      value1: "",
-      unit1: "mg",
-      logBookID: "",
-      solventChemical: "",
-    },
-    { name: "1st Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "2nd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "3rd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "4th Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "Filtration", value1: "", unit1: "micron" },
-  ],
-});
-
-const createNewSamplePreparation = (index: number): SamplePreparation => ({
-  id: Date.now() + index,
-  label: `Sample Preparation ${index + 1}`,
-  steps: [
-    {
-      name: "Weighing",
-      value1: "",
-      unit1: "mg",
-      logBookID: "",
-      solventChemical: "",
-    },
-    { name: "1st Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "2nd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "3rd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "4th Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "Filtration", value1: "", unit1: "micron" },
-  ],
-});
-
-
-const createNewSamplePreparationDisso = (
-  index: number,
-): SamplePreparationDisso => ({
-  id: Date.now() + index,
-  label: `Sample Preparation ${index + 1}`,
-  assignedStandardId: null,
-  steps: [
-    {
-      name: "Instrument Details",
-      id: "",
-      value1: "",
-      unit1: "rpm",
-      value2: "",
-      unit2: "°C",
-    },
-    {
-      name: "Tablet Details",
-      value1: "",
-      unit1: "mg",
-      value2: "",
-      unit2: "ml",
-      value3: "",
-      unit3: "min",
-    },
-    { name: "1st Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "2nd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "3rd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "Filtration", value1: "", unit1: "micron" },
-  ],
-});
-
-
-const createNewDissoMediaPreparation = (
-  index: number,
-): DissoMediaPreparation => ({
-  id: Date.now() + index,
-  label: `Dissolution Media Preparation ${index + 1}`,
-  steps: [
-    {
-      name: "Weighing/Measuring",
-      value1: "",
-      unit1: "g",
-      logBookID: "",
-      solventChemical: "",
-    },
-    { name: "PH", value1: "", unit1: "", logBookID: "" },
-    { name: "Sonication", value1: "", unit1: "min" },
-    { name: "Filtration", value1: "", unit1: "micron" },
-  ],
-});
-
-const createNewBufferPreparation = (index: number): BufferPreparationModel => ({
-  id: Date.now() + index,
-  label: `Buffer Preparation ${index + 1}`,
-  steps: [
-    {
-      name: "Weighing/Measuring",
-      value1: "",
-      unit1: "g",
-      logBookID: "",
-      solventChemical: "",
-    },
-    { name: "PH", value1: "", unit1: "", logBookID: "" },
-  ],
-});
-
-
-const createNewSamplePreparationUC = (index: number): SamplePreparationUC => ({
-  id: Date.now() + index,
-  label: `Sample Preparation ${index + 1}`,
-  assignedStandardId: null,
-  steps: [
-    {
-      name: "1 Tablets/Capsules",
-      value1: "",
-      unit1: "mg",
-      value2: "",
-      unit2: "ml",
-    },
-    { name: "1st Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "2nd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "3rd Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "4th Dilution", value1: "", unit1: "ml", value2: "", unit2: "ml" },
-    { name: "Filtration", value1: "", unit1: "micron" },
-  ],
-});
-
 const createNewSamplePreparationIcpmsFood = (
   index: number,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
-  label: `ICP-MS Food Sample Preparation ${index + 1}`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
     { name: "Weighing" },
     { name: "1st Dilution" },
@@ -363,7 +217,7 @@ const createNewSamplePreparationIcpoesFood = (
   index: number,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
-  label: `ICP-OES Food Sample Preparation ${index + 1}`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
     { name: "Weighing" },
     { name: "1st Dilution" },
@@ -378,7 +232,7 @@ const createNewSamplePreparationIcpmsWater = (
   index: number,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
-  label: `ICP-MS Water Sample Preparation ${index + 1}`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
     { name: "Weighing" },
     { name: "1st Dilution" },
@@ -393,7 +247,7 @@ const createNewSamplePreparationIcpmsIchQ3D = (
   index: number,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
-  label: `ICP-MS ICH-Q3D Sample Preparation ${index + 1}`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
     { name: "Weighing" },
     { name: "1st Dilution" },
@@ -408,7 +262,7 @@ const createNewSamplePreparationORS = (
   index: number,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
-  label: `ORS Sample Preparation ${index + 1}`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
     { name: "Weighing" },
     { name: "1st Dilution" },
@@ -423,7 +277,7 @@ const createNewSamplePreparationAnofer = (
   index: number,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
-  label: `Anofer Sample Preparation ${index + 1}`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
     { name: "Weighing" },
     { name: "1st Dilution" },
@@ -438,7 +292,7 @@ const createNewSamplePreparationZptoShampoo = (
   index: number,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
-  label: `ZPTO Shampoo Sample Preparation ${index + 1}`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
     { name: "Weighing" },
     { name: "1st Dilution" },
@@ -453,9 +307,9 @@ const createNewCalculationIcpmsFood = (
   index: number,
 ): CalculationIcpmsFood => ({
   id: Date.now() + index,
-  label: `ICP-MS Food Calculation ${index + 1}`,
+  label: `Calculation ${index + 1}`,
   selectedSamplePreparationLabel: null,
-  sw1: null,
+  sw: null,
   v1: null,
   v2: null,
   v3: null,
@@ -464,22 +318,22 @@ const createNewCalculationIcpmsFood = (
   v6: null,
   v7: null,
   instrumentConcentrationSample: "",
-  instrumentConcentrationSampleUnit: "",
+  instrumentConcentrationSampleUnit: "ppb",
   instrumentConcentrationBlank: "",
-  instrumentConcentrationBlankUnit: "",
+  instrumentConcentrationBlankUnit: "ppb",
   acceptanceLimitMin: "",
   acceptanceLimitMax: "",
   calculationResult: null,
-  calculationResultUnit: null
+  calculationResultUnit: "mg/Kg",
 });
 
 const createNewCalculationIcpoesFood = (
   index: number,
 ): CalculationIcpoesFood => ({
   id: Date.now() + index,
-  label: `ICP-OES Food Calculation ${index + 1}`,
+  label: `Calculation ${index + 1}`,
   selectedSamplePreparationLabel: null,
-  sw1: null,
+  sw: null,
   v1: null,
   v2: null,
   v3: null,
@@ -501,7 +355,7 @@ const createNewCalculationIcpmsWater = (
   index: number,
 ): CalculationIcpmsWater => ({
   id: Date.now() + index,
-  label: `ICP-MS Water Calculation ${index + 1}`,
+  label: `Calculation ${index + 1}`,
   selectedSamplePreparationLabel: null,
   v1: null,
   v2: null,
@@ -524,7 +378,7 @@ const createNewSamplePreparationIcpoesWater = (
   index: number,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
-  label: `ICP-OES Water Sample Preparation ${index + 1}`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
     { name: "Weighing" },
     { name: "1st Dilution" },
@@ -539,7 +393,7 @@ const createNewSamplePreparationAasWater = (
   index: number,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
-  label: `AAS Water Sample Preparation ${index + 1}`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
     { name: "Weighing" },
     { name: "1st Dilution" },
@@ -554,7 +408,7 @@ const createNewCalculationIcpoesWater = (
   index: number,
 ): CalculationIcpoesWater => ({
   id: Date.now() + index,
-  label: `ICP-OES Water Calculation ${index + 1}`,
+  label: `Calculation ${index + 1}`,
   selectedSamplePreparationLabel: null,
   v1: null,
   v2: null,
@@ -577,7 +431,7 @@ const createNewCalculationAasWater = (
   index: number,
 ): CalculationAasWater => ({
   id: Date.now() + index,
-  label: `AAS Water Calculation ${index + 1}`,
+  label: `Calculation ${index + 1}`,
   selectedSamplePreparationLabel: null,
   v1: null,
   v2: null,
@@ -600,9 +454,9 @@ const createNewCalculationIcpmsIchQ3D = (
   index: number,
 ): CalculationIcpmsIchQ3D => ({
   id: Date.now() + index,
-  label: `ICP-MS ICH-Q3D Calculation ${index + 1}`,
+  label: `Calculation ${index + 1}`,
   selectedSamplePreparationLabel: null,
-  sw1: null,
+  sw: null,
   v1: null,
   v2: null,
   v3: null,
@@ -622,9 +476,9 @@ const createNewCalculationIcpmsIchQ3D = (
 
 const createNewCalculationORS = (index: number): CalculationORS => ({
   id: Date.now() + index,
-  label: `ORS Calculation ${index + 1}`,
+  label: `Calculation ${index + 1}`,
   selectedSamplePreparationLabel: null,
-  sw1: null,
+  sw: null,
   v1: null,
   v2: null,
   v3: null,
@@ -644,22 +498,24 @@ const createNewCalculationORS = (index: number): CalculationORS => ({
   acceptanceLimitMin: "",
   acceptanceLimitMax: "",
   calculationResult: null,
-  calculationResultUnit: "% of L.C.",
+  calculationResultUnit: "% of LC",
+  labelClaimUnit: "mg"
 });
 
 const createNewCalculationAnofer = (index: number): CalculationAnofer => ({
   id: Date.now() + index,
-  label: `Anofer Calculation ${index + 1}`,
+  label: `Calculation ${index + 1}`,
   selectedSamplePreparationLabel: null,
-  sw1: null,
+  sw: null,
   v1: null,
   v2: null,
   v3: null,
   v4: null,
   v5: null,
   avgWeight: "",
-  avgWeightUnit: "g",
+  avgWeightUnit: "mg",
   labelClaim: "",
+  labelClaimUnit: "mg",
   instrumentConcentrationSample: "",
   instrumentConcentrationSampleUnit: "ppm",
   instrumentConcentrationBlank: "",
@@ -667,16 +523,16 @@ const createNewCalculationAnofer = (index: number): CalculationAnofer => ({
   acceptanceLimitMin: "",
   acceptanceLimitMax: "",
   calculationResult: null,
-  calculationResultUnit: "% of L.C.",
+  calculationResultUnit: "% of LC",
 });
 
 const createNewCalculationZptoShampoo = (
   index: number,
 ): CalculationZptoShampoo => ({
   id: Date.now() + index,
-  label: `ZPTO Shampoo Calculation ${index + 1}`,
+  label: `Calculation ${index + 1}`,
   selectedSamplePreparationLabel: null,
-  sw1: null,
+  sw: null,
   v1: null,
   v2: null,
   v3: null,
@@ -697,14 +553,14 @@ const createNewCalculationZptoShampoo = (
   acceptanceLimitMin: "",
   acceptanceLimitMax: "",
   calculationResult: null,
-  calculationResultUnit: "% of L.C.",
+  calculationResultUnit: "% of LC",
 });
 
 const createNewSamplePreparationSodiumLactate = (
   index: number,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
-  label: `Sodium Lactate Sample Preparation ${index + 1}`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
     { name: "Weighing" },
     { name: "1st Dilution" },
@@ -719,12 +575,15 @@ const createNewCalculationSodiumLactate = (
   index: number,
 ): CalculationSodiumLactate => ({
   id: Date.now() + index,
-  label: `Sodium Lactate Calculation ${index + 1}`,
+  label: `Calculation ${index + 1}`,
   selectedSamplePreparationLabel: null,
   v1: null,
   v2: null,
   v3: null,
   v4: null,
+  v5: null,
+  v6: null,
+  v7: null,
   x1Factor: "",
   instrumentConcentrationSample: "",
   instrumentConcentrationSampleUnit: "ppm",
@@ -740,7 +599,7 @@ const createNewSamplePreparationLithosun300 = (
   index: number,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
-  label: `Lithosun 300 Sample Preparation ${index + 1}`,
+  label: `Sample Preparation ${index + 1}`,
   steps: [
     { name: "Weighing" },
     { name: "1st Dilution" },
@@ -754,30 +613,252 @@ const createNewCalculationLithosun300 = (
   index: number,
 ): CalculationLithosun300 => ({
   id: Date.now() + index,
-  label: `Lithosun 300 Calculation ${index + 1}`,
+  label: `Calculation ${index + 1}`,
   selectedSamplePreparationLabel: null,
   v1: null,
   v2: null,
   v3: null,
-  conversionFactor: "0.188",
-  labelClaim: "300",
+  conversionFactor: null,
+  labelClaim: null,
   labelClaimUnit: "mg",
+  instrumentConcentrationSampleUnit: "ppm",
+  instrumentConcentrationBlank: "",
+  instrumentConcentrationBlankUnit: "ppm",
+  instrumentConcentrationSampleTablet1: null,
+  instrumentConcentrationSampleTablet2: null,
+  instrumentConcentrationSampleTablet3: null,
+  instrumentConcentrationSampleTablet4: null,
+  instrumentConcentrationSampleTablet5: null,
+  instrumentConcentrationSampleTablet6: null,
+  acceptanceLimitMin: "",
+  acceptanceLimitMax: "",
+  calculationResultTablet1: null,
+  calculationResultTablet2: null,
+  calculationResultTablet3: null,
+  calculationResultTablet4: null,
+  calculationResultTablet5: null,
+  calculationResultTablet6: null,
+  calculationResult: null,
+  calculationResultUnit: "% of LC",
+});
+
+const createNewSamplePreparationLithosun400 = (
+  index: number,
+): SamplePreparationMetal => ({
+  id: Date.now() + index,
+  label: `Sample Preparation ${index + 1}`,
+  steps: [
+    { name: "Weighing" },
+    { name: "1st Dilution" },
+    { name: "2nd Dilution" },
+    { name: "3rd Dilution" },
+    { name: "4th Dilution" },
+  ],
+});
+
+const createNewCalculationLithosun400 = (
+  index: number,
+): CalculationLithosun400 => ({
+  id: Date.now() + index,
+  label: `Calculation ${index + 1}`,
+  selectedSamplePreparationLabel: null,
+  v1: null,
+  v2: null,
+  v3: null,
+  conversionFactor: null,
+  labelClaim: null,
+  labelClaimUnit: "mg",
+  instrumentConcentrationSampleUnit: "ppm",
+  numberOfTimePoints: 2,
+  timePointLabel1: "Time Point 1",
+  timePointLabel2: "Time Point 2",
+  timePointLabel3: null,
+  timePointLabel4: null,
+  timePointLabel5: null,
+  timePointLabel6: null,
+  timePointLabel7: null,
+  timePointLabel8: null,
+  timePointLabel9: null,
+  timePointLabel10: null,
+  sampleT1Tab1: null, sampleT1Tab2: null, sampleT1Tab3: null, sampleT1Tab4: null, sampleT1Tab5: null, sampleT1Tab6: null,
+  sampleT2Tab1: null, sampleT2Tab2: null, sampleT2Tab3: null, sampleT2Tab4: null, sampleT2Tab5: null, sampleT2Tab6: null,
+  sampleT3Tab1: null, sampleT3Tab2: null, sampleT3Tab3: null, sampleT3Tab4: null, sampleT3Tab5: null, sampleT3Tab6: null,
+  sampleT4Tab1: null, sampleT4Tab2: null, sampleT4Tab3: null, sampleT4Tab4: null, sampleT4Tab5: null, sampleT4Tab6: null,
+  sampleT5Tab1: null, sampleT5Tab2: null, sampleT5Tab3: null, sampleT5Tab4: null, sampleT5Tab5: null, sampleT5Tab6: null,
+  sampleT6Tab1: null, sampleT6Tab2: null, sampleT6Tab3: null, sampleT6Tab4: null, sampleT6Tab5: null, sampleT6Tab6: null,
+  sampleT7Tab1: null, sampleT7Tab2: null, sampleT7Tab3: null, sampleT7Tab4: null, sampleT7Tab5: null, sampleT7Tab6: null,
+  sampleT8Tab1: null, sampleT8Tab2: null, sampleT8Tab3: null, sampleT8Tab4: null, sampleT8Tab5: null, sampleT8Tab6: null,
+  sampleT9Tab1: null, sampleT9Tab2: null, sampleT9Tab3: null, sampleT9Tab4: null, sampleT9Tab5: null, sampleT9Tab6: null,
+  sampleT10Tab1: null, sampleT10Tab2: null, sampleT10Tab3: null, sampleT10Tab4: null, sampleT10Tab5: null, sampleT10Tab6: null,
+  resultT1Tab1: null, resultT1Tab2: null, resultT1Tab3: null, resultT1Tab4: null, resultT1Tab5: null, resultT1Tab6: null,
+  resultT2Tab1: null, resultT2Tab2: null, resultT2Tab3: null, resultT2Tab4: null, resultT2Tab5: null, resultT2Tab6: null,
+  resultT3Tab1: null, resultT3Tab2: null, resultT3Tab3: null, resultT3Tab4: null, resultT3Tab5: null, resultT3Tab6: null,
+  resultT4Tab1: null, resultT4Tab2: null, resultT4Tab3: null, resultT4Tab4: null, resultT4Tab5: null, resultT4Tab6: null,
+  resultT5Tab1: null, resultT5Tab2: null, resultT5Tab3: null, resultT5Tab4: null, resultT5Tab5: null, resultT5Tab6: null,
+  resultT6Tab1: null, resultT6Tab2: null, resultT6Tab3: null, resultT6Tab4: null, resultT6Tab5: null, resultT6Tab6: null,
+  resultT7Tab1: null, resultT7Tab2: null, resultT7Tab3: null, resultT7Tab4: null, resultT7Tab5: null, resultT7Tab6: null,
+  resultT8Tab1: null, resultT8Tab2: null, resultT8Tab3: null, resultT8Tab4: null, resultT8Tab5: null, resultT8Tab6: null,
+  resultT9Tab1: null, resultT9Tab2: null, resultT9Tab3: null, resultT9Tab4: null, resultT9Tab5: null, resultT9Tab6: null,
+  resultT10Tab1: null, resultT10Tab2: null, resultT10Tab3: null, resultT10Tab4: null, resultT10Tab5: null, resultT10Tab6: null,
+  minT1: null, avgT1: null, maxT1: null,
+  minT2: null, avgT2: null, maxT2: null,
+  minT3: null, avgT3: null, maxT3: null,
+  minT4: null, avgT4: null, maxT4: null,
+  minT5: null, avgT5: null, maxT5: null,
+  minT6: null, avgT6: null, maxT6: null,
+  minT7: null, avgT7: null, maxT7: null,
+  minT8: null, avgT8: null, maxT8: null,
+  minT9: null, avgT9: null, maxT9: null,
+  minT10: null, avgT10: null, maxT10: null,
+  acceptanceLimitMin1: null, acceptanceLimitMax1: null,
+  acceptanceLimitMin2: null, acceptanceLimitMax2: null,
+  acceptanceLimitMin3: null, acceptanceLimitMax3: null,
+  acceptanceLimitMin4: null, acceptanceLimitMax4: null,
+  acceptanceLimitMin5: null, acceptanceLimitMax5: null,
+  acceptanceLimitMin6: null, acceptanceLimitMax6: null,
+  acceptanceLimitMin7: null, acceptanceLimitMax7: null,
+  acceptanceLimitMin8: null, acceptanceLimitMax8: null,
+  acceptanceLimitMin9: null, acceptanceLimitMax9: null,
+  acceptanceLimitMin10: null, acceptanceLimitMax10: null,
+  calculationResultUnit: "% of LC",
+  instrumentConcentrationBlankT1: null,
+  instrumentConcentrationBlankUnitT1: null,
+  instrumentConcentrationBlankT2: null,
+  instrumentConcentrationBlankUnitT2: null,
+  instrumentConcentrationBlankT3: null,
+  instrumentConcentrationBlankUnitT3: null,
+  instrumentConcentrationBlankT4: null,
+  instrumentConcentrationBlankUnitT4: null,
+  instrumentConcentrationBlankT5: null,
+  instrumentConcentrationBlankUnitT5: null,
+  instrumentConcentrationBlankT6: null,
+  instrumentConcentrationBlankUnitT6: null,
+  instrumentConcentrationBlankT7: null,
+  instrumentConcentrationBlankUnitT7: null,
+  instrumentConcentrationBlankT8: null,
+  instrumentConcentrationBlankUnitT8: null,
+  instrumentConcentrationBlankT9: null,
+  instrumentConcentrationBlankUnitT9: null,
+  instrumentConcentrationBlankT10: null,
+  instrumentConcentrationBlankUnitT10: null
+});
+
+const createNewSamplePreparationMeropenam = (
+  index: number,
+): SamplePreparationMetal => ({
+  id: Date.now() + index,
+  label: `Sample Preparation ${index + 1}`,
+  steps: [
+    { name: "Weighing" },
+    { name: "1st Dilution" },
+    { name: "2nd Dilution" },
+    { name: "3rd Dilution" },
+    { name: "4th Dilution" },
+  ],
+});
+
+export const createNewCalculationMeropenam = (index: number): CalculationMeropenam => ({
+  id: Date.now() + index,
+  label: `Calculation ${index + 1}`,
+  selectedSamplePreparationLabel: null,
+  instrumentConcentrationSample: "",
+  instrumentConcentrationSampleUnit: "ppm",
+  sw: null,
+  labelClaim: "",
+  labelClaimUnit: "mg",
+  v1: null,
+  v2: null,
+  v3: null,
+  v4: null,
+  v5: null,
+  v6: null,
+  v7: null,
+  acceptanceLimitMin: null,
+  acceptanceLimitMax: null,
+  calculationResult: null,
+  calculationResultUnit: "% of LC",
+  instrumentConcentrationBlank: "",
+  instrumentConcentrationBlankUnit: "ppm"
+});
+
+const createNewSamplePreparationTalc = (
+  index: number,
+): SamplePreparationMetal => ({
+  id: Date.now() + index,
+  label: `Sample Preparation ${index + 1}`,
+  steps: [
+    { name: "Weighing" },
+    { name: "1st Dilution" },
+    { name: "2nd Dilution" },
+    { name: "3rd Dilution" },
+    { name: "4th Dilution" },
+    { name: "Filtration" },
+  ],
+});
+
+const createNewCalculationTalc = (index = 1): CalculationTalc => ({
+  id: Date.now() + index,
+  label: `Calculation ${index + 1}`,
+  selectedSamplePreparationLabel: null,
+  instrumentConcentrationSample: "",
+  instrumentConcentrationSampleUnit: "ppm",
+  instrumentConcentrationBlank: "0",
+  instrumentConcentrationBlankUnit: "ppm",
+  sw: null,
+  v1: null,
+  v2: null,
+  v3: null,
+  v4: null,
+  v5: null,
+  v6: null,
+  v7: null,
+  acceptanceLimitMin: null,
+  acceptanceLimitMax: null,
+  calculationResult: null,
+  calculationResultUnit: "%",
+});
+
+const createNewSamplePreparationSFGC = (
+  index: number,
+): SamplePreparationMetal => ({
+  id: Date.now() + index,
+  label: `Sample Preparation ${index + 1}`,
+  steps: [
+    { name: "Weighing" },
+    { name: "1st Dilution" },
+    { name: "2nd Dilution" },
+    { name: "3rd Dilution" },
+    { name: "4th Dilution" },
+  ],
+});
+
+export const createNewCalculationSFGC = (index: number): CalculationSFGC => ({
+  id: Date.now() + index,
+  label: `Calculation ${index + 1}`,
+  selectedSamplePreparationLabel: null,
   instrumentConcentrationSample: "",
   instrumentConcentrationSampleUnit: "ppm",
   instrumentConcentrationBlank: "",
   instrumentConcentrationBlankUnit: "ppm",
-  acceptanceLimitMin: "",
-  acceptanceLimitMax: "",
+  sw: null,
+  v1: null,
+  v2: null,
+  v3: null,
+  v4: null,
+  v5: null,
+  v6: null,
+  v7: null,
+  acceptanceLimitMin: null,
+  acceptanceLimitMax: null,
   calculationResult: null,
-  calculationResultUnit: "% of L.C.",
+  calculationResultUnit: "% of LC",
 });
 
 const createNewStandardPreparationMetal = (
   index: number,
-  groupLabel: string,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
-  label: `${groupLabel} Standard Preparation ${index + 1}`,
+  label: `Standard Preparation ${index + 1}`,
   steps: [
     { name: "Weighing" },
     { name: "1st Dilution" },
@@ -804,6 +885,7 @@ const PREPARATION_GROUPS = {
   talc: { id: "talc", label: "Talc", color: "emerald" },
   meropenam: { id: "meropenam", label: "Meropenam", color: "emerald" },
   sfgc: { id: "sfgc", label: "SFGC", color: "emerald" },
+  blankPreparation: { id: "blankPreparation", label: "Blank Preparation", color: "emerald" },
 } as const;
 
 const METAL_GROUP_TO_TYPE: Record<string, string> = {
@@ -818,6 +900,10 @@ const METAL_GROUP_TO_TYPE: Record<string, string> = {
   icpoesWater: "icpoes_water",
   aasWater: "aas_water",
   lithosun300: "lithosun300",
+  lithosun400: "lithosun400",
+  meropenam: "meropenam",
+  sfgc: "sfgc",
+  talc: "talc"
 };
 
 function parseDateSafe(raw: string): Date | null {
@@ -923,62 +1009,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
   const [showSubmitForQADialog, setShowSubmitForQADialog] = useState(false);
   const [isSubmittingForQA, setIsSubmittingForQA] = useState(false);
-
-  const [mobilePhasePerParam, setMobilePhasePerParam] = useState<
-    Record<number, MobilePhasePreparation[]>
-  >({});
-  const [dissoMediaPerParam, setDissoMediaPerParam] = useState<
-    Record<number, DissoMediaPreparation[]>
-  >({});
-  const [
-    samplePrepAssayFerrousFumaratePerParam,
-    setSamplePrepAssayFerrousFumaratePerParam,
-  ] = useState<Record<number, SamplePreparationTitration[]>>({});
-  const [
-    calculationsAssayFerrousFumaratePerParam,
-    setCalculationsAssayFerrousFumaratePerParam,
-  ] = useState<Record<number, CalculationAssayFerrousFumarate[]>>({});
-  const [
-    calculationsDissoFerrousFumaratePerParam,
-    setCalculationsDissoFerrousFumaratePerParam,
-  ] = useState<Record<number, CalculationDissoFerrousFumarate[]>>({});
-  const [
-    samplePrepDissoFerrousFumaratePerParam,
-    setSamplePrepDissoFerrousFumaratePerParam,
-  ] = useState<Record<number, SamplePreparationTitration[]>>({});
-
-  const [samplePreparationUCPerParam, setSamplePreparationUCPerParam] =
-    useState<Record<number, SamplePreparationUC[]>>({});
-  const [calculationsUCPerParam, setCalculationsUCPerParam] = useState<
-    Record<number, CalculationUC[]>
-  >({});
-  const [standardPreparationUCPerParam, setStandardPreparationUCPerParam] =
-    useState<Record<number, StandardPreparation[]>>({});
-
-  // Per-parameter state
-  const [columnsPerParam, setColumnsPerParam] = useState<
-    Record<number, string>
-  >({});
-  const [calculationsAssayPerParam, setCalculationsAssayPerParam] = useState<
-    Record<number, CalculationAssay[]>
-  >({});
-  const [
-    standardPreparationAssayPerParam,
-    setStandardPreparationAssayPerParam,
-  ] = useState<Record<number, StandardPreparation[]>>({});
-  const [samplePreparationPerParam, setSamplePreparationPerParam] = useState<
-    Record<number, SamplePreparation[]>
-  >({});
-  const [samplePreparationLodPerParam, setSamplePreparationLodPerParam] =
-    useState<Record<number, SamplePreparationLod[]>>({});
-  const [
-    samplePreparationSulphatedAshPerParam,
-    setSamplePreparationSulphatedAshPerParam,
-  ] = useState<Record<number, SamplePreparationSulphatedAsh[]>>({});
-  const [samplePreparationROIPerParam, setSamplePreparationROIPerParam] =
-    useState<Record<number, SamplePreparationROI[]>>({});
-  const [samplePreparationDissoPerParam, setSamplePreparationDissoPerParam] =
-    useState<Record<number, SamplePreparationDisso[]>>({});
   const [addedInstruments, setAddedInstruments] = useState<
     Record<number, WorksheetInstrument[]>
   >({});
@@ -996,9 +1026,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   >({});
   const [showAdditionalInfo, setShowAdditionalInfo] = useState<
     Record<number, boolean>
-  >({});
-  const [diluentPerParam, setDiluentPerParam] = useState<
-    Record<number, string>
   >({});
   const [analysisStartDatePerParam, setAnalysisStartDatePerParam] = useState<
     Record<number, string>
@@ -1072,18 +1099,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   const [parameterStatusPerParam, setParameterStatusPerParam] = useState<
     Record<number, string>
   >({});
-  const [
-    standardPreparationDissoPerParam,
-    setStandardPreparationDissoPerParam,
-  ] = useState<Record<number, StandardPreparation[]>>({});
   const [showPreparationDropdown, setShowPreparationDropdown] = useState<
     Record<number, boolean>
   >({});
   const [activePreparationGroups, setActivePreparationGroups] = useState<
     Record<number, string[]>
-  >({});
-  const [calculationsLodPerParam, setCalculationsLodPerParam] = useState<
-    Record<number, CalculationLod[]>
   >({});
   const [
     samplePreparationIcpmsFoodPerParam,
@@ -1151,80 +1171,43 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   ] = useState<Record<number, SamplePreparationMetal[]>>({});
   const [calculationsLithosun300PerParam, setCalculationsLithosun300PerParam] =
     useState<Record<number, CalculationLithosun300[]>>({});
+  const [
+    samplePreparationLithosun400PerParam,
+    setSamplePreparationLithosun400PerParam,
+  ] = useState<Record<number, SamplePreparationMetal[]>>({});
+  const [calculationsLithosun400PerParam, setCalculationsLithosun400PerParam] =
+    useState<Record<number, CalculationLithosun400[]>>({});
+  const [
+    samplePreparationMeropenamPerParam,
+    setSamplePreparationMeropenamPerParam,
+  ] = useState<Record<number, SamplePreparationMetal[]>>({});
+  const [calculationsMeropenamPerParam, setCalculationsMeropenamPerParam] =
+    useState<Record<number, CalculationMeropenam[]>>({});
+  const [
+    samplePreparationSFGCPerParam,
+    setSamplePreparationSFGCPerParam,
+  ] = useState<Record<number, SamplePreparationMetal[]>>({});
+  const [calculationsSFGCPerParam, setCalculationsSFGCPerParam] =
+    useState<Record<number, CalculationSFGC[]>>({});
+
+  const [
+    samplePreparationTalcPerParam,
+    setSamplePreparationTalcPerParam,
+  ] = useState<Record<number, SamplePreparationMetal[]>>({});
+  const [calculationsTalcPerParam, setCalculationsTalcPerParam] =
+    useState<Record<number, CalculationTalc[]>>({});
+
   const [standardPreparationMetalPerParam, setStandardPreparationMetalPerParam] =
     useState<Record<number, Record<string, SamplePreparationMetal[]>>>({});
-  const [calculationsROIPerParam, setCalculationsROIPerParam] = useState<
-    Record<number, CalculationROI[]>
-  >({});
-  const [
-    calculationsSulphatedAshPerParam,
-    setCalculationsSulphatedAshPerParam,
-  ] = useState<Record<number, CalculationSulphatedAsh[]>>({});
-  const [
-    standardPreparationResidualSolventPerParam,
-    setStandardPreparationResidualSolventPerParam,
-  ] = useState<Record<number, StandardPreparation[]>>({});
-  const [samplePreparationRSPerParam, setSamplePreparationRSPerParam] =
-    useState<Record<number, SamplePreparation[]>>({});
-  const [calculationsRSPerParam, setCalculationsRSPerParam] = useState<
-    Record<number, CalculationRS[]>
-  >({});
-  const [
-    standardPreparationRelatedSubstancePerParam,
-    setStandardPreparationRelatedSubstancePerParam,
-  ] = useState<Record<number, StandardPreparation[]>>({});
-  const [
-    samplePreparationRelatedSubstancePerParam,
-    setSamplePreparationRelatedSubstancePerParam,
-  ] = useState<Record<number, SamplePreparation[]>>({});
-  const [
-    calculationsRelatedSubstancePerParam,
-    setCalculationsRelatedSubstancePerParam,
-  ] = useState<Record<number, CalculationRelatedSubstance[]>>({});
-  const [calculationsDissoPerParam, setCalculationsDissoPerParam] = useState<
-    Record<number, CalculationDisso[]>
-  >({});
-
-  const [
-    calculationsDissoProfilePerParam,
-    setCalculationsDissoProfilePerParam,
-  ] = useState<Record<number, CalculationDissoProfile[]>>({});
-  const [
-    standardPreparationDissoProfilePerParam,
-    setStandardPreparationDissoProfilePerParam,
-  ] = useState<Record<number, StandardPreparation[]>>({});
-  const [
-    samplePreparationDissoProfilePerParam,
-    setSamplePreparationDissoProfilePerParam,
-  ] = useState<Record<number, SamplePreparationDisso[]>>({});
-  const [dissoMediaProfilePerParam, setDissoMediaProfilePerParam] = useState<
-    Record<number, DissoMediaPreparation[]>
-  >({});
-
-  const [, setShowDiluentPreparation] = useState<
-    Record<number, boolean>
-  >({});
-  const [, setShowSystemSuitability] = useState<
-    Record<number, boolean>
-  >({});
-  const [, setShowMobilePhasePreparation] = useState<
-    Record<number, boolean>
-  >({});
-  const [systemSuitabilityPerParam, setSystemSuitabilityPerParam] = useState<
-    Record<number, SystemSuitability[]>
-  >({});
   const [blankPreparationPerParam, setBlankPreparationPerParam] = useState<
     Record<number, BlankPreparationModel[]>
   >({});
-  const [bufferPreparationPerParam, setBufferPreparationPerParam] = useState<
-    Record<number, BufferPreparationModel[]>
-  >({});
-  const [showBufferPreparation, setShowBufferPreparation] = useState<
+  const [showBlankPreparationDialog, setShowBlankPreparationDialog] = useState<
     Record<number, boolean>
   >({});
-  // Diluent uses the BlankPreparation sheet (multiple items)
-  const [diluentPreparationsPerParam, setDiluentPreparationsPerParam] =
-    useState<Record<number, DiluentPreparation[]>>({});
+  const [editingBlankPrepId, setEditingBlankPrepId] = useState<string | null>(
+    null,
+  );
 
   const [filesPerParam, setFilesPerParam] = useState<
     Record<number, Record<string, AttachedFile[]>>
@@ -1235,16 +1218,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     {},
   );
 
-  const [isAddingRSStandard, setIsAddingRSStandard] = useState(false);
-  const [isAddingDissoStandard, setIsAddingDissoStandard] = useState(false);
-  const [isAddingUCStandard, setIsAddingUCStandard] = useState(false);
-  const [isAddingDissoProfileStandard, setIsAddingDissoProfileStandard] =
-    useState(false);
-  const [
-    isAddingRelatedSubstanceStandard,
-    setIsAddingRelatedSubstanceStandard,
-  ] = useState(false);
-
   // Dropdown control states
   const [showInstrumentDropdown, setShowInstrumentDropdown] = useState(false);
   const [showChemicalDropdown, setShowChemicalDropdown] = useState(false);
@@ -1254,12 +1227,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   const [instrumentSearch, setInstrumentSearch] = useState("");
   const [chemicalSearch, setChemicalSearch] = useState("");
   const [standardSearch, setStandardSearch] = useState("");
-
-  // Dialog state
-  const [showStandardSelectionDialog, setShowStandardSelectionDialog] =
-    useState(false);
-  const [currentParameterForStandardPrep, setCurrentParameterForStandardPrep] =
-    useState<number | null>(null);
 
   // Refs for click outside detection
   const instrumentRef = useRef<HTMLDivElement>(null);
@@ -1491,36 +1458,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameters.forEach((param, idx) => {
       const paramId = restoredParams[idx].id;
 
-      const systemSuitabilityPreps = (param.preparations || []).filter(
-        (p: any) => p.preparationCategory === "system_suitability",
-      );
-
-      if (systemSuitabilityPreps.length > 0) {
-        setShowSystemSuitability((prev) => ({
-          ...prev,
-          [paramId]: true,
-        }));
-
-        const restoredSuitability: SystemSuitability[] =
-          systemSuitabilityPreps.map((prep: any, i: number) => {
-            const steps = safeJSONParse(prep.steps, []);
-            return {
-              id: Date.now() + i * 1000 + Math.random() * 1000,
-              label: prep.label || `System Suitability ${i + 1}`,
-              steps: steps.map((step: any) => ({
-                name: step.name,
-                value1: step.value1 || "",
-                value2: step.value2 || "",
-              })),
-            };
-          });
-
-        setSystemSuitabilityPerParam((prev) => ({
-          ...prev,
-          [paramId]: restoredSuitability,
-        }));
-      }
-
       if (param.analyzedBy) {
         setAnalyzedByPerParam((prev) => ({
           ...prev,
@@ -1643,22 +1580,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           const prepTypes = param.preparations.map(
             (p: any) => p.preparationType,
           );
-          if (prepTypes.includes("lod")) groupKeys["lod"] = at;
-          if (prepTypes.includes("roi")) groupKeys["roi"] = at;
-          if (prepTypes.includes("sulphated_ash"))
-            groupKeys["sulphated_ash"] = at;
-          if (prepTypes.includes("residual_solvent"))
-            groupKeys["residualSolvent"] = at;
-          if (prepTypes.includes("related_substance"))
-            groupKeys["relatedSubstance"] = at;
-          if (prepTypes.includes("dissolution")) groupKeys["dissolution"] = at;
-          if (prepTypes.includes("dissolution_profile"))
-            groupKeys["dissoProfile"] = at;
-          if (prepTypes.includes("uniformity_of_content")) groupKeys["uc"] = at;
-          if (prepTypes.includes("assay_ferrous_fumarate"))
-            groupKeys["assayFerrousFumarate"] = at;
-          if (prepTypes.includes("dissolution_ferrous_fumarate"))
-            groupKeys["dissolutionFerrousFumarate"] = at;
           if (prepTypes.includes("icpms_food")) groupKeys["icpmsFood"] = at;
           if (prepTypes.includes("icpoes_food")) groupKeys["icpoesFood"] = at;
           if (prepTypes.includes("icpms_water")) groupKeys["icpmsWater"] = at;
@@ -1670,6 +1591,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           if (prepTypes.includes("zpto_shampoo")) groupKeys["zptoShampoo"] = at;
           if (prepTypes.includes("sodium_lactate")) groupKeys["sodiumLactate"] = at;
           if (prepTypes.includes("lithosun300")) groupKeys["lithosun300"] = at;
+          if (prepTypes.includes("lithosun400")) groupKeys["lithosun400"] = at;
+          if (prepTypes.includes("meropenam")) groupKeys["meropenam"] = at;
+          if (prepTypes.includes("sfgc")) groupKeys["sfgc"] = at;
+          if (prepTypes.includes("talc")) groupKeys["talc"] = at;
           if (Object.keys(groupKeys).length > 0) {
             setGroupPrepCompletedAtPerParam((prev) => ({
               ...prev,
@@ -1728,24 +1653,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
       ) {
         // Initialize collection arrays for each preparation type
         const preparationCollections = {
-          // Standard preparations by type
-          assayStd: [] as any[],
-          rsStd: [] as any[],
-          dissoStd: [] as any[],
-          ucStd: [] as any[],
-          relatedSubstanceStd: [] as any[],
-
-          // Sample preparations by type
-          assaySpl: [] as any[],
-          lodSpl: [] as any[],
-          roiSpl: [] as any[],
-          ashSpl: [] as any[],
-          rsSpl: [] as any[],
-          dissoSpl: [] as any[],
-          assayFerrousFumarateSpl: [] as any[],
-          dissolutionFerrousFumarateSpl: [] as any[],
-          ucSpl: [] as any[],
-          relatedSubstanceSpl: [] as any[],
           icpmsFoodSpl: [] as any[],
           icpoesFoodSpl: [] as any[],
           icpmsWaterSpl: [] as any[],
@@ -1757,28 +1664,18 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           zptoShampooSpl: [] as any[],
           sodiumLactateSpl: [] as any[],
           lithosun300Spl: [] as any[],
+          lithosun400Spl: [] as any[],
+          meropenam: [] as any[],
+          sfgc: [] as any[],
+          talc: [] as any[],
           metalStd: {} as Record<string, any[]>,
-
-          // Special category preparations
-          dissoMedia: [] as any[],
-          mobilePhase: [] as any[],
           blank: [] as any[],
-          bufferPrep: [] as any[],
-          diluentPrep: [] as any[],
-          dissoProfileStd: [] as any[],
-          dissoProfileSpl: [] as any[],
-          dissoMediaProfile: [] as any[],
         };
 
         // Process each preparation
         param.preparations.forEach((prep: any, i: number) => {
           const prepCategory = prep.preparationCategory;
           const prepType = prep.preparationType;
-
-          // Skip system_suitability as it's handled separately above
-          if (prepCategory === "system_suitability") {
-            return;
-          }
 
           const parsedSteps = safeJSONParse(prep.steps, []);
 
@@ -1793,24 +1690,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           if (prepCategory === "standard") {
             // Standard preparations - route by preparationType
             switch (prepType) {
-              case "assay":
-                preparationCollections.assayStd.push(newPrep);
-                break;
-              case "residual_solvent":
-                preparationCollections.rsStd.push(newPrep);
-                break;
-              case "related_substance":
-                preparationCollections.relatedSubstanceStd.push(newPrep);
-                break;
-              case "dissolution":
-                preparationCollections.dissoStd.push(newPrep);
-                break;
-              case "uniformity_of_content":
-                preparationCollections.ucStd.push(newPrep);
-                break;
-              case "dissolution_profile":
-                preparationCollections.dissoProfileStd.push(newPrep);
-                break;
               case "icpms_food":
                 preparationCollections.metalStd["icpmsFood"] = preparationCollections.metalStd["icpmsFood"] || [];
                 preparationCollections.metalStd["icpmsFood"].push(newPrep);
@@ -1855,6 +1734,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                 preparationCollections.metalStd["lithosun300"] = preparationCollections.metalStd["lithosun300"] || [];
                 preparationCollections.metalStd["lithosun300"].push(newPrep);
                 break;
+              case "meropenam":
+                preparationCollections.metalStd["meropenam"] = preparationCollections.metalStd["meropenam"] || [];
+                preparationCollections.metalStd["meropenam"].push(newPrep);
+                break;
+              case "sfgc":
+                preparationCollections.metalStd["sfgc"] = preparationCollections.metalStd["sfgc"] || [];
+                preparationCollections.metalStd["sfgc"].push(newPrep);
+                break;
+              case "talc":
+                preparationCollections.metalStd["talc"] = preparationCollections.metalStd["talc"] || [];
+                preparationCollections.metalStd["talc"].push(newPrep);
+                break;
+              case "lithosun400":
+                preparationCollections.metalStd["lithosun400"] = preparationCollections.metalStd["lithosun400"] || [];
+                preparationCollections.metalStd["lithosun400"].push(newPrep);
+                break;
               default:
                 // [WARNING] CRITICAL FIX: Log unrecognized types but DON'T add them
                 if (prepType) {
@@ -1871,12 +1766,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           } else if (prepCategory === "sample") {
             // Sample preparations - route by preparationType
             switch (prepType) {
-              case "assay":
-                preparationCollections.assaySpl.push(newPrep);
-                break;
-              case "lod":
-                preparationCollections.lodSpl.push(newPrep);
-                break;
               case "icpms_food":
                 preparationCollections.icpmsFoodSpl.push(newPrep);
                 break;
@@ -1910,35 +1799,17 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
               case "lithosun300":
                 preparationCollections.lithosun300Spl.push(newPrep);
                 break;
-              case "roi":
-                preparationCollections.roiSpl.push(newPrep);
+              case "lithosun400":
+                preparationCollections.lithosun400Spl.push(newPrep);
                 break;
-              case "sulphated_ash":
-                preparationCollections.ashSpl.push(newPrep);
+              case "meropenam":
+                preparationCollections.meropenam.push(newPrep);
                 break;
-              case "residual_solvent":
-                preparationCollections.rsSpl.push(newPrep);
+              case "sfgc":
+                preparationCollections.sfgc.push(newPrep);
                 break;
-              case "related_substance":
-                preparationCollections.relatedSubstanceSpl.push(newPrep);
-                break;
-              case "dissolution":
-                preparationCollections.dissoSpl.push(newPrep);
-                break;
-              case "assay_ferrous_fumarate":
-                preparationCollections.assayFerrousFumarateSpl.push(newPrep);
-                break;
-
-              case "dissolution_ferrous_fumarate":
-                preparationCollections.dissolutionFerrousFumarateSpl.push(
-                  newPrep,
-                );
-                break;
-              case "uniformity_of_content":
-                preparationCollections.ucSpl.push(newPrep);
-                break;
-              case "dissolution_profile":
-                preparationCollections.dissoProfileSpl.push(newPrep);
+              case "talc":
+                preparationCollections.talc.push(newPrep);
                 break;
               default:
                 // [WARNING] CRITICAL FIX: Log unrecognized types but DON'T add them
@@ -1953,85 +1824,18 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                 }
                 break;
             }
-          } else if (prepCategory === "dissolution_media") {
-            if (prepType === "dissolution_media") {
-              preparationCollections.dissoMedia.push(newPrep);
-            } else {
-              preparationCollections.dissoMediaProfile.push(newPrep);
-            }
-          } else if (prepCategory === "mobile_phase") {
-            preparationCollections.mobilePhase.push({
-              id: String(newPrep.id),
-              label: prep.label || "Mobile Phase Preparation",
-              content: prep.content || "",
-            });
           } else if (prepCategory === "blank") {
             preparationCollections.blank.push({
               id: newPrep.id,
               label: prep.label || "Blank Preparation",
               content: prep.content || "",
             });
-          } else if (prepCategory === "buffer") {
-            preparationCollections.bufferPrep.push({
-              id: newPrep.id,
-              label: prep.label || "Buffer Preparation",
-              steps: newPrep.steps,
-            });
-          } else if (prepCategory === "diluent") {
-            preparationCollections.diluentPrep.push({
-              id: String(newPrep.id),
-              label: prep.label || "Diluent Preparation",
-              content: prep.content || "",
-            });
-          } else {
+          } {
             console.warn(
               `  [WARNING]  Unrecognized preparationCategory: "${prepCategory}" for prep: "${prep.label}"`,
             );
           }
         });
-
-        if (preparationCollections.assayStd.length > 0) {
-          setStandardPreparationAssayPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.assayStd,
-          }));
-        }
-
-        if (preparationCollections.rsStd.length > 0) {
-          setStandardPreparationResidualSolventPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.rsStd,
-          }));
-        }
-
-        if (preparationCollections.dissoStd.length > 0) {
-          setStandardPreparationDissoPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.dissoStd,
-          }));
-        }
-
-        if (preparationCollections.ucStd.length > 0) {
-          setStandardPreparationUCPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.ucStd,
-          }));
-        }
-
-        // Sample preparations
-        if (preparationCollections.assaySpl.length > 0) {
-          setSamplePreparationPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.assaySpl,
-          }));
-        }
-
-        if (preparationCollections.lodSpl.length > 0) {
-          setSamplePreparationLodPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.lodSpl,
-          }));
-        }
 
         if (preparationCollections.icpmsFoodSpl.length > 0) {
           setSamplePreparationIcpmsFoodPerParam((prev) => ({
@@ -2110,114 +1914,38 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           }));
         }
 
+        if (preparationCollections.lithosun400Spl.length > 0) {
+          setSamplePreparationLithosun400PerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.lithosun400Spl,
+          }));
+        }
+
+        if (preparationCollections.meropenam.length > 0) {
+          setSamplePreparationMeropenamPerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.meropenam,
+          }));
+        }
+
+        if (preparationCollections.sfgc.length > 0) {
+          setSamplePreparationSFGCPerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.sfgc,
+          }));
+        }
+
+        if (preparationCollections.talc.length > 0) {
+          setSamplePreparationTalcPerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.talc,
+          }));
+        }
+
         if (Object.keys(preparationCollections.metalStd).length > 0) {
           setStandardPreparationMetalPerParam((prev) => ({
             ...prev,
             [paramId]: preparationCollections.metalStd,
-          }));
-        }
-
-        if (preparationCollections.roiSpl.length > 0) {
-          setSamplePreparationROIPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.roiSpl,
-          }));
-        }
-
-        if (preparationCollections.ashSpl.length > 0) {
-          setSamplePreparationSulphatedAshPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.ashSpl,
-          }));
-        }
-
-        if (preparationCollections.rsSpl.length > 0) {
-          setSamplePreparationRSPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.rsSpl,
-          }));
-        }
-
-        if (preparationCollections.relatedSubstanceStd.length > 0) {
-          setStandardPreparationRelatedSubstancePerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.relatedSubstanceStd,
-          }));
-        }
-
-        if (preparationCollections.relatedSubstanceSpl.length > 0) {
-          setSamplePreparationRelatedSubstancePerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.relatedSubstanceSpl,
-          }));
-        }
-
-        if (preparationCollections.dissoSpl.length > 0) {
-          setSamplePreparationDissoPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.dissoSpl,
-          }));
-        }
-
-        if (preparationCollections.assayFerrousFumarateSpl.length > 0) {
-          setSamplePrepAssayFerrousFumaratePerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.assayFerrousFumarateSpl,
-          }));
-        }
-
-        if (preparationCollections.dissolutionFerrousFumarateSpl.length > 0) {
-          setSamplePrepDissoFerrousFumaratePerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.dissolutionFerrousFumarateSpl,
-          }));
-        }
-
-        if (preparationCollections.ucSpl.length > 0) {
-          setSamplePreparationUCPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.ucSpl,
-          }));
-        }
-
-        // Special category preparations
-        if (preparationCollections.dissoMedia.length > 0) {
-          setDissoMediaPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.dissoMedia,
-          }));
-        }
-
-        if (preparationCollections.dissoProfileStd.length > 0) {
-          setStandardPreparationDissoProfilePerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.dissoProfileStd,
-          }));
-        }
-
-        if (preparationCollections.dissoProfileSpl.length > 0) {
-          setSamplePreparationDissoProfilePerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.dissoProfileSpl,
-          }));
-        }
-
-        if (preparationCollections.dissoMediaProfile.length > 0) {
-          setDissoMediaProfilePerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.dissoMediaProfile,
-          }));
-        }
-
-        if (preparationCollections.mobilePhase.length > 0) {
-          setMobilePhasePerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.mobilePhase,
-          }));
-          // Auto-enable the mobile phase toggle when data exists
-          setShowMobilePhasePreparation((prev) => ({
-            ...prev,
-            [paramId]: true,
           }));
         }
 
@@ -2232,24 +1960,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             ...prev,
             [paramId]: [...(prev[paramId] || []), "blankPreparation"],
           }));
-        }
-
-        // Buffer preparations
-        if (preparationCollections.bufferPrep.length > 0) {
-          setBufferPreparationPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.bufferPrep,
-          }));
-          setShowBufferPreparation((prev) => ({ ...prev, [paramId]: true }));
-        }
-
-        // Diluent preparations (blank-sheet style)
-        if (preparationCollections.diluentPrep.length > 0) {
-          setDiluentPreparationsPerParam((prev) => ({
-            ...prev,
-            [paramId]: preparationCollections.diluentPrep,
-          }));
-          setShowDiluentPreparation((prev) => ({ ...prev, [paramId]: true }));
         }
       }
 
@@ -2270,17 +1980,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
       if (param.calculations && Array.isArray(param.calculations)) {
         const restoredCalculations = {
-          assay: [] as any[],
-          lod: [] as any[],
-          roi: [] as any[],
-          sulphatedAsh: [] as any[],
-          residualSolvent: [] as any[],
-          relatedSubstance: [] as any[],
-          dissolution: [] as any[],
-          uniformityOfContent: [] as any[],
-          dissolutionProfile: [] as any[],
-          ferrousFumarate: [] as CalculationAssayFerrousFumarate[],
-          dissoFerrousFumarate: [] as CalculationDissoFerrousFumarate[],
           icpmsFood: [] as CalculationIcpmsFood[],
           icpoesFood: [] as CalculationIcpoesFood[],
           icpmsWater: [] as CalculationIcpmsWater[],
@@ -2292,6 +1991,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           zptoShampoo: [] as CalculationZptoShampoo[],
           sodiumLactate: [] as CalculationSodiumLactate[],
           lithosun300: [] as CalculationLithosun300[],
+          lithosun400: [] as CalculationLithosun400[],
+          meropenam: [] as CalculationMeropenam[],
+          sfgc: [] as CalculationSFGC[],
+          talc: [] as CalculationTalc[]
         };
 
         param.calculations.forEach((calc: any, i: number) => {
@@ -2301,157 +2004,18 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             const calcType = calc.calculationType || "assay";
 
             // Get preparation labels for linking
-            const stdLabel = parsedData.selectedStandardPreparationLabel;
-            const splLabel = parsedData.selectedSamplePreparationLabel;
 
             const baseId = Date.now() + paramId * 10000 + i;
 
             // Route based on calculationType
             switch (calcType) {
-              case "uniformity_of_content": {
-                const ucCalc = {
-                  id: baseId + 9000,
-                  label: parsedData.label || calc.label,
-                  selectedStandardPreparationLabel:
-                    parsedData.selectedStandardPreparationLabel,
-                  selectedSamplePreparationLabel:
-                    parsedData.selectedSamplePreparationLabel,
-                  areaOfStandard: parsedData.areaOfStandard ?? null,
-                  areaOfSample1: parsedData.areaOfSample1 ?? null,
-                  areaOfSample2: parsedData.areaOfSample2 ?? null,
-                  areaOfSample3: parsedData.areaOfSample3 ?? null,
-                  areaOfSample4: parsedData.areaOfSample4 ?? null,
-                  areaOfSample5: parsedData.areaOfSample5 ?? null,
-                  areaOfSample6: parsedData.areaOfSample6 ?? null,
-                  areaOfSample7: parsedData.areaOfSample7 ?? null,
-                  areaOfSample8: parsedData.areaOfSample8 ?? null,
-                  areaOfSample9: parsedData.areaOfSample9 ?? null,
-                  areaOfSample10: parsedData.areaOfSample10 ?? null,
-                  purity: parsedData.purity || "",
-                  mWBase: parsedData.mWBase ?? null,
-                  mWSalt: parsedData.mWSalt ?? null,
-                  calculationResultUnit:
-                    parsedData.calculationResultUnit || null,
-                  calculationResultTablet1:
-                    parsedData.calculationResultTablet1 || null,
-                  calculationResultTablet2:
-                    parsedData.calculationResultTablet2 || null,
-                  calculationResultTablet3:
-                    parsedData.calculationResultTablet3 || null,
-                  calculationResultTablet4:
-                    parsedData.calculationResultTablet4 || null,
-                  calculationResultTablet5:
-                    parsedData.calculationResultTablet5 || null,
-                  calculationResultTablet6:
-                    parsedData.calculationResultTablet6 || null,
-                  calculationResultTablet7:
-                    parsedData.calculationResultTablet7 || null,
-                  calculationResultTablet8:
-                    parsedData.calculationResultTablet8 || null,
-                  calculationResultTablet9:
-                    parsedData.calculationResultTablet9 || null,
-                  calculationResultTablet10:
-                    parsedData.calculationResultTablet10 || null,
-                  mgPerTabletResultUnit:
-                    parsedData.mgPerTabletResultUnit || null,
-                  mgPerTabletResultTablet1:
-                    parsedData.mgPerTabletResultTablet1 || null,
-                  mgPerTabletResultTablet2:
-                    parsedData.mgPerTabletResultTablet2 || null,
-                  mgPerTabletResultTablet3:
-                    parsedData.mgPerTabletResultTablet3 || null,
-                  mgPerTabletResultTablet4:
-                    parsedData.mgPerTabletResultTablet4 || null,
-                  mgPerTabletResultTablet5:
-                    parsedData.mgPerTabletResultTablet5 || null,
-                  mgPerTabletResultTablet6:
-                    parsedData.mgPerTabletResultTablet6 || null,
-                  mgPerTabletResultTablet7:
-                    parsedData.mgPerTabletResultTablet7 || null,
-                  mgPerTabletResultTablet8:
-                    parsedData.mgPerTabletResultTablet8 || null,
-                  mgPerTabletResultTablet9:
-                    parsedData.mgPerTabletResultTablet9 || null,
-                  mgPerTabletResultTablet10:
-                    parsedData.mgPerTabletResultTablet10 || null,
-                  sw1: parsedData.sw1 || null,
-                  claim: parsedData.claim || null,
-                  v1: parsedData.v1 || null,
-                  v2: parsedData.v2 || null,
-                  v3: parsedData.v3 || null,
-                  v4: parsedData.v4 || null,
-                  v5: parsedData.v5 || null,
-                  v6: parsedData.v6 || null,
-                  v7: parsedData.v7 || null,
-                  v8: parsedData.v8 || null,
-                  v9: parsedData.v9 || null,
-                  v10: parsedData.v10 || null,
-                  v11: parsedData.v11 || null,
-                  v12: parsedData.v12 || null,
-                  v13: parsedData.v13 || null,
-                  v14: parsedData.v14 || null,
-                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
-                  acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
-                };
-                restoredCalculations.uniformityOfContent.push(ucCalc);
-                break;
-              }
-
-              case "assay": {
-                const assayCalc = {
-                  id: baseId + 3000,
-                  label: parsedData.label || calc.label,
-                  selectedStandardPreparationLabel: stdLabel,
-                  selectedSamplePreparationLabel: splLabel,
-                  calculationFor: parsedData.calculationFor || "",
-                  areaOfSample: parsedData.areaOfSample || "",
-                  areaOfStandard: parsedData.areaOfStandard || "",
-                  avgWeight: parsedData.avgWeight || "",
-                  avgWeightUnit: parsedData.avgWeightUnit || "",
-                  weightPerMl: parsedData.weightPerMl || "",
-                  weightPerMlUnit: parsedData.weightPerMlUnit || "",
-                  purity: parsedData.purity || "",
-                  mWSalt: parsedData.mWSalt || "",
-                  mWBase: parsedData.mWBase || "",
-                  claim: parsedData.claim || "",
-                  claimUnit: parsedData.claimUnit || "",
-                  labelClaim: parsedData.labelClaim || null,
-                  lodWaterType: parsedData.lodWaterType || "",
-                  lodWaterValue: parsedData.lodWaterValue || "",
-                  calculationResult: parsedData.calculationResult || null,
-                  calculationResultUnit:
-                    parsedData.calculationResultUnit || null,
-                  labelClaimPercent: parsedData.labelClaimPercent || null,
-                  lodWaterBasisResult: parsedData.lodWaterBasisResult || null,
-                  sw1: parsedData.sw1 || null,
-                  sw2: parsedData.sw2 || null,
-                  v1: parsedData.v1 || null,
-                  v2: parsedData.v2 || null,
-                  v3: parsedData.v3 || null,
-                  v4: parsedData.v4 || null,
-                  v5: parsedData.v5 || null,
-                  v6: parsedData.v6 || null,
-                  v7: parsedData.v7 || null,
-                  v8: parsedData.v8 || null,
-                  v9: parsedData.v9 || null,
-                  v10: parsedData.v10 || null,
-                  v11: parsedData.v11 || null,
-                  v12: parsedData.v12 || null,
-                  v13: parsedData.v13 || null,
-                  v14: parsedData.v14 || null,
-                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
-                  acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
-                };
-                restoredCalculations.assay.push(assayCalc);
-                break;
-              }
 
               case "icpms_food": {
                 const icpmsFoodCalc: CalculationIcpmsFood = {
                   id: baseId + 9500,
                   label: parsedData.label || calc.label,
                   selectedSamplePreparationLabel: parsedData.selectedSamplePreparationLabel ?? null,
-                  sw1: parsedData.sw1 ?? null,
+                  sw: parsedData.sw ?? null,
                   v1: parsedData.v1 ?? null,
                   v2: parsedData.v2 ?? null,
                   v3: parsedData.v3 ?? null,
@@ -2478,7 +2042,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                   label: parsedData.label || calc.label,
                   selectedSamplePreparationLabel:
                     parsedData.selectedSamplePreparationLabel ?? null,
-                  sw1: parsedData.sw1 ?? null,
+                  sw: parsedData.sw ?? null,
                   v1: parsedData.v1 ?? null,
                   v2: parsedData.v2 ?? null,
                   v3: parsedData.v3 ?? null,
@@ -2603,7 +2167,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                   label: parsedData.label || calc.label,
                   selectedSamplePreparationLabel:
                     parsedData.selectedSamplePreparationLabel ?? null,
-                  sw1: parsedData.sw1 ?? null,
+                  sw: parsedData.sw ?? null,
                   v1: parsedData.v1 ?? null,
                   v2: parsedData.v2 ?? null,
                   v3: parsedData.v3 ?? null,
@@ -2635,7 +2199,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                   label: parsedData.label || calc.label,
                   selectedSamplePreparationLabel:
                     parsedData.selectedSamplePreparationLabel ?? null,
-                  sw1: parsedData.sw1 ?? null,
+                  sw: parsedData.sw ?? null,
                   v1: parsedData.v1 ?? null,
                   v2: parsedData.v2 ?? null,
                   v3: parsedData.v3 ?? null,
@@ -2661,7 +2225,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                   acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
                   calculationResult: parsedData.calculationResult ?? null,
                   calculationResultUnit:
-                    parsedData.calculationResultUnit ?? "% of L.C.",
+                    parsedData.calculationResultUnit ?? "% of LC",
                 };
                 restoredCalculations.zptoShampoo.push(zptoCalc);
                 break;
@@ -2677,6 +2241,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                   v2: parsedData.v2 ?? null,
                   v3: parsedData.v3 ?? null,
                   v4: parsedData.v4 ?? null,
+                  v5: parsedData.v5 ?? null,
+                  v6: parsedData.v6 ?? null,
+                  v7: parsedData.v7 ?? null,
                   x1Factor: parsedData.x1Factor || "",
                   instrumentConcentrationSample:
                     parsedData.instrumentConcentrationSample || "",
@@ -2705,24 +2272,137 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                   v1: parsedData.v1 ?? null,
                   v2: parsedData.v2 ?? null,
                   v3: parsedData.v3 ?? null,
-                  conversionFactor: parsedData.conversionFactor || "0.188",
-                  labelClaim: parsedData.labelClaim || "300",
+                  conversionFactor: parsedData.conversionFactor || null,
+                  labelClaim: parsedData.labelClaim || null,
                   labelClaimUnit: parsedData.labelClaimUnit || "mg",
-                  instrumentConcentrationSample:
-                    parsedData.instrumentConcentrationSample || "",
                   instrumentConcentrationSampleUnit:
                     parsedData.instrumentConcentrationSampleUnit || "ppm",
                   instrumentConcentrationBlank:
                     parsedData.instrumentConcentrationBlank || "",
                   instrumentConcentrationBlankUnit:
                     parsedData.instrumentConcentrationBlankUnit || "ppm",
+                  // Per-tablet sample concentrations (null → falls back to primary)
+                  instrumentConcentrationSampleTablet1:
+                    parsedData.instrumentConcentrationSampleTablet1 ?? null,
+                  instrumentConcentrationSampleTablet2:
+                    parsedData.instrumentConcentrationSampleTablet2 ?? null,
+                  instrumentConcentrationSampleTablet3:
+                    parsedData.instrumentConcentrationSampleTablet3 ?? null,
+                  instrumentConcentrationSampleTablet4:
+                    parsedData.instrumentConcentrationSampleTablet4 ?? null,
+                  instrumentConcentrationSampleTablet5:
+                    parsedData.instrumentConcentrationSampleTablet5 ?? null,
+                  instrumentConcentrationSampleTablet6:
+                    parsedData.instrumentConcentrationSampleTablet6 ?? null,
                   acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
                   acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
+                  // Per-tablet computed results
+                  calculationResultTablet1:
+                    parsedData.calculationResultTablet1 ?? null,
+                  calculationResultTablet2:
+                    parsedData.calculationResultTablet2 ?? null,
+                  calculationResultTablet3:
+                    parsedData.calculationResultTablet3 ?? null,
+                  calculationResultTablet4:
+                    parsedData.calculationResultTablet4 ?? null,
+                  calculationResultTablet5:
+                    parsedData.calculationResultTablet5 ?? null,
+                  calculationResultTablet6:
+                    parsedData.calculationResultTablet6 ?? null,
                   calculationResult: parsedData.calculationResult ?? null,
                   calculationResultUnit:
-                    parsedData.calculationResultUnit ?? "% of L.C.",
+                    parsedData.calculationResultUnit ?? "% of LC",
                 };
                 restoredCalculations.lithosun300.push(lithosun300Calc);
+                break;
+              }
+
+              case "lithosun400": {
+                const lithosun400Calc: CalculationLithosun400 = {
+                  id: baseId + 10400,
+                  label: parsedData.label || calc.label,
+                  selectedSamplePreparationLabel: parsedData.selectedSamplePreparationLabel ?? null,
+                  v1: parsedData.v1 ?? null,
+                  v2: parsedData.v2 ?? null,
+                  v3: parsedData.v3 ?? null,
+                  conversionFactor: parsedData.conversionFactor || null,
+                  labelClaim: parsedData.labelClaim || null,
+                  labelClaimUnit: parsedData.labelClaimUnit || "mg",
+                  instrumentConcentrationSampleUnit: parsedData.instrumentConcentrationSampleUnit || "ppm",
+                  numberOfTimePoints: parsedData.numberOfTimePoints || 2,
+                  timePointLabel1: parsedData.timePointLabel1 ?? "Time Point 1",
+                  timePointLabel2: parsedData.timePointLabel2 ?? "Time Point 2",
+                  timePointLabel3: parsedData.timePointLabel3 ?? null,
+                  timePointLabel4: parsedData.timePointLabel4 ?? null,
+                  timePointLabel5: parsedData.timePointLabel5 ?? null,
+                  timePointLabel6: parsedData.timePointLabel6 ?? null,
+                  timePointLabel7: parsedData.timePointLabel7 ?? null,
+                  timePointLabel8: parsedData.timePointLabel8 ?? null,
+                  timePointLabel9: parsedData.timePointLabel9 ?? null,
+                  timePointLabel10: parsedData.timePointLabel10 ?? null,
+                  sampleT1Tab1: parsedData.sampleT1Tab1 ?? null, sampleT1Tab2: parsedData.sampleT1Tab2 ?? null, sampleT1Tab3: parsedData.sampleT1Tab3 ?? null, sampleT1Tab4: parsedData.sampleT1Tab4 ?? null, sampleT1Tab5: parsedData.sampleT1Tab5 ?? null, sampleT1Tab6: parsedData.sampleT1Tab6 ?? null,
+                  sampleT2Tab1: parsedData.sampleT2Tab1 ?? null, sampleT2Tab2: parsedData.sampleT2Tab2 ?? null, sampleT2Tab3: parsedData.sampleT2Tab3 ?? null, sampleT2Tab4: parsedData.sampleT2Tab4 ?? null, sampleT2Tab5: parsedData.sampleT2Tab5 ?? null, sampleT2Tab6: parsedData.sampleT2Tab6 ?? null,
+                  sampleT3Tab1: parsedData.sampleT3Tab1 ?? null, sampleT3Tab2: parsedData.sampleT3Tab2 ?? null, sampleT3Tab3: parsedData.sampleT3Tab3 ?? null, sampleT3Tab4: parsedData.sampleT3Tab4 ?? null, sampleT3Tab5: parsedData.sampleT3Tab5 ?? null, sampleT3Tab6: parsedData.sampleT3Tab6 ?? null,
+                  sampleT4Tab1: parsedData.sampleT4Tab1 ?? null, sampleT4Tab2: parsedData.sampleT4Tab2 ?? null, sampleT4Tab3: parsedData.sampleT4Tab3 ?? null, sampleT4Tab4: parsedData.sampleT4Tab4 ?? null, sampleT4Tab5: parsedData.sampleT4Tab5 ?? null, sampleT4Tab6: parsedData.sampleT4Tab6 ?? null,
+                  sampleT5Tab1: parsedData.sampleT5Tab1 ?? null, sampleT5Tab2: parsedData.sampleT5Tab2 ?? null, sampleT5Tab3: parsedData.sampleT5Tab3 ?? null, sampleT5Tab4: parsedData.sampleT5Tab4 ?? null, sampleT5Tab5: parsedData.sampleT5Tab5 ?? null, sampleT5Tab6: parsedData.sampleT5Tab6 ?? null,
+                  sampleT6Tab1: parsedData.sampleT6Tab1 ?? null, sampleT6Tab2: parsedData.sampleT6Tab2 ?? null, sampleT6Tab3: parsedData.sampleT6Tab3 ?? null, sampleT6Tab4: parsedData.sampleT6Tab4 ?? null, sampleT6Tab5: parsedData.sampleT6Tab5 ?? null, sampleT6Tab6: parsedData.sampleT6Tab6 ?? null,
+                  sampleT7Tab1: parsedData.sampleT7Tab1 ?? null, sampleT7Tab2: parsedData.sampleT7Tab2 ?? null, sampleT7Tab3: parsedData.sampleT7Tab3 ?? null, sampleT7Tab4: parsedData.sampleT7Tab4 ?? null, sampleT7Tab5: parsedData.sampleT7Tab5 ?? null, sampleT7Tab6: parsedData.sampleT7Tab6 ?? null,
+                  sampleT8Tab1: parsedData.sampleT8Tab1 ?? null, sampleT8Tab2: parsedData.sampleT8Tab2 ?? null, sampleT8Tab3: parsedData.sampleT8Tab3 ?? null, sampleT8Tab4: parsedData.sampleT8Tab4 ?? null, sampleT8Tab5: parsedData.sampleT8Tab5 ?? null, sampleT8Tab6: parsedData.sampleT8Tab6 ?? null,
+                  sampleT9Tab1: parsedData.sampleT9Tab1 ?? null, sampleT9Tab2: parsedData.sampleT9Tab2 ?? null, sampleT9Tab3: parsedData.sampleT9Tab3 ?? null, sampleT9Tab4: parsedData.sampleT9Tab4 ?? null, sampleT9Tab5: parsedData.sampleT9Tab5 ?? null, sampleT9Tab6: parsedData.sampleT9Tab6 ?? null,
+                  sampleT10Tab1: parsedData.sampleT10Tab1 ?? null, sampleT10Tab2: parsedData.sampleT10Tab2 ?? null, sampleT10Tab3: parsedData.sampleT10Tab3 ?? null, sampleT10Tab4: parsedData.sampleT10Tab4 ?? null, sampleT10Tab5: parsedData.sampleT10Tab5 ?? null, sampleT10Tab6: parsedData.sampleT10Tab6 ?? null,
+                  resultT1Tab1: parsedData.resultT1Tab1 ?? null, resultT1Tab2: parsedData.resultT1Tab2 ?? null, resultT1Tab3: parsedData.resultT1Tab3 ?? null, resultT1Tab4: parsedData.resultT1Tab4 ?? null, resultT1Tab5: parsedData.resultT1Tab5 ?? null, resultT1Tab6: parsedData.resultT1Tab6 ?? null,
+                  resultT2Tab1: parsedData.resultT2Tab1 ?? null, resultT2Tab2: parsedData.resultT2Tab2 ?? null, resultT2Tab3: parsedData.resultT2Tab3 ?? null, resultT2Tab4: parsedData.resultT2Tab4 ?? null, resultT2Tab5: parsedData.resultT2Tab5 ?? null, resultT2Tab6: parsedData.resultT2Tab6 ?? null,
+                  resultT3Tab1: parsedData.resultT3Tab1 ?? null, resultT3Tab2: parsedData.resultT3Tab2 ?? null, resultT3Tab3: parsedData.resultT3Tab3 ?? null, resultT3Tab4: parsedData.resultT3Tab4 ?? null, resultT3Tab5: parsedData.resultT3Tab5 ?? null, resultT3Tab6: parsedData.resultT3Tab6 ?? null,
+                  resultT4Tab1: parsedData.resultT4Tab1 ?? null, resultT4Tab2: parsedData.resultT4Tab2 ?? null, resultT4Tab3: parsedData.resultT4Tab3 ?? null, resultT4Tab4: parsedData.resultT4Tab4 ?? null, resultT4Tab5: parsedData.resultT4Tab5 ?? null, resultT4Tab6: parsedData.resultT4Tab6 ?? null,
+                  resultT5Tab1: parsedData.resultT5Tab1 ?? null, resultT5Tab2: parsedData.resultT5Tab2 ?? null, resultT5Tab3: parsedData.resultT5Tab3 ?? null, resultT5Tab4: parsedData.resultT5Tab4 ?? null, resultT5Tab5: parsedData.resultT5Tab5 ?? null, resultT5Tab6: parsedData.resultT5Tab6 ?? null,
+                  resultT6Tab1: parsedData.resultT6Tab1 ?? null, resultT6Tab2: parsedData.resultT6Tab2 ?? null, resultT6Tab3: parsedData.resultT6Tab3 ?? null, resultT6Tab4: parsedData.resultT6Tab4 ?? null, resultT6Tab5: parsedData.resultT6Tab5 ?? null, resultT6Tab6: parsedData.resultT6Tab6 ?? null,
+                  resultT7Tab1: parsedData.resultT7Tab1 ?? null, resultT7Tab2: parsedData.resultT7Tab2 ?? null, resultT7Tab3: parsedData.resultT7Tab3 ?? null, resultT7Tab4: parsedData.resultT7Tab4 ?? null, resultT7Tab5: parsedData.resultT7Tab5 ?? null, resultT7Tab6: parsedData.resultT7Tab6 ?? null,
+                  resultT8Tab1: parsedData.resultT8Tab1 ?? null, resultT8Tab2: parsedData.resultT8Tab2 ?? null, resultT8Tab3: parsedData.resultT8Tab3 ?? null, resultT8Tab4: parsedData.resultT8Tab4 ?? null, resultT8Tab5: parsedData.resultT8Tab5 ?? null, resultT8Tab6: parsedData.resultT8Tab6 ?? null,
+                  resultT9Tab1: parsedData.resultT9Tab1 ?? null, resultT9Tab2: parsedData.resultT9Tab2 ?? null, resultT9Tab3: parsedData.resultT9Tab3 ?? null, resultT9Tab4: parsedData.resultT9Tab4 ?? null, resultT9Tab5: parsedData.resultT9Tab5 ?? null, resultT9Tab6: parsedData.resultT9Tab6 ?? null,
+                  resultT10Tab1: parsedData.resultT10Tab1 ?? null, resultT10Tab2: parsedData.resultT10Tab2 ?? null, resultT10Tab3: parsedData.resultT10Tab3 ?? null, resultT10Tab4: parsedData.resultT10Tab4 ?? null, resultT10Tab5: parsedData.resultT10Tab5 ?? null, resultT10Tab6: parsedData.resultT10Tab6 ?? null,
+                  minT1: parsedData.minT1 ?? null, avgT1: parsedData.avgT1 ?? null, maxT1: parsedData.maxT1 ?? null,
+                  minT2: parsedData.minT2 ?? null, avgT2: parsedData.avgT2 ?? null, maxT2: parsedData.maxT2 ?? null,
+                  minT3: parsedData.minT3 ?? null, avgT3: parsedData.avgT3 ?? null, maxT3: parsedData.maxT3 ?? null,
+                  minT4: parsedData.minT4 ?? null, avgT4: parsedData.avgT4 ?? null, maxT4: parsedData.maxT4 ?? null,
+                  minT5: parsedData.minT5 ?? null, avgT5: parsedData.avgT5 ?? null, maxT5: parsedData.maxT5 ?? null,
+                  minT6: parsedData.minT6 ?? null, avgT6: parsedData.avgT6 ?? null, maxT6: parsedData.maxT6 ?? null,
+                  minT7: parsedData.minT7 ?? null, avgT7: parsedData.avgT7 ?? null, maxT7: parsedData.maxT7 ?? null,
+                  minT8: parsedData.minT8 ?? null, avgT8: parsedData.avgT8 ?? null, maxT8: parsedData.maxT8 ?? null,
+                  minT9: parsedData.minT9 ?? null, avgT9: parsedData.avgT9 ?? null, maxT9: parsedData.maxT9 ?? null,
+                  minT10: parsedData.minT10 ?? null, avgT10: parsedData.avgT10 ?? null, maxT10: parsedData.maxT10 ?? null,
+                  acceptanceLimitMin1: parsedData.acceptanceLimitMin1 ?? null, acceptanceLimitMax1: parsedData.acceptanceLimitMax1 ?? null,
+                  acceptanceLimitMin2: parsedData.acceptanceLimitMin2 ?? null, acceptanceLimitMax2: parsedData.acceptanceLimitMax2 ?? null,
+                  acceptanceLimitMin3: parsedData.acceptanceLimitMin3 ?? null, acceptanceLimitMax3: parsedData.acceptanceLimitMax3 ?? null,
+                  acceptanceLimitMin4: parsedData.acceptanceLimitMin4 ?? null, acceptanceLimitMax4: parsedData.acceptanceLimitMax4 ?? null,
+                  acceptanceLimitMin5: parsedData.acceptanceLimitMin5 ?? null, acceptanceLimitMax5: parsedData.acceptanceLimitMax5 ?? null,
+                  acceptanceLimitMin6: parsedData.acceptanceLimitMin6 ?? null, acceptanceLimitMax6: parsedData.acceptanceLimitMax6 ?? null,
+                  acceptanceLimitMin7: parsedData.acceptanceLimitMin7 ?? null, acceptanceLimitMax7: parsedData.acceptanceLimitMax7 ?? null,
+                  acceptanceLimitMin8: parsedData.acceptanceLimitMin8 ?? null, acceptanceLimitMax8: parsedData.acceptanceLimitMax8 ?? null,
+                  acceptanceLimitMin9: parsedData.acceptanceLimitMin9 ?? null, acceptanceLimitMax9: parsedData.acceptanceLimitMax9 ?? null,
+                  acceptanceLimitMin10: parsedData.acceptanceLimitMin10 ?? null, acceptanceLimitMax10: parsedData.acceptanceLimitMax10 ?? null,
+                  calculationResultUnit: parsedData.calculationResultUnit ?? "% of LC",
+                  instrumentConcentrationBlankT1: parsedData.instrumentConcentrationBlankT1 ?? null,
+                  instrumentConcentrationBlankUnitT1: parsedData.instrumentConcentrationBlankUnitT1 ?? null,
+                  instrumentConcentrationBlankT2: parsedData.instrumentConcentrationBlankT2 ?? null,
+                  instrumentConcentrationBlankUnitT2: parsedData.instrumentConcentrationBlankUnitT2 ?? null,
+                  instrumentConcentrationBlankT3: parsedData.instrumentConcentrationBlankT3 ?? null,
+                  instrumentConcentrationBlankUnitT3: parsedData.instrumentConcentrationBlankUnitT3 ?? null,
+                  instrumentConcentrationBlankT4: parsedData.instrumentConcentrationBlankT4 ?? null,
+                  instrumentConcentrationBlankUnitT4: parsedData.instrumentConcentrationBlankUnitT4 ?? null,
+                  instrumentConcentrationBlankT5: parsedData.instrumentConcentrationBlankT5 ?? null,
+                  instrumentConcentrationBlankUnitT5: parsedData.instrumentConcentrationBlankUnnitT5 ?? null,
+                  instrumentConcentrationBlankT6: parsedData.instrumentConcentrationBlankT6 ?? null,
+                  instrumentConcentrationBlankUnitT6: parsedData.instrumentConcentrationBlankUnitT6 ?? null,
+                  instrumentConcentrationBlankT7: parsedData.instrumentConcentrationBlankT7 ?? null,
+                  instrumentConcentrationBlankUnitT7: parsedData.instrumentConcentrationBlankUnitT7 ?? null,
+                  instrumentConcentrationBlankT8: parsedData.instrumentConcentrationBlankT8 ?? null,
+                  instrumentConcentrationBlankUnitT8: parsedData.instrumentConcentrationBlankUnitT8 ?? null,
+                  instrumentConcentrationBlankT9: parsedData.instrumentConcentrationBlankT9 ?? null,
+                  instrumentConcentrationBlankUnitT9: parsedData.instrumentConcentrationBlankUnitT9 ?? null,
+                  instrumentConcentrationBlankT10: parsedData.instrumentConcentrationBlankT10 ?? null,
+                  instrumentConcentrationBlankUnitT10: parsedData.instrumentConcentrationBlankUnitT10 ?? null
+                };
+                restoredCalculations.lithosun400.push(lithosun400Calc);
                 break;
               }
 
@@ -2730,9 +2410,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                 const anoferCalc: CalculationAnofer = {
                   id: baseId + 10000,
                   label: parsedData.label || calc.label,
-                  selectedSamplePreparationLabel:
-                    parsedData.selectedSamplePreparationLabel ?? null,
-                  sw1: parsedData.sw1 ?? null,
+                  selectedSamplePreparationLabel: parsedData.selectedSamplePreparationLabel ?? null,
+                  sw: parsedData.sw ?? null,
                   v1: parsedData.v1 ?? null,
                   v2: parsedData.v2 ?? null,
                   v3: parsedData.v3 ?? null,
@@ -2741,19 +2420,15 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                   avgWeight: parsedData.avgWeight || "",
                   avgWeightUnit: parsedData.avgWeightUnit || "g",
                   labelClaim: parsedData.labelClaim || "",
-                  instrumentConcentrationSample:
-                    parsedData.instrumentConcentrationSample || "",
-                  instrumentConcentrationSampleUnit:
-                    parsedData.instrumentConcentrationSampleUnit || "ppm",
-                  instrumentConcentrationBlank:
-                    parsedData.instrumentConcentrationBlank || "",
-                  instrumentConcentrationBlankUnit:
-                    parsedData.instrumentConcentrationBlankUnit || "ppm",
+                  instrumentConcentrationSample: parsedData.instrumentConcentrationSample || "",
+                  instrumentConcentrationSampleUnit: parsedData.instrumentConcentrationSampleUnit || "ppm",
+                  instrumentConcentrationBlank: parsedData.instrumentConcentrationBlank || "",
+                  instrumentConcentrationBlankUnit: parsedData.instrumentConcentrationBlankUnit || "ppm",
                   acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
                   acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
                   calculationResult: parsedData.calculationResult ?? null,
-                  calculationResultUnit:
-                    parsedData.calculationResultUnit ?? "% of L.C.",
+                  calculationResultUnit: parsedData.calculationResultUnit ?? "% of LC",
+                  labelClaimUnit: parsedData.labelClaim ?? ""
                 };
                 restoredCalculations.anofer.push(anoferCalc);
                 break;
@@ -2763,9 +2438,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                 const orsCalc: CalculationORS = {
                   id: baseId + 9900,
                   label: parsedData.label || calc.label,
-                  selectedSamplePreparationLabel:
-                    parsedData.selectedSamplePreparationLabel ?? null,
-                  sw1: parsedData.sw1 ?? null,
+                  selectedSamplePreparationLabel: parsedData.selectedSamplePreparationLabel ?? null,
+                  sw: parsedData.sw ?? null,
                   v1: parsedData.v1 ?? null,
                   v2: parsedData.v2 ?? null,
                   v3: parsedData.v3 ?? null,
@@ -2778,594 +2452,102 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                   molecularWeight: parsedData.molecularWeight || "",
                   molecularWeightUnit: parsedData.molecularWeightUnit || "g/mol",
                   labelClaim: parsedData.labelClaim || "",
-                  instrumentConcentrationSample:
-                    parsedData.instrumentConcentrationSample || "",
-                  instrumentConcentrationSampleUnit:
-                    parsedData.instrumentConcentrationSampleUnit || "ppm",
-                  instrumentConcentrationBlank:
-                    parsedData.instrumentConcentrationBlank || "",
-                  instrumentConcentrationBlankUnit:
-                    parsedData.instrumentConcentrationBlankUnit || "ppm",
+                  instrumentConcentrationSample: parsedData.instrumentConcentrationSample || "",
+                  instrumentConcentrationSampleUnit: parsedData.instrumentConcentrationSampleUnit || "ppm",
+                  instrumentConcentrationBlank: parsedData.instrumentConcentrationBlank || "",
+                  instrumentConcentrationBlankUnit: parsedData.instrumentConcentrationBlankUnit || "ppm",
                   acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
                   acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
                   calculationResult: parsedData.calculationResult ?? null,
-                  calculationResultUnit:
-                    parsedData.calculationResultUnit ?? "% of L.C.",
+                  calculationResultUnit: parsedData.calculationResultUnit ?? "% of LC",
+                  labelClaimUnit: ""
                 };
                 restoredCalculations.ors.push(orsCalc);
                 break;
               }
 
-              case "lod": {
-                const lodCalc = {
-                  id: baseId + 4000,
-                  label: parsedData.label || calc.label,
-                  selectedSamplePreparationLabel: splLabel,
-                  w1_emptyDish: parsedData.w1_emptyDish || "",
-                  w2_dishWithSample: parsedData.w2_dishWithSample || "",
-                  w3_dishAfterIgnition: parsedData.w3_dishAfterIgnition || "",
-                  calculationResult: parsedData.calculationResult || "",
-                  calculationResultUnit: parsedData.calculationResultUnit || "",
-                  w1: parsedData.w1 || null,
-                  w2: parsedData.w2 || null,
-                  w3: parsedData.w3 || null,
-                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
-                  acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
-                };
-                restoredCalculations.lod.push(lodCalc);
-                break;
-              }
-
-              case "roi": {
-                const roiCalc = {
-                  id: baseId + 5000,
-                  label: parsedData.label || calc.label,
-                  selectedSamplePreparationLabel: splLabel,
-                  w1_emptyDish: parsedData.w1_emptyDish || "",
-                  w2_dishWithSample: parsedData.w2_dishWithSample || "",
-                  w3_dishAfterIgnition: parsedData.w3_dishAfterIgnition || "",
-                  calculationResult: parsedData.calculationResult || "",
-                  calculationResultUnit: parsedData.calculationResultUnit || "",
-                  w1: parsedData.w1 || null,
-                  w2: parsedData.w2 || null,
-                  w3: parsedData.w3 || null,
-                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
-                  acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
-                };
-                restoredCalculations.roi.push(roiCalc);
-                break;
-              }
-
-              case "sulphated_ash": {
-                const ashCalc = {
-                  id: baseId + 6000,
-                  label: parsedData.label || calc.label,
-                  selectedSamplePreparationLabel: splLabel,
-                  w1_emptyCrucible: parsedData.w1_emptyCrucible || "",
-                  w2_crucibleWithSample: parsedData.w2_crucibleWithSample || "",
-                  w3_crucibleAfterAsh: parsedData.w3_crucibleAfterAsh || "",
-                  calculationResult: parsedData.calculationResult || "",
-                  calculationResultUnit: parsedData.calculationResultUnit || "",
-                  w1: parsedData.w1 || null,
-                  w2: parsedData.w2 || null,
-                  w3: parsedData.w3 || null,
-                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
-                  acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
-                };
-                restoredCalculations.sulphatedAsh.push(ashCalc);
-                break;
-              }
-
-              case "residual_solvent": {
-                const rsCalc = {
-                  id: baseId + 7000,
-                  label: parsedData.label || calc.label,
-                  selectedStandardPreparationLabel: stdLabel,
-                  selectedSamplePreparationLabel: splLabel,
-                  areaOfSample: parsedData.areaOfSample || "",
-                  areaOfStandard: parsedData.areaOfStandard || "",
-                  purity: parsedData.purity || "",
-                  calculationResult: parsedData.calculationResult || "",
-                  calculationResultUnit: parsedData.calculationResultUnit || "",
-                  sw1: parsedData.sw1 || null,
-                  sw2: parsedData.sw2 || null,
-                  v1: parsedData.v1 || null,
-                  v2: parsedData.v2 || null,
-                  v3: parsedData.v3 || null,
-                  v4: parsedData.v4 || null,
-                  v5: parsedData.v5 || null,
-                  v6: parsedData.v6 || null,
-                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
-                  acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
-                };
-                restoredCalculations.residualSolvent.push(rsCalc);
-                break;
-              }
-
-              case "related_substance": {
-                const relSubCalc: CalculationRelatedSubstance = {
-                  id: baseId + 7100,
-                  label: parsedData.label || calc.label,
-                  selectedStandardPreparationLabel: stdLabel,
-                  selectedSamplePreparationLabel: splLabel,
-                  calculationFor: parsedData.calculationFor || "",
-                  areaOfSample: parsedData.areaOfSample || "",
-                  areaOfStandard: parsedData.areaOfStandard || "",
-                  purity: parsedData.purity || "",
-                  mWSalt: parsedData.mWSalt || "",
-                  mWBase: parsedData.mWBase || "",
-                  responseFactor: parsedData.responseFactor || "",
-                  responseFactorUnit: parsedData.responseFactorUnit || "mg",
-                  labelClaim: parsedData.labelClaim || "",
-                  avgWeight: parsedData.avgWeight || "",
-                  avgWeightUnit: parsedData.avgWeightUnit || "mg",
-                  weightPerMl: parsedData.weightPerMl || "",
-                  weightPerMlUnit: parsedData.weightPerMlUnit || "mg",
-                  doseVolume: parsedData.doseVolume || "",
-                  doseVolumeUnit: parsedData.doseVolumeUnit || "ml",
-                  calculationResult: parsedData.calculationResult || null,
-                  calculationResultUnit:
-                    parsedData.calculationResultUnit || null,
-                  sw1: parsedData.sw1 || null,
-                  sw2: parsedData.sw2 || null,
-                  v1: parsedData.v1 || null,
-                  v2: parsedData.v2 || null,
-                  v3: parsedData.v3 || null,
-                  v4: parsedData.v4 || null,
-                  v5: parsedData.v5 || null,
-                  v6: parsedData.v6 || null,
-                  v7: parsedData.v7 || null,
-                  v8: parsedData.v8 || null,
-                  v9: parsedData.v9 || null,
-                  v10: parsedData.v10 || null,
-                  v11: parsedData.v11 || null,
-                  v12: parsedData.v12 || null,
-                  v13: parsedData.v13 || null,
-                  v14: parsedData.v14 || null,
-                  labelClaimUnit: parsedData.labelClaimUnit || null,
-                  acceptanceLimitMax: parsedData.acceptanceLimitMax || null,
-                  acceptanceLimitMin: parsedData.acceptanceLimitMin || null,
-                };
-                restoredCalculations.relatedSubstance.push(relSubCalc);
-                break;
-              }
-
-              case "dissolution": {
-                const dissoCalc = {
-                  id: baseId + 8000,
-                  label: parsedData.label || calc.label,
-                  selectedStandardPreparationLabel: stdLabel,
-                  selectedSamplePreparationLabel: splLabel,
-                  areaOfSample1: parsedData.areaOfSample1 || "",
-                  areaOfSample2: parsedData.areaOfSample2 || "",
-                  areaOfSample3: parsedData.areaOfSample3 || "",
-                  areaOfSample4: parsedData.areaOfSample4 || "",
-                  areaOfSample5: parsedData.areaOfSample5 || "",
-                  areaOfSample6: parsedData.areaOfSample6 || "",
-                  areaOfStandard: parsedData.areaOfStandard || "",
-                  mWBase: parsedData.mWBase || "",
-                  mWSalt: parsedData.mWSalt || "",
-                  purity: parsedData.purity || "",
-                  calculationResult: parsedData.calculationResult || null,
-                  calculationResultTablet1:
-                    parsedData.calculationResultTablet1 || null,
-                  calculationResultTablet2:
-                    parsedData.calculationResultTablet2 || null,
-                  calculationResultTablet3:
-                    parsedData.calculationResultTablet3 || null,
-                  calculationResultTablet4:
-                    parsedData.calculationResultTablet4 || null,
-                  calculationResultTablet5:
-                    parsedData.calculationResultTablet5 || null,
-                  calculationResultTablet6:
-                    parsedData.calculationResultTablet6 || null,
-                  calculationResultUnit:
-                    parsedData.calculationResultUnit || null,
-                  sw1: parsedData.sw1 || null,
-                  claim: parsedData.claim || null,
-                  mediaVol: parsedData.mediaVol || null,
-                  v1: parsedData.v1 || null,
-                  v2: parsedData.v2 || null,
-                  v3: parsedData.v3 || null,
-                  v4: parsedData.v4 || null,
-                  v5: parsedData.v5 || null,
-                  v6: parsedData.v6 || null,
-                  v7: parsedData.v7 || null,
-                  v8: parsedData.v8 || null,
-                  v9: parsedData.v9 || null,
-                  v10: parsedData.v10 || null,
-                  v11: parsedData.v11 || null,
-                  v12: parsedData.v12 || null,
-                  v13: parsedData.v13 || null,
-                  v14: parsedData.v14 || null,
-                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
-                  acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
-                };
-                restoredCalculations.dissolution.push(dissoCalc);
-                break;
-              }
-
-              case "dissolution_profile": {
-                const dissoProfileCalc = {
-                  id: baseId + 8500,
-                  label: parsedData.label || calc.label,
-                  selectedStandardPreparationLabel: stdLabel,
-                  selectedSamplePreparationLabel: splLabel,
-                  areaOfStandard: parsedData.areaOfStandard || "",
-                  numberOfTimePoints: parsedData.numberOfTimePoints || 2,
-                  volumeWithdraw: parsedData.volumeWithdraw || "",
-                  volumeReplaced: parsedData.volumeReplaced || "",
-                  timePointDetail1: parsedData.timePointDetail1 || null,
-                  timePointDetail2: parsedData.timePointDetail2 || null,
-                  timePointDetail3: parsedData.timePointDetail3 || null,
-                  timePointDetail4: parsedData.timePointDetail4 || null,
-                  timePointDetail5: parsedData.timePointDetail5 || null,
-                  timePointDetail6: parsedData.timePointDetail6 || null,
-                  timePointDetail7: parsedData.timePointDetail7 || null,
-                  timePointDetail8: parsedData.timePointDetail8 || null,
-                  timePointDetail9: parsedData.timePointDetail9 || null,
-                  timePointDetail10: parsedData.timePointDetail10 || null,
-                  areaOfSampleT1S1: parsedData.areaOfSampleT1S1 || null,
-                  areaOfSampleT1S2: parsedData.areaOfSampleT1S2 || null,
-                  areaOfSampleT1S3: parsedData.areaOfSampleT1S3 || null,
-                  areaOfSampleT1S4: parsedData.areaOfSampleT1S4 || null,
-                  areaOfSampleT1S5: parsedData.areaOfSampleT1S5 || null,
-                  areaOfSampleT1S6: parsedData.areaOfSampleT1S6 || null,
-                  areaOfSampleT2S1: parsedData.areaOfSampleT2S1 || null,
-                  areaOfSampleT2S2: parsedData.areaOfSampleT2S2 || null,
-                  areaOfSampleT2S3: parsedData.areaOfSampleT2S3 || null,
-                  areaOfSampleT2S4: parsedData.areaOfSampleT2S4 || null,
-                  areaOfSampleT2S5: parsedData.areaOfSampleT2S5 || null,
-                  areaOfSampleT2S6: parsedData.areaOfSampleT2S6 || null,
-                  areaOfSampleT3S1: parsedData.areaOfSampleT3S1 || null,
-                  areaOfSampleT3S2: parsedData.areaOfSampleT3S2 || null,
-                  areaOfSampleT3S3: parsedData.areaOfSampleT3S3 || null,
-                  areaOfSampleT3S4: parsedData.areaOfSampleT3S4 || null,
-                  areaOfSampleT3S5: parsedData.areaOfSampleT3S5 || null,
-                  areaOfSampleT3S6: parsedData.areaOfSampleT3S6 || null,
-                  areaOfSampleT4S1: parsedData.areaOfSampleT4S1 || null,
-                  areaOfSampleT4S2: parsedData.areaOfSampleT4S2 || null,
-                  areaOfSampleT4S3: parsedData.areaOfSampleT4S3 || null,
-                  areaOfSampleT4S4: parsedData.areaOfSampleT4S4 || null,
-                  areaOfSampleT4S5: parsedData.areaOfSampleT4S5 || null,
-                  areaOfSampleT4S6: parsedData.areaOfSampleT4S6 || null,
-                  areaOfSampleT5S1: parsedData.areaOfSampleT5S1 || null,
-                  areaOfSampleT5S2: parsedData.areaOfSampleT5S2 || null,
-                  areaOfSampleT5S3: parsedData.areaOfSampleT5S3 || null,
-                  areaOfSampleT5S4: parsedData.areaOfSampleT5S4 || null,
-                  areaOfSampleT5S5: parsedData.areaOfSampleT5S5 || null,
-                  areaOfSampleT5S6: parsedData.areaOfSampleT5S6 || null,
-                  areaOfSampleT6S1: parsedData.areaOfSampleT6S1 || null,
-                  areaOfSampleT6S2: parsedData.areaOfSampleT6S2 || null,
-                  areaOfSampleT6S3: parsedData.areaOfSampleT6S3 || null,
-                  areaOfSampleT6S4: parsedData.areaOfSampleT6S4 || null,
-                  areaOfSampleT6S5: parsedData.areaOfSampleT6S5 || null,
-                  areaOfSampleT6S6: parsedData.areaOfSampleT6S6 || null,
-                  areaOfSampleT7S1: parsedData.areaOfSampleT7S1 || null,
-                  areaOfSampleT7S2: parsedData.areaOfSampleT7S2 || null,
-                  areaOfSampleT7S3: parsedData.areaOfSampleT7S3 || null,
-                  areaOfSampleT7S4: parsedData.areaOfSampleT7S4 || null,
-                  areaOfSampleT7S5: parsedData.areaOfSampleT7S5 || null,
-                  areaOfSampleT7S6: parsedData.areaOfSampleT7S6 || null,
-                  areaOfSampleT8S1: parsedData.areaOfSampleT8S1 || null,
-                  areaOfSampleT8S2: parsedData.areaOfSampleT8S2 || null,
-                  areaOfSampleT8S3: parsedData.areaOfSampleT8S3 || null,
-                  areaOfSampleT8S4: parsedData.areaOfSampleT8S4 || null,
-                  areaOfSampleT8S5: parsedData.areaOfSampleT8S5 || null,
-                  areaOfSampleT8S6: parsedData.areaOfSampleT8S6 || null,
-                  areaOfSampleT9S1: parsedData.areaOfSampleT9S1 || null,
-                  areaOfSampleT9S2: parsedData.areaOfSampleT9S2 || null,
-                  areaOfSampleT9S3: parsedData.areaOfSampleT9S3 || null,
-                  areaOfSampleT9S4: parsedData.areaOfSampleT9S4 || null,
-                  areaOfSampleT9S5: parsedData.areaOfSampleT9S5 || null,
-                  areaOfSampleT9S6: parsedData.areaOfSampleT9S6 || null,
-                  areaOfSampleT10S1: parsedData.areaOfSampleT10S1 || null,
-                  areaOfSampleT10S2: parsedData.areaOfSampleT10S2 || null,
-                  areaOfSampleT10S3: parsedData.areaOfSampleT10S3 || null,
-                  areaOfSampleT10S4: parsedData.areaOfSampleT10S4 || null,
-                  areaOfSampleT10S5: parsedData.areaOfSampleT10S5 || null,
-                  areaOfSampleT10S6: parsedData.areaOfSampleT10S6 || null,
-                  purity: parsedData.purity || "",
-                  mWSalt: parsedData.mWSalt || "",
-                  mWBase: parsedData.mWBase || "",
-                  claim: parsedData.claim || "",
-                  claimUnit: parsedData.claimUnit || "",
-                  sampleResultsT1: parsedData.sampleResultsT1
-                    ? typeof parsedData.sampleResultsT1 === "string"
-                      ? JSON.parse(parsedData.sampleResultsT1)
-                      : parsedData.sampleResultsT1
-                    : null,
-                  sampleResultsT2: parsedData.sampleResultsT2
-                    ? typeof parsedData.sampleResultsT2 === "string"
-                      ? JSON.parse(parsedData.sampleResultsT2)
-                      : parsedData.sampleResultsT2
-                    : null,
-                  sampleResultsT3: parsedData.sampleResultsT3
-                    ? typeof parsedData.sampleResultsT3 === "string"
-                      ? JSON.parse(parsedData.sampleResultsT3)
-                      : parsedData.sampleResultsT3
-                    : null,
-                  sampleResultsT4: parsedData.sampleResultsT4
-                    ? typeof parsedData.sampleResultsT4 === "string"
-                      ? JSON.parse(parsedData.sampleResultsT4)
-                      : parsedData.sampleResultsT4
-                    : null,
-                  sampleResultsT5: parsedData.sampleResultsT5
-                    ? typeof parsedData.sampleResultsT5 === "string"
-                      ? JSON.parse(parsedData.sampleResultsT5)
-                      : parsedData.sampleResultsT5
-                    : null,
-                  sampleResultsT6: parsedData.sampleResultsT6
-                    ? typeof parsedData.sampleResultsT6 === "string"
-                      ? JSON.parse(parsedData.sampleResultsT6)
-                      : parsedData.sampleResultsT6
-                    : null,
-                  sampleResultsT7: parsedData.sampleResultsT7
-                    ? typeof parsedData.sampleResultsT7 === "string"
-                      ? JSON.parse(parsedData.sampleResultsT7)
-                      : parsedData.sampleResultsT7
-                    : null,
-                  sampleResultsT8: parsedData.sampleResultsT8
-                    ? typeof parsedData.sampleResultsT8 === "string"
-                      ? JSON.parse(parsedData.sampleResultsT8)
-                      : parsedData.sampleResultsT8
-                    : null,
-                  sampleResultsT9: parsedData.sampleResultsT9
-                    ? typeof parsedData.sampleResultsT9 === "string"
-                      ? JSON.parse(parsedData.sampleResultsT9)
-                      : parsedData.sampleResultsT9
-                    : null,
-                  sampleResultsT10: parsedData.sampleResultsT10
-                    ? typeof parsedData.sampleResultsT10 === "string"
-                      ? JSON.parse(parsedData.sampleResultsT10)
-                      : parsedData.sampleResultsT10
-                    : null,
-                  correctionFactorsT2: parsedData.correctionFactorsT2
-                    ? typeof parsedData.correctionFactorsT2 === "string"
-                      ? JSON.parse(parsedData.correctionFactorsT2)
-                      : parsedData.correctionFactorsT2
-                    : null,
-                  correctionFactorsT3: parsedData.correctionFactorsT3
-                    ? typeof parsedData.correctionFactorsT3 === "string"
-                      ? JSON.parse(parsedData.correctionFactorsT3)
-                      : parsedData.correctionFactorsT3
-                    : null,
-                  correctionFactorsT4: parsedData.correctionFactorsT4
-                    ? typeof parsedData.correctionFactorsT4 === "string"
-                      ? JSON.parse(parsedData.correctionFactorsT4)
-                      : parsedData.correctionFactorsT4
-                    : null,
-                  correctionFactorsT5: parsedData.correctionFactorsT5
-                    ? typeof parsedData.correctionFactorsT5 === "string"
-                      ? JSON.parse(parsedData.correctionFactorsT5)
-                      : parsedData.correctionFactorsT5
-                    : null,
-                  correctionFactorsT6: parsedData.correctionFactorsT6
-                    ? typeof parsedData.correctionFactorsT6 === "string"
-                      ? JSON.parse(parsedData.correctionFactorsT6)
-                      : parsedData.correctionFactorsT6
-                    : null,
-                  correctionFactorsT7: parsedData.correctionFactorsT7
-                    ? typeof parsedData.correctionFactorsT7 === "string"
-                      ? JSON.parse(parsedData.correctionFactorsT7)
-                      : parsedData.correctionFactorsT7
-                    : null,
-                  correctionFactorsT8: parsedData.correctionFactorsT8
-                    ? typeof parsedData.correctionFactorsT8 === "string"
-                      ? JSON.parse(parsedData.correctionFactorsT8)
-                      : parsedData.correctionFactorsT8
-                    : null,
-                  correctionFactorsT9: parsedData.correctionFactorsT9
-                    ? typeof parsedData.correctionFactorsT9 === "string"
-                      ? JSON.parse(parsedData.correctionFactorsT9)
-                      : parsedData.correctionFactorsT9
-                    : null,
-                  correctionFactorsT10: parsedData.correctionFactorsT10
-                    ? typeof parsedData.correctionFactorsT10 === "string"
-                      ? JSON.parse(parsedData.correctionFactorsT10)
-                      : parsedData.correctionFactorsT10
-                    : null,
-                  // ── Results after correction per time point ──────────────
-                  resultsAfterCorrectionT2: parsedData.resultsAfterCorrectionT2
-                    ? typeof parsedData.resultsAfterCorrectionT2 === "string"
-                      ? JSON.parse(parsedData.resultsAfterCorrectionT2)
-                      : parsedData.resultsAfterCorrectionT2
-                    : null,
-                  resultsAfterCorrectionT3: parsedData.resultsAfterCorrectionT3
-                    ? typeof parsedData.resultsAfterCorrectionT3 === "string"
-                      ? JSON.parse(parsedData.resultsAfterCorrectionT3)
-                      : parsedData.resultsAfterCorrectionT3
-                    : null,
-                  resultsAfterCorrectionT4: parsedData.resultsAfterCorrectionT4
-                    ? typeof parsedData.resultsAfterCorrectionT4 === "string"
-                      ? JSON.parse(parsedData.resultsAfterCorrectionT4)
-                      : parsedData.resultsAfterCorrectionT4
-                    : null,
-                  resultsAfterCorrectionT5: parsedData.resultsAfterCorrectionT5
-                    ? typeof parsedData.resultsAfterCorrectionT5 === "string"
-                      ? JSON.parse(parsedData.resultsAfterCorrectionT5)
-                      : parsedData.resultsAfterCorrectionT5
-                    : null,
-                  resultsAfterCorrectionT6: parsedData.resultsAfterCorrectionT6
-                    ? typeof parsedData.resultsAfterCorrectionT6 === "string"
-                      ? JSON.parse(parsedData.resultsAfterCorrectionT6)
-                      : parsedData.resultsAfterCorrectionT6
-                    : null,
-                  resultsAfterCorrectionT7: parsedData.resultsAfterCorrectionT7
-                    ? typeof parsedData.resultsAfterCorrectionT7 === "string"
-                      ? JSON.parse(parsedData.resultsAfterCorrectionT7)
-                      : parsedData.resultsAfterCorrectionT7
-                    : null,
-                  resultsAfterCorrectionT8: parsedData.resultsAfterCorrectionT8
-                    ? typeof parsedData.resultsAfterCorrectionT8 === "string"
-                      ? JSON.parse(parsedData.resultsAfterCorrectionT8)
-                      : parsedData.resultsAfterCorrectionT8
-                    : null,
-                  resultsAfterCorrectionT9: parsedData.resultsAfterCorrectionT9
-                    ? typeof parsedData.resultsAfterCorrectionT9 === "string"
-                      ? JSON.parse(parsedData.resultsAfterCorrectionT9)
-                      : parsedData.resultsAfterCorrectionT9
-                    : null,
-                  resultsAfterCorrectionT10:
-                    parsedData.resultsAfterCorrectionT10
-                      ? typeof parsedData.resultsAfterCorrectionT10 === "string"
-                        ? JSON.parse(parsedData.resultsAfterCorrectionT10)
-                        : parsedData.resultsAfterCorrectionT10
-                      : null,
-                  // ── Stats per time point ─────────────────────────────────
-                  minT1: parsedData.minT1 ?? null,
-                  avgT1: parsedData.avgT1 ?? null,
-                  maxT1: parsedData.maxT1 ?? null,
-                  minT2: parsedData.minT2 ?? null,
-                  avgT2: parsedData.avgT2 ?? null,
-                  maxT2: parsedData.maxT2 ?? null,
-                  minT3: parsedData.minT3 ?? null,
-                  avgT3: parsedData.avgT3 ?? null,
-                  maxT3: parsedData.maxT3 ?? null,
-                  minT4: parsedData.minT4 ?? null,
-                  avgT4: parsedData.avgT4 ?? null,
-                  maxT4: parsedData.maxT4 ?? null,
-                  minT5: parsedData.minT5 ?? null,
-                  avgT5: parsedData.avgT5 ?? null,
-                  maxT5: parsedData.maxT5 ?? null,
-                  minT6: parsedData.minT6 ?? null,
-                  avgT6: parsedData.avgT6 ?? null,
-                  maxT6: parsedData.maxT6 ?? null,
-                  minT7: parsedData.minT7 ?? null,
-                  avgT7: parsedData.avgT7 ?? null,
-                  maxT7: parsedData.maxT7 ?? null,
-                  minT8: parsedData.minT8 ?? null,
-                  avgT8: parsedData.avgT8 ?? null,
-                  maxT8: parsedData.maxT8 ?? null,
-                  minT9: parsedData.minT9 ?? null,
-                  avgT9: parsedData.avgT9 ?? null,
-                  maxT9: parsedData.maxT9 ?? null,
-                  minT10: parsedData.minT10 ?? null,
-                  avgT10: parsedData.avgT10 ?? null,
-                  maxT10: parsedData.maxT10 ?? null,
-                  sw1: parsedData.sw1 || null,
-                  v1: parsedData.v1 || null,
-                  v2: parsedData.v2 || null,
-                  v3: parsedData.v3 || null,
-                  v4: parsedData.v4 || null,
-                  v5: parsedData.v5 || null,
-                  v6: parsedData.v6 || null,
-                  v7: parsedData.v7 || null,
-                  v8: parsedData.v8 || null,
-                  v9: parsedData.v9 || null,
-                  v10: parsedData.v10 || null,
-                  v11: parsedData.v11 || null,
-                  v12: parsedData.v12 || null,
-                  v13: parsedData.v13 || null,
-                  v14: parsedData.v14 || null,
-                  v8TimePoint1: parsedData.v8TimePoint1 || null,
-                  v8TimePoint2: parsedData.v8TimePoint2 || null,
-                  v8TimePoint3: parsedData.v8TimePoint3 || null,
-                  v8TimePoint4: parsedData.v8TimePoint4 || null,
-                  v8TimePoint5: parsedData.v8TimePoint5 || null,
-                  v8TimePoint6: parsedData.v8TimePoint6 || null,
-                  v8TimePoint7: parsedData.v8TimePoint7 || null,
-                  v8TimePoint8: parsedData.v8TimePoint8 || null,
-                  v8TimePoint9: parsedData.v8TimePoint9 || null,
-                  v8TimePoint10: parsedData.v8TimePoint10 || null,
-                  acceptanceLimitMin1: parsedData.acceptanceLimitMin1 || null,
-                  acceptanceLimitMax1: parsedData.acceptanceLimitMax1 || null,
-                  acceptanceLimitMin2: parsedData.acceptanceLimitMin2 || null,
-                  acceptanceLimitMax2: parsedData.acceptanceLimitMax2 || null,
-                  acceptanceLimitMin3: parsedData.acceptanceLimitMin3 || null,
-                  acceptanceLimitMax3: parsedData.acceptanceLimitMax3 || null,
-                  acceptanceLimitMin4: parsedData.acceptanceLimitMin4 || null,
-                  acceptanceLimitMax4: parsedData.acceptanceLimitMax4 || null,
-                  acceptanceLimitMin5: parsedData.acceptanceLimitMin5 || null,
-                  acceptanceLimitMax5: parsedData.acceptanceLimitMax5 || null,
-                  acceptanceLimitMin6: parsedData.acceptanceLimitMin6 || null,
-                  acceptanceLimitMax6: parsedData.acceptanceLimitMax6 || null,
-                  acceptanceLimitMin7: parsedData.acceptanceLimitMin7 || null,
-                  acceptanceLimitMax7: parsedData.acceptanceLimitMax7 || null,
-                  acceptanceLimitMin8: parsedData.acceptanceLimitMin8 || null,
-                  acceptanceLimitMax8: parsedData.acceptanceLimitMax8 || null,
-                  acceptanceLimitMin9: parsedData.acceptanceLimitMin9 || null,
-                  acceptanceLimitMax9: parsedData.acceptanceLimitMax9 || null,
-                  acceptanceLimitMin10: parsedData.acceptanceLimitMin10 || null,
-                  acceptanceLimitMax10: parsedData.acceptanceLimitMax10 || null,
-                };
-                restoredCalculations.dissolutionProfile.push(dissoProfileCalc);
-                break;
-              }
-
-              case "assay_ferrous_fumarate": {
-                const ffCalc: CalculationAssayFerrousFumarate = {
-                  id: baseId + 8700,
+              case "meropenam": {
+                const meropenamCalc: CalculationMeropenam = {
+                  id: baseId + 9700,
                   label: parsedData.label || calc.label,
                   selectedSamplePreparationLabel:
-                    parsedData.selectedSamplePreparationLabel || null,
-                  calculationFor: parsedData.calculationFor || "",
-                  buretteReading: parsedData.buretteReading || "",
-                  theoreticalMolarity: parsedData.theoreticalMolarity || "",
-                  actualMolarity: parsedData.actualMolarity || "",
-                  factor: parsedData.factor || "",
-                  avgWeight: parsedData.avgWeight || "",
+                    parsedData.selectedSamplePreparationLabel ?? null,
+                  sw: parsedData.sw ?? null,
+                  v1: parsedData.v1 ?? null,
+                  v2: parsedData.v2 ?? null,
+                  v3: parsedData.v3 ?? null,
+                  v4: parsedData.v4 ?? null,
+                  v5: parsedData.v5 ?? null,
+                  v6: parsedData.v6 ?? null,
+                  v7: parsedData.v7 ?? null,
+                  instrumentConcentrationSample: parsedData.instrumentConcentrationSample || "",
+                  instrumentConcentrationSampleUnit: parsedData.instrumentConcentrationSampleUnit || "",
+                  instrumentConcentrationBlank: parsedData.instrumentConcentrationBlank || "",
+                  instrumentConcentrationBlankUnit: parsedData.instrumentConcentrationBlankunit || "",
                   labelClaim: parsedData.labelClaim || "",
-                  lodWaterType: parsedData.lodWaterType || "",
-                  lodWaterValue: parsedData.lodWaterValue || "",
-                  calculationResult: parsedData.calculationResult || null,
-                  calculationResultUnit:
-                    parsedData.calculationResultUnit || null,
-                  labelClaimPercent: parsedData.labelClaimPercent || null,
-                  lodWaterBasisResult: parsedData.lodWaterBasisResult || null,
-                  factorUnit: parsedData.factorUnit || "",
-                  avgWeightUnit: parsedData.avgWeightUnit || "",
                   labelClaimUnit: parsedData.labelClaimUnit || "",
-                  acceptanceLimitMin: parsedData.acceptanceLimitMin || "",
-                  acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
-                  sampleWeight: parsedData.sampleWeight || null,
-                  sampleWeightUnit: parsedData.sampleWeightUnit || "",
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin ?? null,
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax ?? null,
+                  calculationResult: parsedData.calculationResult ?? null,
+                  calculationResultUnit:
+                    parsedData.calculationResultUnit ?? "% of LC",
                 };
-                restoredCalculations.ferrousFumarate.push(ffCalc);
+                restoredCalculations.meropenam.push(meropenamCalc);
                 break;
               }
 
-              case "dissolution_ferrous_fumarate": {
-                const dffCalc: CalculationDissoFerrousFumarate = {
-                  id: baseId + 8800,
+              case "sfgc": {
+                const sfgcCalc: CalculationSFGC = {
+                  id: baseId + 9340,
                   label: parsedData.label || calc.label,
                   selectedSamplePreparationLabel:
-                    parsedData.selectedSamplePreparationLabel || null,
-                  buretteReading1: parsedData.buretteReading1 || "",
-                  buretteReading2: parsedData.buretteReading2 || "",
-                  buretteReading3: parsedData.buretteReading3 || "",
-                  buretteReading4: parsedData.buretteReading4 || "",
-                  buretteReading5: parsedData.buretteReading5 || "",
-                  buretteReading6: parsedData.buretteReading6 || "",
-                  theoreticalMolarity: parsedData.theoreticalMolarity || "",
-                  actualMolarity: parsedData.actualMolarity || "",
-                  factor: parsedData.factor || "",
-                  factorUnit: parsedData.factorUnit || null,
-                  dissoMediaVolume: parsedData.dissoMediaVolume || "",
-                  labelClaim: parsedData.labelClaim || "",
-                  calculationResultTablet1:
-                    parsedData.calculationResultTablet1 || null,
-                  calculationResultTablet2:
-                    parsedData.calculationResultTablet2 || null,
-                  calculationResultTablet3:
-                    parsedData.calculationResultTablet3 || null,
-                  calculationResultTablet4:
-                    parsedData.calculationResultTablet4 || null,
-                  calculationResultTablet5:
-                    parsedData.calculationResultTablet5 || null,
-                  calculationResultTablet6:
-                    parsedData.calculationResultTablet6 || null,
-                  calculationResult: parsedData.calculationResult || null,
+                    parsedData.selectedSamplePreparationLabel ?? null,
+                  sw: parsedData.sw ?? null,
+                  v1: parsedData.v1 ?? null,
+                  v2: parsedData.v2 ?? null,
+                  v3: parsedData.v3 ?? null,
+                  v4: parsedData.v4 ?? null,
+                  v5: parsedData.v5 ?? null,
+                  v6: parsedData.v6 ?? null,
+                  v7: parsedData.v7 ?? null,
+                  instrumentConcentrationSample: parsedData.instrumentConcentrationSample || "",
+                  instrumentConcentrationSampleUnit: parsedData.instrumentConcentrationSampleUnit || "",
+                  instrumentConcentrationBlank: parsedData.instrumentConcentrationBlank || "",
+                  instrumentConcentrationBlankUnit: parsedData.instrumentConcentrationBlankunit || "",
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin ?? null,
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax ?? null,
+                  calculationResult: parsedData.calculationResult ?? null,
                   calculationResultUnit:
-                    parsedData.calculationResultUnit || null,
-                  sampleTaken: parsedData.sampleTaken || null,
-                  acceptanceLimitMin: parsedData.acceptanceLimitMin || null,
-                  acceptanceLimitMax: parsedData.acceptanceLimitMax || null,
-                  dissoMediaVolumeUnit: parsedData.dissoMediaVolumeUnit || null,
-                  labelClaimUnit: parsedData.labelClaimUnit || null,
-                  sampleTakenUnit: parsedData.sampleTakenUnit || null,
+                    parsedData.calculationResultUnit ?? "% of LC",
                 };
-                restoredCalculations.dissoFerrousFumarate.push(dffCalc);
+                restoredCalculations.sfgc.push(sfgcCalc);
+                break;
+              }
+
+              case "talc": {
+                const talcCalc: CalculationTalc = {
+                  id: baseId + 9330,
+                  label: parsedData.label || calc.label,
+                  selectedSamplePreparationLabel:
+                    parsedData.selectedSamplePreparationLabel ?? null,
+                  sw: parsedData.sw ?? null,
+                  v1: parsedData.v1 ?? null,
+                  v2: parsedData.v2 ?? null,
+                  v3: parsedData.v3 ?? null,
+                  v4: parsedData.v4 ?? null,
+                  v5: parsedData.v5 ?? null,
+                  v6: parsedData.v6 ?? null,
+                  v7: parsedData.v7 ?? null,
+                  instrumentConcentrationSample: parsedData.instrumentConcentrationSample || "",
+                  instrumentConcentrationSampleUnit: parsedData.instrumentConcentrationSampleUnit || "ppm",
+                  instrumentConcentrationBlank: parsedData.instrumentConcentrationBlank || "",
+                  instrumentConcentrationBlankUnit: parsedData.instrumentConcentrationBlankUnit || "ppm",
+                  acceptanceLimitMin: parsedData.acceptanceLimitMin ?? "",
+                  acceptanceLimitMax: parsedData.acceptanceLimitMax ?? "",
+                  calculationResult: parsedData.calculationResult ?? null,
+                  calculationResultUnit: parsedData.calculationResultUnit ?? "%",
+                };
+                restoredCalculations.talc.push(talcCalc);
                 break;
               }
 
@@ -3379,19 +2561,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         });
 
         // Set calculation state ONLY if arrays have items
-        if (restoredCalculations.assay.length > 0) {
-          setCalculationsAssayPerParam((prev) => ({
-            ...prev,
-            [paramId]: restoredCalculations.assay,
-          }));
-        }
-
-        if (restoredCalculations.lod.length > 0) {
-          setCalculationsLodPerParam((prev) => ({
-            ...prev,
-            [paramId]: restoredCalculations.lod,
-          }));
-        }
 
         if (restoredCalculations.icpmsFood.length > 0) {
           setCalculationsIcpmsFoodPerParam((prev) => ({
@@ -3470,66 +2639,31 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           }));
         }
 
-        if (restoredCalculations.roi.length > 0) {
-          setCalculationsROIPerParam((prev) => ({
+        if (restoredCalculations.lithosun400.length > 0) {
+          setCalculationsLithosun400PerParam((prev) => ({
             ...prev,
-            [paramId]: restoredCalculations.roi,
+            [paramId]: restoredCalculations.lithosun400,
           }));
         }
 
-        if (restoredCalculations.sulphatedAsh.length > 0) {
-          setCalculationsSulphatedAshPerParam((prev) => ({
+        if (restoredCalculations.meropenam.length > 0) {
+          setCalculationsMeropenamPerParam((prev) => ({
             ...prev,
-            [paramId]: restoredCalculations.sulphatedAsh,
+            [paramId]: restoredCalculations.meropenam,
           }));
         }
 
-        if (restoredCalculations.residualSolvent.length > 0) {
-          setCalculationsRSPerParam((prev) => ({
+        if (restoredCalculations.sfgc.length > 0) {
+          setCalculationsSFGCPerParam((prev) => ({
             ...prev,
-            [paramId]: restoredCalculations.residualSolvent,
+            [paramId]: restoredCalculations.sfgc,
           }));
         }
 
-        if (restoredCalculations.relatedSubstance.length > 0) {
-          setCalculationsRelatedSubstancePerParam((prev) => ({
+        if (restoredCalculations.talc.length > 0) {
+          setCalculationsTalcPerParam((prev) => ({
             ...prev,
-            [paramId]: restoredCalculations.relatedSubstance,
-          }));
-        }
-
-        if (restoredCalculations.dissolution.length > 0) {
-          setCalculationsDissoPerParam((prev) => ({
-            ...prev,
-            [paramId]: restoredCalculations.dissolution,
-          }));
-        }
-
-        if (restoredCalculations.dissolutionProfile.length > 0) {
-          setCalculationsDissoProfilePerParam((prev) => ({
-            ...prev,
-            [paramId]: restoredCalculations.dissolutionProfile,
-          }));
-        }
-
-        if (restoredCalculations.uniformityOfContent.length > 0) {
-          setCalculationsUCPerParam((prev) => ({
-            ...prev,
-            [paramId]: restoredCalculations.uniformityOfContent,
-          }));
-        }
-
-        if (restoredCalculations.ferrousFumarate.length > 0) {
-          setCalculationsAssayFerrousFumaratePerParam((prev) => ({
-            ...prev,
-            [paramId]: restoredCalculations.ferrousFumarate,
-          }));
-        }
-
-        if (restoredCalculations.dissoFerrousFumarate.length > 0) {
-          setCalculationsDissoFerrousFumaratePerParam((prev) => ({
-            ...prev,
-            [paramId]: restoredCalculations.dissoFerrousFumarate,
+            [paramId]: restoredCalculations.talc,
           }));
         }
       }
@@ -3537,21 +2671,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
       const activeGroups: string[] = [];
 
       if (param.preparations && Array.isArray(param.preparations)) {
-        if (
-          param.preparations.some(
-            (p: any) =>
-              (p.preparationCategory === "standard" ||
-                p.preparationCategory === "sample") &&
-              p.preparationType === "assay",
-          )
-        ) {
-          activeGroups.push("assay");
-        }
-
-        // Check for LOD preparations
-        if (param.preparations.some((p: any) => p.preparationType === "lod")) {
-          activeGroups.push("lod");
-        }
 
         // Check for ICP-MS (Food) preparations
         if (
@@ -3705,113 +2824,58 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           activeGroups.push("lithosun300");
         }
 
-        // Check for ROI preparations
-        if (param.preparations.some((p: any) => p.preparationType === "roi")) {
-          activeGroups.push("roi");
-        }
-
-        // Check for Sulphated Ash preparations
         if (
           param.preparations.some(
-            (p: any) => p.preparationType === "sulphated_ash",
-          )
-        ) {
-          activeGroups.push("sulphatedAsh");
-        }
-
-        // Check for Residual Solvent preparations
-        if (
-          param.preparations.some(
-            (p: any) => p.preparationType === "residual_solvent",
-          )
-        ) {
-          activeGroups.push("residualSolvent");
-        }
-
-        // Check for Related Substance preparations
-        if (
-          param.preparations.some(
-            (p: any) => p.preparationType === "related_substance",
-          )
-        ) {
-          activeGroups.push("relatedSubstance");
-        }
-
-        // Check for Dissolution preparations
-        if (
-          param.preparations.some(
-            (p: any) => p.preparationType === "dissolution",
-          )
-        ) {
-          activeGroups.push("dissolution");
-        }
-
-        // Check for Dissolution Profile preparations
-        if (
-          param.preparations.some(
-            (p: any) => p.preparationType === "dissolution_profile",
-          )
-        ) {
-          activeGroups.push("dissolutionProfile");
-        }
-
-        // Check for Mobile Phase preparations (based on preparationCategory)
-        if (
-          param.preparations.some(
-            (p: any) => p.preparationCategory === "mobile_phase",
-          )
-        ) {
-          activeGroups.push("mobilePhase");
-        }
-
-        // Check for Dissolution Media preparations (based on preparationCategory)
-        if (
-          param.preparations.some(
-            (p: any) => p.preparationCategory === "dissolution_media",
-          )
-        ) {
-          activeGroups.push("dissoMedia");
-        }
-
-        // Check for Sample Titration preparations or Ferrous Fumarate calculations
-        if (
-          param.preparations.some(
-            (p: any) => p.preparationType === "assay_ferrous_fumarate",
-          )
-        ) {
-          activeGroups.push("assayFerrousFumarate");
-        } else if (
-          param.calculations &&
-          Array.isArray(param.calculations) &&
-          param.calculations.some(
-            (c: any) => c.calculationType === "assay_ferrous_fumarate",
-          )
-        ) {
-          activeGroups.push("assayFerrousFumarate");
-        }
-
-        // Check for Dissolution Ferrous Fumarate
-        if (
-          param.preparations.some(
-            (p: any) => p.preparationType === "dissolution_ferrous_fumarate",
+            (p: any) => p.preparationType === "lithosun400",
           ) ||
           (param.calculations &&
             Array.isArray(param.calculations) &&
             param.calculations.some(
-              (c: any) => c.calculationType === "dissolution_ferrous_fumarate",
+              (c: any) => c.calculationType === "lithosun400",
             ))
         ) {
-          activeGroups.push("dissolutionFerrousFumarate");
+          activeGroups.push("lithosun400");
         }
 
-        // Check for Uniformity of Content preparations
         if (
           param.preparations.some(
-            (p: any) => p.preparationType === "uniformity_of_content",
-          )
+            (p: any) => p.preparationType === "meropenam",
+          ) ||
+          (param.calculations &&
+            Array.isArray(param.calculations) &&
+            param.calculations.some(
+              (c: any) => c.calculationType === "meropenam",
+            ))
         ) {
-          activeGroups.push("uniformityOfContent");
+          activeGroups.push("meropenam");
         }
+
+        if (
+          param.preparations.some(
+            (p: any) => p.preparationType === "sfgc",
+          ) ||
+          (param.calculations &&
+            Array.isArray(param.calculations) &&
+            param.calculations.some(
+              (c: any) => c.calculationType === "sfgc",
+            ))
+        ) {
+          activeGroups.push("sfgc");
+        }
+
+        if (
+          param.preparations.some(
+            (p: any) => p.preparationType === "talc",
+          ) ||
+          (param.calculations &&
+            Array.isArray(param.calculations) &&
+            param.calculations.some(
+              (c: any) => c.calculationType === "talc",
+            ))
+        ) {
+          activeGroups.push("talc");
+        }
+
       }
 
       if (param.files && Array.isArray(param.files) && param.files.length > 0) {
@@ -3891,75 +2955,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
       },
       parameters: addedParameters.map((param) => {
         const preparations = [
-          // Standard Preparations for UNIFORMITY OF CONTENT
-          ...(standardPreparationUCPerParam[param.id] || []).map((sp) => ({
-            label: sp.label,
-            preparationCategory: "standard",
-            preparationType: "uniformity_of_content",
-            assignedStandardId: (sp as any).assignedStandardId || "",
-            steps: JSON.stringify(sp.steps),
-          })),
-
-          // Sample Preparations for UNIFORMITY OF CONTENT
-          ...(samplePreparationUCPerParam[param.id] || []).map((sp) => ({
-            label: sp.label,
-            preparationCategory: "sample",
-            preparationType: "uniformity_of_content",
-            assignedStandardId: (sp as any).assignedStandardId || null,
-            steps: JSON.stringify(sp.steps),
-          })),
-          // Standard Preparations for ASSAY
-          ...(standardPreparationAssayPerParam[param.id] || []).map((sp) => ({
-            label: sp.label,
-            preparationCategory: "standard",
-            preparationType: "assay",
-            assignedStandardId: (sp as any).assignedStandardId || "",
-            steps: JSON.stringify(sp.steps),
-          })),
-          // Standard Preparations for RESIDUAL SOLVENT
-          ...(standardPreparationResidualSolventPerParam[param.id] || []).map(
-            (sp) => ({
-              label: sp.label,
-              preparationCategory: "standard",
-              preparationType: "residual_solvent",
-              assignedStandardId: (sp as any).assignedStandardId || "",
-              steps: JSON.stringify(sp.steps),
-            }),
-          ),
-          // Standard Preparations for RELATED SUBSTANCE
-          ...(standardPreparationRelatedSubstancePerParam[param.id] || []).map(
-            (sp) => ({
-              label: sp.label,
-              preparationCategory: "standard",
-              preparationType: "related_substance",
-              assignedStandardId: (sp as any).assignedStandardId || "",
-              steps: JSON.stringify(sp.steps),
-            }),
-          ),
-          // Standard Preparations for DISSOLUTION
-          ...(standardPreparationDissoPerParam[param.id] || []).map((sp) => ({
-            label: sp.label,
-            preparationCategory: "standard",
-            preparationType: "dissolution",
-            assignedStandardId: (sp as any).assignedStandardId || "",
-            steps: JSON.stringify(sp.steps),
-          })),
-          // Sample Preparations for ASSAY
-          ...(samplePreparationPerParam[param.id] || []).map((sp) => ({
-            label: sp.label,
-            preparationCategory: "sample",
-            preparationType: "assay",
-            assignedStandardId: null,
-            steps: JSON.stringify(sp.steps),
-          })),
-          // Sample Preparations for LOD
-          ...(samplePreparationLodPerParam[param.id] || []).map((spl) => ({
-            label: spl.label,
-            preparationCategory: "sample",
-            preparationType: "lod",
-            assignedStandardId: null,
-            steps: JSON.stringify(spl.steps),
-          })),
           // Sample Preparations for ICP-MS FOOD
           ...(samplePreparationIcpmsFoodPerParam[param.id] || []).map((sp) => ({
             label: sp.label,
@@ -4048,6 +3043,35 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             assignedStandardId: null,
             steps: JSON.stringify(sp.steps),
           })),
+          // Sample Preparations for Lithosun 400
+          ...(samplePreparationLithosun400PerParam[param.id] || []).map((sp) => ({
+            label: sp.label,
+            preparationCategory: "sample",
+            preparationType: "lithosun400",
+            assignedStandardId: null,
+            steps: JSON.stringify(sp.steps),
+          })),
+          ...(samplePreparationMeropenamPerParam[param.id] || []).map((sp) => ({
+            label: sp.label,
+            preparationCategory: "sample",
+            preparationType: "meropenam",
+            assignedStandardId: null,
+            steps: JSON.stringify(sp.steps),
+          })),
+          ...(samplePreparationSFGCPerParam[param.id] || []).map((sp) => ({
+            label: sp.label,
+            preparationCategory: "sample",
+            preparationType: "sfgc",
+            assignedStandardId: null,
+            steps: JSON.stringify(sp.steps),
+          })),
+          ...(samplePreparationTalcPerParam[param.id] || []).map((sp) => ({
+            label: sp.label,
+            preparationCategory: "sample",
+            preparationType: "talc",
+            assignedStandardId: null,
+            steps: JSON.stringify(sp.steps),
+          })),
           // Standard Preparations for Metal groups
           ...Object.entries(standardPreparationMetalPerParam[param.id] || {}).flatMap(([groupId, preps]) => {
             const prepType = METAL_GROUP_TO_TYPE[groupId] || groupId;
@@ -4059,113 +3083,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
               steps: JSON.stringify(sp.steps),
             }));
           }),
-          // Sample Preparations for ROI
-          ...(samplePreparationROIPerParam[param.id] || []).map((spl) => ({
-            label: spl.label,
-            preparationCategory: "sample",
-            preparationType: "roi",
-            assignedStandardId: null,
-            steps: JSON.stringify(spl.steps),
-          })),
-          // Sample Preparations for SULPHATED ASH
-          ...(samplePreparationSulphatedAshPerParam[param.id] || []).map(
-            (sps) => ({
-              label: sps.label,
-              preparationCategory: "sample",
-              preparationType: "sulphated_ash",
-              assignedStandardId: null,
-              steps: JSON.stringify(sps.steps),
-            }),
-          ),
-          // Sample Preparations for RESIDUAL SOLVENT
-          ...(samplePreparationRSPerParam[param.id] || []).map((sp) => ({
-            label: sp.label,
-            preparationCategory: "sample",
-            preparationType: "residual_solvent",
-            assignedStandardId: null,
-            steps: JSON.stringify(sp.steps),
-          })),
-          // Sample Preparations for RELATED SUBSTANCE
-          ...(samplePreparationRelatedSubstancePerParam[param.id] || []).map(
-            (sp) => ({
-              label: sp.label,
-              preparationCategory: "sample",
-              preparationType: "related_substance",
-              assignedStandardId: null,
-              steps: JSON.stringify(sp.steps),
-            }),
-          ),
-          // Sample Preparations for DISSOLUTION
-          ...(samplePreparationDissoPerParam[param.id] || []).map((spd) => ({
-            label: spd.label,
-            preparationCategory: "sample",
-            preparationType: "dissolution",
-            assignedStandardId: null,
-            steps: JSON.stringify(spd.steps),
-          })),
-          // Dissolution Media Preparation Preparations
-          ...(dissoMediaPerParam[param.id] || []).map((dm) => ({
-            label: dm.label,
-            preparationCategory: "dissolution_media",
-            preparationType: "dissolution",
-            assignedStandardId: null,
-            steps: JSON.stringify(dm.steps),
-          })),
-          // Mobile Phase Preparations
-          ...(mobilePhasePerParam[param.id] || []).map((mp) => ({
-            label: mp.label,
-            preparationCategory: "mobile_phase",
-            preparationType: null,
-            assignedStandardId: null,
-            steps: null,
-            content: mp.content,
-          })),
-          // Buffer Preparations
-          ...(bufferPreparationPerParam[param.id] || []).map((bp) => ({
-            label: bp.label,
-            preparationCategory: "buffer",
-            preparationType: null,
-            assignedStandardId: null,
-            steps: JSON.stringify(bp.steps),
-            content: null,
-          })),
-          // Diluent Preparations (blank-sheet style)
-          ...(diluentPreparationsPerParam[param.id] || []).map((dp) => ({
-            label: dp.label,
-            preparationCategory: "diluent",
-            preparationType: null,
-            assignedStandardId: null,
-            steps: null,
-            content: dp.content,
-          })),
-          // Sample Preparation for Assay (Ferrous Fumarate)
-          ...(samplePrepAssayFerrousFumaratePerParam[param.id] || []).map(
-            (spt) => ({
-              label: spt.label,
-              preparationCategory: "sample",
-              preparationType: "assay_ferrous_fumarate",
-              assignedStandardId: null,
-              steps: JSON.stringify(spt.steps),
-            }),
-          ),
-          // Sample Preparation for Dissolution (Ferrous Fumarate)
-          ...(samplePrepDissoFerrousFumaratePerParam[param.id] || []).map(
-            (spt) => ({
-              label: spt.label,
-              preparationCategory: "sample",
-              preparationType: "dissolution_ferrous_fumarate",
-              assignedStandardId: null,
-              steps: JSON.stringify(spt.steps),
-            }),
-          ),
-          ...(systemSuitabilityPerParam[param.id] || []).map((ss) => ({
-            label: ss.label,
-            preparationCategory: "system_suitability",
-            preparationType: null,
-            assignedStandardId: null,
-            steps: JSON.stringify(ss.steps),
-          })),
-          // Blank Preparations
+
           ...(blankPreparationPerParam[param.id] || []).map((bp) => ({
             label: bp.label,
             preparationCategory: "blank",
@@ -4174,67 +3092,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             steps: null,
             content: bp.content,
           })),
-          // Standard Preparations for DISSOLUTION PROFILE
-          ...(standardPreparationDissoProfilePerParam[param.id] || []).map(
-            (sp) => ({
-              label: sp.label,
-              preparationCategory: "standard",
-              preparationType: "dissolution_profile",
-              assignedStandardId: (sp as any).assignedStandardId || "",
-              steps: JSON.stringify(sp.steps),
-            }),
-          ),
-          // Sample Preparations for DISSOLUTION PROFILE
-          ...(samplePreparationDissoProfilePerParam[param.id] || []).map(
-            (spd) => ({
-              label: spd.label,
-              preparationCategory: "sample",
-              preparationType: "dissolution_profile",
-              assignedStandardId: null,
-              steps: JSON.stringify(spd.steps),
-            }),
-          ),
-          // Dissolution Media for DISSOLUTION PROFILE
-          ...(dissoMediaProfilePerParam[param.id] || []).map((dm) => ({
-            label: dm.label,
-            preparationCategory: "dissolution_media",
-            preparationType: "dissolution_profile",
-            assignedStandardId: null,
-            steps: JSON.stringify(dm.steps),
-          })),
         ];
 
         // Collect all calculations with their types
         const calculations = [
-          ...(calculationsUCPerParam[param.id] || []).map((calc) => {
-            const dataObj = { ...calc } as any;
-            delete dataObj.selectedStandardPrepId;
-            delete dataObj.selectedSamplePrepId;
-            return {
-              label: calc.label,
-              calculationType: "uniformity_of_content",
-              data: JSON.stringify(dataObj),
-            };
-          }),
-          ...(calculationsAssayPerParam[param.id] || []).map((calc) => {
-            const dataObj = { ...calc } as any;
-            delete dataObj.selectedStandardPrepId;
-            delete dataObj.selectedSamplePrepId;
-            return {
-              label: calc.label,
-              calculationType: "assay",
-              data: JSON.stringify(dataObj),
-            };
-          }),
-          ...(calculationsLodPerParam[param.id] || []).map((calc) => {
-            const dataObj = { ...calc } as any;
-            delete dataObj.selectedSamplePrepId;
-            return {
-              label: calc.label,
-              calculationType: "lod",
-              data: JSON.stringify(dataObj),
-            };
-          }),
           ...(calculationsIcpmsFoodPerParam[param.id] || []).map((calc) => {
             const dataObj = { ...calc } as any;
             return {
@@ -4323,80 +3184,38 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
               data: JSON.stringify(dataObj),
             };
           }),
-          ...(calculationsROIPerParam[param.id] || []).map((calc) => {
+          ...(calculationsLithosun400PerParam[param.id] || []).map((calc) => {
             const dataObj = { ...calc } as any;
-            delete dataObj.selectedSamplePrepId;
             return {
               label: calc.label,
-              calculationType: "roi",
+              calculationType: "lithosun400",
               data: JSON.stringify(dataObj),
             };
           }),
-          ...(calculationsSulphatedAshPerParam[param.id] || []).map((calc) => {
+          ...(calculationsMeropenamPerParam[param.id] || []).map((calc) => {
             const dataObj = { ...calc } as any;
-            delete dataObj.selectedSamplePrepId;
             return {
               label: calc.label,
-              calculationType: "sulphated_ash",
+              calculationType: "meropenam",
               data: JSON.stringify(dataObj),
             };
           }),
-          ...(calculationsRSPerParam[param.id] || []).map((calc) => {
+          ...(calculationsSFGCPerParam[param.id] || []).map((calc) => {
             const dataObj = { ...calc } as any;
-            delete dataObj.selectedStandardPrepId;
-            delete dataObj.selectedSamplePrepId;
             return {
               label: calc.label,
-              calculationType: "residual_solvent",
+              calculationType: "sfgc",
               data: JSON.stringify(dataObj),
             };
           }),
-          ...(calculationsRelatedSubstancePerParam[param.id] || []).map(
-            (calc) => {
-              const dataObj = { ...calc } as any;
-              delete dataObj.selectedStandardPrepId;
-              delete dataObj.selectedSamplePrepId;
-              return {
-                label: calc.label,
-                calculationType: "related_substance",
-                data: JSON.stringify(dataObj),
-              };
-            },
-          ),
-          ...(calculationsDissoPerParam[param.id] || []).map((calc) => {
+          ...(calculationsTalcPerParam[param.id] || []).map((calc) => {
             const dataObj = { ...calc } as any;
-            delete dataObj.selectedStandardPrepId;
-            delete dataObj.selectedSamplePrepId;
             return {
               label: calc.label,
-              calculationType: "dissolution",
+              calculationType: "talc",
               data: JSON.stringify(dataObj),
             };
           }),
-          ...(calculationsDissoProfilePerParam[param.id] || []).map((calc) => {
-            const dataObj = { ...calc } as any;
-            delete dataObj.selectedStandardPrepId;
-            delete dataObj.selectedSamplePrepId;
-            return {
-              label: calc.label,
-              calculationType: "dissolution_profile",
-              data: JSON.stringify(dataObj),
-            };
-          }),
-          ...(calculationsAssayFerrousFumaratePerParam[param.id] || []).map(
-            (calc) => ({
-              label: calc.label,
-              calculationType: "assay_ferrous_fumarate",
-              data: JSON.stringify({ ...calc }),
-            }),
-          ),
-          ...(calculationsDissoFerrousFumaratePerParam[param.id] || []).map(
-            (calc) => ({
-              label: calc.label,
-              calculationType: "dissolution_ferrous_fumarate",
-              data: JSON.stringify({ ...calc }),
-            }),
-          ),
         ];
 
         return {
@@ -4405,8 +3224,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           parameterName: param.parameterName,
           methodCode: param.methodCode,
           methodName: param.methodName,
-          columnId: columnsPerParam[param.id] || null,
-          diluentPreparation: diluentPerParam[param.id] || null,
           otherInfo: otherInfoPerParam[param.id] || null,
           analysisStartDate: analysisStartDatePerParam[param.id] || null,
           analysisCompletionDate:
@@ -4448,7 +3265,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             purity: std.purity,
             validity: std.validity,
           })),
-          preparations, // ← Unified preparations array
+          preparations,
           calculations,
           files: collectFilesForParam(param.id),
         };
@@ -4759,8 +3576,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             parameterName: newParameter.parameterName,
             methodCode: newParameter.methodCode,
             methodName: newParameter.methodName,
-            columnId: columnsPerParam[newId] || null,
-            diluentPreparation: diluentPerParam[newId] || null,
             otherInfo: otherInfoPerParam[newId] || null,
             analyzedBy: employeeId,
             approvedByReviewer: null,
@@ -4793,61 +3608,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
               validity: std.validity,
             })),
             preparations: [
-              // Standard Preparations
-              ...(standardPreparationAssayPerParam[newId] || []).map((sp) => ({
-                label: sp.label,
-                preparationCategory: "standard",
-                preparationType: "assay",
-                assignedStandardId: sp.assignedStandardId || "",
-                steps: JSON.stringify(sp.steps),
-              })),
-              ...(standardPreparationResidualSolventPerParam[newId] || []).map(
-                (sp) => ({
-                  label: sp.label,
-                  preparationCategory: "standard",
-                  preparationType: "residual_solvent",
-                  assignedStandardId: (sp as any).assignedStandardId || "",
-                  steps: JSON.stringify(sp.steps),
-                }),
-              ),
-              ...(standardPreparationRelatedSubstancePerParam[newId] || []).map(
-                (sp) => ({
-                  label: sp.label,
-                  preparationCategory: "standard",
-                  preparationType: "related_substance",
-                  assignedStandardId: (sp as any).assignedStandardId || "",
-                  steps: JSON.stringify(sp.steps),
-                }),
-              ),
-              ...(standardPreparationDissoPerParam[newId] || []).map((sp) => ({
-                label: sp.label,
-                preparationCategory: "standard",
-                preparationType: "dissolution",
-                assignedStandardId: (sp as any).assignedStandardId || "",
-                steps: JSON.stringify(sp.steps),
-              })),
-              // Sample Preparations
-              ...(samplePreparationPerParam[newId] || []).map((sp) => ({
-                label: sp.label,
-                preparationCategory: "sample",
-                preparationType: "assay",
-                assignedStandardId: "",
-                steps: JSON.stringify(sp.steps),
-              })),
-              ...(samplePreparationROIPerParam[newId] || []).map((sp) => ({
-                label: sp.label,
-                preparationCategory: "sample",
-                preparationType: "roi",
-                assignedStandardId: "",
-                steps: JSON.stringify(sp.steps),
-              })),
-              ...(samplePreparationLodPerParam[newId] || []).map((sp) => ({
-                label: sp.label,
-                preparationCategory: "sample",
-                preparationType: "lod",
-                assignedStandardId: "",
-                steps: JSON.stringify(sp.steps),
-              })),
               ...(samplePreparationIcpmsFoodPerParam[newId] || []).map((sp) => ({
                 label: sp.label,
                 preparationCategory: "sample",
@@ -4925,6 +3685,13 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                 assignedStandardId: "",
                 steps: JSON.stringify(sp.steps),
               })),
+              ...(samplePreparationLithosun400PerParam[newId] || []).map((sp) => ({
+                label: sp.label,
+                preparationCategory: "sample",
+                preparationType: "lithosun400",
+                assignedStandardId: "",
+                steps: JSON.stringify(sp.steps),
+              })),
               // Standard Preparations for Metal groups
               ...Object.entries(standardPreparationMetalPerParam[newId] || {}).flatMap(([groupId, preps]) => {
                 const prepType = METAL_GROUP_TO_TYPE[groupId] || groupId;
@@ -4936,96 +3703,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                   steps: JSON.stringify(sp.steps),
                 }));
               }),
-              ...(samplePreparationSulphatedAshPerParam[newId] || []).map(
-                (sp) => ({
-                  label: sp.label,
-                  preparationCategory: "sample",
-                  preparationType: "sulphated_ash",
-                  assignedStandardId: "",
-                  steps: JSON.stringify(sp.steps),
-                }),
-              ),
-              ...(samplePreparationRSPerParam[newId] || []).map((sp) => ({
-                label: sp.label,
-                preparationCategory: "sample",
-                preparationType: "residual_solvent",
-                assignedStandardId: (sp as any).assignedStandardId || "",
-                steps: JSON.stringify(sp.steps),
-              })),
-              ...(samplePreparationRelatedSubstancePerParam[newId] || []).map(
-                (sp) => ({
-                  label: sp.label,
-                  preparationCategory: "sample",
-                  preparationType: "related_substance",
-                  assignedStandardId: (sp as any).assignedStandardId || "",
-                  steps: JSON.stringify(sp.steps),
-                }),
-              ),
-              ...(samplePreparationDissoPerParam[newId] || []).map((sp) => ({
-                label: sp.label,
-                preparationCategory: "sample",
-                preparationType: "dissolution",
-                assignedStandardId: (sp as any).assignedStandardId || "",
-                steps: JSON.stringify(sp.steps),
-              })),
-              // Dissolution Media Preparation
-              ...(dissoMediaPerParam[newId] || []).map((dm) => ({
-                label: dm.label,
-                preparationCategory: "dissolution_media",
-                preparationType: null,
-                assignedStandardId: null,
-                steps: JSON.stringify(dm.steps),
-              })),
-              // Mobile Phase
-              ...(mobilePhasePerParam[newId] || []).map((mp) => ({
-                label: mp.label,
-                preparationCategory: "mobile_phase",
-                preparationType: null,
-                assignedStandardId: null,
-                steps: null,
-                content: mp.content,
-              })),
-              // Sample Preparation Assay (Ferrous Fumarate)
-              ...(samplePrepAssayFerrousFumaratePerParam[newId] || []).map(
-                (spt) => ({
-                  label: spt.label,
-                  preparationCategory: "sample",
-                  preparationType: "assay_ferrous_fumarate",
-                  assignedStandardId: null,
-                  steps: JSON.stringify(spt.steps),
-                }),
-              ),
-              // Sample Preparation Dissolution (Ferrous Fumarate)
-              ...(samplePrepDissoFerrousFumaratePerParam[newId] || []).map(
-                (spt) => ({
-                  label: spt.label,
-                  preparationCategory: "sample",
-                  preparationType: "dissolution_ferrous_fumarate",
-                  assignedStandardId: null,
-                  steps: JSON.stringify(spt.steps),
-                }),
-              ),
             ],
             calculations: [
-              ...(calculationsAssayPerParam[newId] || []).map((calc) => {
-                const dataObj = { ...calc } as any;
-                delete dataObj.selectedStandardPrepId;
-                delete dataObj.selectedSamplePrepId;
-                return {
-                  label: calc.label,
-                  calculationType: "assay",
-                  data: JSON.stringify(dataObj),
-                };
-              }),
-              ...(calculationsLodPerParam[newId] || []).map((calc) => {
-                const dataObj = { ...calc } as any;
-                delete dataObj.selectedSamplePrepId;
-                return {
-                  label: calc.label,
-                  calculationType: "lod",
-                  data: JSON.stringify(dataObj),
-                };
-              }),
               ...(calculationsIcpmsFoodPerParam[newId] || []).map((calc) => {
                 const dataObj = { ...calc } as any;
                 return {
@@ -5114,70 +3793,38 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                   data: JSON.stringify(dataObj),
                 };
               }),
-              ...(calculationsROIPerParam[newId] || []).map((calc) => {
+              ...(calculationsLithosun400PerParam[newId] || []).map((calc) => {
                 const dataObj = { ...calc } as any;
-                delete dataObj.selectedSamplePrepId;
                 return {
                   label: calc.label,
-                  calculationType: "roi",
+                  calculationType: "lithosun400",
                   data: JSON.stringify(dataObj),
                 };
               }),
-              ...(calculationsSulphatedAshPerParam[newId] || []).map((calc) => {
+              ...(calculationsMeropenamPerParam[newId] || []).map((calc) => {
                 const dataObj = { ...calc } as any;
-                delete dataObj.selectedSamplePrepId;
                 return {
                   label: calc.label,
-                  calculationType: "sulphated_ash",
+                  calculationType: "meropenam",
                   data: JSON.stringify(dataObj),
                 };
               }),
-              ...(calculationsRSPerParam[newId] || []).map((calc) => {
+              ...(calculationsSFGCPerParam[newId] || []).map((calc) => {
                 const dataObj = { ...calc } as any;
-                delete dataObj.selectedStandardPrepId;
-                delete dataObj.selectedSamplePrepId;
                 return {
                   label: calc.label,
-                  calculationType: "residual_solvent",
+                  calculationType: "sfgc",
                   data: JSON.stringify(dataObj),
                 };
               }),
-              ...(calculationsRelatedSubstancePerParam[newId] || []).map(
-                (calc) => {
-                  const dataObj = { ...calc } as any;
-                  delete dataObj.selectedStandardPrepId;
-                  delete dataObj.selectedSamplePrepId;
-                  return {
-                    label: calc.label,
-                    calculationType: "related_substance",
-                    data: JSON.stringify(dataObj),
-                  };
-                },
-              ),
-              ...(calculationsDissoPerParam[newId] || []).map((calc) => {
+              ...(calculationsTalcPerParam[newId] || []).map((calc) => {
                 const dataObj = { ...calc } as any;
-                delete dataObj.selectedStandardPrepId;
-                delete dataObj.selectedSamplePrepId;
                 return {
                   label: calc.label,
-                  calculationType: "dissolution",
+                  calculationType: "talc",
                   data: JSON.stringify(dataObj),
                 };
               }),
-              ...(calculationsAssayFerrousFumaratePerParam[newId] || []).map(
-                (calc) => ({
-                  label: calc.label,
-                  calculationType: "assay_ferrous_fumarate",
-                  data: JSON.stringify({ ...calc }),
-                }),
-              ),
-              ...(calculationsDissoFerrousFumaratePerParam[newId] || []).map(
-                (calc) => ({
-                  label: calc.label,
-                  calculationType: "dissolution_ferrous_fumarate",
-                  data: JSON.stringify({ ...calc }),
-                }),
-              ),
             ],
             files: collectFilesForParam(newId),
           };
@@ -5206,20 +3853,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             const { [newId]: status, ...rest } = prev;
             return { ...rest, [serverParameterId]: status };
           });
-
-          if (columnsPerParam[newId]) {
-            setColumnsPerParam((prev) => {
-              const { [newId]: column, ...rest } = prev;
-              return { ...rest, [serverParameterId]: column };
-            });
-          }
-
-          if (diluentPerParam[newId]) {
-            setDiluentPerParam((prev) => {
-              const { [newId]: diluent, ...rest } = prev;
-              return { ...rest, [serverParameterId]: diluent };
-            });
-          }
 
           if (otherInfoPerParam[newId]) {
             setOtherInfoPerParam((prev) => {
@@ -5253,55 +3886,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             setAddedStandards((prev) => {
               const { [newId]: standards, ...rest } = prev;
               return { ...rest, [serverParameterId]: standards };
-            });
-          }
-
-          if (standardPreparationAssayPerParam[newId]) {
-            setStandardPreparationAssayPerParam((prev) => {
-              const { [newId]: preps, ...rest } = prev;
-              return { ...rest, [serverParameterId]: preps };
-            });
-          }
-
-          if (samplePreparationPerParam[newId]) {
-            setSamplePreparationPerParam((prev) => {
-              const { [newId]: preps, ...rest } = prev;
-              return { ...rest, [serverParameterId]: preps };
-            });
-          }
-
-          if (standardPreparationResidualSolventPerParam[newId]) {
-            setStandardPreparationResidualSolventPerParam((prev) => {
-              const { [newId]: preps, ...rest } = prev;
-              return { ...rest, [serverParameterId]: preps };
-            });
-          }
-
-          if (samplePreparationRSPerParam[newId]) {
-            setSamplePreparationRSPerParam((prev) => {
-              const { [newId]: preps, ...rest } = prev;
-              return { ...rest, [serverParameterId]: preps };
-            });
-          }
-
-          if (standardPreparationDissoPerParam[newId]) {
-            setStandardPreparationDissoPerParam((prev) => {
-              const { [newId]: preps, ...rest } = prev;
-              return { ...rest, [serverParameterId]: preps };
-            });
-          }
-
-          if (samplePreparationDissoPerParam[newId]) {
-            setSamplePreparationDissoPerParam((prev) => {
-              const { [newId]: preps, ...rest } = prev;
-              return { ...rest, [serverParameterId]: preps };
-            });
-          }
-
-          if (samplePreparationLodPerParam[newId]) {
-            setSamplePreparationLodPerParam((prev) => {
-              const { [newId]: preps, ...rest } = prev;
-              return { ...rest, [serverParameterId]: preps };
             });
           }
 
@@ -5375,31 +3959,17 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             });
           }
 
-          if (samplePreparationROIPerParam[newId]) {
-            setSamplePreparationROIPerParam((prev) => {
+          if (samplePreparationLithosun300PerParam[newId]) {
+            setSamplePreparationLithosun300PerParam((prev) => {
               const { [newId]: preps, ...rest } = prev;
               return { ...rest, [serverParameterId]: preps };
             });
           }
 
-          if (samplePreparationSulphatedAshPerParam[newId]) {
-            setSamplePreparationSulphatedAshPerParam((prev) => {
+          if (samplePreparationLithosun400PerParam[newId]) {
+            setSamplePreparationLithosun400PerParam((prev) => {
               const { [newId]: preps, ...rest } = prev;
               return { ...rest, [serverParameterId]: preps };
-            });
-          }
-
-          if (calculationsAssayPerParam[newId]) {
-            setCalculationsAssayPerParam((prev) => {
-              const { [newId]: calcs, ...rest } = prev;
-              return { ...rest, [serverParameterId]: calcs };
-            });
-          }
-
-          if (calculationsLodPerParam[newId]) {
-            setCalculationsLodPerParam((prev) => {
-              const { [newId]: calcs, ...rest } = prev;
-              return { ...rest, [serverParameterId]: calcs };
             });
           }
 
@@ -5473,52 +4043,31 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             });
           }
 
-          if (calculationsROIPerParam[newId]) {
-            setCalculationsROIPerParam((prev) => {
+          if (calculationsLithosun300PerParam[newId]) {
+            setCalculationsLithosun300PerParam((prev) => {
               const { [newId]: calcs, ...rest } = prev;
               return { ...rest, [serverParameterId]: calcs };
             });
           }
 
-          if (calculationsSulphatedAshPerParam[newId]) {
-            setCalculationsSulphatedAshPerParam((prev) => {
+          if (calculationsLithosun400PerParam[newId]) {
+            setCalculationsLithosun400PerParam((prev) => {
               const { [newId]: calcs, ...rest } = prev;
               return { ...rest, [serverParameterId]: calcs };
             });
           }
 
-          if (calculationsRSPerParam[newId]) {
-            setCalculationsRSPerParam((prev) => {
+          if (calculationsMeropenamPerParam[newId]) {
+            setCalculationsMeropenamPerParam((prev) => {
               const { [newId]: calcs, ...rest } = prev;
               return { ...rest, [serverParameterId]: calcs };
             });
           }
 
-          if (calculationsDissoPerParam[newId]) {
-            setCalculationsDissoPerParam((prev) => {
+          if (calculationsSFGCPerParam[newId]) {
+            setCalculationsSFGCPerParam((prev) => {
               const { [newId]: calcs, ...rest } = prev;
               return { ...rest, [serverParameterId]: calcs };
-            });
-          }
-
-          if (calculationsAssayFerrousFumaratePerParam[newId]) {
-            setCalculationsAssayFerrousFumaratePerParam((prev) => {
-              const { [newId]: calcs, ...rest } = prev;
-              return { ...rest, [serverParameterId]: calcs };
-            });
-          }
-
-          if (calculationsDissoFerrousFumaratePerParam[newId]) {
-            setCalculationsDissoFerrousFumaratePerParam((prev) => {
-              const { [newId]: calcs, ...rest } = prev;
-              return { ...rest, [serverParameterId]: calcs };
-            });
-          }
-
-          if (samplePrepDissoFerrousFumaratePerParam[newId]) {
-            setSamplePrepDissoFerrousFumaratePerParam((prev) => {
-              const { [newId]: preps, ...rest } = prev;
-              return { ...rest, [serverParameterId]: preps };
             });
           }
 
@@ -5558,21 +4107,12 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
           cleanupState(setAnalyzedByPerParam);
           cleanupState(setParameterStatusPerParam);
-          cleanupState(setColumnsPerParam);
-          cleanupState(setDiluentPerParam);
           cleanupState(setOtherInfoPerParam);
           cleanupState(setAdditionalInfoPerParam);
           cleanupState(setShowAdditionalInfo);
           cleanupState(setAddedInstruments);
           cleanupState(setAddedChemicals);
           cleanupState(setAddedStandards);
-          cleanupState(setStandardPreparationAssayPerParam);
-          cleanupState(setSamplePreparationPerParam);
-          cleanupState(setStandardPreparationResidualSolventPerParam);
-          cleanupState(setSamplePreparationRSPerParam);
-          cleanupState(setStandardPreparationDissoPerParam);
-          cleanupState(setSamplePreparationDissoPerParam);
-          cleanupState(setSamplePreparationLodPerParam);
           cleanupState(setSamplePreparationIcpmsFoodPerParam);
           cleanupState(setSamplePreparationIcpoesFoodPerParam);
           cleanupState(setSamplePreparationIcpmsWaterPerParam);
@@ -5581,10 +4121,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           cleanupState(setSamplePreparationAnoferPerParam);
           cleanupState(setSamplePreparationZptoShampooPerParam);
           cleanupState(setSamplePreparationSodiumLactatePerParam);
-          cleanupState(setSamplePreparationROIPerParam);
-          cleanupState(setSamplePreparationSulphatedAshPerParam);
-          cleanupState(setCalculationsAssayPerParam);
-          cleanupState(setCalculationsLodPerParam);
           cleanupState(setCalculationsIcpmsFoodPerParam);
           cleanupState(setCalculationsIcpoesFoodPerParam);
           cleanupState(setCalculationsIcpmsWaterPerParam);
@@ -5593,21 +4129,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           cleanupState(setCalculationsAnoferPerParam);
           cleanupState(setCalculationsZptoShampooPerParam);
           cleanupState(setCalculationsSodiumLactatePerParam);
-          cleanupState(setCalculationsROIPerParam);
-          cleanupState(setCalculationsSulphatedAshPerParam);
-          cleanupState(setCalculationsRSPerParam);
-          cleanupState(setCalculationsDissoPerParam);
-          cleanupState(setDissoMediaPerParam);
-          cleanupState(setMobilePhasePerParam);
-          cleanupState(setShowMobilePhasePreparation);
-          cleanupState(setShowBufferPreparation);
-          cleanupState(setSamplePrepAssayFerrousFumaratePerParam);
-          cleanupState(setCalculationsAssayFerrousFumaratePerParam);
-          cleanupState(setCalculationsDissoFerrousFumaratePerParam);
-          cleanupState(setSamplePrepDissoFerrousFumaratePerParam);
-          cleanupState(setShowDiluentPreparation);
-          cleanupState(setShowSystemSuitability);
-          cleanupState(setSystemSuitabilityPerParam);
+          cleanupState(setCalculationsLithosun300PerParam);
+          cleanupState(setCalculationsLithosun400PerParam);
+          cleanupState(setCalculationsMeropenamPerParam);
+          cleanupState(setCalculationsSFGCPerParam);
+          cleanupState(setCalculationsTalcPerParam);
 
           setToastMessage(
             error instanceof Error
@@ -5639,8 +4165,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
               parameterName: param.parameterName,
               methodCode: param.methodCode,
               methodName: param.methodName,
-              columnId: columnsPerParam[paramId] || null,
-              diluentPreparation: diluentPerParam[paramId] || null,
               otherInfo: otherInfoPerParam[paramId] || null,
               analyzedBy: employeeId,
               approvedByReviewer: approvedByReviewerPerParam[paramId] || null,
@@ -5784,14 +4308,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     cleanupState(setAddedInstruments);
     cleanupState(setAddedChemicals);
     cleanupState(setAddedStandards);
-    cleanupState(setColumnsPerParam);
-    cleanupState(setDiluentPerParam);
     cleanupState(setOtherInfoPerParam);
     cleanupState(setAdditionalInfoPerParam);
     cleanupState(setShowAdditionalInfo);
-    cleanupState(setCalculationsAssayPerParam);
-    cleanupState(setCalculationsROIPerParam);
-    cleanupState(setCalculationsLodPerParam);
     cleanupState(setCalculationsIcpmsFoodPerParam);
     cleanupState(setCalculationsIcpoesFoodPerParam);
     cleanupState(setCalculationsIcpmsWaterPerParam);
@@ -5800,16 +4319,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     cleanupState(setCalculationsAnoferPerParam);
     cleanupState(setCalculationsZptoShampooPerParam);
     cleanupState(setCalculationsSodiumLactatePerParam);
-    cleanupState(setCalculationsSulphatedAshPerParam);
-    cleanupState(setCalculationsDissoPerParam);
-    cleanupState(setStandardPreparationAssayPerParam);
-    cleanupState(setSamplePreparationPerParam);
-    cleanupState(setStandardPreparationDissoPerParam);
-    cleanupState(setSamplePreparationDissoPerParam);
-    cleanupState(setStandardPreparationResidualSolventPerParam);
-    cleanupState(setSamplePreparationRSPerParam);
-    cleanupState(setCalculationsRSPerParam);
-    cleanupState(setSamplePreparationLodPerParam);
     cleanupState(setSamplePreparationIcpmsFoodPerParam);
     cleanupState(setSamplePreparationIcpoesFoodPerParam);
     cleanupState(setSamplePreparationIcpmsWaterPerParam);
@@ -5818,26 +4327,14 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     cleanupState(setSamplePreparationAnoferPerParam);
     cleanupState(setSamplePreparationZptoShampooPerParam);
     cleanupState(setSamplePreparationSodiumLactatePerParam);
-    cleanupState(setSamplePreparationROIPerParam);
-    cleanupState(setSamplePreparationSulphatedAshPerParam);
     cleanupState(setActivePreparationGroups);
-    cleanupState(setDissoMediaPerParam);
-    cleanupState(setMobilePhasePerParam);
-    cleanupState(setShowMobilePhasePreparation);
-    cleanupState(setShowBufferPreparation);
-    cleanupState(setSamplePrepAssayFerrousFumaratePerParam);
-    cleanupState(setCalculationsAssayFerrousFumaratePerParam);
-    cleanupState(setCalculationsDissoFerrousFumaratePerParam);
-    cleanupState(setSamplePrepDissoFerrousFumaratePerParam);
-    cleanupState(setSamplePreparationUCPerParam);
-    cleanupState(setStandardPreparationUCPerParam);
-    cleanupState(setCalculationsUCPerParam);
-    cleanupState(setShowDiluentPreparation);
-    cleanupState(setShowSystemSuitability);
-    cleanupState(setSystemSuitabilityPerParam);
     cleanupState(setRemarksByAnalystPerParam);
     cleanupState(setPreparationCompletedByPerParam);
     cleanupState(setPreparationCompletedAtPerParam);
+    cleanupState(setCalculationsLithosun400PerParam);
+    cleanupState(setCalculationsMeropenamPerParam);
+    cleanupState(setCalculationsSFGCPerParam);
+    cleanupState(setCalculationsTalcPerParam);
   };
 
   const toggleParameterDetail = (id: number) => {
@@ -5902,7 +4399,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     });
     // Stable object registered once. The ref wrappers above always delegate
     // to the latest handler, so no stale-closure problem.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps.
   }, []);
 
   useEffect(() => {
@@ -6016,66 +4513,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     if (!param) return null;
 
     const preparations = [
-      ...(standardPreparationUCPerParam[paramId] || []).map((sp) => ({
-        label: sp.label,
-        preparationCategory: "standard",
-        preparationType: "uniformity_of_content",
-        assignedStandardId: (sp as any).assignedStandardId || "",
-        steps: JSON.stringify(sp.steps),
-      })),
-      ...(samplePreparationUCPerParam[paramId] || []).map((sp) => ({
-        label: sp.label,
-        preparationCategory: "sample",
-        preparationType: "uniformity_of_content",
-        assignedStandardId: (sp as any).assignedStandardId || null,
-        steps: JSON.stringify(sp.steps),
-      })),
-      ...(standardPreparationAssayPerParam[paramId] || []).map((sp) => ({
-        label: sp.label,
-        preparationCategory: "standard",
-        preparationType: "assay",
-        assignedStandardId: (sp as any).assignedStandardId || "",
-        steps: JSON.stringify(sp.steps),
-      })),
-      ...(standardPreparationResidualSolventPerParam[paramId] || []).map(
-        (sp) => ({
-          label: sp.label,
-          preparationCategory: "standard",
-          preparationType: "residual_solvent",
-          assignedStandardId: (sp as any).assignedStandardId || "",
-          steps: JSON.stringify(sp.steps),
-        }),
-      ),
-      ...(standardPreparationRelatedSubstancePerParam[paramId] || []).map(
-        (sp) => ({
-          label: sp.label,
-          preparationCategory: "standard",
-          preparationType: "related_substance",
-          assignedStandardId: (sp as any).assignedStandardId || "",
-          steps: JSON.stringify(sp.steps),
-        }),
-      ),
-      ...(standardPreparationDissoPerParam[paramId] || []).map((sp) => ({
-        label: sp.label,
-        preparationCategory: "standard",
-        preparationType: "dissolution",
-        assignedStandardId: (sp as any).assignedStandardId || "",
-        steps: JSON.stringify(sp.steps),
-      })),
-      ...(samplePreparationPerParam[paramId] || []).map((sp) => ({
-        label: sp.label,
-        preparationCategory: "sample",
-        preparationType: "assay",
-        assignedStandardId: null,
-        steps: JSON.stringify(sp.steps),
-      })),
-      ...(samplePreparationLodPerParam[paramId] || []).map((spl) => ({
-        label: spl.label,
-        preparationCategory: "sample",
-        preparationType: "lod",
-        assignedStandardId: null,
-        steps: JSON.stringify(spl.steps),
-      })),
       ...(samplePreparationIcpmsFoodPerParam[paramId] || []).map((sp) => ({
         label: sp.label,
         preparationCategory: "sample",
@@ -6146,95 +4583,52 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         assignedStandardId: null,
         steps: JSON.stringify(sp.steps),
       })),
-      ...(samplePreparationROIPerParam[paramId] || []).map((spl) => ({
-        label: spl.label,
-        preparationCategory: "sample",
-        preparationType: "roi",
-        assignedStandardId: null,
-        steps: JSON.stringify(spl.steps),
-      })),
-      ...(samplePreparationSulphatedAshPerParam[paramId] || []).map((sps) => ({
-        label: sps.label,
-        preparationCategory: "sample",
-        preparationType: "sulphated_ash",
-        assignedStandardId: null,
-        steps: JSON.stringify(sps.steps),
-      })),
-      ...(samplePreparationRSPerParam[paramId] || []).map((sp) => ({
+      ...(samplePreparationLithosun300PerParam[paramId] || []).map((sp) => ({
         label: sp.label,
         preparationCategory: "sample",
-        preparationType: "residual_solvent",
+        preparationType: "lithosun300",
         assignedStandardId: null,
         steps: JSON.stringify(sp.steps),
       })),
-      ...(samplePreparationRelatedSubstancePerParam[paramId] || []).map(
-        (sp) => ({
+      ...(samplePreparationLithosun400PerParam[paramId] || []).map((sp) => ({
+        label: sp.label,
+        preparationCategory: "sample",
+        preparationType: "lithosun400",
+        assignedStandardId: null,
+        steps: JSON.stringify(sp.steps),
+      })),
+      ...(samplePreparationMeropenamPerParam[paramId] || []).map((sp) => ({
+        label: sp.label,
+        preparationCategory: "sample",
+        preparationType: "meropenam",
+        assignedStandardId: null,
+        steps: JSON.stringify(sp.steps),
+      })),
+      ...(samplePreparationSFGCPerParam[paramId] || []).map((sp) => ({
+        label: sp.label,
+        preparationCategory: "sample",
+        preparationType: "sfgc",
+        assignedStandardId: null,
+        steps: JSON.stringify(sp.steps),
+      })),
+      ...(samplePreparationTalcPerParam[paramId] || []).map((sp) => ({
+        label: sp.label,
+        preparationCategory: "sample",
+        preparationType: "talc",
+        assignedStandardId: null,
+        steps: JSON.stringify(sp.steps),
+      })),
+      // Standard Preparations for Metal groups
+      ...Object.entries(standardPreparationMetalPerParam[paramId] || {}).flatMap(([groupId, preps]) => {
+        const prepType = METAL_GROUP_TO_TYPE[groupId] || groupId;
+        return preps.map((sp) => ({
           label: sp.label,
-          preparationCategory: "sample",
-          preparationType: "related_substance",
+          preparationCategory: "standard",
+          preparationType: prepType,
           assignedStandardId: null,
           steps: JSON.stringify(sp.steps),
-        }),
-      ),
-      ...(samplePreparationDissoPerParam[paramId] || []).map((spd) => ({
-        label: spd.label,
-        preparationCategory: "sample",
-        preparationType: "dissolution",
-        assignedStandardId: null,
-        steps: JSON.stringify(spd.steps),
-      })),
-      ...(dissoMediaPerParam[paramId] || []).map((dm) => ({
-        label: dm.label,
-        preparationCategory: "dissolution_media",
-        preparationType: "dissolution",
-        assignedStandardId: null,
-        steps: JSON.stringify(dm.steps),
-      })),
-      ...(mobilePhasePerParam[paramId] || []).map((mp) => ({
-        label: mp.label,
-        preparationCategory: "mobile_phase",
-        preparationType: null,
-        assignedStandardId: null,
-        steps: null,
-        content: mp.content,
-      })),
-      ...(bufferPreparationPerParam[paramId] || []).map((bp) => ({
-        label: bp.label,
-        preparationCategory: "buffer",
-        preparationType: null,
-        assignedStandardId: null,
-        steps: JSON.stringify(bp.steps),
-        content: null,
-      })),
-      ...(diluentPreparationsPerParam[paramId] || []).map((dp) => ({
-        label: dp.label,
-        preparationCategory: "diluent",
-        preparationType: null,
-        assignedStandardId: null,
-        steps: null,
-        content: dp.content,
-      })),
-      ...(samplePrepAssayFerrousFumaratePerParam[paramId] || []).map((spt) => ({
-        label: spt.label,
-        preparationCategory: "sample",
-        preparationType: "assay_ferrous_fumarate",
-        assignedStandardId: null,
-        steps: JSON.stringify(spt.steps),
-      })),
-      ...(samplePrepDissoFerrousFumaratePerParam[paramId] || []).map((spt) => ({
-        label: spt.label,
-        preparationCategory: "sample",
-        preparationType: "dissolution_ferrous_fumarate",
-        assignedStandardId: null,
-        steps: JSON.stringify(spt.steps),
-      })),
-      ...(systemSuitabilityPerParam[paramId] || []).map((ss) => ({
-        label: ss.label,
-        preparationCategory: "system_suitability",
-        preparationType: null,
-        assignedStandardId: null,
-        steps: JSON.stringify(ss.steps),
-      })),
+        }));
+      }),
       ...(blankPreparationPerParam[paramId] || []).map((bp) => ({
         label: bp.label,
         preparationCategory: "blank",
@@ -6243,59 +4637,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         steps: null,
         content: bp.content,
       })),
-      ...(standardPreparationDissoProfilePerParam[paramId] || []).map((sp) => ({
-        label: sp.label,
-        preparationCategory: "standard",
-        preparationType: "dissolution_profile",
-        assignedStandardId: (sp as any).assignedStandardId || "",
-        steps: JSON.stringify(sp.steps),
-      })),
-      ...(samplePreparationDissoProfilePerParam[paramId] || []).map((spd) => ({
-        label: spd.label,
-        preparationCategory: "sample",
-        preparationType: "dissolution_profile",
-        assignedStandardId: null,
-        steps: JSON.stringify(spd.steps),
-      })),
-      ...(dissoMediaProfilePerParam[paramId] || []).map((dm) => ({
-        label: dm.label,
-        preparationCategory: "dissolution_media",
-        preparationType: "dissolution_profile",
-        assignedStandardId: null,
-        steps: JSON.stringify(dm.steps),
-      })),
+
     ];
 
     const calculations = [
-      ...(calculationsUCPerParam[paramId] || []).map((calc) => {
-        const d = { ...calc } as any;
-        delete d.selectedStandardPrepId;
-        delete d.selectedSamplePrepId;
-        return {
-          label: calc.label,
-          calculationType: "uniformity_of_content",
-          data: JSON.stringify(d),
-        };
-      }),
-      ...(calculationsAssayPerParam[paramId] || []).map((calc) => {
-        const d = { ...calc } as any;
-        delete d.selectedStandardPrepId;
-        delete d.selectedSamplePrepId;
-        return {
-          label: calc.label,
-          calculationType: "assay",
-          data: JSON.stringify(d),
-        };
-      }),
-      ...(calculationsLodPerParam[paramId] || []).map((calc) => {
-        const d = { ...calc } as any;
-        delete d.selectedSamplePrepId;
-        return {
-          label: calc.label,
-          calculationType: "lod",
-          data: JSON.stringify(d),
-        };
-      }),
       ...(calculationsIcpmsFoodPerParam[paramId] || []).map((calc) => {
         const d = { ...calc } as any;
         return {
@@ -6376,78 +4721,46 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           data: JSON.stringify(d),
         };
       }),
-      ...(calculationsROIPerParam[paramId] || []).map((calc) => {
+      ...(calculationsLithosun300PerParam[paramId] || []).map((calc) => {
         const d = { ...calc } as any;
-        delete d.selectedSamplePrepId;
         return {
           label: calc.label,
-          calculationType: "roi",
+          calculationType: "lithosun300",
           data: JSON.stringify(d),
         };
       }),
-      ...(calculationsSulphatedAshPerParam[paramId] || []).map((calc) => {
+      ...(calculationsLithosun400PerParam[paramId] || []).map((calc) => {
         const d = { ...calc } as any;
-        delete d.selectedSamplePrepId;
         return {
           label: calc.label,
-          calculationType: "sulphated_ash",
+          calculationType: "lithosun400",
           data: JSON.stringify(d),
         };
       }),
-      ...(calculationsRSPerParam[paramId] || []).map((calc) => {
+      ...(calculationsMeropenamPerParam[paramId] || []).map((calc) => {
         const d = { ...calc } as any;
-        delete d.selectedStandardPrepId;
-        delete d.selectedSamplePrepId;
         return {
           label: calc.label,
-          calculationType: "residual_solvent",
+          calculationType: "meropenam",
           data: JSON.stringify(d),
         };
       }),
-      ...(calculationsRelatedSubstancePerParam[paramId] || []).map((calc) => {
+      ...(calculationsSFGCPerParam[paramId] || []).map((calc) => {
         const d = { ...calc } as any;
-        delete d.selectedStandardPrepId;
-        delete d.selectedSamplePrepId;
         return {
           label: calc.label,
-          calculationType: "related_substance",
+          calculationType: "sfgc",
           data: JSON.stringify(d),
         };
       }),
-      ...(calculationsDissoPerParam[paramId] || []).map((calc) => {
+      ...(calculationsTalcPerParam[paramId] || []).map((calc) => {
         const d = { ...calc } as any;
-        delete d.selectedStandardPrepId;
-        delete d.selectedSamplePrepId;
         return {
           label: calc.label,
-          calculationType: "dissolution",
+          calculationType: "talc",
           data: JSON.stringify(d),
         };
       }),
-      ...(calculationsDissoProfilePerParam[paramId] || []).map((calc) => {
-        const d = { ...calc } as any;
-        delete d.selectedStandardPrepId;
-        delete d.selectedSamplePrepId;
-        return {
-          label: calc.label,
-          calculationType: "dissolution_profile",
-          data: JSON.stringify(d),
-        };
-      }),
-      ...(calculationsAssayFerrousFumaratePerParam[paramId] || []).map(
-        (calc) => ({
-          label: calc.label,
-          calculationType: "assay_ferrous_fumarate",
-          data: JSON.stringify({ ...calc }),
-        }),
-      ),
-      ...(calculationsDissoFerrousFumaratePerParam[paramId] || []).map(
-        (calc) => ({
-          label: calc.label,
-          calculationType: "dissolution_ferrous_fumarate",
-          data: JSON.stringify({ ...calc }),
-        }),
-      ),
     ];
 
     // Build explicit payload — never spread ...param to avoid stale field contamination
@@ -6457,8 +4770,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
       parameterName: param.parameterName,
       methodCode: param.methodCode,
       methodName: param.methodName,
-      columnId: columnsPerParam[paramId] || null,
-      diluentPreparation: diluentPerParam[paramId] || null,
       otherInfo: otherInfoPerParam[paramId] || null,
       additional_info: additionalInfoPerParam[paramId] || null,
       analysisStartDate: analysisStartDatePerParam[paramId] || null,
@@ -6482,29 +4793,29 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           : preparationCompletedAtPerParam[paramId] || null,
       status: parameterStatusPerParam[paramId] || "Created",
       instruments: (addedInstruments[paramId] || []).map((inst) => ({
-                instrumentId: inst.instrumentId,
-                name: inst.name,
-                instrumentTag: inst.instrumentTag,
-                make: inst.make,
-                calibrationDoneDate: inst.calibrationDoneDate,
-                calibrationDueDate: inst.calibrationDueDate,
-              })),
-              chemicals: (addedChemicals[paramId] || []).map((chem) => ({
-                slno: chem.slno,
-                name: chem.name,
-                code: chem.code,
-                make: chem.make,
-                batchNo: chem.batchNo,
-                expDate: chem.expDate,
-              })),
-              standards: (addedStandards[paramId] || []).map((std) => ({
-                serialNo: std.serialNo,
-                name: std.name,
-                batchNo: std.batchNo,
-                make: std.make,
-                purity: std.purity,
-                validity: std.validity,
-              })),
+        instrumentId: inst.instrumentId,
+        name: inst.name,
+        instrumentTag: inst.instrumentTag,
+        make: inst.make,
+        calibrationDoneDate: inst.calibrationDoneDate,
+        calibrationDueDate: inst.calibrationDueDate,
+      })),
+      chemicals: (addedChemicals[paramId] || []).map((chem) => ({
+        slno: chem.slno,
+        name: chem.name,
+        code: chem.code,
+        make: chem.make,
+        batchNo: chem.batchNo,
+        expDate: chem.expDate,
+      })),
+      standards: (addedStandards[paramId] || []).map((std) => ({
+        serialNo: std.serialNo,
+        name: std.name,
+        batchNo: std.batchNo,
+        make: std.make,
+        purity: std.purity,
+        validity: std.validity,
+      })),
       preparations,
       calculations,
       files: collectFilesForParam(paramId),
@@ -7502,292 +5813,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     }));
   };
 
-  const handleStandardSelectedForPreparation = (
-    standard: Standard,
-    isRS: boolean = false,
-    isDisso: boolean = false,
-    isUC: boolean = false,
-    isDissoProfile: boolean = false,
-    isRelatedSubstance: boolean = false,
-  ) => {
-    if (currentParameterForStandardPrep === null) return;
-
-    const parameterId = currentParameterForStandardPrep;
-
-    if (isRelatedSubstance) {
-      const currentStandards =
-        standardPreparationRelatedSubstancePerParam[parameterId] || [];
-      const newIndex = currentStandards.length;
-      const newStandardPrep = createNewStandardPreparation(newIndex);
-
-      newStandardPrep.steps = newStandardPrep.steps.map((step) => {
-        if (step.name === "Weighing") {
-          return { ...step, solventChemical: standard.name };
-        }
-        return step;
-      });
-
-      setStandardPreparationRelatedSubstancePerParam((prev) => ({
-        ...prev,
-        [parameterId]: [
-          ...currentStandards,
-          { ...newStandardPrep, assignedStandardId: standard.serialNo },
-        ],
-      }));
-
-      const currentSamples =
-        samplePreparationRelatedSubstancePerParam[parameterId] || [];
-      const newSampleIndex = currentSamples.length;
-      const newSamplePrep = createNewSamplePreparation(newSampleIndex);
-
-      setSamplePreparationRelatedSubstancePerParam((prev) => ({
-        ...prev,
-        [parameterId]: [
-          ...currentSamples,
-          { ...newSamplePrep, assignedStandardId: standard.serialNo },
-        ],
-      }));
-    } else if (isUC) {
-      // UC Standard Preparation
-      const currentStandards = standardPreparationUCPerParam[parameterId] || [];
-      const newIndex = currentStandards.length;
-      const newStandardPrep = createNewStandardPreparation(newIndex);
-
-      newStandardPrep.steps = newStandardPrep.steps.map((step) => {
-        if (step.name === "Weighing") {
-          return { ...step, solventChemical: standard.name };
-        }
-        return step;
-      });
-
-      setStandardPreparationUCPerParam((prev) => ({
-        ...prev,
-        [parameterId]: [
-          ...currentStandards,
-          { ...newStandardPrep, assignedStandardId: standard.serialNo },
-        ],
-      }));
-
-      // UC Sample Preparation
-      const currentSamples = samplePreparationUCPerParam[parameterId] || [];
-      const newSampleIndex = currentSamples.length;
-      const newSamplePrepUC = createNewSamplePreparationUC(newSampleIndex);
-
-      setSamplePreparationUCPerParam((prev) => ({
-        ...prev,
-        [parameterId]: [
-          ...currentSamples,
-          { ...newSamplePrepUC, assignedStandardId: standard.serialNo },
-        ],
-      }));
-    } else if (isRS) {
-      const currentStandards =
-        standardPreparationResidualSolventPerParam[parameterId] || [];
-      const newIndex = currentStandards.length;
-      const newStandardPrep = createNewStandardPreparation(newIndex);
-
-      newStandardPrep.steps = newStandardPrep.steps.map((step) => {
-        if (step.name === "Weighing") {
-          return { ...step, solventChemical: standard.name };
-        }
-        return step;
-      });
-
-      setStandardPreparationResidualSolventPerParam((prev) => ({
-        ...prev,
-        [parameterId]: [
-          ...currentStandards,
-          { ...newStandardPrep, assignedStandardId: standard.serialNo },
-        ],
-      }));
-
-      const currentSamples = samplePreparationRSPerParam[parameterId] || [];
-      const newSampleIndex = currentSamples.length;
-      const newSamplePrep = createNewSamplePreparation(newSampleIndex);
-
-      setSamplePreparationRSPerParam((prev) => ({
-        ...prev,
-        [parameterId]: [
-          ...currentSamples,
-          { ...newSamplePrep, assignedStandardId: standard.serialNo },
-        ],
-      }));
-    } else if (isDisso) {
-      const currentStandards =
-        standardPreparationDissoPerParam[parameterId] || [];
-      const newIndex = currentStandards.length;
-      const newStandardPrep = createNewStandardPreparation(newIndex);
-
-      newStandardPrep.steps = newStandardPrep.steps.map((step) => {
-        if (step.name === "Weighing") {
-          return { ...step, solventChemical: standard.name };
-        }
-        return step;
-      });
-
-      setStandardPreparationDissoPerParam((prev) => ({
-        ...prev,
-        [parameterId]: [
-          ...currentStandards,
-          { ...newStandardPrep, assignedStandardId: standard.serialNo },
-        ],
-      }));
-
-      const currentSamples = samplePreparationDissoPerParam[parameterId] || [];
-      const newSampleIndex = currentSamples.length;
-      const newSamplePrepDisso =
-        createNewSamplePreparationDisso(newSampleIndex);
-
-      setSamplePreparationDissoPerParam((prev) => ({
-        ...prev,
-        [parameterId]: [
-          ...currentSamples,
-          { ...newSamplePrepDisso, assignedStandardId: standard.serialNo },
-        ],
-      }));
-
-      // Automatically add Disso Media Preparation
-      const currentDissoMedia = dissoMediaPerParam[parameterId] || [];
-      const newDissoMediaIndex = currentDissoMedia.length;
-      const newDissoMedia = createNewDissoMediaPreparation(newDissoMediaIndex);
-
-      setDissoMediaPerParam((prev) => ({
-        ...prev,
-        [parameterId]: [...currentDissoMedia, newDissoMedia],
-      }));
-    } else if (isDissoProfile) {
-      const currentStandards =
-        standardPreparationDissoProfilePerParam[parameterId] || [];
-      const newIndex = currentStandards.length;
-      const newStandardPrep = createNewStandardPreparation(newIndex);
-
-      newStandardPrep.steps = newStandardPrep.steps.map((step) => {
-        if (step.name === "Weighing") {
-          return { ...step, solventChemical: standard.name };
-        }
-        return step;
-      });
-
-      setStandardPreparationDissoProfilePerParam((prev) => ({
-        ...prev,
-        [parameterId]: [
-          ...currentStandards,
-          { ...newStandardPrep, assignedStandardId: standard.serialNo },
-        ],
-      }));
-
-      const currentSamples =
-        samplePreparationDissoProfilePerParam[parameterId] || [];
-      const newSampleIndex = currentSamples.length;
-      const newSamplePrepDisso =
-        createNewSamplePreparationDisso(newSampleIndex);
-
-      setSamplePreparationDissoProfilePerParam((prev) => ({
-        ...prev,
-        [parameterId]: [
-          ...currentSamples,
-          { ...newSamplePrepDisso, assignedStandardId: standard.serialNo },
-        ],
-      }));
-
-      // Automatically add Disso Media Preparation for profile
-      const currentDissoMediaProfile =
-        dissoMediaProfilePerParam[parameterId] || [];
-      const newDissoMediaProfileIndex = currentDissoMediaProfile.length;
-      const newDissoMediaProfile = createNewDissoMediaPreparation(
-        newDissoMediaProfileIndex,
-      );
-
-      setDissoMediaProfilePerParam((prev) => ({
-        ...prev,
-        [parameterId]: [...currentDissoMediaProfile, newDissoMediaProfile],
-      }));
-    } else {
-      const currentStandards =
-        standardPreparationAssayPerParam[parameterId] || [];
-      const newIndex = currentStandards.length;
-      const newStandardPrep = createNewStandardPreparation(newIndex);
-
-      newStandardPrep.steps = newStandardPrep.steps.map((step) => {
-        if (step.name === "Weighing") {
-          return { ...step, solventChemical: standard.name };
-        }
-        return step;
-      });
-
-      setStandardPreparationAssayPerParam((prev) => ({
-        ...prev,
-        [parameterId]: [
-          ...currentStandards,
-          { ...newStandardPrep, assignedStandardId: standard.serialNo },
-        ],
-      }));
-
-      const currentSamples = samplePreparationPerParam[parameterId] || [];
-      const newSampleIndex = currentSamples.length;
-      const newSamplePrep = createNewSamplePreparation(newSampleIndex);
-
-      setSamplePreparationPerParam((prev) => ({
-        ...prev,
-        [parameterId]: [
-          ...currentSamples,
-          { ...newSamplePrep, assignedStandardId: standard.serialNo },
-        ],
-      }));
-    }
-
-    setShowStandardSelectionDialog(false);
-    setCurrentParameterForStandardPrep(null);
-    setIsAddingRSStandard(false);
-    setIsAddingDissoStandard(false);
-    setIsAddingUCStandard(false);
-    setIsAddingDissoProfileStandard(false);
-  };
-
-  // Buffer Preparation Handlers
-  const handleAddBufferPreparation = (parameterId: number) => {
-    setBufferPreparationPerParam((prev) => {
-      const current = prev[parameterId] || [];
-      return {
-        ...prev,
-        [parameterId]: [...current, createNewBufferPreparation(current.length)],
-      };
-    });
-  };
-
-  const handleRemoveBufferPreparation = (
-    parameterId: number,
-    bufferPrepId: number,
-  ) => {
-    setBufferPreparationPerParam((prev) => {
-      const updated = (prev[parameterId] || [])
-        .filter((bp) => bp.id !== bufferPrepId)
-        .map((bp, i) => ({ ...bp, label: `Buffer Preparation ${i + 1}` }));
-      return { ...prev, [parameterId]: updated };
-    });
-  };
-
-  const handleBufferPreparationStepChange = (
-    parameterId: number,
-    bufferPrepId: number,
-    stepName: string,
-    field: "value1" | "unit1" | "logBookID" | "solventChemical",
-    newValue: string,
-  ) => {
-    setBufferPreparationPerParam((prev) => ({
-      ...prev,
-      [parameterId]: (prev[parameterId] || []).map((bp) => {
-        if (bp.id !== bufferPrepId) return bp;
-        return {
-          ...bp,
-          steps: bp.steps.map((step) =>
-            step.name === stepName ? { ...step, [field]: newValue } : step,
-          ),
-        };
-      }),
-    }));
-  };
-
   const prepFileKey = (type: string | null, label: string | null) =>
     `${type ?? ""}|${label ?? ""}`;
 
@@ -7887,35 +5912,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     return result;
   };
 
-  const getAvailableStandardsForParameter = (
-    parameterId: number,
-    isForRS: boolean = false,
-    isForDisso: boolean = false,
-    isForUC: boolean = false,
-    isForDissoProfile: boolean = false,
-    isForRelatedSubstance: boolean = false,
-  ): Standard[] => {
-    const paramStandards = addedStandards[parameterId] || [];
-    const preparations = isForRelatedSubstance
-      ? standardPreparationRelatedSubstancePerParam[parameterId] || []
-      : isForRS
-        ? standardPreparationResidualSolventPerParam[parameterId] || []
-        : isForDisso
-          ? standardPreparationDissoPerParam[parameterId] || []
-          : isForUC
-            ? standardPreparationUCPerParam[parameterId] || []
-            : isForDissoProfile
-              ? standardPreparationDissoProfilePerParam[parameterId] || []
-              : standardPreparationAssayPerParam[parameterId] || [];
-
-    const assignedStandardIds = preparations
-      .map((prep: any) => prep.assignedStandardId)
-      .filter(Boolean);
-
-    return paramStandards.filter(
-      (std) => !assignedStandardIds.includes(std.serialNo),
-    );
-  };
 
   const allParameters = samplesData.map((data) => data.parameter) ?? [];
   const uniqueMethods = [
@@ -7966,7 +5962,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: {
           ...(prev[parameterId] || {}),
-          icpmsFood: [...current, createNewStandardPreparationMetal(current.length, "ICP-MS Food")],
+          icpmsFood: [...current, createNewStandardPreparationMetal(current.length)],
         },
       };
     });
@@ -7982,7 +5978,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((p) => p.id !== prepId)
         .map((p, idx) => ({
           ...p,
-          label: `ICP-MS Food Sample Preparation ${idx + 1}`,
+          label: `Sample Preparation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -7991,7 +5987,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         const current = prev[parameterId]?.["icpmsFood"] || [];
         const updated = current
           .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `ICP-MS Food Standard Preparation ${i + 1}` }));
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
         return {
           ...prev,
           [parameterId]: { ...(prev[parameterId] || {}), icpmsFood: updated },
@@ -8045,7 +6041,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((c) => c.id !== calcId)
         .map((c, idx) => ({
           ...c,
-          label: `ICP-MS Food Calculation ${idx + 1}`,
+          label: `Calculation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8081,7 +6077,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: {
           ...(prev[parameterId] || {}),
-          icpoesFood: [...current, createNewStandardPreparationMetal(current.length, "ICP-OES Food")],
+          icpoesFood: [...current, createNewStandardPreparationMetal(current.length)],
         },
       };
     });
@@ -8097,7 +6093,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((p) => p.id !== prepId)
         .map((p, idx) => ({
           ...p,
-          label: `ICP-OES Food Sample Preparation ${idx + 1}`,
+          label: `Sample Preparation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8106,7 +6102,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         const current = prev[parameterId]?.["icpoesFood"] || [];
         const updated = current
           .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `ICP-OES Food Standard Preparation ${i + 1}` }));
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
         return {
           ...prev,
           [parameterId]: { ...(prev[parameterId] || {}), icpoesFood: updated },
@@ -8160,7 +6156,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((c) => c.id !== calcId)
         .map((c, idx) => ({
           ...c,
-          label: `ICP-OES Food Calculation ${idx + 1}`,
+          label: `Calculation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8196,7 +6192,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: {
           ...(prev[parameterId] || {}),
-          icpmsWater: [...current, createNewStandardPreparationMetal(current.length, "ICP-MS Water")],
+          icpmsWater: [...current, createNewStandardPreparationMetal(current.length)],
         },
       };
     });
@@ -8212,7 +6208,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((p) => p.id !== prepId)
         .map((p, idx) => ({
           ...p,
-          label: `ICP-MS Water Sample Preparation ${idx + 1}`,
+          label: `Sample Preparation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8221,7 +6217,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         const current = prev[parameterId]?.["icpmsWater"] || [];
         const updated = current
           .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `ICP-MS Water Standard Preparation ${i + 1}` }));
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
         return {
           ...prev,
           [parameterId]: { ...(prev[parameterId] || {}), icpmsWater: updated },
@@ -8275,7 +6271,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((c) => c.id !== calcId)
         .map((c, idx) => ({
           ...c,
-          label: `ICP-MS Water Calculation ${idx + 1}`,
+          label: `Calculation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8311,7 +6307,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: {
           ...(prev[parameterId] || {}),
-          icpoesWater: [...current, createNewStandardPreparationMetal(current.length, "ICP-OES Water")],
+          icpoesWater: [...current, createNewStandardPreparationMetal(current.length)],
         },
       };
     });
@@ -8327,7 +6323,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((p) => p.id !== prepId)
         .map((p, idx) => ({
           ...p,
-          label: `ICP-OES Water Sample Preparation ${idx + 1}`,
+          label: `Sample Preparation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8336,7 +6332,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         const current = prev[parameterId]?.["icpoesWater"] || [];
         const updated = current
           .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `ICP-OES Water Standard Preparation ${i + 1}` }));
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
         return {
           ...prev,
           [parameterId]: { ...(prev[parameterId] || {}), icpoesWater: updated },
@@ -8390,7 +6386,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((c) => c.id !== calcId)
         .map((c, idx) => ({
           ...c,
-          label: `ICP-OES Water Calculation ${idx + 1}`,
+          label: `Calculation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8426,7 +6422,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: {
           ...(prev[parameterId] || {}),
-          aasWater: [...current, createNewStandardPreparationMetal(current.length, "AAS Water")],
+          aasWater: [...current, createNewStandardPreparationMetal(current.length)],
         },
       };
     });
@@ -8442,7 +6438,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((p) => p.id !== prepId)
         .map((p, idx) => ({
           ...p,
-          label: `AAS Water Sample Preparation ${idx + 1}`,
+          label: `Sample Preparation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8451,7 +6447,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         const current = prev[parameterId]?.["aasWater"] || [];
         const updated = current
           .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `AAS Water Standard Preparation ${i + 1}` }));
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
         return {
           ...prev,
           [parameterId]: { ...(prev[parameterId] || {}), aasWater: updated },
@@ -8505,7 +6501,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((c) => c.id !== calcId)
         .map((c, idx) => ({
           ...c,
-          label: `AAS Water Calculation ${idx + 1}`,
+          label: `Calculation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8541,7 +6537,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: {
           ...(prev[parameterId] || {}),
-          icpmsIchQ3D: [...current, createNewStandardPreparationMetal(current.length, "ICP-MS ICH-Q3D")],
+          icpmsIchQ3D: [...current, createNewStandardPreparationMetal(current.length)],
         },
       };
     });
@@ -8557,7 +6553,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((p) => p.id !== prepId)
         .map((p, idx) => ({
           ...p,
-          label: `ICP-MS ICH-Q3D Sample Preparation ${idx + 1}`,
+          label: `Sample Preparation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8566,7 +6562,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         const current = prev[parameterId]?.["icpmsIchQ3D"] || [];
         const updated = current
           .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `ICP-MS ICH-Q3D Standard Preparation ${i + 1}` }));
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
         return {
           ...prev,
           [parameterId]: { ...(prev[parameterId] || {}), icpmsIchQ3D: updated },
@@ -8620,7 +6616,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((c) => c.id !== calcId)
         .map((c, idx) => ({
           ...c,
-          label: `ICP-MS ICH-Q3D Calculation ${idx + 1}`,
+          label: `Calculation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8656,7 +6652,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: {
           ...(prev[parameterId] || {}),
-          ors: [...current, createNewStandardPreparationMetal(current.length, "ORS")],
+          ors: [...current, createNewStandardPreparationMetal(current.length)],
         },
       };
     });
@@ -8672,7 +6668,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((p) => p.id !== prepId)
         .map((p, idx) => ({
           ...p,
-          label: `ORS Sample Preparation ${idx + 1}`,
+          label: `Sample Preparation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8681,7 +6677,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         const current = prev[parameterId]?.["ors"] || [];
         const updated = current
           .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `ORS Standard Preparation ${i + 1}` }));
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
         return {
           ...prev,
           [parameterId]: { ...(prev[parameterId] || {}), ors: updated },
@@ -8735,7 +6731,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((c) => c.id !== calcId)
         .map((c, idx) => ({
           ...c,
-          label: `ORS Calculation ${idx + 1}`,
+          label: `Calculation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8771,7 +6767,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: {
           ...(prev[parameterId] || {}),
-          anofer: [...current, createNewStandardPreparationMetal(current.length, "Anofer")],
+          anofer: [...current, createNewStandardPreparationMetal(current.length)],
         },
       };
     });
@@ -8787,7 +6783,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((p) => p.id !== prepId)
         .map((p, idx) => ({
           ...p,
-          label: `Anofer Sample Preparation ${idx + 1}`,
+          label: `Sample Preparation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8796,7 +6792,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         const current = prev[parameterId]?.["anofer"] || [];
         const updated = current
           .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Anofer Standard Preparation ${i + 1}` }));
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
         return {
           ...prev,
           [parameterId]: { ...(prev[parameterId] || {}), anofer: updated },
@@ -8850,7 +6846,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((c) => c.id !== calcId)
         .map((c, idx) => ({
           ...c,
-          label: `Anofer Calculation ${idx + 1}`,
+          label: `Calculation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8886,7 +6882,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: {
           ...(prev[parameterId] || {}),
-          zptoShampoo: [...current, createNewStandardPreparationMetal(current.length, "ZPTO Shampoo")],
+          zptoShampoo: [...current, createNewStandardPreparationMetal(current.length)],
         },
       };
     });
@@ -8902,7 +6898,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((p) => p.id !== prepId)
         .map((p, idx) => ({
           ...p,
-          label: `ZPTO Shampoo Sample Preparation ${idx + 1}`,
+          label: `Sample Preparation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -8911,7 +6907,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         const current = prev[parameterId]?.["zptoShampoo"] || [];
         const updated = current
           .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `ZPTO Shampoo Standard Preparation ${i + 1}` }));
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
         return {
           ...prev,
           [parameterId]: { ...(prev[parameterId] || {}), zptoShampoo: updated },
@@ -8965,7 +6961,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((c) => c.id !== calcId)
         .map((c, idx) => ({
           ...c,
-          label: `ZPTO Shampoo Calculation ${idx + 1}`,
+          label: `Calculation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -9001,7 +6997,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: {
           ...(prev[parameterId] || {}),
-          sodiumLactate: [...current, createNewStandardPreparationMetal(current.length, "Sodium Lactate")],
+          sodiumLactate: [...current, createNewStandardPreparationMetal(current.length)],
         },
       };
     });
@@ -9017,7 +7013,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((p) => p.id !== prepId)
         .map((p, idx) => ({
           ...p,
-          label: `Sodium Lactate Sample Preparation ${idx + 1}`,
+          label: `Sample Preparation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -9026,7 +7022,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         const current = prev[parameterId]?.["sodiumLactate"] || [];
         const updated = current
           .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Sodium Lactate Standard Preparation ${i + 1}` }));
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
         return {
           ...prev,
           [parameterId]: { ...(prev[parameterId] || {}), sodiumLactate: updated },
@@ -9080,7 +7076,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((c) => c.id !== calcId)
         .map((c, idx) => ({
           ...c,
-          label: `Sodium Lactate Calculation ${idx + 1}`,
+          label: `Calculation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -9116,7 +7112,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: {
           ...(prev[parameterId] || {}),
-          lithosun300: [...current, createNewStandardPreparationMetal(current.length, "Lithosun 300")],
+          lithosun300: [...current, createNewStandardPreparationMetal(current.length)],
         },
       };
     });
@@ -9132,7 +7128,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((p) => p.id !== prepId)
         .map((p, idx) => ({
           ...p,
-          label: `Lithosun 300 Sample Preparation ${idx + 1}`,
+          label: `Sample Preparation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -9141,7 +7137,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         const current = prev[parameterId]?.["lithosun300"] || [];
         const updated = current
           .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Lithosun 300 Standard Preparation ${i + 1}` }));
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
         return {
           ...prev,
           [parameterId]: { ...(prev[parameterId] || {}), lithosun300: updated },
@@ -9195,7 +7191,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         .filter((c) => c.id !== calcId)
         .map((c, idx) => ({
           ...c,
-          label: `Lithosun 300 Calculation ${idx + 1}`,
+          label: `Calculation ${idx + 1}`,
         }));
       return { ...prev, [parameterId]: updated };
     });
@@ -9213,41 +7209,457 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     }));
   };
 
-  const handleAddStandardPreparationMetal = (
-    parameterId: number,
-    groupId: string,
-    groupLabel: string,
-  ) => {
+  const handleAddSamplePreparationLithosun400 = (parameterId: number) => {
+    setSamplePreparationLithosun400PerParam((prev) => {
+      const current = prev[parameterId] || [];
+      const newIndex = current.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...current,
+          createNewSamplePreparationLithosun400(newIndex),
+        ],
+      };
+    });
     setStandardPreparationMetalPerParam((prev) => {
-      const paramGroups = prev[parameterId] || {};
-      const current = paramGroups[groupId] || [];
+      const current = prev[parameterId]?.["lithosun400"] || [];
       return {
         ...prev,
         [parameterId]: {
-          ...paramGroups,
-          [groupId]: [...current, createNewStandardPreparationMetal(current.length, groupLabel)],
+          ...(prev[parameterId] || {}),
+          lithosun400: [...current, createNewStandardPreparationMetal(current.length)],
         },
       };
     });
   };
 
-  const handleRemoveStandardPreparationMetal = (
+  const handleRemoveSamplePreparationLithosun400 = (
     parameterId: number,
-    groupId: string,
     prepId: number,
   ) => {
-    setStandardPreparationMetalPerParam((prev) => {
-      const paramGroups = prev[parameterId] || {};
-      const groupLabel = PREPARATION_GROUPS[groupId as keyof typeof PREPARATION_GROUPS]?.label ?? groupId;
-      const updated = (paramGroups[groupId] || [])
+    const removedIdx = (samplePreparationLithosun400PerParam[parameterId] || []).findIndex((p) => p.id === prepId);
+    setSamplePreparationLithosun400PerParam((prev) => {
+      const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
-        .map((p, idx) => ({ ...p, label: `${groupLabel} Standard Preparation ${idx + 1}` }));
+        .map((p, idx) => ({
+          ...p,
+          label: `Sample Preparation ${idx + 1}`,
+        }));
+      return { ...prev, [parameterId]: updated };
+    });
+    if (removedIdx >= 0) {
+      setStandardPreparationMetalPerParam((prev) => {
+        const current = prev[parameterId]?.["lithosun400"] || [];
+        const updated = current
+          .filter((_, i) => i !== removedIdx)
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+        return {
+          ...prev,
+          [parameterId]: { ...(prev[parameterId] || {}), lithosun400: updated },
+        };
+      });
+    }
+  };
+
+  const handleSamplePreparationLithosun400StepChange = (
+    parameterId: number,
+    samplePreparationId: number,
+    stepName: SamplePreparationMetalStep["name"],
+    field: "value1" | "unit1" | "value2" | "unit2" | "logBookID" | "solventChemical",
+    newValue: string,
+  ) => {
+    setSamplePreparationLithosun400PerParam((prev) => {
+      const list = prev[parameterId] || [];
+      const updated = list.map((sp) => {
+        if (sp.id !== samplePreparationId) return sp;
+        const stepsArr = Array.isArray(sp.steps) ? sp.steps : [];
+        const exists = stepsArr.some((s) => s.name === stepName);
+        const newSteps = exists
+          ? stepsArr.map((s) => (s.name === stepName ? { ...s, [field]: newValue } : s))
+          : [...stepsArr, { name: stepName, [field]: newValue }];
+        return { ...sp, steps: newSteps };
+      });
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleAddCalculationLithosun400 = (parameterId: number) => {
+    setCalculationsLithosun400PerParam((prev) => {
+      const current = prev[parameterId] || [];
+      const newIndex = current.length;
       return {
         ...prev,
-        [parameterId]: { ...paramGroups, [groupId]: updated },
+        [parameterId]: [
+          ...current,
+          createNewCalculationLithosun400(newIndex),
+        ],
       };
     });
   };
+
+  const handleRemoveCalculationLithosun400 = (
+    parameterId: number,
+    calcId: number,
+  ) => {
+    setCalculationsLithosun400PerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((c) => c.id !== calcId)
+        .map((c, idx) => ({
+          ...c,
+          label: `Calculation ${idx + 1}`,
+        }));
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleUpdateCalculationLithosun400 = (
+    parameterId: number,
+    updatedCalc: CalculationLithosun400,
+  ) => {
+    setCalculationsLithosun400PerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((c) =>
+        c.id === updatedCalc.id ? updatedCalc : c,
+      ),
+    }));
+  };
+
+
+    const handleAddSamplePreparationMeropenam = (parameterId: number) => {
+    setSamplePreparationMeropenamPerParam((prev) => {
+      const current = prev[parameterId] || [];
+      const newIndex = current.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...current,
+          createNewSamplePreparationMeropenam(newIndex),
+        ],
+      };
+    });
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["meropenam"] || [];
+      return {
+        ...prev,
+        [parameterId]: {
+          ...(prev[parameterId] || {}),
+          meropenam: [...current, createNewStandardPreparationMetal(current.length)],
+        },
+      };
+    });
+  };
+
+  const handleRemoveSamplePreparationMeropenam = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    const removedIdx = (samplePreparationMeropenamPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
+    setSamplePreparationMeropenamPerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((p) => p.id !== prepId)
+        .map((p, idx) => ({
+          ...p,
+          label: `Sample Preparation ${idx + 1}`,
+        }));
+      return { ...prev, [parameterId]: updated };
+    });
+    if (removedIdx >= 0) {
+      setStandardPreparationMetalPerParam((prev) => {
+        const current = prev[parameterId]?.["meropenam"] || [];
+        const updated = current
+          .filter((_, i) => i !== removedIdx)
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+        return {
+          ...prev,
+          [parameterId]: { ...(prev[parameterId] || {}), meropenam: updated },
+        };
+      });
+    }
+  };
+
+  const handleSamplePreparationMeropenamStepChange = (
+    parameterId: number,
+    samplePreparationId: number,
+    stepName: SamplePreparationMetalStep["name"],
+    field: "value1" | "unit1" | "value2" | "unit2" | "logBookID" | "solventChemical",
+    newValue: string,
+  ) => {
+    setSamplePreparationMeropenamPerParam((prev) => {
+      const list = prev[parameterId] || [];
+      const updated = list.map((sp) => {
+        if (sp.id !== samplePreparationId) return sp;
+        const stepsArr = Array.isArray(sp.steps) ? sp.steps : [];
+        const exists = stepsArr.some((s) => s.name === stepName);
+        const newSteps = exists
+          ? stepsArr.map((s) => (s.name === stepName ? { ...s, [field]: newValue } : s))
+          : [...stepsArr, { name: stepName, [field]: newValue }];
+        return { ...sp, steps: newSteps };
+      });
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleAddCalculationMeropenam = (parameterId: number) => {
+    setCalculationsMeropenamPerParam((prev) => {
+      const current = prev[parameterId] || [];
+      const newIndex = current.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...current,
+          createNewCalculationMeropenam(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveCalculationMeropenam = (
+    parameterId: number,
+    calcId: number,
+  ) => {
+    setCalculationsMeropenamPerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((c) => c.id !== calcId)
+        .map((c, idx) => ({
+          ...c,
+          label: `Calculation ${idx + 1}`,
+        }));
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleUpdateCalculationMeropenam = (
+    parameterId: number,
+    updatedCalc: CalculationMeropenam,
+  ) => {
+    setCalculationsMeropenamPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((c) =>
+        c.id === updatedCalc.id ? updatedCalc : c,
+      ),
+    }));
+  };
+
+  const handleAddSamplePreparationTalc = (parameterId: number) => {
+    setSamplePreparationTalcPerParam((prev) => {
+      const current = prev[parameterId] || [];
+      const newIndex = current.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...current,
+          createNewSamplePreparationTalc(newIndex),
+        ],
+      };
+    });
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["talc"] || [];
+      return {
+        ...prev,
+        [parameterId]: {
+          ...(prev[parameterId] || {}),
+          talc: [...current, createNewStandardPreparationMetal(current.length)],
+        },
+      };
+    });
+  };
+
+  const handleRemoveSamplePreparationTalc = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    const removedIdx = (samplePreparationTalcPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
+    setSamplePreparationTalcPerParam((prev) => {
+      const current = prev[parameterId] || [];
+      return { ...prev, [parameterId]: current.filter((p) => p.id !== prepId) };
+    });
+    if (removedIdx !== -1) {
+      setStandardPreparationMetalPerParam((prev) => {
+        const current = prev[parameterId]?.["talc"] || [];
+        const updated = current.filter((_, i) => i !== removedIdx);
+        return {
+          ...prev,
+          [parameterId]: { ...(prev[parameterId] || {}), talc: updated },
+        };
+      });
+    }
+  };
+
+  const handleSamplePreparationTalcStepChange = (
+    parameterId: number,
+    prepId: number,
+    stepName: string,
+    field: string,
+    value: string,
+  ) => {
+    setSamplePreparationTalcPerParam((prev) => {
+      const current = prev[parameterId] || [];
+      return {
+        ...prev,
+        [parameterId]: current.map((p) =>
+          p.id === prepId
+            ? {
+                ...p,
+                steps: p.steps.map((s: SamplePreparationMetalStep) =>
+                  s.name === stepName ? { ...s, [field]: value } : s,
+                ),
+              }
+            : p,
+        ),
+      };
+    });
+  };
+
+  const handleAddCalculationTalc = (parameterId: number) => {
+    setCalculationsTalcPerParam((prev) => {
+      const current = prev[parameterId] || [];
+      return {
+        ...prev,
+        [parameterId]: [
+          ...current,
+          createNewCalculationTalc(current.length),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveCalculationTalc = (
+    parameterId: number,
+    calcId: number,
+  ) => {
+    setCalculationsTalcPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).filter((c) => c.id !== calcId),
+    }));
+  };
+
+  const handleUpdateCalculationTalc = (
+    parameterId: number,
+    updatedCalc: CalculationTalc,
+  ) => {
+    setCalculationsTalcPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((c) =>
+        c.id === updatedCalc.id ? updatedCalc : c,
+      ),
+    }));
+  };
+
+  const handleAddSamplePreparationSFGC = (parameterId: number) => {
+    setSamplePreparationSFGCPerParam((prev) => {
+      const current = prev[parameterId] || [];
+      const newIndex = current.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...current,
+          createNewSamplePreparationSFGC(newIndex),
+        ],
+      };
+    });
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["sfgc"] || [];
+      return {
+        ...prev,
+        [parameterId]: {
+          ...(prev[parameterId] || {}),
+          sfgc: [...current, createNewStandardPreparationMetal(current.length)],
+        },
+      };
+    });
+  };
+
+  const handleRemoveSamplePreparationSFGC = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    const removedIdx = (samplePreparationSFGCPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
+    setSamplePreparationSFGCPerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((p) => p.id !== prepId)
+        .map((p, idx) => ({
+          ...p,
+          label: `Sample Preparation ${idx + 1}`,
+        }));
+      return { ...prev, [parameterId]: updated };
+    });
+    if (removedIdx >= 0) {
+      setStandardPreparationMetalPerParam((prev) => {
+        const current = prev[parameterId]?.["sfgc"] || [];
+        const updated = current
+          .filter((_, i) => i !== removedIdx)
+          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+        return {
+          ...prev,
+          [parameterId]: { ...(prev[parameterId] || {}), sfgc: updated },
+        };
+      });
+    }
+  };
+
+  const handleSamplePreparationSFGCStepChange = (
+    parameterId: number,
+    samplePreparationId: number,
+    stepName: SamplePreparationMetalStep["name"],
+    field: "value1" | "unit1" | "value2" | "unit2" | "logBookID" | "solventChemical",
+    newValue: string,
+  ) => {
+    setSamplePreparationSFGCPerParam((prev) => {
+      const list = prev[parameterId] || [];
+      const updated = list.map((sp) => {
+        if (sp.id !== samplePreparationId) return sp;
+        const stepsArr = Array.isArray(sp.steps) ? sp.steps : [];
+        const exists = stepsArr.some((s) => s.name === stepName);
+        const newSteps = exists
+          ? stepsArr.map((s) => (s.name === stepName ? { ...s, [field]: newValue } : s))
+          : [...stepsArr, { name: stepName, [field]: newValue }];
+        return { ...sp, steps: newSteps };
+      });
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleAddCalculationSFGC = (parameterId: number) => {
+    setCalculationsSFGCPerParam((prev) => {
+      const current = prev[parameterId] || [];
+      const newIndex = current.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...current,
+          createNewCalculationSFGC(newIndex),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveCalculationSFGC = (
+    parameterId: number,
+    calcId: number,
+  ) => {
+    setCalculationsSFGCPerParam((prev) => {
+      const updated = (prev[parameterId] || [])
+        .filter((c) => c.id !== calcId)
+        .map((c, idx) => ({
+          ...c,
+          label: `Calculation ${idx + 1}`,
+        }));
+      return { ...prev, [parameterId]: updated };
+    });
+  };
+
+  const handleUpdateCalculationSFGC = (
+    parameterId: number,
+    updatedCalc: CalculationSFGC,
+  ) => {
+    setCalculationsSFGCPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((c) =>
+        c.id === updatedCalc.id ? updatedCalc : c,
+      ),
+    }));
+  };
+
 
   const handleStandardPreparationMetalStepChange = (
     parameterId: number,
@@ -9394,13 +7806,61 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             return rest;
           });
         }
-        // Clear standard metal preps for this group
-        setStandardPreparationMetalPerParam((p) => {
-          const paramData = p[parameterId];
-          if (!paramData) return p;
-          const { [groupId]: _omit, ...remaining } = paramData;
-          return { ...p, [parameterId]: remaining };
-        });
+        if (groupId === "lithosun400") {
+          setSamplePreparationLithosun400PerParam((p) => {
+            const { [parameterId]: _omit, ...rest } = p;
+            return rest;
+          });
+          setCalculationsLithosun400PerParam((p) => {
+            const { [parameterId]: _omit, ...rest } = p;
+            return rest;
+          });
+        }
+        if (groupId === "meropenam") {
+          setSamplePreparationMeropenamPerParam((p) => {
+            const { [parameterId]: _omit, ...rest } = p;
+            return rest;
+          });
+          setCalculationsMeropenamPerParam((p) => {
+            const { [parameterId]: _omit, ...rest } = p;
+            return rest;
+          });
+        }
+        if (groupId === "sfgc") {
+          setSamplePreparationSFGCPerParam((p) => {
+            const { [parameterId]: _omit, ...rest } = p;
+            return rest;
+          });
+          setCalculationsSFGCPerParam((p) => {
+            const { [parameterId]: _omit, ...rest } = p;
+            return rest;
+          });
+        }
+        if (groupId === "talc") {
+          setSamplePreparationTalcPerParam((p) => {
+            const { [parameterId]: _omit, ...rest } = p;
+            return rest;
+          });
+          setCalculationsTalcPerParam((p) => {
+            const { [parameterId]: _omit, ...rest } = p;
+            return rest;
+          });
+        }
+        if (groupId === "blankPreparation") {
+          setBlankPreparationPerParam((p) => {
+            const { [parameterId]: _omit, ...rest } = p;
+            return rest;
+          });
+        }
+        // Clear standard metal preps for this group (only for non-blank groups)
+        if (groupId !== "blankPreparation") {
+          setStandardPreparationMetalPerParam((p) => {
+            const paramData = p[parameterId];
+            if (!paramData) return p;
+            const { [groupId]: _omit, ...remaining } = paramData;
+            return { ...p, [parameterId]: remaining };
+          });
+        }
         return {
           ...prev,
           [parameterId]: currentGroups.filter((g) => g !== groupId),
@@ -9453,6 +7913,26 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           setSamplePreparationLithosun300PerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
           setCalculationsLithosun300PerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
         }
+        if (oldGroupId === "lithosun400") {
+          setSamplePreparationLithosun400PerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
+          setCalculationsLithosun400PerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
+        }
+        if (oldGroupId === "meropenam") {
+          setSamplePreparationMeropenamPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
+          setCalculationsMeropenamPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
+        }
+        if (oldGroupId === "sfgc") {
+          setSamplePreparationSFGCPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
+          setCalculationsSFGCPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
+        }
+        if (oldGroupId === "talc") {
+          setSamplePreparationTalcPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
+          setCalculationsTalcPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
+        }
+        if (oldGroupId === "blankPreparation") {
+          setBlankPreparationPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
+          return; // blankPreparation has no standard metal preps to clear
+        }
         // Clear standard metal preps for this group
         setStandardPreparationMetalPerParam((p) => {
           const paramData = p[parameterId];
@@ -9472,12 +7952,27 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         setPreparationCompletedAtPerParam((p) => { const { [parameterId]: _, ...r } = p; return r; });
       };
 
-      // Fully wipe every currently active group before switching
-      currentGroups.forEach(clearGroupData);
+      // ── Blank is additive: it coexists with any other prep group ──────────
+      if (groupId === "blankPreparation") {
+        return {
+          ...prev,
+          [parameterId]: [...currentGroups, "blankPreparation"],
+        };
+      }
+
+      // For all other groups: single-select — clear non-blank groups first
+      currentGroups
+        .filter((g) => g !== "blankPreparation")
+        .forEach(clearGroupData);
+
+      // Keep blankPreparation in the list if it was already active
+      const keepBlank = currentGroups.includes("blankPreparation")
+        ? ["blankPreparation"]
+        : [];
 
       return {
         ...prev,
-        [parameterId]: [groupId],
+        [parameterId]: [...keepBlank, groupId],
       };
     });
     setShowPreparationDropdown({});
@@ -9500,7 +7995,70 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
       { id: "talc", label: "Talc", color: "emerald" },
       { id: "meropenam", label: "Meropenam", color: "emerald" },
       { id: "sfgc", label: "SFGC", color: "emerald" },
+      { id: "blankPreparation", label: "Blank Preparation", color: "emerald" },
     ];
+  };
+
+  // ── Blank Preparation Handlers ────────────────────────────────────────────
+  const handleAddBlankPreparation = (parameterId: number) => {
+    setShowBlankPreparationDialog((prev) => ({
+      ...prev,
+      [parameterId]: true,
+    }));
+    setEditingBlankPrepId(null);
+  };
+
+  const handleEditBlankPreparation = (
+    parameterId: number,
+    blankPrepId: string,
+  ) => {
+    setEditingBlankPrepId(blankPrepId);
+    setShowBlankPreparationDialog((prev) => ({
+      ...prev,
+      [parameterId]: true,
+    }));
+  };
+
+  const handleSaveBlankPreparation = (
+    parameterId: number,
+    label: string,
+    content: string,
+  ) => {
+    if (editingBlankPrepId) {
+      setBlankPreparationPerParam((prev) => ({
+        ...prev,
+        [parameterId]: (prev[parameterId] || []).map((prep) =>
+          prep.id === editingBlankPrepId ? { ...prep, label, content } : prep,
+        ),
+      }));
+    } else {
+      const newBlankPrep: BlankPreparationModel = {
+        id: `blank_${Date.now()}`,
+        label,
+        content,
+      };
+      setBlankPreparationPerParam((prev) => ({
+        ...prev,
+        [parameterId]: [...(prev[parameterId] || []), newBlankPrep],
+      }));
+    }
+    setShowBlankPreparationDialog((prev) => ({
+      ...prev,
+      [parameterId]: false,
+    }));
+    setEditingBlankPrepId(null);
+  };
+
+  const handleRemoveBlankPreparation = (
+    parameterId: number,
+    blankPrepId: string,
+  ) => {
+    setBlankPreparationPerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).filter(
+        (prep) => prep.id !== blankPrepId,
+      ),
+    }));
   };
 
   const LockedParameterOverlay: React.FC<{ parameterId: number }> = React.memo(
@@ -14405,188 +12963,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                             )}
                           </AnimatePresence>
 
-                          {/* ============= BUFFER PREPARATION TOGGLE ============= */}
-                          <div className="mb-6 mt-4">
-                            <label className="flex items-center gap-4 cursor-pointer group relative">
-                              <div className="relative flex items-center justify-center">
-                                <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-900 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
-                                <input
-                                  type="checkbox"
-                                  checked={
-                                    showBufferPreparation[selectedParam.id] || false
-                                  }
-                                  onChange={(e) => {
-                                    setShowBufferPreparation((prev) => ({
-                                      ...prev,
-                                      [selectedParam.id]: e.target.checked,
-                                    }));
-                                    if (!e.target.checked) {
-                                      setBufferPreparationPerParam((prev) => ({
-                                        ...prev,
-                                        [selectedParam.id]: [],
-                                      }));
-                                    }
-                                  }}
-                                  className="peer sr-only"
-                                />
-                                <div className="relative w-14 h-7 rounded-full border-2 border-emerald-200 bg-gray-200 peer-checked:bg-gradient-to-r peer-checked:from-emerald-700 peer-checked:to-emerald-900 peer-checked:border-emerald-600 transition-all duration-300 shadow-inner group-hover:border-emerald-300">
-                                  <motion.div
-                                    className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
-                                    animate={{
-                                      x: showBufferPreparation[selectedParam.id]
-                                        ? 28
-                                        : 0,
-                                    }}
-                                    transition={{
-                                      type: "spring",
-                                      stiffness: 500,
-                                      damping: 30,
-                                    }}
-                                  >
-                                    {showBufferPreparation[selectedParam.id] ? (
-                                      <svg
-                                        className="w-3 h-3 text-emerald-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth="3"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M5 13l4 4L19 7"
-                                        />
-                                      </svg>
-                                    ) : (
-                                      <svg
-                                        className="w-3 h-3 text-gray-400"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth="3"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M6 18L18 6M6 6l12 12"
-                                        />
-                                      </svg>
-                                    )}
-                                  </motion.div>
-                                </div>
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-base font-bold text-emerald-800 group-hover:text-emerald-800 transition-colors duration-200">
-                                    Buffer Preparation
-                                  </span>
-                                  <motion.span
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className={`px-2 py-0.5 text-[10px] font-medium rounded-full transition-all duration-200 ${showBufferPreparation[selectedParam.id]
-                                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                                      : "bg-gray-100 text-gray-500 border border-gray-200"
-                                      }`}
-                                  >
-                                    {showBufferPreparation[selectedParam.id]
-                                      ? "Active"
-                                      : "Inactive"}
-                                  </motion.span>
-                                </div>
-                                <p className="text-xs text-emerald-600/70">
-                                  Toggle buffer preparation section
-                                </p>
-                              </div>
-                            </label>
-                          </div>
-
-                          {/* ============= BUFFER PREPARATION SECTION ============= */}
-                          <AnimatePresence>
-                            {showBufferPreparation[selectedParam.id] && (
-                              <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 0 }}
-                                className="mb-6 p-6 bg-white rounded-xl border-2 border-emerald-200 shadow-lg"
-                              >
-                                <div className="flex items-center justify-between mb-6">
-                                  <div className="flex items-center gap-4">
-                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    <div>
-                                      <h2 className="text-lg font-bold text-emerald-800 tracking-tight">
-                                        Buffer Preparations
-                                      </h2>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <button
-                                      onClick={() =>
-                                        handleAddBufferPreparation(selectedParam.id)
-                                      }
-                                      className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm"
-                                    >
-                                      <Plus className="w-4 h-4" />
-                                      Add Buffer Preparation
-                                    </button>
-                                  </div>
-                                </div>
-
-                                <AnimatePresence>
-                                  {(
-                                    bufferPreparationPerParam[selectedParam.id] ||
-                                    []
-                                  ).map((bufferPrep) => (
-                                    <div key={bufferPrep.id}>
-                                      <BufferPreparationDetail
-                                        buffer={bufferPrep}
-                                        onStepChange={(
-                                          bufferPrepId,
-                                          stepName,
-                                          field,
-                                          newValue,
-                                        ) =>
-                                          handleBufferPreparationStepChange(
-                                            selectedParam.id,
-                                            bufferPrepId,
-                                            stepName,
-                                            field,
-                                            newValue,
-                                          )
-                                        }
-                                        onRemove={() =>
-                                          handleRemoveBufferPreparation(
-                                            selectedParam.id,
-                                            bufferPrep.id,
-                                          )
-                                        }
-                                      />
-                                    </div>
-                                  ))}
-                                </AnimatePresence>
-
-                                {(bufferPreparationPerParam[selectedParam.id] || [])
-                                  .length === 0 && (
-                                    <motion.div
-                                      initial={{ opacity: 0, scale: 0.95 }}
-                                      animate={{ opacity: 1, scale: 1 }}
-                                      className="text-center py-10 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl"
-                                    >
-                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
-                                        <Target className="w-10 h-10 text-emerald-400" />
-                                      </div>
-                                      <p className="text-base font-bold text-emerald-800 mb-1">
-                                        No buffer preparations added yet
-                                      </p>
-                                      <p className="text-sm text-emerald-600/80">
-                                        Click "Add Buffer Preparation" to begin
-                                      </p>
-                                    </motion.div>
-                                  )}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-
-
 
                           {/* ============= PREPARATIONS MANAGEMENT SECTION ============= */}
                           <div className="mb-8 p-6 bg-gradient-to-br from-emerald-50 via-emerald-50 to-emerald-50 border border-emerald-200 rounded-2xl shadow-2xl">
@@ -14684,13 +13060,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   { label?: string; color?: string }
                                 > = {};
 
-                                // Filter out mobilePhase and dissoMedia from display
+                                // Show all active groups as chips, including blankPreparation
                                 activeGroups
-                                  .filter(
-                                    (groupId) =>
-                                      groupId !== "mobilePhase" &&
-                                      groupId !== "dissoMedia",
-                                  )
                                   .forEach((groupId) => {
                                     const group =
                                       PREPARATION_GROUPS[
@@ -14848,6 +13219,263 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                           {/* ============= END OF PREPARATIONS MANAGEMENT SECTION ============= */}
                         </div>
 
+                        {/* ============= BLANK PREPARATION CARD ============= */}
+                        {(activePreparationGroups[selectedParam.id] || []).includes(
+                          "blankPreparation",
+                        ) && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-sm hover:shadow-emerald-200/50 transition-all duration-500"
+                          >
+                            <div
+                              className={
+                                isPreparationLocked
+                                  ? "pointer-events-none opacity-70"
+                                  : ""
+                              }
+                            >
+                              {/* Decorative elements */}
+                              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                              {/* Card Header */}
+                              <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-4">
+                                  <div className="relative">
+                                    <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                    <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                      <BiTestTube className="w-6 h-6 text-white" />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
+                                      Blank Preparation
+                                    </h2>
+                                    <p className="text-sm text-emerald-600/80 font-medium">
+                                      Custom Document Preparation
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="px-4 py-1 bg-gradient-to-r from-emerald-50 to-emerald-50 border border-emerald-200 rounded-full shadow-sm">
+                                  <span className="text-xs font-bold text-emerald-800">
+                                    {(blankPreparationPerParam[selectedParam.id] || []).length}{" "}
+                                    Items
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Blank Preparation Documents */}
+                              <div>
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Preparation Documents
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddBlankPreparation(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(blankPreparationPerParam[selectedParam.id] || []).map((blankPrep) => (
+                                    <div key={blankPrep.id}>
+                                      <BlankPreparationDetail
+                                        blankPreparation={blankPrep}
+                                        onEdit={(id) =>
+                                          handleEditBlankPreparation(selectedParam.id, id)
+                                        }
+                                        onRemove={(id) =>
+                                          handleRemoveBlankPreparation(selectedParam.id, id)
+                                        }
+                                      />
+                                    </div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(blankPreparationPerParam[selectedParam.id] || []).length > 0 && (
+                                  <div className="pointer-events-auto">
+                                    <WorksheetFileAttacher
+                                      files={getFilesForPrep(selectedParam.id, "blank", "Preparation Files")}
+                                      onAdd={(newFiles) =>
+                                        handleAddPrepFiles(selectedParam.id, "blank", "Preparation Files", newFiles)
+                                      }
+                                      onRemove={(index) =>
+                                        handleRemovePrepFile(selectedParam.id, "blank", "Preparation Files", index)
+                                      }
+                                      preparationType="blank"
+                                      sectionLabel="Preparation Files"
+                                      isLocked={shouldDisableContent}
+                                    />
+                                  </div>
+                                )}
+
+                                {(blankPreparationPerParam[selectedParam.id] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="absolute inset-0 opacity-5">
+                                      <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                      <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
+                                    </div>
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                                        <Target className="w-14 h-14 text-emerald-400" />
+                                      </div>
+                                      <p className="text-lg font-bold text-emerald-800 mb-2">
+                                        No documents added yet
+                                      </p>
+                                      <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
+                                        Click "Add Preparation" to create a blank preparation document
+                                      </p>
+                                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                        <span className="text-xs font-semibold text-emerald-800">
+                                          Ready to start
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+
+                              {/* ── Blank Preparation Complete / Unlock Banner ── */}
+                              {(blankPreparationPerParam[selectedParam.id] || []).length > 0 &&
+                                (() => {
+                                  const isGroupCompleted =
+                                    !!groupPrepCompletedAtPerParam[selectedParam.id]?.["blankPreparation"];
+
+                                  if (isPreparationLocked || isGroupCompleted) {
+                                    return (
+                                      <div className="mt-4 pointer-events-auto">
+                                        <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                          </div>
+                                          <div className="flex-1">
+                                            <p className="text-sm font-semibold text-emerald-800">
+                                              Blank Preparation Completed
+                                            </p>
+                                            {isGroupCompleted && (
+                                              <p className="text-xs text-emerald-600">
+                                                Completed at{" "}
+                                                {new Date(
+                                                  groupPrepCompletedAtPerParam[selectedParam.id]["blankPreparation"],
+                                                ).toLocaleString()}
+                                              </p>
+                                            )}
+                                          </div>
+                                          {canManagePrep && (
+                                            <button
+                                              onClick={() =>
+                                                handleInitiateUnlockGroupPrep(selectedParam, "blankPreparation")
+                                              }
+                                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                            >
+                                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                              </svg>
+                                              Unlock Preparation
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+
+                                  if (canManagePrep) {
+                                    return (
+                                      <div className="mt-4 pointer-events-auto">
+                                        <button
+                                          onClick={() =>
+                                            handleInitiateCompleteGroupPrep(selectedParam, "blankPreparation")
+                                          }
+                                          className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm"
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                          </svg>
+                                          Mark Blank Preparation Complete
+                                        </button>
+                                      </div>
+                                    );
+                                  }
+
+                                  return null;
+                                })()
+                              }
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {/* ============= BLANK PREPARATION DIALOG (full-screen) ============= */}
+                        <AnimatePresence>
+                          {showBlankPreparationDialog[selectedParam.id] && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+                              onClick={(e) => {
+                                if (e.target === e.currentTarget) {
+                                  setShowBlankPreparationDialog((prev) => ({
+                                    ...prev,
+                                    [selectedParam.id]: false,
+                                  }));
+                                  setEditingBlankPrepId(null);
+                                }
+                              }}
+                            >
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                                className="relative w-full h-full max-w-full max-h-full flex items-center justify-center p-4 sm:p-8"
+                              >
+                                <div className="relative w-full h-full bg-white rounded-2xl shadow-2xl overflow-auto flex flex-col">
+                                  <BlankPreparation
+                                    onClose={() => {
+                                      setShowBlankPreparationDialog((prev) => ({
+                                        ...prev,
+                                        [selectedParam.id]: false,
+                                      }));
+                                      setEditingBlankPrepId(null);
+                                    }}
+                                    onSave={(label, content) => {
+                                      handleSaveBlankPreparation(selectedParam.id, label, content);
+                                    }}
+                                    existingContent={
+                                      editingBlankPrepId
+                                        ? (blankPreparationPerParam[selectedParam.id] || []).find(
+                                            (prep) => prep.id === editingBlankPrepId,
+                                          )?.content || ""
+                                        : ""
+                                    }
+                                    existingLabel={
+                                      editingBlankPrepId
+                                        ? (blankPreparationPerParam[selectedParam.id] || []).find(
+                                            (prep) => prep.id === editingBlankPrepId,
+                                          )?.label || ""
+                                        : ""
+                                    }
+                                    isEditing={editingBlankPrepId !== null}
+                                  />
+                                </div>
+                              </motion.div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
                         {/* ============= ICP-MS (FOOD) PREPARATIONS ============= */}
                         {(activePreparationGroups[selectedParam.id] || []).includes("icpmsFood") && (
                           <motion.div
@@ -14983,89 +13611,89 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               </div>
                             </div>
 
-                              {/* Complete Preparation block — gates Calculations */}
-                              {canManagePrep &&
-                                (samplePreparationIcpmsFoodPerParam[selectedParam.id] || []).length > 0 &&
-                                (() => {
-                                  const isGroupCompleted =
-                                    !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsFood"];
-                                  const allPrepsValid = areAllMetalPrepsDilutionValid([
-                                    ...(samplePreparationIcpmsFoodPerParam[selectedParam.id] || []),
-                                    ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsFood"] || []),
-                                  ]);
-                                  return (
-                                    <div className="mt-4 pointer-events-auto opacity-100">
-                                      {isGroupCompleted ? (
-                                        <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                          </div>
-                                          <div className="flex-1">
-                                            <p className="text-sm font-semibold text-emerald-800">
-                                              ICP-MS (Food) Preparation Completed
-                                            </p>
-                                            <p className="text-xs text-emerald-600">
-                                              Completed at{" "}
-                                              {new Date(
-                                                groupPrepCompletedAtPerParam[selectedParam.id]["icpmsFood"]
-                                              ).toLocaleString()}
-                                            </p>
-                                          </div>
-                                          <button
-                                            onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "icpmsFood")}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
-                                          >
-                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                            </svg>
-                                            Unlock Preparation
-                                          </button>
+                            {/* Complete Preparation block — gates Calculations */}
+                            {canManagePrep &&
+                              (samplePreparationIcpmsFoodPerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsFood"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationIcpmsFoodPerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsFood"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                        <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                          </svg>
                                         </div>
-                                      ) : (
-                                        <div>
-                                          {!allPrepsValid && (
-                                            <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
-                                              <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                              </svg>
-                                              Fix dilution step errors in all preparations before completing.
-                                            </div>
-                                          )}
-                                          <button
-                                            onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "icpmsFood")}
-                                            disabled={!allPrepsValid}
-                                            className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
-                                          >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Mark ICP-MS (Food) Preparation as Complete
-                                          </button>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-semibold text-emerald-800">
+                                            ICP-MS (Food) Preparation Completed
+                                          </p>
+                                          <p className="text-xs text-emerald-600">
+                                            Completed at{" "}
+                                            {new Date(
+                                              groupPrepCompletedAtPerParam[selectedParam.id]["icpmsFood"]
+                                            ).toLocaleString()}
+                                          </p>
                                         </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-
-                              {/* Locked-out warning */}
-                              {(samplePreparationIcpmsFoodPerParam[selectedParam.id] || []).length > 0 &&
-                                !groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsFood"] &&
-                                !canManagePrep && (
-                                  <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
-                                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <p className="text-sm text-amber-800">
-                                      <strong>Complete Preparation</strong> above to unlock the Calculations section.
-                                    </p>
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "icpmsFood")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "icpmsFood")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Mark ICP-MS (Food) Preparation as Complete
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                );
+                              })()}
 
-                              {/* Calculations Section — gated on group prep completion */}
-                              {(samplePreparationIcpmsFoodPerParam[selectedParam.id] || []).length > 0 &&
-                                groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsFood"] && (
+                            {/* Locked-out warning */}
+                            {(samplePreparationIcpmsFoodPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsFood"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm text-amber-800">
+                                    <strong>Complete Preparation</strong> above to unlock the Calculations section.
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Calculations Section — gated on group prep completion */}
+                            {(samplePreparationIcpmsFoodPerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsFood"] && (
                                 <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                                   <div className="mt-8">
                                     <div className="flex items-center justify-between mb-4 px-2">
@@ -15257,89 +13885,89 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               </div>
                             </div>
 
-                              {/* Complete Preparation block — gates Calculations */}
-                              {canManagePrep &&
-                                (samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).length > 0 &&
-                                (() => {
-                                  const isGroupCompleted =
-                                    !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesFood"];
-                                  const allPrepsValid = areAllMetalPrepsDilutionValid([
-                                    ...(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []),
-                                    ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpoesFood"] || []),
-                                  ]);
-                                  return (
-                                    <div className="mt-4 pointer-events-auto opacity-100">
-                                      {isGroupCompleted ? (
-                                        <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                          </div>
-                                          <div className="flex-1">
-                                            <p className="text-sm font-semibold text-emerald-800">
-                                              ICP-OES (Food) Preparation Completed
-                                            </p>
-                                            <p className="text-xs text-emerald-600">
-                                              Completed at{" "}
-                                              {new Date(
-                                                groupPrepCompletedAtPerParam[selectedParam.id]["icpoesFood"]
-                                              ).toLocaleString()}
-                                            </p>
-                                          </div>
-                                          <button
-                                            onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "icpoesFood")}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
-                                          >
-                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                            </svg>
-                                            Unlock Preparation
-                                          </button>
+                            {/* Complete Preparation block — gates Calculations */}
+                            {canManagePrep &&
+                              (samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesFood"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpoesFood"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                        <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                          </svg>
                                         </div>
-                                      ) : (
-                                        <div>
-                                          {!allPrepsValid && (
-                                            <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
-                                              <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                              </svg>
-                                              Fix dilution step errors in all preparations before completing.
-                                            </div>
-                                          )}
-                                          <button
-                                            onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "icpoesFood")}
-                                            disabled={!allPrepsValid}
-                                            className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
-                                          >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Mark ICP-OES (Food) Preparation as Complete
-                                          </button>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-semibold text-emerald-800">
+                                            ICP-OES (Food) Preparation Completed
+                                          </p>
+                                          <p className="text-xs text-emerald-600">
+                                            Completed at{" "}
+                                            {new Date(
+                                              groupPrepCompletedAtPerParam[selectedParam.id]["icpoesFood"]
+                                            ).toLocaleString()}
+                                          </p>
                                         </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-
-                              {/* Locked-out warning */}
-                              {(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).length > 0 &&
-                                !groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesFood"] &&
-                                !canManagePrep && (
-                                  <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
-                                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <p className="text-sm text-amber-800">
-                                      <strong>Complete Preparation</strong> above to unlock the Calculations section.
-                                    </p>
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "icpoesFood")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "icpoesFood")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Mark ICP-OES (Food) Preparation as Complete
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                );
+                              })()}
 
-                              {/* Calculations Section — gated on group prep completion */}
-                              {(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).length > 0 &&
-                                groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesFood"] && (
+                            {/* Locked-out warning */}
+                            {(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesFood"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm text-amber-800">
+                                    <strong>Complete Preparation</strong> above to unlock the Calculations section.
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Calculations Section — gated on group prep completion */}
+                            {(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesFood"] && (
                                 <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                                   <div className="mt-8">
                                     <div className="flex items-center justify-between mb-4 px-2">
@@ -15531,89 +14159,89 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               </div>
                             </div>
 
-                              {/* Complete Preparation block — gates Calculations */}
-                              {canManagePrep &&
-                                (samplePreparationIcpmsWaterPerParam[selectedParam.id] || []).length > 0 &&
-                                (() => {
-                                  const isGroupCompleted =
-                                    !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsWater"];
-                                  const allPrepsValid = areAllMetalPrepsDilutionValid([
-                                    ...(samplePreparationIcpmsWaterPerParam[selectedParam.id] || []),
-                                    ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsWater"] || []),
-                                  ]);
-                                  return (
-                                    <div className="mt-4 pointer-events-auto opacity-100">
-                                      {isGroupCompleted ? (
-                                        <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                          </div>
-                                          <div className="flex-1">
-                                            <p className="text-sm font-semibold text-emerald-800">
-                                              ICP-MS (Water) Preparation Completed
-                                            </p>
-                                            <p className="text-xs text-emerald-600">
-                                              Completed at{" "}
-                                              {new Date(
-                                                groupPrepCompletedAtPerParam[selectedParam.id]["icpmsWater"]
-                                              ).toLocaleString()}
-                                            </p>
-                                          </div>
-                                          <button
-                                            onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "icpmsWater")}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
-                                          >
-                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                            </svg>
-                                            Unlock Preparation
-                                          </button>
+                            {/* Complete Preparation block — gates Calculations */}
+                            {canManagePrep &&
+                              (samplePreparationIcpmsWaterPerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsWater"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationIcpmsWaterPerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsWater"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                        <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                          </svg>
                                         </div>
-                                      ) : (
-                                        <div>
-                                          {!allPrepsValid && (
-                                            <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
-                                              <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                              </svg>
-                                              Fix dilution step errors in all preparations before completing.
-                                            </div>
-                                          )}
-                                          <button
-                                            onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "icpmsWater")}
-                                            disabled={!allPrepsValid}
-                                            className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
-                                          >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Mark ICP-MS (Water) Preparation as Complete
-                                          </button>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-semibold text-emerald-800">
+                                            ICP-MS (Water) Preparation Completed
+                                          </p>
+                                          <p className="text-xs text-emerald-600">
+                                            Completed at{" "}
+                                            {new Date(
+                                              groupPrepCompletedAtPerParam[selectedParam.id]["icpmsWater"]
+                                            ).toLocaleString()}
+                                          </p>
                                         </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-
-                              {/* Locked-out warning */}
-                              {(samplePreparationIcpmsWaterPerParam[selectedParam.id] || []).length > 0 &&
-                                !groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsWater"] &&
-                                !canManagePrep && (
-                                  <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
-                                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <p className="text-sm text-amber-800">
-                                      <strong>Complete Preparation</strong> above to unlock the Calculations section.
-                                    </p>
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "icpmsWater")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "icpmsWater")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Mark ICP-MS (Water) Preparation as Complete
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                );
+                              })()}
 
-                              {/* Calculations Section — gated on group prep completion */}
-                              {(samplePreparationIcpmsWaterPerParam[selectedParam.id] || []).length > 0 &&
-                                groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsWater"] && (
+                            {/* Locked-out warning */}
+                            {(samplePreparationIcpmsWaterPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsWater"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm text-amber-800">
+                                    <strong>Complete Preparation</strong> above to unlock the Calculations section.
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Calculations Section — gated on group prep completion */}
+                            {(samplePreparationIcpmsWaterPerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsWater"] && (
                                 <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                                   <div className="mt-8">
                                     <div className="flex items-center justify-between mb-4 px-2">
@@ -15794,84 +14422,84 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 )}
                               </div>
                             </div>
-                              {canManagePrep &&
-                                (samplePreparationIcpoesWaterPerParam[selectedParam.id] || []).length > 0 &&
-                                (() => {
-                                  const isGroupCompleted =
-                                    !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesWater"];
-                                  const allPrepsValid = areAllMetalPrepsDilutionValid([
-                                    ...(samplePreparationIcpoesWaterPerParam[selectedParam.id] || []),
-                                    ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpoesWater"] || []),
-                                  ]);
-                                  return (
-                                    <div className="mt-4 pointer-events-auto opacity-100">
-                                      {isGroupCompleted ? (
-                                        <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                          </div>
-                                          <div className="flex-1">
-                                            <p className="text-sm font-semibold text-emerald-800">
-                                              ICP-OES (Water) Preparation Completed
-                                            </p>
-                                            <p className="text-xs text-emerald-600">
-                                              Completed at{" "}
-                                              {new Date(
-                                                groupPrepCompletedAtPerParam[selectedParam.id]["icpoesWater"]
-                                              ).toLocaleString()}
-                                            </p>
-                                          </div>
-                                          <button
-                                            onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "icpoesWater")}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
-                                          >
-                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                            </svg>
-                                            Unlock Preparation
-                                          </button>
+                            {canManagePrep &&
+                              (samplePreparationIcpoesWaterPerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesWater"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationIcpoesWaterPerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpoesWater"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                        <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                          </svg>
                                         </div>
-                                      ) : (
-                                        <div>
-                                          {!allPrepsValid && (
-                                            <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
-                                              <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                              </svg>
-                                              Fix dilution step errors in all preparations before completing.
-                                            </div>
-                                          )}
-                                          <button
-                                            onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "icpoesWater")}
-                                            disabled={!allPrepsValid}
-                                            className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
-                                          >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Mark ICP-OES (Water) Preparation as Complete
-                                          </button>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-semibold text-emerald-800">
+                                            ICP-OES (Water) Preparation Completed
+                                          </p>
+                                          <p className="text-xs text-emerald-600">
+                                            Completed at{" "}
+                                            {new Date(
+                                              groupPrepCompletedAtPerParam[selectedParam.id]["icpoesWater"]
+                                            ).toLocaleString()}
+                                          </p>
                                         </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-                              {(samplePreparationIcpoesWaterPerParam[selectedParam.id] || []).length > 0 &&
-                                !groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesWater"] &&
-                                !canManagePrep && (
-                                  <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
-                                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <p className="text-sm text-amber-800">
-                                      <strong>Complete Preparation</strong> above to unlock the Calculations section.
-                                    </p>
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "icpoesWater")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "icpoesWater")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Mark ICP-OES (Water) Preparation as Complete
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              {(samplePreparationIcpoesWaterPerParam[selectedParam.id] || []).length > 0 &&
-                                groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesWater"] && (
+                                );
+                              })()}
+                            {(samplePreparationIcpoesWaterPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesWater"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm text-amber-800">
+                                    <strong>Complete Preparation</strong> above to unlock the Calculations section.
+                                  </p>
+                                </div>
+                              )}
+                            {(samplePreparationIcpoesWaterPerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesWater"] && (
                                 <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                                   <div className="mt-8">
                                     <div className="flex items-center justify-between mb-4 px-2">
@@ -16050,84 +14678,84 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 )}
                               </div>
                             </div>
-                              {canManagePrep &&
-                                (samplePreparationAasWaterPerParam[selectedParam.id] || []).length > 0 &&
-                                (() => {
-                                  const isGroupCompleted =
-                                    !!groupPrepCompletedAtPerParam[selectedParam.id]?.["aasWater"];
-                                  const allPrepsValid = areAllMetalPrepsDilutionValid([
-                                    ...(samplePreparationAasWaterPerParam[selectedParam.id] || []),
-                                    ...(standardPreparationMetalPerParam[selectedParam.id]?.["aasWater"] || []),
-                                  ]);
-                                  return (
-                                    <div className="mt-4 pointer-events-auto opacity-100">
-                                      {isGroupCompleted ? (
-                                        <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                          </div>
-                                          <div className="flex-1">
-                                            <p className="text-sm font-semibold text-emerald-800">
-                                              AAS (Water) Preparation Completed
-                                            </p>
-                                            <p className="text-xs text-emerald-600">
-                                              Completed at{" "}
-                                              {new Date(
-                                                groupPrepCompletedAtPerParam[selectedParam.id]["aasWater"]
-                                              ).toLocaleString()}
-                                            </p>
-                                          </div>
-                                          <button
-                                            onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "aasWater")}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
-                                          >
-                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                            </svg>
-                                            Unlock Preparation
-                                          </button>
+                            {canManagePrep &&
+                              (samplePreparationAasWaterPerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["aasWater"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationAasWaterPerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["aasWater"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                        <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                          </svg>
                                         </div>
-                                      ) : (
-                                        <div>
-                                          {!allPrepsValid && (
-                                            <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
-                                              <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                              </svg>
-                                              Fix dilution step errors in all preparations before completing.
-                                            </div>
-                                          )}
-                                          <button
-                                            onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "aasWater")}
-                                            disabled={!allPrepsValid}
-                                            className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
-                                          >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Mark AAS (Water) Preparation as Complete
-                                          </button>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-semibold text-emerald-800">
+                                            AAS (Water) Preparation Completed
+                                          </p>
+                                          <p className="text-xs text-emerald-600">
+                                            Completed at{" "}
+                                            {new Date(
+                                              groupPrepCompletedAtPerParam[selectedParam.id]["aasWater"]
+                                            ).toLocaleString()}
+                                          </p>
                                         </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-                              {(samplePreparationAasWaterPerParam[selectedParam.id] || []).length > 0 &&
-                                !groupPrepCompletedAtPerParam[selectedParam.id]?.["aasWater"] &&
-                                !canManagePrep && (
-                                  <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
-                                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <p className="text-sm text-amber-800">
-                                      <strong>Complete Preparation</strong> above to unlock the Calculations section.
-                                    </p>
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "aasWater")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "aasWater")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Mark AAS (Water) Preparation as Complete
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              {(samplePreparationAasWaterPerParam[selectedParam.id] || []).length > 0 &&
-                                groupPrepCompletedAtPerParam[selectedParam.id]?.["aasWater"] && (
+                                );
+                              })()}
+                            {(samplePreparationAasWaterPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["aasWater"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm text-amber-800">
+                                    <strong>Complete Preparation</strong> above to unlock the Calculations section.
+                                  </p>
+                                </div>
+                              )}
+                            {(samplePreparationAasWaterPerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["aasWater"] && (
                                 <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                                   <div className="mt-8">
                                     <div className="flex items-center justify-between mb-4 px-2">
@@ -16317,89 +14945,89 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               </div>
                             </div>
 
-                              {/* Complete Preparation block — gates Calculations */}
-                              {canManagePrep &&
-                                (samplePreparationIcpmsIchQ3DPerParam[selectedParam.id] || []).length > 0 &&
-                                (() => {
-                                  const isGroupCompleted =
-                                    !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsIchQ3D"];
-                                  const allPrepsValid = areAllMetalPrepsDilutionValid([
-                                    ...(samplePreparationIcpmsIchQ3DPerParam[selectedParam.id] || []),
-                                    ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsIchQ3D"] || []),
-                                  ]);
-                                  return (
-                                    <div className="mt-4 pointer-events-auto opacity-100">
-                                      {isGroupCompleted ? (
-                                        <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                          </div>
-                                          <div className="flex-1">
-                                            <p className="text-sm font-semibold text-emerald-800">
-                                              ICP-MS (ICH-Q3D) Preparation Completed
-                                            </p>
-                                            <p className="text-xs text-emerald-600">
-                                              Completed at{" "}
-                                              {new Date(
-                                                groupPrepCompletedAtPerParam[selectedParam.id]["icpmsIchQ3D"]
-                                              ).toLocaleString()}
-                                            </p>
-                                          </div>
-                                          <button
-                                            onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "icpmsIchQ3D")}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
-                                          >
-                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                            </svg>
-                                            Unlock Preparation
-                                          </button>
+                            {/* Complete Preparation block — gates Calculations */}
+                            {canManagePrep &&
+                              (samplePreparationIcpmsIchQ3DPerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsIchQ3D"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationIcpmsIchQ3DPerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsIchQ3D"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                        <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                          </svg>
                                         </div>
-                                      ) : (
-                                        <div>
-                                          {!allPrepsValid && (
-                                            <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
-                                              <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                              </svg>
-                                              Fix dilution step errors in all preparations before completing.
-                                            </div>
-                                          )}
-                                          <button
-                                            onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "icpmsIchQ3D")}
-                                            disabled={!allPrepsValid}
-                                            className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
-                                          >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Mark ICP-MS (ICH-Q3D) Preparation as Complete
-                                          </button>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-semibold text-emerald-800">
+                                            ICP-MS (ICH-Q3D) Preparation Completed
+                                          </p>
+                                          <p className="text-xs text-emerald-600">
+                                            Completed at{" "}
+                                            {new Date(
+                                              groupPrepCompletedAtPerParam[selectedParam.id]["icpmsIchQ3D"]
+                                            ).toLocaleString()}
+                                          </p>
                                         </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-
-                              {/* Locked-out warning */}
-                              {(samplePreparationIcpmsIchQ3DPerParam[selectedParam.id] || []).length > 0 &&
-                                !groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsIchQ3D"] &&
-                                !canManagePrep && (
-                                  <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
-                                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <p className="text-sm text-amber-800">
-                                      <strong>Complete Preparation</strong> above to unlock the Calculations section.
-                                    </p>
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "icpmsIchQ3D")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "icpmsIchQ3D")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Mark ICP-MS (ICH-Q3D) Preparation as Complete
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                );
+                              })()}
 
-                              {/* Calculations Section — gated on group prep completion */}
-                              {(samplePreparationIcpmsIchQ3DPerParam[selectedParam.id] || []).length > 0 &&
-                                groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsIchQ3D"] && (
+                            {/* Locked-out warning */}
+                            {(samplePreparationIcpmsIchQ3DPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsIchQ3D"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm text-amber-800">
+                                    <strong>Complete Preparation</strong> above to unlock the Calculations section.
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Calculations Section — gated on group prep completion */}
+                            {(samplePreparationIcpmsIchQ3DPerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsIchQ3D"] && (
                                 <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                                   <div className="mt-8">
                                     <div className="flex items-center justify-between mb-4 px-2">
@@ -16482,7 +15110,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       Sample Preparations for ORS
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      ORS — Sample Preparation &amp; % of L.C. Calculations
+                                      ORS — Sample Preparation &amp; % of LC Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -16591,89 +15219,89 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               </div>
                             </div>
 
-                              {/* Complete Preparation block — gates Calculations */}
-                              {canManagePrep &&
-                                (samplePreparationORSPerParam[selectedParam.id] || []).length > 0 &&
-                                (() => {
-                                  const isGroupCompleted =
-                                    !!groupPrepCompletedAtPerParam[selectedParam.id]?.["ors"];
-                                  const allPrepsValid = areAllMetalPrepsDilutionValid([
-                                    ...(samplePreparationORSPerParam[selectedParam.id] || []),
-                                    ...(standardPreparationMetalPerParam[selectedParam.id]?.["ors"] || []),
-                                  ]);
-                                  return (
-                                    <div className="mt-4 pointer-events-auto opacity-100">
-                                      {isGroupCompleted ? (
-                                        <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                          </div>
-                                          <div className="flex-1">
-                                            <p className="text-sm font-semibold text-emerald-800">
-                                              ORS Preparation Completed
-                                            </p>
-                                            <p className="text-xs text-emerald-600">
-                                              Completed at{" "}
-                                              {new Date(
-                                                groupPrepCompletedAtPerParam[selectedParam.id]["ors"]
-                                              ).toLocaleString()}
-                                            </p>
-                                          </div>
-                                          <button
-                                            onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "ors")}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
-                                          >
-                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                            </svg>
-                                            Unlock Preparation
-                                          </button>
+                            {/* Complete Preparation block — gates Calculations */}
+                            {canManagePrep &&
+                              (samplePreparationORSPerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["ors"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationORSPerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["ors"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                        <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                          </svg>
                                         </div>
-                                      ) : (
-                                        <div>
-                                          {!allPrepsValid && (
-                                            <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
-                                              <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                              </svg>
-                                              Fix dilution step errors in all preparations before completing.
-                                            </div>
-                                          )}
-                                          <button
-                                            onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "ors")}
-                                            disabled={!allPrepsValid}
-                                            className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
-                                          >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Mark ORS Preparation as Complete
-                                          </button>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-semibold text-emerald-800">
+                                            ORS Preparation Completed
+                                          </p>
+                                          <p className="text-xs text-emerald-600">
+                                            Completed at{" "}
+                                            {new Date(
+                                              groupPrepCompletedAtPerParam[selectedParam.id]["ors"]
+                                            ).toLocaleString()}
+                                          </p>
                                         </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-
-                              {/* Locked-out warning */}
-                              {(samplePreparationORSPerParam[selectedParam.id] || []).length > 0 &&
-                                !groupPrepCompletedAtPerParam[selectedParam.id]?.["ors"] &&
-                                !canManagePrep && (
-                                  <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
-                                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <p className="text-sm text-amber-800">
-                                      <strong>Complete Preparation</strong> above to unlock the Calculations section.
-                                    </p>
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "ors")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "ors")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Mark ORS Preparation as Complete
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                );
+                              })()}
 
-                              {/* Calculations Section — gated on group prep completion */}
-                              {(samplePreparationORSPerParam[selectedParam.id] || []).length > 0 &&
-                                groupPrepCompletedAtPerParam[selectedParam.id]?.["ors"] && (
+                            {/* Locked-out warning */}
+                            {(samplePreparationORSPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["ors"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm text-amber-800">
+                                    <strong>Complete Preparation</strong> above to unlock the Calculations section.
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Calculations Section — gated on group prep completion */}
+                            {(samplePreparationORSPerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["ors"] && (
                                 <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                                   <div className="mt-8">
                                     <div className="flex items-center justify-between mb-4 px-2">
@@ -16865,89 +15493,89 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               </div>
                             </div>
 
-                              {/* Complete Preparation block — gates Calculations */}
-                              {canManagePrep &&
-                                (samplePreparationAnoferPerParam[selectedParam.id] || []).length > 0 &&
-                                (() => {
-                                  const isGroupCompleted =
-                                    !!groupPrepCompletedAtPerParam[selectedParam.id]?.["anofer"];
-                                  const allPrepsValid = areAllMetalPrepsDilutionValid([
-                                    ...(samplePreparationAnoferPerParam[selectedParam.id] || []),
-                                    ...(standardPreparationMetalPerParam[selectedParam.id]?.["anofer"] || []),
-                                  ]);
-                                  return (
-                                    <div className="mt-4 pointer-events-auto opacity-100">
-                                      {isGroupCompleted ? (
-                                        <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                          </div>
-                                          <div className="flex-1">
-                                            <p className="text-sm font-semibold text-emerald-800">
-                                              Anofer Preparation Completed
-                                            </p>
-                                            <p className="text-xs text-emerald-600">
-                                              Completed at{" "}
-                                              {new Date(
-                                                groupPrepCompletedAtPerParam[selectedParam.id]["anofer"]
-                                              ).toLocaleString()}
-                                            </p>
-                                          </div>
-                                          <button
-                                            onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "anofer")}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
-                                          >
-                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                            </svg>
-                                            Unlock Preparation
-                                          </button>
+                            {/* Complete Preparation block — gates Calculations */}
+                            {canManagePrep &&
+                              (samplePreparationAnoferPerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["anofer"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationAnoferPerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["anofer"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                        <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                          </svg>
                                         </div>
-                                      ) : (
-                                        <div>
-                                          {!allPrepsValid && (
-                                            <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
-                                              <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                              </svg>
-                                              Fix dilution step errors in all preparations before completing.
-                                            </div>
-                                          )}
-                                          <button
-                                            onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "anofer")}
-                                            disabled={!allPrepsValid}
-                                            className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
-                                          >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Mark Anofer Preparation as Complete
-                                          </button>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-semibold text-emerald-800">
+                                            Anofer Preparation Completed
+                                          </p>
+                                          <p className="text-xs text-emerald-600">
+                                            Completed at{" "}
+                                            {new Date(
+                                              groupPrepCompletedAtPerParam[selectedParam.id]["anofer"]
+                                            ).toLocaleString()}
+                                          </p>
                                         </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-
-                              {/* Locked-out warning */}
-                              {(samplePreparationAnoferPerParam[selectedParam.id] || []).length > 0 &&
-                                !groupPrepCompletedAtPerParam[selectedParam.id]?.["anofer"] &&
-                                !canManagePrep && (
-                                  <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
-                                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <p className="text-sm text-amber-800">
-                                      <strong>Complete Preparation</strong> above to unlock the Calculations section.
-                                    </p>
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "anofer")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "anofer")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Mark Anofer Preparation as Complete
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                );
+                              })()}
 
-                              {/* Calculations Section — gated on group prep completion */}
-                              {(samplePreparationAnoferPerParam[selectedParam.id] || []).length > 0 &&
-                                groupPrepCompletedAtPerParam[selectedParam.id]?.["anofer"] && (
+                            {/* Locked-out warning */}
+                            {(samplePreparationAnoferPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["anofer"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm text-amber-800">
+                                    <strong>Complete Preparation</strong> above to unlock the Calculations section.
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Calculations Section — gated on group prep completion */}
+                            {(samplePreparationAnoferPerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["anofer"] && (
                                 <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                                   <div className="mt-8">
                                     <div className="flex items-center justify-between mb-4 px-2">
@@ -17139,89 +15767,89 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               </div>
                             </div>
 
-                              {/* Complete Preparation block — gates Calculations */}
-                              {canManagePrep &&
-                                (samplePreparationZptoShampooPerParam[selectedParam.id] || []).length > 0 &&
-                                (() => {
-                                  const isGroupCompleted =
-                                    !!groupPrepCompletedAtPerParam[selectedParam.id]?.["zptoShampoo"];
-                                  const allPrepsValid = areAllMetalPrepsDilutionValid([
-                                    ...(samplePreparationZptoShampooPerParam[selectedParam.id] || []),
-                                    ...(standardPreparationMetalPerParam[selectedParam.id]?.["zptoShampoo"] || []),
-                                  ]);
-                                  return (
-                                    <div className="mt-4 pointer-events-auto opacity-100">
-                                      {isGroupCompleted ? (
-                                        <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                          </div>
-                                          <div className="flex-1">
-                                            <p className="text-sm font-semibold text-emerald-800">
-                                              ZPTO Shampoo Preparation Completed
-                                            </p>
-                                            <p className="text-xs text-emerald-600">
-                                              Completed at{" "}
-                                              {new Date(
-                                                groupPrepCompletedAtPerParam[selectedParam.id]["zptoShampoo"]
-                                              ).toLocaleString()}
-                                            </p>
-                                          </div>
-                                          <button
-                                            onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "zptoShampoo")}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
-                                          >
-                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                            </svg>
-                                            Unlock Preparation
-                                          </button>
+                            {/* Complete Preparation block — gates Calculations */}
+                            {canManagePrep &&
+                              (samplePreparationZptoShampooPerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["zptoShampoo"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationZptoShampooPerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["zptoShampoo"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                        <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                          </svg>
                                         </div>
-                                      ) : (
-                                        <div>
-                                          {!allPrepsValid && (
-                                            <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
-                                              <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                              </svg>
-                                              Fix dilution step errors in all preparations before completing.
-                                            </div>
-                                          )}
-                                          <button
-                                            onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "zptoShampoo")}
-                                            disabled={!allPrepsValid}
-                                            className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
-                                          >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Mark ZPTO Shampoo Preparation as Complete
-                                          </button>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-semibold text-emerald-800">
+                                            ZPTO Shampoo Preparation Completed
+                                          </p>
+                                          <p className="text-xs text-emerald-600">
+                                            Completed at{" "}
+                                            {new Date(
+                                              groupPrepCompletedAtPerParam[selectedParam.id]["zptoShampoo"]
+                                            ).toLocaleString()}
+                                          </p>
                                         </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-
-                              {/* Locked-out warning */}
-                              {(samplePreparationZptoShampooPerParam[selectedParam.id] || []).length > 0 &&
-                                !groupPrepCompletedAtPerParam[selectedParam.id]?.["zptoShampoo"] &&
-                                !canManagePrep && (
-                                  <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
-                                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <p className="text-sm text-amber-800">
-                                      <strong>Complete Preparation</strong> above to unlock the Calculations section.
-                                    </p>
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "zptoShampoo")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "zptoShampoo")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Mark ZPTO Shampoo Preparation as Complete
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                );
+                              })()}
 
-                              {/* Calculations Section — gated on group prep completion */}
-                              {(samplePreparationZptoShampooPerParam[selectedParam.id] || []).length > 0 &&
-                                groupPrepCompletedAtPerParam[selectedParam.id]?.["zptoShampoo"] && (
+                            {/* Locked-out warning */}
+                            {(samplePreparationZptoShampooPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["zptoShampoo"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm text-amber-800">
+                                    <strong>Complete Preparation</strong> above to unlock the Calculations section.
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Calculations Section — gated on group prep completion */}
+                            {(samplePreparationZptoShampooPerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["zptoShampoo"] && (
                                 <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                                   <div className="mt-8">
                                     <div className="flex items-center justify-between mb-4 px-2">
@@ -17412,88 +16040,88 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               </div>
                             </div>
 
-                              {/* Complete Preparation block — gates Calculations */}
-                              {canManagePrep &&
-                                (samplePreparationSodiumLactatePerParam[selectedParam.id] || []).length > 0 &&
-                                (() => {
-                                  const isGroupCompleted =
-                                    !!groupPrepCompletedAtPerParam[selectedParam.id]?.["sodiumLactate"];
-                                  const allPrepsValid = areAllMetalPrepsDilutionValid([
-                                    ...(samplePreparationSodiumLactatePerParam[selectedParam.id] || []),
-                                    ...(standardPreparationMetalPerParam[selectedParam.id]?.["sodiumLactate"] || []),
-                                  ]);
-                                  return (
-                                    <div className="mt-4 pointer-events-auto opacity-100">
-                                      {isGroupCompleted ? (
-                                        <div className="flex items-center justify-between flex-wrap gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
-                                          <div className="flex items-center gap-2 text-emerald-700">
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            <div>
-                                              <p className="text-sm font-semibold text-emerald-800">
-                                                Sodium Lactate Preparation Completed
-                                              </p>
-                                              <p className="text-xs text-emerald-600">
-                                                Completed at{" "}
-                                                {new Date(
-                                                  groupPrepCompletedAtPerParam[selectedParam.id]["sodiumLactate"]
-                                                ).toLocaleString()}
-                                              </p>
-                                            </div>
+                            {/* Complete Preparation block — gates Calculations */}
+                            {canManagePrep &&
+                              (samplePreparationSodiumLactatePerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["sodiumLactate"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationSodiumLactatePerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["sodiumLactate"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center justify-between flex-wrap gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                        <div className="flex items-center gap-2 text-emerald-700">
+                                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          <div>
+                                            <p className="text-sm font-semibold text-emerald-800">
+                                              Sodium Lactate Preparation Completed
+                                            </p>
+                                            <p className="text-xs text-emerald-600">
+                                              Completed at{" "}
+                                              {new Date(
+                                                groupPrepCompletedAtPerParam[selectedParam.id]["sodiumLactate"]
+                                              ).toLocaleString()}
+                                            </p>
                                           </div>
-                                          <button
-                                            onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "sodiumLactate")}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
-                                          >
-                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                            </svg>
-                                            Unlock Preparation
-                                          </button>
                                         </div>
-                                      ) : (
-                                        <div>
-                                          {!allPrepsValid && (
-                                            <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
-                                              <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                              </svg>
-                                              Fix dilution step errors in all preparations before completing.
-                                            </div>
-                                          )}
-                                          <button
-                                            onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "sodiumLactate")}
-                                            disabled={!allPrepsValid}
-                                            className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
-                                          >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "sodiumLactate")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
-                                            Complete Sodium Lactate Preparation
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-
-                              {(samplePreparationSodiumLactatePerParam[selectedParam.id] || []).length > 0 &&
-                                !groupPrepCompletedAtPerParam[selectedParam.id]?.["sodiumLactate"] &&
-                                !canManagePrep && (
-                                  <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
-                                    <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
-                                    </svg>
-                                    <p className="text-xs text-amber-700 font-medium">
-                                      Awaiting preparation completion by an authorized user before calculations can be added.
-                                    </p>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "sodiumLactate")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Complete Sodium Lactate Preparation
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                );
+                              })()}
 
-                              {/* Calculations Section — gated on group prep completion */}
-                              {(samplePreparationSodiumLactatePerParam[selectedParam.id] || []).length > 0 &&
-                                groupPrepCompletedAtPerParam[selectedParam.id]?.["sodiumLactate"] && (
+                            {(samplePreparationSodiumLactatePerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["sodiumLactate"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
+                                  </svg>
+                                  <p className="text-xs text-amber-700 font-medium">
+                                    Awaiting preparation completion by an authorized user before calculations can be added.
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Calculations Section — gated on group prep completion */}
+                            {(samplePreparationSodiumLactatePerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["sodiumLactate"] && (
                                 <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                                   <div className="mt-8">
                                     <div className="flex items-center justify-between mb-4 px-2">
@@ -17677,89 +16305,89 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               </div>
                             </div>
 
-                              {/* Complete Preparation block */}
-                              {canManagePrep &&
-                                (samplePreparationLithosun300PerParam[selectedParam.id] || []).length > 0 &&
-                                (() => {
-                                  const isGroupCompleted =
-                                    !!groupPrepCompletedAtPerParam[selectedParam.id]?.["lithosun300"];
-                                  const allPrepsValid = areAllMetalPrepsDilutionValid([
-                                    ...(samplePreparationLithosun300PerParam[selectedParam.id] || []),
-                                    ...(standardPreparationMetalPerParam[selectedParam.id]?.["lithosun300"] || []),
-                                  ]);
-                                  return (
-                                    <div className="mt-4 pointer-events-auto opacity-100">
-                                      {isGroupCompleted ? (
-                                        <div className="flex items-center justify-between flex-wrap gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
-                                          <div className="flex items-center gap-2 text-emerald-700">
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            <div>
-                                              <p className="text-sm font-semibold text-emerald-800">
-                                                Lithosun 300 Preparation Completed
-                                              </p>
-                                              <p className="text-xs text-emerald-600">
-                                                Completed at{" "}
-                                                {new Date(
-                                                  groupPrepCompletedAtPerParam[selectedParam.id]["lithosun300"]
-                                                ).toLocaleString()}
-                                              </p>
-                                            </div>
+                            {/* Complete Preparation block */}
+                            {canManagePrep &&
+                              (samplePreparationLithosun300PerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["lithosun300"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationLithosun300PerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["lithosun300"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center justify-between flex-wrap gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                        <div className="flex items-center gap-2 text-emerald-700">
+                                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          <div>
+                                            <p className="text-sm font-semibold text-emerald-800">
+                                              Lithosun 300 Preparation Completed
+                                            </p>
+                                            <p className="text-xs text-emerald-600">
+                                              Completed at{" "}
+                                              {new Date(
+                                                groupPrepCompletedAtPerParam[selectedParam.id]["lithosun300"]
+                                              ).toLocaleString()}
+                                            </p>
                                           </div>
-                                          <button
-                                            onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "lithosun300")}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
-                                          >
-                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                            </svg>
-                                            Unlock Preparation
-                                          </button>
                                         </div>
-                                      ) : (
-                                        <div>
-                                          {!allPrepsValid && (
-                                            <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
-                                              <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                              </svg>
-                                              Fix dilution step errors in all preparations before completing.
-                                            </div>
-                                          )}
-                                          <button
-                                            onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "lithosun300")}
-                                            disabled={!allPrepsValid}
-                                            className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
-                                          >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "lithosun300")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
-                                            Complete Lithosun 300 Preparation
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-
-                              {/* Locked-out warning */}
-                              {(samplePreparationLithosun300PerParam[selectedParam.id] || []).length > 0 &&
-                                !groupPrepCompletedAtPerParam[selectedParam.id]?.["lithosun300"] &&
-                                !canManagePrep && (
-                                  <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
-                                    <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
-                                    </svg>
-                                    <p className="text-xs text-amber-700 font-medium">
-                                      Awaiting preparation completion by an authorized user before calculations can be added.
-                                    </p>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "lithosun300")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Complete Lithosun 300 Preparation
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                );
+                              })()}
 
-                              {/* Calculations Section — gated on group prep completion */}
-                              {(samplePreparationLithosun300PerParam[selectedParam.id] || []).length > 0 &&
-                                groupPrepCompletedAtPerParam[selectedParam.id]?.["lithosun300"] && (
+                            {/* Locked-out warning */}
+                            {(samplePreparationLithosun300PerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["lithosun300"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
+                                  </svg>
+                                  <p className="text-xs text-amber-700 font-medium">
+                                    Awaiting preparation completion by an authorized user before calculations can be added.
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Calculations Section — gated on group prep completion */}
+                            {(samplePreparationLithosun300PerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["lithosun300"] && (
                                 <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                                   <div className="mt-8">
                                     <div className="flex items-center justify-between mb-4 px-2">
@@ -17804,7 +16432,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                             No calculations added yet
                                           </p>
                                           <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                            Click "Add Calculation" to create a Lithosun 300 dissolution calculation
+                                            Click "Add Calculation" to create a Lithosun 300 calculation
                                           </p>
                                         </div>
                                       </motion.div>
@@ -17815,6 +16443,1070 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                           </motion.div>
                         )}
                         {/* ============= END LITHOSUN 300 PREPARATIONS ============= */}
+
+                        {/* ============= LITHOSUN 400 PREPARATIONS ============= */}
+                        {(activePreparationGroups[selectedParam.id] || []).includes("lithosun400") && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-sm hover:shadow-emerald-200/50 transition-all duration-500"
+                          >
+                            <div className={isPreparationLocked ? "pointer-events-none opacity-70" : ""}>
+                              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                              <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-4">
+                                  <div className="relative">
+                                    <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                    <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                      <BiTestTube className="w-6 h-6 text-white" />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
+                                      Sample Preparations for Lithosun 400
+                                    </h2>
+                                    <p className="text-sm text-emerald-600/80 font-medium">
+                                      Lithosun 400 — Sample Preparation &amp; Calculations
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="px-4 py-1 bg-gradient-to-r from-emerald-50 to-emerald-50 border border-emerald-200 rounded-full shadow-sm">
+                                  <span className="text-xs font-bold text-emerald-800">
+                                    {((samplePreparationLithosun400PerParam[selectedParam.id] || []).length +
+                                      (calculationsLithosun400PerParam[selectedParam.id] || []).length)}{" "}
+                                    Items
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Sample Preparation Section */}
+                              <div>
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Preparations for Lithosun 400
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddSamplePreparationLithosun400(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(samplePreparationLithosun400PerParam[selectedParam.id] || []).map((samplePrep, idx) => {
+                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["lithosun400"] || [])[idx];
+                                    return (
+                                      <motion.div
+                                        key={samplePrep.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                      >
+                                        {standardPrep && (
+                                          <StandardPreparationMetalDetail
+                                            samplePreparation={standardPrep}
+                                            onStepChange={(spId, stepName, field, val) =>
+                                              handleStandardPreparationMetalStepChange(selectedParam.id, "lithosun400", spId, stepName, field, val)
+                                            }
+                                            onRemove={() => handleRemoveSamplePreparationLithosun400(selectedParam.id, samplePrep.id)}
+                                          />
+                                        )}
+                                        <div className="mt-2">
+                                          <SamplePreparationMetalDetail
+                                            samplePreparation={samplePrep}
+                                            onStepChange={(spId, stepName, field, val) =>
+                                              handleSamplePreparationLithosun400StepChange(
+                                                selectedParam.id, spId, stepName, field, val,
+                                              )
+                                            }
+                                            onRemove={() => handleRemoveSamplePreparationLithosun400(selectedParam.id, samplePrep.id)}
+                                          />
+                                        </div>
+                                      </motion.div>
+                                    );
+                                  })}
+                                </AnimatePresence>
+
+                                {(samplePreparationLithosun400PerParam[selectedParam.id] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+
+                                {/* Weight Sheet attacher */}
+                                {(samplePreparationLithosun400PerParam[selectedParam.id] || []).length > 0 && (
+                                  <div className="pointer-events-auto mt-4">
+                                    <WorksheetFileAttacher
+                                      files={getFilesForPrep(selectedParam.id, "lithosun400", "Weight Sheet")}
+                                      onAdd={(newFiles) =>
+                                        handleAddPrepFiles(selectedParam.id, "lithosun400", "Weight Sheet", newFiles)
+                                      }
+                                      onRemove={(index) =>
+                                        handleRemovePrepFile(selectedParam.id, "lithosun400", "Weight Sheet", index)
+                                      }
+                                      preparationType="lithosun400"
+                                      sectionLabel="Weight Sheet"
+                                      isLocked={shouldDisableContent}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Complete Preparation block */}
+                            {canManagePrep &&
+                              (samplePreparationLithosun400PerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["lithosun400"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationLithosun400PerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["lithosun400"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center justify-between flex-wrap gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                        <div className="flex items-center gap-2 text-emerald-700">
+                                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          <div>
+                                            <p className="text-sm font-semibold text-emerald-800">
+                                              Lithosun 400 Preparation Completed
+                                            </p>
+                                            <p className="text-xs text-emerald-600">
+                                              Completed at{" "}
+                                              {new Date(
+                                                groupPrepCompletedAtPerParam[selectedParam.id]["lithosun400"]
+                                              ).toLocaleString()}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "lithosun400")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "lithosun400")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Complete Lithosun 400 Preparation
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+
+                            {/* Locked-out warning */}
+                            {(samplePreparationLithosun400PerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["lithosun400"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
+                                  </svg>
+                                  <p className="text-xs text-amber-700 font-medium">
+                                    Awaiting preparation completion by an authorized user before calculations can be added.
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Calculations Section — gated on group prep completion */}
+                            {(samplePreparationLithosun400PerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["lithosun400"] && (
+                                <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
+                                  <div className="mt-8">
+                                    <div className="flex items-center justify-between mb-4 px-2">
+                                      <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                        <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                        Calculations for Lithosun 400
+                                      </h3>
+                                      <button
+                                        onClick={() => handleAddCalculationLithosun400(selectedParam.id)}
+                                        className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                      >
+                                        <Plus className="w-4 h-4" />
+                                        Add Calculation
+                                      </button>
+                                    </div>
+
+                                    <AnimatePresence>
+                                      {(calculationsLithosun400PerParam[selectedParam.id] || []).map((calc) => (
+                                        <div key={calc.id}>
+                                          <CalculationDetailLithosun400
+                                            calculation={calc}
+                                            samplePreparations={samplePreparationLithosun400PerParam[selectedParam.id] || []}
+                                            onUpdate={(updated) => handleUpdateCalculationLithosun400(selectedParam.id, updated)}
+                                            onRemove={() => handleRemoveCalculationLithosun400(selectedParam.id, calc.id)}
+                                            isLocked={isFullyLocked}
+                                          />
+                                        </div>
+                                      ))}
+                                    </AnimatePresence>
+
+                                    {(calculationsLithosun400PerParam[selectedParam.id] || []).length === 0 && (
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                      >
+                                        <div className="relative z-10">
+                                          <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                            <Target className="w-10 h-10 text-emerald-400" />
+                                          </div>
+                                          <p className="text-base font-bold text-emerald-800 mb-1">
+                                            No calculations added yet
+                                          </p>
+                                          <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                            Click "Add Calculation" to create a Lithosun 400 calculation
+                                          </p>
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                          </motion.div>
+                        )}
+                        {/* ============= END LITHOSUN 400 PREPARATIONS ============= */}
+
+                        {/* ============= MEROPENAM PREPARATIONS ============= */}
+                        {(activePreparationGroups[selectedParam.id] || []).includes("meropenam") && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-sm hover:shadow-emerald-200/50 transition-all duration-500"
+                          >
+                            <div className={isPreparationLocked ? "pointer-events-none opacity-70" : ""}>
+                              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                              <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-4">
+                                  <div className="relative">
+                                    <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                    <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                      <BiTestTube className="w-6 h-6 text-white" />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
+                                      Sample Preparations for Meropenam
+                                    </h2>
+                                    <p className="text-sm text-emerald-600/80 font-medium">
+                                      Meropenam Sample Preparation &amp; Calculations
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="px-4 py-1 bg-gradient-to-r from-emerald-50 to-emerald-50 border border-emerald-200 rounded-full shadow-sm">
+                                  <span className="text-xs font-bold text-emerald-800">
+                                    {((samplePreparationMeropenamPerParam[selectedParam.id] || []).length +
+                                      (calculationsMeropenamPerParam[selectedParam.id] || []).length)}{" "}
+                                    Items
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Sample Preparation Section */}
+                              <div>
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Preparations for Meropenam
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddSamplePreparationMeropenam(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(samplePreparationMeropenamPerParam[selectedParam.id] || []).map((samplePrep, idx) => {
+                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["meropenam"] || [])[idx];
+                                    return (
+                                      <motion.div
+                                        key={samplePrep.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                      >
+                                        {standardPrep && (
+                                          <StandardPreparationMetalDetail
+                                            samplePreparation={standardPrep}
+                                            onStepChange={(spId, stepName, field, val) =>
+                                              handleStandardPreparationMetalStepChange(selectedParam.id, "meropenam", spId, stepName, field, val)
+                                            }
+                                            onRemove={() => handleRemoveSamplePreparationMeropenam(selectedParam.id, samplePrep.id)}
+                                          />
+                                        )}
+                                        <div className="mt-2">
+                                          <SamplePreparationMetalDetail
+                                            samplePreparation={samplePrep}
+                                            onStepChange={(spId, stepName, field, val) =>
+                                              handleSamplePreparationMeropenamStepChange(
+                                                selectedParam.id, spId, stepName, field, val,
+                                              )
+                                            }
+                                            onRemove={() => handleRemoveSamplePreparationMeropenam(selectedParam.id, samplePrep.id)}
+                                          />
+                                        </div>
+                                      </motion.div>
+                                    );
+                                  })}
+                                </AnimatePresence>
+
+                                {(samplePreparationMeropenamPerParam[selectedParam.id] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+
+                                {/* Weight Sheet attacher */}
+                                {(samplePreparationMeropenamPerParam[selectedParam.id] || []).length > 0 && (
+                                  <div className="pointer-events-auto mt-4">
+                                    <WorksheetFileAttacher
+                                      files={getFilesForPrep(selectedParam.id, "meropenam", "Weight Sheet")}
+                                      onAdd={(newFiles) =>
+                                        handleAddPrepFiles(selectedParam.id, "meropenam", "Weight Sheet", newFiles)
+                                      }
+                                      onRemove={(index) =>
+                                        handleRemovePrepFile(selectedParam.id, "meropenam", "Weight Sheet", index)
+                                      }
+                                      preparationType="meropenam"
+                                      sectionLabel="Weight Sheet"
+                                      isLocked={shouldDisableContent}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Complete Preparation block */}
+                            {canManagePrep &&
+                              (samplePreparationMeropenamPerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["meropenam"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationMeropenamPerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["meropenam"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center justify-between flex-wrap gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                        <div className="flex items-center gap-2 text-emerald-700">
+                                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          <div>
+                                            <p className="text-sm font-semibold text-emerald-800">
+                                              Meropenam Preparation Completed
+                                            </p>
+                                            <p className="text-xs text-emerald-600">
+                                              Completed at{" "}
+                                              {new Date(
+                                                groupPrepCompletedAtPerParam[selectedParam.id]["meropenam"]
+                                              ).toLocaleString()}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "meropenam")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "meropenam")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Complete Meropenam Preparation
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+
+                            {/* Locked-out warning */}
+                            {(samplePreparationMeropenamPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["meropenam"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
+                                  </svg>
+                                  <p className="text-xs text-amber-700 font-medium">
+                                    Awaiting preparation completion by an authorized user before calculations can be added.
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Calculations Section — gated on group prep completion */}
+                            {(samplePreparationMeropenamPerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["meropenam"] && (
+                                <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
+                                  <div className="mt-8">
+                                    <div className="flex items-center justify-between mb-4 px-2">
+                                      <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                        <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                        Calculations for Meropenam
+                                      </h3>
+                                      <button
+                                        onClick={() => handleAddCalculationMeropenam(selectedParam.id)}
+                                        className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                      >
+                                        <Plus className="w-4 h-4" />
+                                        Add Calculation
+                                      </button>
+                                    </div>
+
+                                    <AnimatePresence>
+                                      {(calculationsMeropenamPerParam[selectedParam.id] || []).map((calc) => (
+                                        <div key={calc.id}>
+                                          <CalculationDetailMeropenam
+                                            calculation={calc}
+                                            samplePreparations={samplePreparationMeropenamPerParam[selectedParam.id] || []}
+                                            onUpdate={(updated) => handleUpdateCalculationMeropenam(selectedParam.id, updated)}
+                                            onRemove={() => handleRemoveCalculationMeropenam(selectedParam.id, calc.id)}
+                                            isLocked={isFullyLocked}
+                                          />
+                                        </div>
+                                      ))}
+                                    </AnimatePresence>
+
+                                    {(calculationsMeropenamPerParam[selectedParam.id] || []).length === 0 && (
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                      >
+                                        <div className="relative z-10">
+                                          <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                            <Target className="w-10 h-10 text-emerald-400" />
+                                          </div>
+                                          <p className="text-base font-bold text-emerald-800 mb-1">
+                                            No calculations added yet
+                                          </p>
+                                          <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                            Click "Add Calculation" to create a Meropenam calculation
+                                          </p>
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                          </motion.div>
+                        )}
+                        {/* ============= END MEROPENAM PREPARATIONS ============= */}
+
+                        {/* ============= TALC PREPARATIONS ============= */}
+                        {(activePreparationGroups[selectedParam.id] || []).includes("talc") && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-sm hover:shadow-emerald-200/50 transition-all duration-500"
+                          >
+                            <div className={isPreparationLocked ? "pointer-events-none opacity-70" : ""}>
+                              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                              <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-4">
+                                  <div className="relative">
+                                    <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                    <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                      <BiTestTube className="w-6 h-6 text-white" />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
+                                      Sample Preparations for Talc
+                                    </h2>
+                                    <p className="text-sm text-emerald-600/80 font-medium">
+                                      Talc Sample Preparation &amp; Calculations
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="px-4 py-1 bg-gradient-to-r from-emerald-50 to-emerald-50 border border-emerald-200 rounded-full shadow-sm">
+                                  <span className="text-xs font-bold text-emerald-800">
+                                    {((samplePreparationTalcPerParam[selectedParam.id] || []).length +
+                                      (calculationsTalcPerParam[selectedParam.id] || []).length)}{" "}
+                                    Items
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Sample Preparation Section */}
+                              <div>
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Preparations for Talc
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddSamplePreparationTalc(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(samplePreparationTalcPerParam[selectedParam.id] || []).map((samplePrep, idx) => {
+                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["talc"] || [])[idx];
+                                    return (
+                                      <motion.div
+                                        key={samplePrep.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                      >
+                                        {standardPrep && (
+                                          <StandardPreparationMetalDetail
+                                            samplePreparation={standardPrep}
+                                            onStepChange={(spId, stepName, field, val) =>
+                                              handleStandardPreparationMetalStepChange(selectedParam.id, "talc", spId, stepName, field, val)
+                                            }
+                                            onRemove={() => handleRemoveSamplePreparationTalc(selectedParam.id, samplePrep.id)}
+                                          />
+                                        )}
+                                        <div className="mt-2">
+                                          <SamplePreparationMetalDetail
+                                            samplePreparation={samplePrep}
+                                            onStepChange={(spId, stepName, field, val) =>
+                                              handleSamplePreparationTalcStepChange(
+                                                selectedParam.id, spId, stepName, field, val,
+                                              )
+                                            }
+                                            onRemove={() => handleRemoveSamplePreparationTalc(selectedParam.id, samplePrep.id)}
+                                          />
+                                        </div>
+                                      </motion.div>
+                                    );
+                                  })}
+                                </AnimatePresence>
+
+                                {(samplePreparationTalcPerParam[selectedParam.id] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+
+                                {/* Weight Sheet attacher */}
+                                {(samplePreparationTalcPerParam[selectedParam.id] || []).length > 0 && (
+                                  <div className="pointer-events-auto mt-4">
+                                    <WorksheetFileAttacher
+                                      files={getFilesForPrep(selectedParam.id, "talc", "Weight Sheet")}
+                                      onAdd={(newFiles) =>
+                                        handleAddPrepFiles(selectedParam.id, "talc", "Weight Sheet", newFiles)
+                                      }
+                                      onRemove={(index) =>
+                                        handleRemovePrepFile(selectedParam.id, "talc", "Weight Sheet", index)
+                                      }
+                                      preparationType="talc"
+                                      sectionLabel="Weight Sheet"
+                                      isLocked={shouldDisableContent}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Complete Preparation block */}
+                            {canManagePrep &&
+                              (samplePreparationTalcPerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["talc"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationTalcPerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["talc"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center justify-between flex-wrap gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                        <div className="flex items-center gap-2 text-emerald-700">
+                                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          <div>
+                                            <p className="text-sm font-semibold text-emerald-800">
+                                              Talc Preparation Completed
+                                            </p>
+                                            <p className="text-xs text-emerald-600">
+                                              Completed at{" "}
+                                              {new Date(
+                                                groupPrepCompletedAtPerParam[selectedParam.id]["talc"]
+                                              ).toLocaleString()}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "talc")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "talc")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Complete Talc Preparation
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+
+                            {/* Locked-out warning */}
+                            {(samplePreparationTalcPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["talc"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
+                                  </svg>
+                                  <p className="text-xs text-amber-700 font-medium">
+                                    Awaiting preparation completion by an authorized user before calculations can be added.
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Calculations Section — gated on group prep completion */}
+                            {(samplePreparationTalcPerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["talc"] && (
+                                <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
+                                  <div className="mt-8">
+                                    <div className="flex items-center justify-between mb-4 px-2">
+                                      <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                        <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                        Calculations for Talc
+                                      </h3>
+                                      <button
+                                        onClick={() => handleAddCalculationTalc(selectedParam.id)}
+                                        className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                      >
+                                        <Plus className="w-4 h-4" />
+                                        Add Calculation
+                                      </button>
+                                    </div>
+
+                                    <AnimatePresence>
+                                      {(calculationsTalcPerParam[selectedParam.id] || []).map((calc) => (
+                                        <div key={calc.id}>
+                                          <CalculationDetailTalc
+                                            calculation={calc}
+                                            samplePreparations={samplePreparationTalcPerParam[selectedParam.id] || []}
+                                            onUpdate={(updated) => handleUpdateCalculationTalc(selectedParam.id, updated)}
+                                            onRemove={() => handleRemoveCalculationTalc(selectedParam.id, calc.id)}
+                                            isLocked={isFullyLocked}
+                                          />
+                                        </div>
+                                      ))}
+                                    </AnimatePresence>
+
+                                    {(calculationsTalcPerParam[selectedParam.id] || []).length === 0 && (
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                      >
+                                        <div className="relative z-10">
+                                          <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                            <Target className="w-10 h-10 text-emerald-400" />
+                                          </div>
+                                          <p className="text-base font-bold text-emerald-800 mb-1">
+                                            No calculations added yet
+                                          </p>
+                                          <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                            Click "Add Calculation" to create a Talc calculation
+                                          </p>
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                          </motion.div>
+                        )}
+                        {/* ============= END TALC PREPARATIONS ============= */}
+
+                        {/* ============= SFGC PREPARATIONS ============= */}
+                        {(activePreparationGroups[selectedParam.id] || []).includes("sfgc") && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-sm hover:shadow-emerald-200/50 transition-all duration-500"
+                          >
+                            <div className={isPreparationLocked ? "pointer-events-none opacity-70" : ""}>
+                              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                              <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-4">
+                                  <div className="relative">
+                                    <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                    <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                      <BiTestTube className="w-6 h-6 text-white" />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
+                                      Sample Preparations for SFGC
+                                    </h2>
+                                    <p className="text-sm text-emerald-600/80 font-medium">
+                                      SFGC Sample Preparation &amp; Calculations
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="px-4 py-1 bg-gradient-to-r from-emerald-50 to-emerald-50 border border-emerald-200 rounded-full shadow-sm">
+                                  <span className="text-xs font-bold text-emerald-800">
+                                    {((samplePreparationSFGCPerParam[selectedParam.id] || []).length +
+                                      (calculationsSFGCPerParam[selectedParam.id] || []).length)}{" "}
+                                    Items
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Sample Preparation Section */}
+                              <div>
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Preparations for SFGC
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddSamplePreparationSFGC(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(samplePreparationSFGCPerParam[selectedParam.id] || []).map((samplePrep, idx) => {
+                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["sfgc"] || [])[idx];
+                                    return (
+                                      <motion.div
+                                        key={samplePrep.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                      >
+                                        {standardPrep && (
+                                          <StandardPreparationMetalDetail
+                                            samplePreparation={standardPrep}
+                                            onStepChange={(spId, stepName, field, val) =>
+                                              handleStandardPreparationMetalStepChange(selectedParam.id, "sfgc", spId, stepName, field, val)
+                                            }
+                                            onRemove={() => handleRemoveSamplePreparationMeropenam(selectedParam.id, samplePrep.id)}
+                                          />
+                                        )}
+                                        <div className="mt-2">
+                                          <SamplePreparationMetalDetail
+                                            samplePreparation={samplePrep}
+                                            onStepChange={(spId, stepName, field, val) =>
+                                              handleSamplePreparationSFGCStepChange(
+                                                selectedParam.id, spId, stepName, field, val,
+                                              )
+                                            }
+                                            onRemove={() => handleRemoveSamplePreparationSFGC(selectedParam.id, samplePrep.id)}
+                                          />
+                                        </div>
+                                      </motion.div>
+                                    );
+                                  })}
+                                </AnimatePresence>
+
+                                {(samplePreparationSFGCPerParam[selectedParam.id] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+
+                                {/* Weight Sheet attacher */}
+                                {(samplePreparationSFGCPerParam[selectedParam.id] || []).length > 0 && (
+                                  <div className="pointer-events-auto mt-4">
+                                    <WorksheetFileAttacher
+                                      files={getFilesForPrep(selectedParam.id, "sfgc", "Weight Sheet")}
+                                      onAdd={(newFiles) =>
+                                        handleAddPrepFiles(selectedParam.id, "sfgc", "Weight Sheet", newFiles)
+                                      }
+                                      onRemove={(index) =>
+                                        handleRemovePrepFile(selectedParam.id, "sfgc", "Weight Sheet", index)
+                                      }
+                                      preparationType="sfgc"
+                                      sectionLabel="Weight Sheet"
+                                      isLocked={shouldDisableContent}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Complete Preparation block */}
+                            {canManagePrep &&
+                              (samplePreparationSFGCPerParam[selectedParam.id] || []).length > 0 &&
+                              (() => {
+                                const isGroupCompleted =
+                                  !!groupPrepCompletedAtPerParam[selectedParam.id]?.["sfgc"];
+                                const allPrepsValid = areAllMetalPrepsDilutionValid([
+                                  ...(samplePreparationSFGCPerParam[selectedParam.id] || []),
+                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["sfgc"] || []),
+                                ]);
+                                return (
+                                  <div className="mt-4 pointer-events-auto opacity-100">
+                                    {isGroupCompleted ? (
+                                      <div className="flex items-center justify-between flex-wrap gap-3 px-5 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-xl">
+                                        <div className="flex items-center gap-2 text-emerald-700">
+                                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          <div>
+                                            <p className="text-sm font-semibold text-emerald-800">
+                                              SFGC Preparation Completed
+                                            </p>
+                                            <p className="text-xs text-emerald-600">
+                                              Completed at{" "}
+                                              {new Date(
+                                                groupPrepCompletedAtPerParam[selectedParam.id]["sfgc"]
+                                              ).toLocaleString()}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <button
+                                          onClick={() => handleInitiateUnlockGroupPrep(selectedParam, "sfgc")}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                          </svg>
+                                          Unlock Preparation
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        {!allPrepsValid && (
+                                          <div className="flex items-center gap-2 px-4 py-2.5 mb-2 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-700 font-medium">
+                                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Fix dilution step errors in all preparations before completing.
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleInitiateCompleteGroupPrep(selectedParam, "sfgc")}
+                                          disabled={!allPrepsValid}
+                                          className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-xl transition-all text-sm ${allPrepsValid ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-md hover:shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          Complete SFGC Preparation
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+
+                            {/* Locked-out warning */}
+                            {(samplePreparationSFGCPerParam[selectedParam.id] || []).length > 0 &&
+                              !groupPrepCompletedAtPerParam[selectedParam.id]?.["sfgc"] &&
+                              !canManagePrep && (
+                                <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                  <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
+                                  </svg>
+                                  <p className="text-xs text-amber-700 font-medium">
+                                    Awaiting preparation completion by an authorized user before calculations can be added.
+                                  </p>
+                                </div>
+                              )}
+
+                            {/* Calculations Section — gated on group prep completion */}
+                            {(samplePreparationSFGCPerParam[selectedParam.id] || []).length > 0 &&
+                              groupPrepCompletedAtPerParam[selectedParam.id]?.["sfgc"] && (
+                                <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
+                                  <div className="mt-8">
+                                    <div className="flex items-center justify-between mb-4 px-2">
+                                      <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                        <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                        Calculations for SFGC
+                                      </h3>
+                                      <button
+                                        onClick={() => handleAddCalculationSFGC(selectedParam.id)}
+                                        className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                      >
+                                        <Plus className="w-4 h-4" />
+                                        Add Calculation
+                                      </button>
+                                    </div>
+
+                                    <AnimatePresence>
+                                      {(calculationsSFGCPerParam[selectedParam.id] || []).map((calc) => (
+                                        <div key={calc.id}>
+                                          <CalculationDetailSFGC
+                                            calculation={calc}
+                                            samplePreparations={samplePreparationSFGCPerParam[selectedParam.id] || []}
+                                            onUpdate={(updated) => handleUpdateCalculationSFGC(selectedParam.id, updated)}
+                                            onRemove={() => handleRemoveCalculationSFGC(selectedParam.id, calc.id)}
+                                            isLocked={isFullyLocked}
+                                          />
+                                        </div>
+                                      ))}
+                                    </AnimatePresence>
+
+                                    {(calculationsSFGCPerParam[selectedParam.id] || []).length === 0 && (
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                      >
+                                        <div className="relative z-10">
+                                          <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                            <Target className="w-10 h-10 text-emerald-400" />
+                                          </div>
+                                          <p className="text-base font-bold text-emerald-800 mb-1">
+                                            No calculations added yet
+                                          </p>
+                                          <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                            Click "Add Calculation" to create a SFGC calculation
+                                          </p>
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                          </motion.div>
+                        )}
+                        {/* ============= END SFGC PREPARATIONS ============= */}
 
                         <div
                           className={
@@ -17971,41 +17663,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
             </div>
           </div>
-
-          <StandardSelectionDialog
-            isOpen={showStandardSelectionDialog}
-            onClose={() => {
-              setShowStandardSelectionDialog(false);
-              setCurrentParameterForStandardPrep(null);
-              setIsAddingRSStandard(false);
-              setIsAddingDissoStandard(false);
-              setIsAddingUCStandard(false);
-              setIsAddingDissoProfileStandard(false);
-              setIsAddingRelatedSubstanceStandard(false);
-            }}
-            availableStandards={
-              currentParameterForStandardPrep !== null
-                ? getAvailableStandardsForParameter(
-                  currentParameterForStandardPrep,
-                  isAddingRSStandard,
-                  isAddingDissoStandard,
-                  isAddingUCStandard,
-                  isAddingDissoProfileStandard,
-                  isAddingRelatedSubstanceStandard,
-                )
-                : []
-            }
-            onSelectStandard={(standard) => {
-              handleStandardSelectedForPreparation(
-                standard,
-                isAddingRSStandard,
-                isAddingDissoStandard,
-                isAddingUCStandard,
-                isAddingDissoProfileStandard,
-                isAddingRelatedSubstanceStandard,
-              );
-            }}
-          />
 
           <AnimatePresence>
             {showAnalystDialog && (

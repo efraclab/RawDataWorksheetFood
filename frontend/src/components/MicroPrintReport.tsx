@@ -1358,6 +1358,8 @@ const TVCStylePrepPrint: React.FC<{
                 <td className={`${TD} font-bold`}>
                   {prep.calculatedResult === "<10"
                     ? "<10"
+                    : prep.calculatedResult === "TNTC"
+                    ? "TNTC"
                     : `${prep.calculatedResult} cfu/g`}
                 </td>
               </tr>

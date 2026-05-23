@@ -222,7 +222,7 @@ const SamplePreparationMetalDetail: React.FC<SamplePreparationMetalDetailProps> 
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={weightUnitOptions}
-                                      value={step.unit1}
+                                      value={step.unit1 || "mg"}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparation.id,
@@ -236,7 +236,7 @@ const SamplePreparationMetalDetail: React.FC<SamplePreparationMetalDetailProps> 
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
-                                    (SW1) of
+                                    (SW) of
                                   </span>
 
                                   <input
@@ -331,7 +331,7 @@ const SamplePreparationMetalDetail: React.FC<SamplePreparationMetalDetailProps> 
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={volumeUnitOptions}
-                                      value={step.unit1}
+                                      value={step.unit1 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparation.id,
@@ -392,7 +392,7 @@ const SamplePreparationMetalDetail: React.FC<SamplePreparationMetalDetailProps> 
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={volumeUnitOptions}
-                                      value={step.unit1}
+                                      value={step.unit1  || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparation.id,
@@ -437,7 +437,7 @@ const SamplePreparationMetalDetail: React.FC<SamplePreparationMetalDetailProps> 
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={volumeUnitOptions}
-                                      value={step.unit2}
+                                      value={step.unit2 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparation.id,
@@ -498,7 +498,7 @@ const SamplePreparationMetalDetail: React.FC<SamplePreparationMetalDetailProps> 
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={volumeUnitOptions}
-                                      value={step.unit1}
+                                      value={step.unit1 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparation.id,
@@ -543,7 +543,7 @@ const SamplePreparationMetalDetail: React.FC<SamplePreparationMetalDetailProps> 
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={volumeUnitOptions}
-                                      value={step.unit2}
+                                      value={step.unit2 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparation.id,
@@ -604,7 +604,7 @@ const SamplePreparationMetalDetail: React.FC<SamplePreparationMetalDetailProps> 
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={volumeUnitOptions}
-                                      value={step.unit1}
+                                      value={step.unit1 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparation.id,
@@ -649,7 +649,7 @@ const SamplePreparationMetalDetail: React.FC<SamplePreparationMetalDetailProps> 
                                   <div className="w-20">
                                     <CustomDropdown
                                       options={volumeUnitOptions}
-                                      value={step.unit2}
+                                      value={step.unit2 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
                                           samplePreparation.id,
@@ -703,7 +703,7 @@ const SamplePreparationMetalDetail: React.FC<SamplePreparationMetalDetailProps> 
                                 <div className="w-30">
                                   <CustomDropdown
                                     options={filtrationUnitOptions}
-                                    value={step.unit1}
+                                    value={step.unit1 || "micron"}
                                     onChange={(newUnit) =>
                                       onStepChange(
                                         samplePreparation.id,

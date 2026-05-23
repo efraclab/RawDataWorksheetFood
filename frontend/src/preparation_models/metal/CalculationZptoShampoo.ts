@@ -6,7 +6,7 @@ export interface CalculationZptoShampoo {
   selectedSamplePreparationLabel: string | null;
 
   /** Auto-populated from the selected sample preparation. */
-  sw1: string | null;
+  sw: string | null;
   /** 1st Dilution value1 — Volume Makeup (multiplied directly in numerator). */
   v1: string | null;
   /** 2nd Dilution value1 — take volume. */

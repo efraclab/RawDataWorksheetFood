@@ -21,7 +21,7 @@ export interface CalculationIcpmsFood {
    *   DF2 = V5 / V4
    *   DF3 = V7 / V6
    */
-  sw1: string | null;
+  sw: string | null;
   v1: string | null;
   v2: string | null;
   v3: string | null;

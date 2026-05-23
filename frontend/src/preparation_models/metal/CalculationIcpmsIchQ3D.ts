@@ -6,7 +6,7 @@ export interface CalculationIcpmsIchQ3D {
   selectedSamplePreparationLabel: string | null;
 
   /** Auto-populated from the selected sample preparation. */
-  sw1: string | null;
+  sw: string | null;
   v1: string | null;
   v2: string | null;
   v3: string | null;
@@ -14,6 +14,7 @@ export interface CalculationIcpmsIchQ3D {
   v5: string | null;
   v6: string | null;
   v7: string | null;
+
 
   /** User-entered instrument readings. */
   instrumentConcentrationSample: string;

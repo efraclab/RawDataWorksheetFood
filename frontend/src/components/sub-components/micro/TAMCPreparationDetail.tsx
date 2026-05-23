@@ -424,6 +424,7 @@ const TAMCPreparationDetail: React.FC<TAMCPreparationDetailProps> = ({
     const tdBase = "px-3 py-2.5 border-r border-emerald-100 last:border-r-0 align-middle";
 
     return (
+
         <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -658,7 +659,9 @@ const TAMCPreparationDetail: React.FC<TAMCPreparationDetailProps> = ({
                     </div>
                 </div>
             </SectionCard>
+
         </motion.div>
+        
     );
 };
 

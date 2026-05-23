@@ -22,64 +22,147 @@ const concUnitOptions = [
 
 const RESULT_UNIT = "mg/Kg";
 
+// ─── Unit converters ──────────────────────────────────────────────────────────
+
 const toCanonicalPpb = (value: number, unit: string): number => {
-  if (!Number.isFinite(value)) return value;
+  if (!Number.isFinite(value)) return NaN;
   switch (unit) {
-    case "ppb": case "μg/L": return value;
-    case "ppm": case "mg/L": return value * 1000;
+    case "ppb":
+    case "μg/L": return value;           // already ppb
+    case "ppm":
+    case "mg/L": return value * 1000;    // ppm → ppb
+    default:     return value;
+  }
+};
+
+/** Any weight unit → g */
+const toCanonicalG = (value: number, unit?: string | null): number => {
+  if (!Number.isFinite(value)) return NaN;
+  if (!unit) return value;
+  switch (unit.trim().toLowerCase()) {
+    case "g":   return value;
+    case "mg":  return value / 1000;
+    case "kg":  return value * 1000;
+    case "µg":
+    case "ug":
+    case "mcg": return value / 1_000_000;
+    default:    return value;
+  }
+};
+
+/** Any volume unit → mL */
+const toCanonicalML = (value: number, unit?: string | null): number => {
+  if (!Number.isFinite(value)) return NaN;
+  if (!unit) return value; // assume mL if missing
+  switch (unit.trim().toLowerCase()) {
+    case "ml": return value;
+    case "l": return value * 1000;
+    case "µl":
+    case "ul": return value / 1000;
     default: return value;
   }
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Trim trailing zeros after up to 4 decimal places */
+const trimZeros = (n: number): string =>
+  Number.isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—";
+
 const fmt4 = (v: string | null | undefined): string => {
   if (v === null || v === undefined || v === "") return "—";
   const n = parseFloat(v);
-  if (!Number.isFinite(n)) return v;
-  return n.toFixed(4);
+  return Number.isFinite(n) ? trimZeros(n) : "—";
 };
 
-const fmtN4 = (n: number): string => (Number.isFinite(n) ? n.toFixed(4) : "—");
+const fmtN4 = (n: number): string => trimZeros(n);
 
 const hasVal = (v: string | null | undefined): boolean =>
   !!v && v.trim() !== "" && Number.isFinite(parseFloat(v));
 
-/** Returns parsed number if valid, else 1 (neutral for multiplication). */
-const safeNum = (v: string | null): number => {
-  const n = parseFloat(v ?? "");
-  return Number.isFinite(n) ? n : 1;
-};
-
-/**
- * Extract SW1 and V1–V7 from a sample preparation's steps.
- *   V1 = 1st Dilution value1 (make-up volume) — multiplied directly in numerator
- *   V2 = 2nd Dilution value1 (take volume)
- *   V3 = 2nd Dilution value2 (make-up volume)   → DF1 = V3/V2
- *   V4 = 3rd Dilution value1 (take volume)
- *   V5 = 3rd Dilution value2 (make-up volume)   → DF2 = V5/V4
- *   V6 = 4th Dilution value1 (take volume)
- *   V7 = 4th Dilution value2 (make-up volume)   → DF3 = V7/V6
- */
 const extractValues = (sp?: SamplePreparationMetal) => {
-  const empty = { sw1: null, v1: null, v2: null, v3: null, v4: null, v5: null, v6: null, v7: null };
+  const empty = {
+    sw: null, swUnit: null,
+    v1: null, v1Unit: null,
+    v2: null, v2Unit: null,
+    v3: null, v3Unit: null,
+    v4: null, v4Unit: null,
+    v5: null, v5Unit: null,
+    v6: null, v6Unit: null,
+    v7: null, v7Unit: null,
+  };
   if (!sp) return empty;
-  const steps = Array.isArray(sp.steps) ? sp.steps : [];
-  const weighing = steps.find((s) => s.name === "Weighing");
-  const d1 = steps.find((s) => s.name === "1st Dilution");
-  const d2 = steps.find((s) => s.name === "2nd Dilution");
-  const d3 = steps.find((s) => s.name === "3rd Dilution");
-  const d4 = steps.find((s) => s.name === "4th Dilution");
+  const stepsArr = Array.isArray(sp.steps) ? sp.steps : [];
+  const weighing = stepsArr.find((s) => s.name === "Weighing");
+  const d1 = stepsArr.find((s) => s.name === "1st Dilution");
+  const d2 = stepsArr.find((s) => s.name === "2nd Dilution");
+  const d3 = stepsArr.find((s) => s.name === "3rd Dilution");
+  const d4 = stepsArr.find((s) => s.name === "4th Dilution");
   return {
-    sw1: weighing?.value1 ?? null,
-    v1: d1?.value1 ?? null,
-    v2: d2?.value1 ?? null,
-    v3: d2?.value2 ?? null,
-    v4: d3?.value1 ?? null,
-    v5: d3?.value2 ?? null,
-    v6: d4?.value1 ?? null,
-    v7: d4?.value2 ?? null,
+    sw: weighing?.value1 ?? null, swUnit: (weighing as any)?.unit1 ?? "mg",
+    v1: d1?.value1 ?? null,       v1Unit: (d1 as any)?.unit1 ?? "mL",
+    v2: d2?.value1 ?? null,       v2Unit: (d2 as any)?.unit1 ?? "mL",
+    v3: d2?.value2 ?? null,       v3Unit: (d2 as any)?.unit2 ?? "mL",
+    v4: d3?.value1 ?? null,       v4Unit: (d3 as any)?.unit1 ?? "mL",
+    v5: d3?.value2 ?? null,       v5Unit: (d3 as any)?.unit2 ?? "mL",
+    v6: d4?.value1 ?? null,       v6Unit: (d4 as any)?.unit1 ?? "mL",
+    v7: d4?.value2 ?? null,       v7Unit: (d4 as any)?.unit2 ?? "mL",
   };
 };
 
+const calcDF = (
+  makeup: string | null, makeupUnit?: string | null,
+  take?: string | null, takeUnit?: string | null,
+): number => {
+  const m = toCanonicalML(parseFloat(makeup ?? ""), makeupUnit);
+  const t = toCanonicalML(parseFloat(take ?? ""), takeUnit);
+  return Number.isFinite(m) && Number.isFinite(t) && t !== 0 ? m / t : NaN;
+};
+
+const compute = (
+  instSample: string, instSampleUnit: string,
+  instBlank: string, instBlankUnit: string,
+  sw: string | null, swUnit?: string | null,
+  v1?: string | null, v1Unit?: string | null,
+  v2?: string | null, v2Unit?: string | null,
+  v3?: string | null, v3Unit?: string | null,
+  v4?: string | null, v4Unit?: string | null,
+  v5?: string | null, v5Unit?: string | null,
+  v6?: string | null, v6Unit?: string | null,
+  v7?: string | null, v7Unit?: string | null,
+): string | null => {
+  // Concentrations → ppm
+  const sample = toCanonicalPpb(parseFloat(instSample), instSampleUnit);
+  if (!Number.isFinite(sample)) return null;
+  const blank = toCanonicalPpb(parseFloat(instBlank), instBlankUnit);
+  if (!Number.isFinite(blank)) return null;
+
+  // SW → g
+  const swG = toCanonicalG(parseFloat(sw ?? ""), swUnit);
+  if (!Number.isFinite(swG)) return null;
+
+  // V1 → mL (absent → treat as ×1)
+  const v1Ml = toCanonicalML(parseFloat(v1 ?? ""), v1Unit);
+  const v1n = Number.isFinite(v1Ml) ? v1Ml : 1;
+
+  const v2n = toCanonicalML(parseFloat(v2 ?? ""), v2Unit);
+  const v3n = toCanonicalML(parseFloat(v3 ?? ""), v3Unit);
+  const v4n = toCanonicalML(parseFloat(v4 ?? ""), v4Unit);
+  const v5n = toCanonicalML(parseFloat(v5 ?? ""), v5Unit);
+  const v6n = toCanonicalML(parseFloat(v6 ?? ""), v6Unit);
+  const v7n = toCanonicalML(parseFloat(v7 ?? ""), v7Unit);
+  const df1 = Number.isFinite(v2n) && Number.isFinite(v3n) && v2n !== 0 ? v3n / v2n : 1;
+  const df2 = Number.isFinite(v4n) && Number.isFinite(v5n) && v4n !== 0 ? v5n / v4n : 1;
+  const df3 = Number.isFinite(v6n) && Number.isFinite(v7n) && v6n !== 0 ? v7n / v6n : 1;
+
+  const numerator = (sample - blank) * v1n * df1 * df2 * df3;
+  const denominator = swG * 1000;
+  if (denominator === 0) return null;
+  const result = numerator / denominator;
+  return Number.isFinite(result) ? result.toFixedNoRound(4).toFixed(3) : null;
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
 const CalculationDetailIcpmsFood: React.FC<Props> = ({
   calculation,
   samplePreparations,
@@ -89,80 +172,53 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
+  // Cast to any once — unit fields (swUnit, v1Unit…v7Unit) are not in the
+  // CalculationIcpmsFood type but are stored on the object at runtime.
+  const c = calculation as any;
+
   const selectedSamplePrep = samplePreparations.find(
     (prep) => prep.label === calculation.selectedSamplePreparationLabel
   );
 
-  // V1 multiplied directly in numerator
   const v1Active = hasVal(calculation.v1);
-
-  // Dilution factors — only active when BOTH inputs present
   const df1Active = hasVal(calculation.v2) && hasVal(calculation.v3);
   const df2Active = hasVal(calculation.v4) && hasVal(calculation.v5);
   const df3Active = hasVal(calculation.v6) && hasVal(calculation.v7);
 
-  const df1 = df1Active ? safeNum(calculation.v3) / safeNum(calculation.v2) : null;
-  const df2 = df2Active ? safeNum(calculation.v5) / safeNum(calculation.v4) : null;
-  const df3 = df3Active ? safeNum(calculation.v7) / safeNum(calculation.v6) : null;
+  const df1Val = calcDF(calculation.v3, c.v3Unit, calculation.v2, c.v2Unit);
+  const df2Val = calcDF(calculation.v5, c.v5Unit, calculation.v4, c.v4Unit);
+  const df3Val = calcDF(calculation.v7, c.v7Unit, calculation.v6, c.v6Unit);
 
-  const computeResult = (
-    instSample: string,
-    instSampleUnit: string,
-    instBlank: string,
-    instBlankUnit: string,
-    sw1: string | null,
-    v1: string | null,
-    v2: string | null,
-    v3: string | null,
-    v4: string | null,
-    v5: string | null,
-    v6: string | null,
-    v7: string | null,
-  ): string | null => {
-    const sample = toCanonicalPpb(parseFloat(instSample), instSampleUnit);
-    if (!Number.isFinite(sample)) return null;
-    const blankRaw = parseFloat(instBlank);
-    if (!Number.isFinite(blankRaw)) return null;
-    const blank = toCanonicalPpb(blankRaw, instBlankUnit);
-
-    const sw1n = safeNum(sw1);
-    const v1n = hasVal(v1) ? safeNum(v1) : 1;
-
-    const hasDf1 = hasVal(v2) && hasVal(v3);
-    const hasDf2 = hasVal(v4) && hasVal(v5);
-    const hasDf3 = hasVal(v6) && hasVal(v7);
-
-    const df1n = hasDf1 ? safeNum(v3) / safeNum(v2) : 1;
-    const df2n = hasDf2 ? safeNum(v5) / safeNum(v4) : 1;
-    const df3n = hasDf3 ? safeNum(v7) / safeNum(v6) : 1;
-
-    const result = ((sample - blank) * v1n * df1n * df2n * df3n) / (sw1n * 1000);
-    if (!Number.isFinite(result)) return null;
-    return result.toFixed(4);
-  };
 
   useEffect(() => {
     const ex = extractValues(selectedSamplePrep);
-    const newResult = computeResult(
+    const newResult = compute(
       calculation.instrumentConcentrationSample,
       calculation.instrumentConcentrationSampleUnit,
       calculation.instrumentConcentrationBlank,
       calculation.instrumentConcentrationBlankUnit,
-      ex.sw1, ex.v1, ex.v2, ex.v3, ex.v4, ex.v5, ex.v6, ex.v7,
+      ex.sw, ex.swUnit,
+      ex.v1, ex.v1Unit,
+      ex.v2, ex.v2Unit,
+      ex.v3, ex.v3Unit,
+      ex.v4, ex.v4Unit,
+      ex.v5, ex.v5Unit,
+      ex.v6, ex.v6Unit,
+      ex.v7, ex.v7Unit,
     );
     const newLabel = selectedSamplePrep
       ? `Calculation for ${selectedSamplePrep.label}`
       : calculation.label;
 
     if (
-      ex.sw1 !== calculation.sw1 ||
-      ex.v1 !== calculation.v1 ||
-      ex.v2 !== calculation.v2 ||
-      ex.v3 !== calculation.v3 ||
-      ex.v4 !== calculation.v4 ||
-      ex.v5 !== calculation.v5 ||
-      ex.v6 !== calculation.v6 ||
-      ex.v7 !== calculation.v7 ||
+      ex.sw !== calculation.sw || ex.swUnit !== c.swUnit ||
+      ex.v1 !== calculation.v1 || ex.v1Unit !== c.v1Unit ||
+      ex.v2 !== calculation.v2 || ex.v2Unit !== c.v2Unit ||
+      ex.v3 !== calculation.v3 || ex.v3Unit !== c.v3Unit ||
+      ex.v4 !== calculation.v4 || ex.v4Unit !== c.v4Unit ||
+      ex.v5 !== calculation.v5 || ex.v5Unit !== c.v5Unit ||
+      ex.v6 !== calculation.v6 || ex.v6Unit !== c.v6Unit ||
+      ex.v7 !== calculation.v7 || ex.v7Unit !== c.v7Unit ||
       newResult !== calculation.calculationResult ||
       newLabel !== calculation.label ||
       calculation.calculationResultUnit !== RESULT_UNIT
@@ -183,21 +239,28 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
     calculation.instrumentConcentrationBlank,
     calculation.instrumentConcentrationBlankUnit,
   ]);
-
+  // ─── Field update helper ──────────────────────────────────────────────────
   const handleField = (field: keyof CalculationIcpmsFood, value: string | null) => {
     if (isLocked) return;
     onUpdate({ ...calculation, [field]: value });
   };
 
+  // ─── Derived display numbers (all normalised) ─────────────────────────────
   const rawSampleNum = parseFloat(calculation.instrumentConcentrationSample);
   const rawBlankNum = parseFloat(calculation.instrumentConcentrationBlank);
-  const samplePpb = toCanonicalPpb(rawSampleNum, calculation.instrumentConcentrationSampleUnit);
-  const blankPpb = toCanonicalPpb(rawBlankNum, calculation.instrumentConcentrationBlankUnit);
+  const samplePpm = toCanonicalPpb(rawSampleNum, calculation.instrumentConcentrationSampleUnit);
+  const blankPpm = toCanonicalPpb(rawBlankNum, calculation.instrumentConcentrationBlankUnit);
+  const swEff = toCanonicalG(parseFloat(calculation.sw ?? ""), c.swUnit);
+  const v1Ml = hasVal(calculation.v1)
+    ? toCanonicalML(parseFloat(calculation.v1!), c.v1Unit)
+    : null;
 
+  // ─── Missing fields ───────────────────────────────────────────────────────
   const missingFields: string[] = [];
-  if (!calculation.instrumentConcentrationSample) missingFields.push("Sample Concentration");
-  if (!calculation.instrumentConcentrationBlank) missingFields.push("Blank Concentration");
+  if (!hasVal(calculation.instrumentConcentrationSample)) missingFields.push("Sample Concentration");
+  if (!hasVal(calculation.instrumentConcentrationBlank)) missingFields.push("Blank Concentration");
 
+  // ─── Pass / Fail ──────────────────────────────────────────────────────────
   const getPassFail = (): "pass" | "fail" | null => {
     if (!calculation.calculationResult) return null;
     const v = parseFloat(calculation.calculationResult);
@@ -209,9 +272,9 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
   };
   const passFail = getPassFail();
 
-  // Build formula numerator label
+  // Dynamic symbolic numerator label
   const formulaParts: string[] = [];
-  if (v1Active) formulaParts.push("Volume Makeup");
+  if (v1Active) formulaParts.push("Volume Makeup (V1)");
   if (df1Active) formulaParts.push("DF1");
   if (df2Active) formulaParts.push("DF2");
   if (df3Active) formulaParts.push("DF3");
@@ -220,7 +283,10 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
       ? `(Instrument Conc. Sample − Instrument Conc. Blank) × ${formulaParts.join(" × ")}`
       : "(Instrument Conc. Sample − Instrument Conc. Blank)";
 
-  const PrepChip = ({ label, value, unit }: { label: string; value: string | null; unit?: string }) => {
+  // ─── Sub-components ───────────────────────────────────────────────────────
+  const PrepChip = ({
+    label, value, unit,
+  }: { label: string; value: string | null; unit?: string }) => {
     const empty = !hasVal(value);
     return (
       <div className={`rounded p-2.5 border ${empty ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"}`}>
@@ -228,31 +294,36 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
           {label}
         </p>
         {empty ? (
-          <p className="text-[10px] text-amber-600 font-semibold italic">Not filled</p>
+          <p className="text-[10px] text-amber-600 font-semibold italic">Not filled (×1)</p>
         ) : (
           <p className="text-sm font-bold text-gray-900">
-            {fmt4(value)} {unit && <span className="text-xs font-normal text-gray-500">{unit}</span>}
+            {fmt4(value)}{" "}
+            {unit && <span className="text-xs font-normal text-gray-500">{unit}</span>}
           </p>
         )}
       </div>
     );
   };
 
-  const DFChip = ({ label, numerator, denominator, value }: { label: string; numerator: string | null; denominator: string | null; value: number | null }) => {
-    const active = value !== null;
+  const DFChip = ({
+    label, makeup, makeupUnit, take, takeUnit, makeupLabel, takeLabel,
+  }: {
+    label: string;
+    makeup: string | null; makeupUnit?: string | null;
+    take: string | null; takeUnit?: string | null;
+    makeupLabel: string; takeLabel: string;
+  }) => {
+    const df = calcDF(makeup, makeupUnit, take, takeUnit);
+    const ready = Number.isFinite(df);
     return (
-      <div className={`rounded p-2.5 border ${active ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200"}`}>
-        <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${active ? "text-blue-700" : "text-gray-400"}`}>
+      <div className={`rounded p-2.5 border ${ready ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200"}`}>
+        <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${ready ? "text-blue-700" : "text-gray-400"}`}>
           {label}
         </p>
-        {active ? (
-          <>
-            <p className="text-[10px] text-gray-500">{fmt4(numerator)} / {fmt4(denominator)}</p>
-            <p className="text-sm font-bold text-gray-900">{fmtN4(value!)}</p>
-          </>
-        ) : (
-          <p className="text-[10px] text-gray-400 italic">Not active (×1)</p>
-        )}
+        <p className="text-sm font-bold text-gray-900">
+          {ready ? fmtN4(df) : "—"}
+        </p>
+        <p className="text-[10px] text-gray-500">{makeupLabel} / {takeLabel}</p>
       </div>
     );
   };
@@ -275,7 +346,7 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
             </motion.div>
             <div>
               <h4 className="text-sm font-semibold text-white tracking-wide">{calculation.label}</h4>
-              <p className="text-xs text-emerald-100">ICP-MS (Food) — Content calculation</p>
+              <p className="text-xs text-emerald-100">ICP-MS (Food) — Content (mg/Kg) calculation</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -285,7 +356,12 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
               </motion.div>
             </motion.button>
             {!isLocked && (
-              <motion.button onClick={(e) => { e.stopPropagation(); onRemove(); }} whileHover={{ scale: 1.1, rotate: 5 }} whileTap={{ scale: 0.9 }} className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30" title={`Remove ${calculation.label}`}>
+              <motion.button
+                onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                whileHover={{ scale: 1.1, rotate: 5 }} whileTap={{ scale: 0.9 }}
+                className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
+                title={`Remove ${calculation.label}`}
+              >
                 <Trash className="w-4 h-4 text-white" />
               </motion.button>
             )}
@@ -293,16 +369,22 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
         </div>
       </div>
 
+      {/* ── Body ── */}
       <AnimatePresence>
         {isExpanded && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             <div className="p-6 bg-gradient-to-b from-gray-50 to-white space-y-6">
 
-              {/* Formula */}
+              {/* ── Symbolic Formula ── */}
               <div className="bg-white rounded-lg p-4 border-2 border-emerald-200 shadow-sm">
-                <h4 className="text-sm font-bold text-gray-900 mb-1">Content Formula</h4>
+                <h4 className="text-sm font-bold text-gray-900 mb-1">Formula</h4>
                 <p className="text-[10px] text-gray-500 mb-3">
-                  Volume Makeup = 1st Dil. makeup (V1) &nbsp;|&nbsp; DF1 = V3/V2 &nbsp;|&nbsp; DF2 = V5/V4 &nbsp;|&nbsp; DF3 = V7/V6 &nbsp;(only shown when values present)
+                  DF1 = V3/V2 &nbsp;|&nbsp; DF2 = V5/V4 &nbsp;|&nbsp; DF3 = V7/V6
                 </p>
                 <div className="bg-gray-50 rounded p-3">
                   <div className="flex items-center gap-2">
@@ -314,12 +396,12 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
                         <p className="text-xs font-mono text-black">Sample Weight (SW1) × 1000</p>
                       </div>
                     </div>
-                    <span className="text-sm font-bold text-black">mg/Kg</span>
+                    <span className="text-sm font-bold text-black shrink-0">= {RESULT_UNIT}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Sample Preparation selector */}
+              {/* ── Sample Preparation Selector ── */}
               <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
                 <label className="block text-sm font-bold text-gray-700 mb-2">Select Sample Preparation</label>
                 <CustomDropdown
@@ -331,11 +413,11 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
                 />
               </div>
 
-              {/* Instrument Concentration */}
+              {/* ── Instrument Concentration ── */}
               <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
                 <h5 className="text-sm font-bold text-gray-700 mb-3">Instrument Concentration</h5>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div>
+                  <div className="min-w-0">
                     <label className="block text-xs font-semibold text-gray-600 mb-1.5">Sample</label>
                     <div className="flex gap-2">
                       <input
@@ -344,18 +426,22 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
                         readOnly={isLocked}
                         onChange={(e) => handleField("instrumentConcentrationSample", e.target.value)}
                         onWheel={(e) => e.currentTarget.blur()}
-                        placeholder="0.0"
-                        className={`flex-1 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.instrumentConcentrationSample ? "border-amber-400" : "border-emerald-300"}`}
+                        placeholder="Enter value"
+                        className={`flex-1 min-w-0 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.instrumentConcentrationSample ? "border-amber-400" : "border-emerald-300"}`}
                       />
                       <div className="w-24 shrink-0">
                         <CustomDropdown options={concUnitOptions} value={calculation.instrumentConcentrationSampleUnit} onChange={(v) => handleField("instrumentConcentrationSampleUnit", v)} placeholder="Unit" colorScheme="emerald" />
                       </div>
                     </div>
+                    {/* Show normalised ppb hint when entered in a non-ppb unit */}
+                    {hasVal(calculation.instrumentConcentrationSample) &&
+                      calculation.instrumentConcentrationSampleUnit !== "ppb" &&
+                      calculation.instrumentConcentrationSampleUnit !== "μg/L"}
                     {!calculation.instrumentConcentrationSample && (
                       <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Required</p>
                     )}
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <label className="block text-xs font-semibold text-gray-600 mb-1.5">Blank</label>
                     <div className="flex gap-2">
                       <input
@@ -364,13 +450,16 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
                         readOnly={isLocked}
                         onChange={(e) => handleField("instrumentConcentrationBlank", e.target.value)}
                         onWheel={(e) => e.currentTarget.blur()}
-                        placeholder="0.0"
-                        className={`flex-1 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.instrumentConcentrationBlank ? "border-amber-400" : "border-emerald-300"}`}
+                        placeholder="Enter value"
+                        className={`flex-1 min-w-0 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.instrumentConcentrationBlank ? "border-amber-400" : "border-emerald-300"}`}
                       />
                       <div className="w-24 shrink-0">
                         <CustomDropdown options={concUnitOptions} value={calculation.instrumentConcentrationBlankUnit} onChange={(v) => handleField("instrumentConcentrationBlankUnit", v)} placeholder="Unit" colorScheme="emerald" />
                       </div>
                     </div>
+                    {hasVal(calculation.instrumentConcentrationBlank) &&
+                      calculation.instrumentConcentrationBlankUnit !== "ppb" &&
+                      calculation.instrumentConcentrationBlankUnit !== "μg/L"}
                     {!calculation.instrumentConcentrationBlank && (
                       <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Required</p>
                     )}
@@ -378,64 +467,66 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Formula Breakdown */}
+              {/* ── Formula Derivation ── */}
               <div className="bg-white rounded-lg border-2 border-emerald-200 overflow-hidden">
                 <div className="bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 px-4 py-2">
-                  <h5 className="text-sm font-bold text-white">Formula Breakdown</h5>
+                  <h5 className="text-sm font-bold text-white">Formula Derivation</h5>
                 </div>
                 <div className="p-5 space-y-4">
-                  {/* V values grid */}
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Prep Values</p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <PrepChip label="SW1" value={calculation.sw1} unit="g" />
-                      <PrepChip label="Volume Makeup" value={calculation.v1} unit="ml" />
-                      <PrepChip label="V2" value={calculation.v2} unit="ml" />
-                      <PrepChip label="V3" value={calculation.v3} unit="ml" />
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                      <PrepChip label="V4" value={calculation.v4} unit="ml" />
-                      <PrepChip label="V5" value={calculation.v5} unit="ml" />
-                      <PrepChip label="V6" value={calculation.v6} unit="ml" />
-                      <PrepChip label="V7" value={calculation.v7} unit="ml" />
-                    </div>
+
+                  {/* V values grid — chips show the value + unit the user entered */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <PrepChip label="SW1 (Sample Wt.)" value={calculation.sw} unit={c.swUnit || "g"} />
+                    <PrepChip label="V1 (Vol. Makeup)" value={calculation.v1} unit={c.v1Unit || "mL"} />
+                    <PrepChip label="V2 (2nd Dil. Take)" value={calculation.v2} unit={c.v2Unit || "mL"} />
+                    <PrepChip label="V3 (2nd Dil. Makeup)" value={calculation.v3} unit={c.v3Unit || "mL"} />
+                    <PrepChip label="V4 (3rd Dil. Take)" value={calculation.v4} unit={c.v4Unit || "mL"} />
+                    <PrepChip label="V5 (3rd Dil. Makeup)" value={calculation.v5} unit={c.v5Unit || "mL"} />
+                    <DFChip
+                      label="DF1 = V3/V2"
+                      makeup={calculation.v3} makeupUnit={c.v3Unit}
+                      take={calculation.v2} takeUnit={c.v2Unit}
+                      makeupLabel="V3" takeLabel="V2"
+                    />
+                    <DFChip
+                      label="DF2 = V5/V4"
+                      makeup={calculation.v5} makeupUnit={c.v5Unit}
+                      take={calculation.v4} takeUnit={c.v4Unit}
+                      makeupLabel="V5" takeLabel="V4"
+                    />
                   </div>
 
-                  {/* Dilution factors */}
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Dilution Factors</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      <DFChip label="DF1 = V3/V2" numerator={calculation.v3} denominator={calculation.v2} value={df1} />
-                      <DFChip label="DF2 = V5/V4" numerator={calculation.v5} denominator={calculation.v4} value={df2} />
-                      <DFChip label="DF3 = V7/V6" numerator={calculation.v7} denominator={calculation.v6} value={df3} />
+                  {/* Numeric formula — uses canonical-unit values */}
+                  {Number.isFinite(samplePpm) && Number.isFinite(blankPpm) && (
+                    <div className="bg-emerald-50/60 rounded-lg p-4 border border-emerald-200">
+                      <div className="flex flex-col items-center">
+                        <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
+                          <p className="text-xs font-mono text-black break-words">
+                            ({fmtN4(samplePpm)} ppb − {fmtN4(blankPpm)} ppb)
+                            {v1Active && v1Ml !== null ? ` × ${fmtN4(v1Ml)} mL` : ""}
+                            {df1Active && df1Val !== null ? ` × ${fmtN4(df1Val)}` : ""}
+                            {df2Active && df2Val !== null ? ` × ${fmtN4(df2Val)}` : ""}
+                            {df3Active && df3Val !== null ? ` × ${fmtN4(df3Val)}` : ""}
+                          </p>
+                          <p className="text-[10px] text-gray-500 mt-0.5">
+                            (Sample/Blank in ppb; V1/DF values in mL; missing factors treated as ×1)
+                          </p>
+                        </div>
+                        <div className="text-center px-2 w-full">
+                          <p className="text-xs font-mono text-black">{fmtN4(swEff)} g × 1000</p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Numeric formula */}
-                  <div className="bg-emerald-50/60 rounded-lg p-4 border border-emerald-200">
-                    <div className="flex flex-col items-center">
-                      <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
-                        <p className="text-xs font-mono text-black break-words">
-                          ({fmtN4(samplePpb)} − {fmtN4(blankPpb)})
-                          {v1Active ? ` × ${fmt4(calculation.v1)}` : ""}
-                          {df1Active && df1 !== null ? ` × ${fmtN4(df1)}` : ""}
-                          {df2Active && df2 !== null ? ` × ${fmtN4(df2)}` : ""}
-                          {df3Active && df3 !== null ? ` × ${fmtN4(df3)}` : ""}
-                        </p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">
-                          (Sample/Blank converted to ppb; missing V1 or DFs treated as ×1)
-                        </p>
-                      </div>
-                      <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">{fmtN4(safeNum(calculation.sw1))} × 1000</p>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-xs text-center text-gray-600">Output unit is fixed at <strong>{RESULT_UNIT}</strong>.</p>
+                  <p className="text-xs text-center text-gray-600">
+                    All values are converted to canonical units (ppb, mL, g) before calculation. Output unit is fixed at{" "}
+                    <strong>{RESULT_UNIT}</strong>.
+                  </p>
                 </div>
               </div>
 
-              {/* Acceptance Limit */}
+              {/* ── Acceptance Limit ── */}
               <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
                 <h5 className="text-sm font-bold text-gray-700 mb-3">Acceptance Limit</h5>
                 <div className="flex items-center gap-2">
@@ -445,7 +536,7 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Missing fields warning */}
+              {/* ── Missing fields warning ── */}
               {missingFields.length > 0 && (
                 <div className="bg-amber-50 border-2 border-amber-200 rounded-lg p-4 flex gap-3">
                   <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
@@ -458,7 +549,7 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
                 </div>
               )}
 
-              {/* Result */}
+              {/* ── Result ── */}
               {calculation.calculationResult && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-lg shadow-lg border-2 border-emerald-300 overflow-hidden">
                   <div className="bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 px-4 py-2 flex items-center gap-2">
@@ -467,7 +558,9 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
                   </div>
                   <div className="flex items-center justify-between p-4 flex-wrap gap-3">
                     <div className="flex items-baseline gap-2">
-                      <p className="text-3xl font-bold text-gray-800">{calculation.calculationResult ? parseFloat(calculation.calculationResult).toFixed(3) : ""}</p>
+                      <p className="text-3xl font-bold text-gray-800">
+                        {calculation.calculationResult ? trimZeros(parseFloat(calculation.calculationResult)) : ""}
+                      </p>
                       <span className="text-lg font-semibold text-gray-600">{RESULT_UNIT}</span>
                     </div>
                     {passFail && (

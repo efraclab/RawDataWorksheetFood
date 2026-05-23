@@ -16,6 +16,10 @@ export interface CalculationSodiumLactate {
   v2: string | null;
   v3: string | null;
   v4: string | null;
+  v5: string | null;
+  v6: string | null;
+  v7: string | null;
+
 
   /** User-entered additional multiplier (X1). */
   x1Factor: string;

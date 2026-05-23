@@ -31,25 +31,61 @@ const toCanonicalPpb = (value: number, unit: string): number => {
   }
 };
 
+/** Any weight unit → g */
+const toCanonicalG = (value: number, unit?: string | null): number => {
+  if (!Number.isFinite(value)) return NaN;
+  if (!unit) return value;
+  switch (unit.trim().toLowerCase()) {
+    case "g":   return value;
+    case "mg":  return value / 1000;
+    case "kg":  return value * 1000;
+    case "µg":
+    case "ug":
+    case "mcg": return value / 1_000_000;
+    default:    return value;
+  }
+};
+
+/** Any volume unit → mL */
+const toCanonicalML = (value: number, unit?: string | null): number => {
+  if (!Number.isFinite(value)) return NaN;
+  if (!unit) return value;
+  switch (unit.trim().toLowerCase()) {
+    case "ml": return value;
+    case "l":  return value * 1000;
+    case "µl":
+    case "ul": return value / 1000;
+    default:   return value;
+  }
+};
+
+/** Trim trailing zeros up to 4 decimal places */
+const trimZeros = (n: number): string =>
+  Number.isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—";
+
 const fmt4 = (v: string | null | undefined): string => {
   if (v === null || v === undefined || v === "") return "—";
   const n = parseFloat(v);
-  if (!Number.isFinite(n)) return v;
-  return n.toFixed(4);
+  return Number.isFinite(n) ? trimZeros(n) : "—";
 };
 
-const fmtN4 = (n: number): string => (Number.isFinite(n) ? n.toFixed(4) : "—");
+const fmtN4 = (n: number): string => trimZeros(n);
 
 const hasVal = (v: string | null | undefined): boolean =>
   !!v && v.trim() !== "" && Number.isFinite(parseFloat(v));
 
-const safeNum = (v: string | null): number => {
-  const n = parseFloat(v ?? "");
-  return Number.isFinite(n) ? n : 1;
-};
 
 const extractValues = (sp?: SamplePreparationMetal) => {
-  const empty = { sw1: null, v1: null, v2: null, v3: null, v4: null, v5: null, v6: null, v7: null };
+  const empty = {
+    sw: null, swUnit: null,
+    v1: null, v1Unit: null,
+    v2: null, v2Unit: null,
+    v3: null, v3Unit: null,
+    v4: null, v4Unit: null,
+    v5: null, v5Unit: null,
+    v6: null, v6Unit: null,
+    v7: null, v7Unit: null,
+  };
   if (!sp) return empty;
   const steps = Array.isArray(sp.steps) ? sp.steps : [];
   const weighing = steps.find((s) => s.name === "Weighing");
@@ -58,14 +94,14 @@ const extractValues = (sp?: SamplePreparationMetal) => {
   const d3 = steps.find((s) => s.name === "3rd Dilution");
   const d4 = steps.find((s) => s.name === "4th Dilution");
   return {
-    sw1: weighing?.value1 ?? null,
-    v1: d1?.value1 ?? null,
-    v2: d2?.value1 ?? null,
-    v3: d2?.value2 ?? null,
-    v4: d3?.value1 ?? null,
-    v5: d3?.value2 ?? null,
-    v6: d4?.value1 ?? null,
-    v7: d4?.value2 ?? null,
+    sw: weighing?.value1 ?? null,  swUnit: (weighing as any)?.unit1 ?? "g",
+    v1: d1?.value1 ?? null,        v1Unit: (d1 as any)?.unit1 ?? "mL",
+    v2: d2?.value1 ?? null,        v2Unit: (d2 as any)?.unit1 ?? "mL",
+    v3: d2?.value2 ?? null,        v3Unit: (d2 as any)?.unit2 ?? "mL",
+    v4: d3?.value1 ?? null,        v4Unit: (d3 as any)?.unit1 ?? "mL",
+    v5: d3?.value2 ?? null,        v5Unit: (d3 as any)?.unit2 ?? "mL",
+    v6: d4?.value1 ?? null,        v6Unit: (d4 as any)?.unit1 ?? "mL",
+    v7: d4?.value2 ?? null,        v7Unit: (d4 as any)?.unit2 ?? "mL",
   };
 };
 
@@ -82,36 +118,65 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
     (prep) => prep.label === calculation.selectedSamplePreparationLabel
   );
 
+  const c = calculation as any;
+
   const v1Active = hasVal(calculation.v1);
   const df1Active = hasVal(calculation.v2) && hasVal(calculation.v3);
   const df2Active = hasVal(calculation.v4) && hasVal(calculation.v5);
   const df3Active = hasVal(calculation.v6) && hasVal(calculation.v7);
 
-  const df1 = df1Active ? safeNum(calculation.v3) / safeNum(calculation.v2) : null;
-  const df2 = df2Active ? safeNum(calculation.v5) / safeNum(calculation.v4) : null;
-  const df3 = df3Active ? safeNum(calculation.v7) / safeNum(calculation.v6) : null;
+  const _df = (makeup: string | null, makeupUnit: string | null, take: string | null, takeUnit: string | null): number | null => {
+    const m = toCanonicalML(parseFloat(makeup ?? ""), makeupUnit);
+    const t = toCanonicalML(parseFloat(take ?? ""), takeUnit);
+    return Number.isFinite(m) && Number.isFinite(t) && t !== 0 ? m / t : null;
+  };
+
+  const df1 = df1Active ? _df(calculation.v3, c.v3Unit, calculation.v2, c.v2Unit) : null;
+  const df2 = df2Active ? _df(calculation.v5, c.v5Unit, calculation.v4, c.v4Unit) : null;
+  const df3 = df3Active ? _df(calculation.v7, c.v7Unit, calculation.v6, c.v6Unit) : null;
+
+  const swG = toCanonicalG(parseFloat(calculation.sw ?? ""), c.swUnit);
+  const v1Ml = hasVal(calculation.v1) ? toCanonicalML(parseFloat(calculation.v1!), c.v1Unit) : null;
 
   const computeResult = (
     instSample: string, instSampleUnit: string,
     instBlank: string, instBlankUnit: string,
-    sw1: string | null, v1: string | null,
-    v2: string | null, v3: string | null,
-    v4: string | null, v5: string | null,
-    v6: string | null, v7: string | null,
+    sw: string | null, swUnit: string | null,
+    v1: string | null, v1Unit: string | null,
+    v2: string | null, v2Unit: string | null,
+    v3: string | null, v3Unit: string | null,
+    v4: string | null, v4Unit: string | null,
+    v5: string | null, v5Unit: string | null,
+    v6: string | null, v6Unit: string | null,
+    v7: string | null, v7Unit: string | null,
   ): string | null => {
     const sample = toCanonicalPpb(parseFloat(instSample), instSampleUnit);
     if (!Number.isFinite(sample)) return null;
     const blankRaw = parseFloat(instBlank);
     if (!Number.isFinite(blankRaw)) return null;
     const blank = toCanonicalPpb(blankRaw, instBlankUnit);
-    const sw1n = safeNum(sw1);
-    const v1n = hasVal(v1) ? safeNum(v1) : 1;
-    const df1n = hasVal(v2) && hasVal(v3) ? safeNum(v3) / safeNum(v2) : 1;
-    const df2n = hasVal(v4) && hasVal(v5) ? safeNum(v5) / safeNum(v4) : 1;
-    const df3n = hasVal(v6) && hasVal(v7) ? safeNum(v7) / safeNum(v6) : 1;
-    const result = ((sample - blank) * v1n * df1n * df2n * df3n) / (sw1n * 1000);
+
+    // SW → g
+    const swG = toCanonicalG(parseFloat(sw ?? ""), swUnit);
+    if (!Number.isFinite(swG) || swG === 0) return null;
+
+    // V1 → mL (absent → ×1)
+    const v1n = hasVal(v1) ? toCanonicalML(parseFloat(v1!), v1Unit) : 1;
+
+    // DFs — volumes to mL then ratio
+    const v2n = toCanonicalML(parseFloat(v2 ?? ""), v2Unit);
+    const v3n = toCanonicalML(parseFloat(v3 ?? ""), v3Unit);
+    const v4n = toCanonicalML(parseFloat(v4 ?? ""), v4Unit);
+    const v5n = toCanonicalML(parseFloat(v5 ?? ""), v5Unit);
+    const v6n = toCanonicalML(parseFloat(v6 ?? ""), v6Unit);
+    const v7n = toCanonicalML(parseFloat(v7 ?? ""), v7Unit);
+    const df1n = Number.isFinite(v2n) && Number.isFinite(v3n) && v2n !== 0 ? v3n / v2n : 1;
+    const df2n = Number.isFinite(v4n) && Number.isFinite(v5n) && v4n !== 0 ? v5n / v4n : 1;
+    const df3n = Number.isFinite(v6n) && Number.isFinite(v7n) && v6n !== 0 ? v7n / v6n : 1;
+
+    const result = ((sample - blank) * v1n * df1n * df2n * df3n) / (swG * 1000);
     if (!Number.isFinite(result)) return null;
-    return result.toFixed(4);
+    return result.toFixedNoRound(4).toFixed(3);
   };
 
   useEffect(() => {
@@ -119,18 +184,43 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
     const newResult = computeResult(
       calculation.instrumentConcentrationSample, calculation.instrumentConcentrationSampleUnit,
       calculation.instrumentConcentrationBlank, calculation.instrumentConcentrationBlankUnit,
-      ex.sw1, ex.v1, ex.v2, ex.v3, ex.v4, ex.v5, ex.v6, ex.v7,
+      ex.sw, ex.swUnit,
+      ex.v1, ex.v1Unit,
+      ex.v2, ex.v2Unit,
+      ex.v3, ex.v3Unit,
+      ex.v4, ex.v4Unit,
+      ex.v5, ex.v5Unit,
+      ex.v6, ex.v6Unit,
+      ex.v7, ex.v7Unit,
     );
     const newLabel = selectedSamplePrep ? `Calculation for ${selectedSamplePrep.label}` : calculation.label;
+    const c = calculation as any;
     if (
-      ex.sw1 !== calculation.sw1 || ex.v1 !== calculation.v1 ||
-      ex.v2 !== calculation.v2 || ex.v3 !== calculation.v3 ||
-      ex.v4 !== calculation.v4 || ex.v5 !== calculation.v5 ||
-      ex.v6 !== calculation.v6 || ex.v7 !== calculation.v7 ||
+      ex.sw !== calculation.sw || ex.swUnit !== c.swUnit ||
+      ex.v1 !== calculation.v1 || ex.v1Unit !== c.v1Unit ||
+      ex.v2 !== calculation.v2 || ex.v2Unit !== c.v2Unit ||
+      ex.v3 !== calculation.v3 || ex.v3Unit !== c.v3Unit ||
+      ex.v4 !== calculation.v4 || ex.v4Unit !== c.v4Unit ||
+      ex.v5 !== calculation.v5 || ex.v5Unit !== c.v5Unit ||
+      ex.v6 !== calculation.v6 || ex.v6Unit !== c.v6Unit ||
+      ex.v7 !== calculation.v7 || ex.v7Unit !== c.v7Unit ||
       newResult !== calculation.calculationResult || newLabel !== calculation.label ||
       calculation.calculationResultUnit !== RESULT_UNIT
     ) {
-      onUpdate({ ...calculation, ...ex, calculationResult: newResult, calculationResultUnit: RESULT_UNIT, label: newLabel });
+      onUpdate({
+        ...calculation,
+        sw: ex.sw,        swUnit: ex.swUnit,
+        v1: ex.v1,        v1Unit: ex.v1Unit,
+        v2: ex.v2,        v2Unit: ex.v2Unit,
+        v3: ex.v3,        v3Unit: ex.v3Unit,
+        v4: ex.v4,        v4Unit: ex.v4Unit,
+        v5: ex.v5,        v5Unit: ex.v5Unit,
+        v6: ex.v6,        v6Unit: ex.v6Unit,
+        v7: ex.v7,        v7Unit: ex.v7Unit,
+        calculationResult: newResult,
+        calculationResultUnit: RESULT_UNIT,
+        label: newLabel,
+      } as any);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -165,7 +255,7 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
   const passFail = getPassFail();
 
   const formulaParts: string[] = [];
-  if (v1Active) formulaParts.push("Volume Makeup");
+  if (v1Active) formulaParts.push("Volume Makeup(V1)");
   if (df1Active) formulaParts.push("DF1");
   if (df2Active) formulaParts.push("DF2");
   if (df3Active) formulaParts.push("DF3");
@@ -238,9 +328,9 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
             <div className="p-6 bg-gradient-to-b from-gray-50 to-white space-y-6">
 
               <div className="bg-white rounded-lg p-4 border-2 border-emerald-200 shadow-sm">
-                <h4 className="text-sm font-bold text-gray-900 mb-1">Content Formula</h4>
+                <h4 className="text-sm font-bold text-gray-900 mb-1">Formula</h4>
                 <p className="text-[10px] text-gray-500 mb-3">
-                  Volume Makeup = 1st Dil. makeup (V1) &nbsp;|&nbsp; DF1 = V3/V2 &nbsp;|&nbsp; DF2 = V5/V4 &nbsp;|&nbsp; DF3 = V7/V6 &nbsp;(only shown when values present)
+                  DF1 = V3/V2 &nbsp;|&nbsp; DF2 = V5/V4 &nbsp;|&nbsp; DF3 = V7/V6
                 </p>
                 <div className="bg-gray-50 rounded p-3">
                   <div className="flex items-center gap-2">
@@ -286,27 +376,20 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
 
               <div className="bg-white rounded-lg border-2 border-emerald-200 overflow-hidden">
                 <div className="bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 px-4 py-2">
-                  <h5 className="text-sm font-bold text-white">Formula Breakdown</h5>
+                  <h5 className="text-sm font-bold text-white">Formula Derivation</h5>
                 </div>
                 <div className="p-5 space-y-4">
                   <div>
                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Prep Values</p>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <PrepChip label="SW1" value={calculation.sw1} unit="g" />
-                      <PrepChip label="Volume Makeup" value={calculation.v1} unit="ml" />
-                      <PrepChip label="V2" value={calculation.v2} unit="ml" />
-                      <PrepChip label="V3" value={calculation.v3} unit="ml" />
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                      <PrepChip label="V4" value={calculation.v4} unit="ml" />
-                      <PrepChip label="V5" value={calculation.v5} unit="ml" />
-                      <PrepChip label="V6" value={calculation.v6} unit="ml" />
-                      <PrepChip label="V7" value={calculation.v7} unit="ml" />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Dilution Factors</p>
-                    <div className="grid grid-cols-3 gap-2">
+                      <PrepChip label="SW1" value={calculation.sw} unit={c.swUnit || "g"} />
+                      <PrepChip label="Volume Makeup (V1)" value={calculation.v1} unit={c.v1Unit || "mL"} />
+                      <PrepChip label="V2" value={calculation.v2} unit={c.v2Unit || "mL"} />
+                      <PrepChip label="V3" value={calculation.v3} unit={c.v3Unit || "mL"}/>
+                      <PrepChip label="V4" value={calculation.v4} unit={c.v4Unit || "mL"} />
+                      <PrepChip label="V5" value={calculation.v5} unit={c.v5Unit || "mL"} />
+                      <PrepChip label="V6" value={calculation.v6} unit={c.v6Unit || "mL"} />
+                      <PrepChip label="V7" value={calculation.v7} unit={c.v7Unit || "mL"} />
                       <DFChip label="DF1 = V3/V2" numerator={calculation.v3} denominator={calculation.v2} value={df1} />
                       <DFChip label="DF2 = V5/V4" numerator={calculation.v5} denominator={calculation.v4} value={df2} />
                       <DFChip label="DF3 = V7/V6" numerator={calculation.v7} denominator={calculation.v6} value={df3} />
@@ -317,15 +400,14 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
                       <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
                           ({fmtN4(samplePpb)} − {fmtN4(blankPpb)})
-                          {v1Active ? ` × ${fmt4(calculation.v1)}` : ""}
+                          {v1Active && v1Ml !== null ? ` × ${fmtN4(v1Ml)} mL` : ""}
                           {df1Active && df1 !== null ? ` × ${fmtN4(df1)}` : ""}
                           {df2Active && df2 !== null ? ` × ${fmtN4(df2)}` : ""}
                           {df3Active && df3 !== null ? ` × ${fmtN4(df3)}` : ""}
                         </p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">(Sample/Blank converted to ppb; missing V1 or DFs treated as ×1)</p>
                       </div>
                       <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">{fmtN4(safeNum(calculation.sw1))} × 1000</p>
+                        <p className="text-xs font-mono text-black">{fmtN4(swG)} g × 1000</p>
                       </div>
                     </div>
                   </div>
@@ -359,7 +441,7 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
                   </div>
                   <div className="flex items-center justify-between p-4 flex-wrap gap-3">
                     <div className="flex items-baseline gap-2">
-                      <p className="text-3xl font-bold text-gray-800">{calculation.calculationResult ? parseFloat(calculation.calculationResult).toFixed(3) : ""}</p>
+                      <p className="text-3xl font-bold text-gray-800">{calculation.calculationResult ? trimZeros(parseFloat(calculation.calculationResult)) : ""}</p>
                       <span className="text-lg font-semibold text-gray-600">{RESULT_UNIT}</span>
                     </div>
                     {passFail && (

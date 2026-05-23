@@ -26,7 +26,7 @@ const labelClaimUnitOptions = [
   { value: "kg", label: "kg" },
 ];
 
-const RESULT_UNIT = "% of L.C.";
+const RESULT_UNIT = "% of LC";
 
 // Convert instrument concentration to ppm (mg/L)
 const toCanonicalPpm = (value: number, unit: string): number => {
@@ -51,27 +51,104 @@ const toCanonicalMg = (value: number, unit: string): number => {
   }
 };
 
+/** Any volume unit → mL */
+const toCanonicalML = (value: number, unit?: string | null): number => {
+  if (!Number.isFinite(value)) return NaN;
+  if (!unit) return value; // assume mL if missing
+  switch (unit.trim().toLowerCase()) {
+    case "ml": return value;
+    case "l":  return value * 1000;
+    case "µl":
+    case "ul": return value / 1000;
+    default:   return value;
+  }
+};
+
 const fmt4 = (v: string | null | undefined): string => {
   if (v === null || v === undefined || v === "") return "—";
   const n = parseFloat(v);
   return Number.isFinite(n) ? n.toFixed(4) : v;
 };
 
-const fmtN4 = (n: number): string => (Number.isFinite(n) ? n.toFixed(4) : "—");
+const fmtN = (n: number, decimals = 4): string =>
+  Number.isFinite(n) ? n.toFixed(decimals) : "—";
 
-const prepNum = (v: string | null): number => {
-  const n = parseFloat(v ?? "");
-  return Number.isFinite(n) ? n : 1;
+// Lithosun 300 formula:
+//   % of L.C. = (Sample_ppm - Blank_ppm) × V1[mL] × V3[mL] × 1000
+//               ──────────────────────────────────────────────────────
+//                      LC_mg × V2[mL] × CF × 10000
+//
+// All volume units normalised to mL before arithmetic.
+const computeResult = (
+  instSample: string, instSampleUnit: string,
+  instBlank: string,  instBlankUnit: string,
+  v1: string | null, v1Unit: string | null,
+  v2: string | null, v2Unit: string | null,
+  v3: string | null, v3Unit: string | null,
+  conversionFactor: string,
+  labelClaim: string, labelClaimUnit: string,
+): string | null => {
+  const sample = toCanonicalPpm(parseFloat(instSample), instSampleUnit);
+  const blank  = toCanonicalPpm(parseFloat(instBlank),  instBlankUnit);
+  if (!Number.isFinite(sample) || !Number.isFinite(blank)) return null;
+
+  // V1, V2, V3 → mL (missing → ×1)
+  const v1Ml = toCanonicalML(parseFloat(v1 ?? ""), v1Unit);
+  const v1n  = Number.isFinite(v1Ml) ? v1Ml : 1;
+  const v2Ml = toCanonicalML(parseFloat(v2 ?? ""), v2Unit);
+  const v2n  = Number.isFinite(v2Ml) ? v2Ml : 1;
+  const v3Ml = toCanonicalML(parseFloat(v3 ?? ""), v3Unit);
+  const v3n  = Number.isFinite(v3Ml) ? v3Ml : 1;
+
+  const cf  = parseFloat(conversionFactor);
+  const lcN = toCanonicalMg(parseFloat(labelClaim), labelClaimUnit);
+
+  if (!Number.isFinite(cf) || cf <= 0) return null;
+  if (!Number.isFinite(lcN) || lcN <= 0) return null;
+
+  const numerator   = (sample - blank) * v1n * v3n * 1000;
+  const denominator = lcN * v2n * cf * 10000;
+  if (denominator === 0) return null;
+
+  const result = numerator / denominator;
+  return Number.isFinite(result) ? result.toFixedNoRound(4).toFixed(3) : null;
 };
 
-const isPrepEmpty = (v: string | null): boolean =>
-  !v || v === "" || !Number.isFinite(parseFloat(v));
+const trimZeros = (n: number): string =>
+  Number.isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—";
 
-const calcDF = (makeup: string | null, take: string | null): number => {
-  const m = parseFloat(makeup ?? "");
-  const t = parseFloat(take ?? "");
-  return Number.isFinite(m) && Number.isFinite(t) && t !== 0 ? m / t : NaN;
-};
+// Per-tablet sample concentration fields
+const TABLET_SAMPLE_FIELDS: (keyof CalculationLithosun300)[] = [
+  "instrumentConcentrationSampleTablet1",
+  "instrumentConcentrationSampleTablet2",
+  "instrumentConcentrationSampleTablet3",
+  "instrumentConcentrationSampleTablet4",
+  "instrumentConcentrationSampleTablet5",
+  "instrumentConcentrationSampleTablet6",
+];
+
+// Result fields mapping
+const TABLET_RESULT_FIELDS: (keyof CalculationLithosun300)[] = [
+  "calculationResultTablet1",
+  "calculationResultTablet2",
+  "calculationResultTablet3",
+  "calculationResultTablet4",
+  "calculationResultTablet5",
+  "calculationResultTablet6",
+];
+
+interface TabletResult {
+  tabletNumber: number;
+  result: number | string;
+  unit: string;
+}
+
+interface SummaryResults {
+  min: number;
+  max: number;
+  avg: number;
+  unit: string;
+}
 
 const CalculationDetailLithosun300: React.FC<Props> = ({
   calculation,
@@ -81,43 +158,8 @@ const CalculationDetailLithosun300: React.FC<Props> = ({
   isLocked = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
-
-  const DFChip = ({
-    label, makeup, take, makeupLabel, takeLabel,
-  }: { label: string; makeup: string | null; take: string | null; makeupLabel: string; takeLabel: string }) => {
-    const df = calcDF(makeup, take);
-    const ready = Number.isFinite(df);
-    return (
-      <div className={`rounded p-2.5 border ${ready ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200"}`}>
-        <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${ready ? "text-blue-700" : "text-gray-400"}`}>
-          {label}
-        </p>
-        <p className="text-sm font-bold text-gray-900">{ready ? df.toFixed(4) : "—"}</p>
-        <p className="text-[10px] text-gray-500">{makeupLabel} / {takeLabel}</p>
-      </div>
-    );
-  };
-
-  const PrepChip = ({
-    label, value, unit,
-  }: { label: string; value: string | null; unit?: string }) => {
-    const empty = isPrepEmpty(value);
-    return (
-      <div className={`rounded p-2.5 border ${empty ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"}`}>
-        <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${empty ? "text-amber-600" : "text-emerald-700"}`}>
-          {label}
-        </p>
-        {empty ? (
-          <p className="text-[10px] text-amber-600 font-semibold italic">Not filled (×1)</p>
-        ) : (
-          <p className="text-sm font-bold text-gray-900">
-            {fmt4(value)}{" "}
-            {unit && <span className="text-xs font-normal text-gray-500">{unit}</span>}
-          </p>
-        )}
-      </div>
-    );
-  };
+  const [tabletResults, setTabletResults] = useState<TabletResult[]>([]);
+  const [summaryResults, setSummaryResults] = useState<SummaryResults | null>(null);
 
   const selectedSamplePrep = samplePreparations.find(
     (prep) => prep.label === calculation.selectedSamplePreparationLabel,
@@ -127,92 +169,69 @@ const CalculationDetailLithosun300: React.FC<Props> = ({
   // V2 = 2nd Dilution value1 (take volume)
   // V3 = 2nd Dilution value2 (make-up volume)
   const extractValues = (sp?: SamplePreparationMetal) => {
-    if (!sp) return { v1: null, v2: null, v3: null };
+    if (!sp) return { v1: null, v1Unit: null, v2: null, v2Unit: null, v3: null, v3Unit: null };
     const stepsArr = Array.isArray(sp.steps) ? sp.steps : [];
     const d1 = stepsArr.find((s) => s.name === "1st Dilution");
     const d2 = stepsArr.find((s) => s.name === "2nd Dilution");
     return {
-      v1: d1?.value1 ?? null,
-      v2: d2?.value1 ?? null,
-      v3: d2?.value2 ?? null,
+      v1: d1?.value1 ?? null, v1Unit: (d1 as any)?.unit1 ?? "mL",
+      v2: d2?.value1 ?? null, v2Unit: (d2 as any)?.unit1 ?? "mL",
+      v3: d2?.value2 ?? null, v3Unit: (d2 as any)?.unit2 ?? "mL",
     };
   };
 
-  // Lithosun 300 Dissolution formula:
-  //   % of L.C. = (Sample_ppm - Blank_ppm) × V1 × V3 × 1000
-  //               ─────────────────────────────────────────────
-  //                      LC_mg × V2 × CF × 10000
-  //
-  // V1 = dissolution volume (mL), V2 = take volume (mL), V3 = make-up volume (mL)
-  // CF = Li → Li₂CO₃ conversion factor (≈ 0.188)
-  // LC = Label Claim in mg
-  const compute = (
-    instSample: string, instSampleUnit: string,
-    instBlank: string,  instBlankUnit: string,
-    v1: string | null, v2: string | null, v3: string | null,
-    conversionFactor: string,
-    labelClaim: string, labelClaimUnit: string,
-  ): string | null => {
-    const sample = toCanonicalPpm(parseFloat(instSample), instSampleUnit);
-    const blank  = toCanonicalPpm(parseFloat(instBlank),  instBlankUnit);
-    if (!Number.isFinite(sample) || !Number.isFinite(blank)) return null;
-
-    const v1n = prepNum(v1);
-    const v2n = prepNum(v2);
-    const v3n = prepNum(v3);
-
-    const cf  = parseFloat(conversionFactor);
-    const lcN = toCanonicalMg(parseFloat(labelClaim), labelClaimUnit);
-
-    if (!Number.isFinite(cf) || cf <= 0) return null;
-    if (!Number.isFinite(lcN) || lcN <= 0) return null;
-
-    const numerator   = (sample - blank) * v1n * v3n * 1000;
-    const denominator = lcN * v2n * cf * 10000;
-    if (denominator === 0) return null;
-
-    const result = numerator / denominator;
-    return Number.isFinite(result) ? result.toFixed(3) : null;
-  };
-
+  // Compute all 6 tablet results whenever inputs change
   useEffect(() => {
-    const { v1: newV1, v2: newV2, v3: newV3 } = extractValues(selectedSamplePrep);
+    const { v1: newV1, v1Unit: newV1Unit, v2: newV2, v2Unit: newV2Unit, v3: newV3, v3Unit: newV3Unit } = extractValues(selectedSamplePrep);
 
-    const newResult = compute(
-      calculation.instrumentConcentrationSample,
-      calculation.instrumentConcentrationSampleUnit,
-      calculation.instrumentConcentrationBlank,
-      calculation.instrumentConcentrationBlankUnit,
-      newV1, newV2, newV3,
-      calculation.conversionFactor,
-      calculation.labelClaim,
-      calculation.labelClaimUnit,
-    );
+    // Compute each tablet using only its own sample concentration (no fallback)
+    const perTabletResults: (string | null)[] = TABLET_SAMPLE_FIELDS.map((field) => {
+      const tabletSample = calculation[field] as string | null;
+      if (!tabletSample) return null;
+      return computeResult(
+        tabletSample,
+        calculation.instrumentConcentrationSampleUnit,
+        calculation.instrumentConcentrationBlank,
+        calculation.instrumentConcentrationBlankUnit,
+        newV1, newV1Unit, newV2, newV2Unit, newV3, newV3Unit,
+        calculation.conversionFactor!,
+        calculation.labelClaim!,
+        calculation.labelClaimUnit!,
+      );
+    });
 
     const newLabel = selectedSamplePrep
       ? `Calculation for ${selectedSamplePrep.label}`
       : calculation.label;
 
-    if (
-      newV1 !== calculation.v1 ||
-      newV2 !== calculation.v2 ||
-      newV3 !== calculation.v3 ||
-      newResult !== calculation.calculationResult ||
-      newLabel !== calculation.label ||
-      calculation.calculationResultUnit !== RESULT_UNIT
-    ) {
-      onUpdate({
-        ...calculation,
-        v1: newV1, v2: newV2, v3: newV3,
-        calculationResult: newResult,
-        calculationResultUnit: RESULT_UNIT,
-        label: newLabel,
-      });
-    }
+    const resultFieldUpdates: Partial<CalculationLithosun300> = {};
+    TABLET_RESULT_FIELDS.forEach((field, idx) => {
+      (resultFieldUpdates as any)[field] = perTabletResults[idx];
+    });
+
+    // Legacy single-result = Tablet 1 result (or null if no tablet 1)
+    const newResult = perTabletResults[0] ?? null;
+
+    onUpdate({
+      ...calculation,
+      v1: newV1, v2: newV2, v3: newV3,
+      ...(newV1Unit ? { v1Unit: newV1Unit } : {}),
+      ...(newV2Unit ? { v2Unit: newV2Unit } : {}),
+      ...(newV3Unit ? { v3Unit: newV3Unit } : {}),
+      calculationResult: newResult,
+      calculationResultUnit: RESULT_UNIT,
+      label: newLabel,
+      ...resultFieldUpdates,
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selectedSamplePrep,
-    calculation.instrumentConcentrationSample,
+    calculation.instrumentConcentrationSampleTablet1,
+    calculation.instrumentConcentrationSampleTablet2,
+    calculation.instrumentConcentrationSampleTablet3,
+    calculation.instrumentConcentrationSampleTablet4,
+    calculation.instrumentConcentrationSampleTablet5,
+    calculation.instrumentConcentrationSampleTablet6,
     calculation.instrumentConcentrationSampleUnit,
     calculation.instrumentConcentrationBlank,
     calculation.instrumentConcentrationBlankUnit,
@@ -221,37 +240,94 @@ const CalculationDetailLithosun300: React.FC<Props> = ({
     calculation.labelClaimUnit,
   ]);
 
+  // Build tablet results for display
+  useEffect(() => {
+    const results: TabletResult[] = [];
+    TABLET_RESULT_FIELDS.forEach((field, idx) => {
+      const val = calculation[field] as string | null | undefined;
+      if (val !== null && val !== undefined && String(val).trim() !== "") {
+        const n = Number(val);
+        results.push({
+          tabletNumber: idx + 1,
+          result: isNaN(n) ? String(val) : n,
+          unit: RESULT_UNIT,
+        });
+      }
+    });
+
+    if (results.length > 0) {
+      setTabletResults(results);
+      const nums = results.filter((r) => typeof r.result === "number").map((r) => r.result as number);
+      if (nums.length > 0) {
+        const min = Math.min(...nums);
+        const max = Math.max(...nums);
+        const avg = nums.reduce((a, b) => a + b, 0) / nums.length;
+        setSummaryResults({ min, max, avg, unit: RESULT_UNIT });
+      }
+    } else {
+      setTabletResults([]);
+      setSummaryResults(null);
+    }
+  }, [
+    calculation.calculationResultTablet1,
+    calculation.calculationResultTablet2,
+    calculation.calculationResultTablet3,
+    calculation.calculationResultTablet4,
+    calculation.calculationResultTablet5,
+    calculation.calculationResultTablet6,
+  ]);
+
   const handleField = (field: keyof CalculationLithosun300, value: string | null) => {
     if (isLocked) return;
     onUpdate({ ...calculation, [field]: value });
   };
 
-  // Effective values
-  const v1Eff = prepNum(calculation.v1);
-  const v2Eff = prepNum(calculation.v2);
-  const v3Eff = prepNum(calculation.v3);
-  const dfEff = v3Eff / v2Eff;
-  const sampleNum = toCanonicalPpm(parseFloat(calculation.instrumentConcentrationSample), calculation.instrumentConcentrationSampleUnit);
-  const blankNum  = toCanonicalPpm(parseFloat(calculation.instrumentConcentrationBlank),  calculation.instrumentConcentrationBlankUnit);
-  const cfNum     = parseFloat(calculation.conversionFactor);
-  const lcNum     = toCanonicalMg(parseFloat(calculation.labelClaim), calculation.labelClaimUnit);
+  // Effective values for formula display (all converted to mL / mg)
+  const c300 = calculation as any;
+  const v1Ml = toCanonicalML(parseFloat(calculation.v1 ?? ""), c300.v1Unit);
+  const v2Ml = toCanonicalML(parseFloat(calculation.v2 ?? ""), c300.v2Unit);
+  const v3Ml = toCanonicalML(parseFloat(calculation.v3 ?? ""), c300.v3Unit);
+  const v1Eff = Number.isFinite(v1Ml) ? v1Ml : 1;
+  const v2Eff = Number.isFinite(v2Ml) ? v2Ml : 1;
+  const v3Eff = Number.isFinite(v3Ml) ? v3Ml : 1;
+  const blankNum = toCanonicalPpm(parseFloat(calculation.instrumentConcentrationBlank), calculation.instrumentConcentrationBlankUnit);
+  const cfNum    = parseFloat(calculation.conversionFactor!);
+  const lcNum    = toCanonicalMg(parseFloat(calculation.labelClaim!), calculation.labelClaimUnit!);
+
+  // Per-tablet sample ppm values (no fallback)
+  const tabletSampleNums = TABLET_SAMPLE_FIELDS.map((field) => {
+    const raw = calculation[field] as string | null;
+    if (!raw) return NaN;
+    return toCanonicalPpm(parseFloat(raw), calculation.instrumentConcentrationSampleUnit);
+  });
 
   const missingFields: string[] = [];
-  if (!Number.isFinite(sampleNum)) missingFields.push("Sample Concentration");
+  if (!TABLET_SAMPLE_FIELDS.some((f) => calculation[f])) {
+    missingFields.push("Sample Concentration (at least one tablet)");
+  }
   if (!calculation.instrumentConcentrationBlank) missingFields.push("Blank Concentration");
   if (!Number.isFinite(cfNum) || cfNum <= 0) missingFields.push("Conversion Factor");
   if (!Number.isFinite(lcNum) || lcNum <= 0) missingFields.push("Label Claim");
 
-  const getPassFail = (): "pass" | "fail" | null => {
-    if (!calculation.calculationResult) return null;
-    const v = parseFloat(calculation.calculationResult);
-    if (!Number.isFinite(v)) return null;
+  const getPassFail = (val: number | null): "pass" | "fail" | null => {
+    if (val === null || !Number.isFinite(val)) return null;
     const min = calculation.acceptanceLimitMin ? parseFloat(calculation.acceptanceLimitMin) : null;
     const max = calculation.acceptanceLimitMax ? parseFloat(calculation.acceptanceLimitMax) : null;
     if (min === null && max === null) return null;
-    return (min === null || v >= min) && (max === null || v <= max) ? "pass" : "fail";
+    return (min === null || val >= min) && (max === null || val <= max) ? "pass" : "fail";
   };
-  const passFail = getPassFail();
+
+  const limitMin = calculation.acceptanceLimitMin ? parseFloat(calculation.acceptanceLimitMin) : null;
+  const limitMax = calculation.acceptanceLimitMax ? parseFloat(calculation.acceptanceLimitMax) : null;
+  const hasLimits = (limitMin !== null && !isNaN(limitMin)) || (limitMax !== null && !isNaN(limitMax));
+
+  // Determine which tablets have data entered (to show derivation rows)
+  const activeTabletIndices = TABLET_SAMPLE_FIELDS
+    .map((field, idx) => ({ field, idx }))
+    .filter(({ field }) => {
+      const v = calculation[field] as string | null;
+      return v !== null && v !== "" && Number.isFinite(parseFloat(v ?? ""));
+    });
 
   return (
     <motion.div
@@ -272,7 +348,7 @@ const CalculationDetailLithosun300: React.FC<Props> = ({
             </motion.div>
             <div>
               <h4 className="text-sm font-semibold text-white tracking-wide">{calculation.label}</h4>
-              <p className="text-xs text-emerald-100">Lithosun 300 — Dissolution % of L.C.</p>
+              <p className="text-xs text-emerald-100">Lithosun 300 Calculation</p>
             </div>
           </div>
 
@@ -307,35 +383,29 @@ const CalculationDetailLithosun300: React.FC<Props> = ({
           >
             <div className="p-6 bg-gradient-to-b from-gray-50 to-white space-y-6">
 
-              {/* Formula header */}
+              {/* ── Symbolic Formula Header ── */}
               <div className="bg-white rounded-lg p-4 border-2 border-emerald-200 shadow-sm">
-                <h4 className="text-sm font-bold text-gray-900 mb-3">Content in (% of L.C.)</h4>
+                <h4 className="text-sm font-bold text-gray-900 mb-3">Formula</h4>
                 <div className="bg-gray-50 rounded p-3">
                   <div className="flex items-center gap-2">
                     <div className="flex-1 flex flex-col items-center">
                       <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
-                          (Inst. Conc. Sample − Blank) × Dissolution Volume × DF × 1000
-                        </p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">
-                          DF = V3/V2 (2nd dil. makeup / take)
+                          (Sample − Blank) × V1 × V3 × 1000
                         </p>
                       </div>
                       <div className="text-center px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
-                          Label Claim (mg) × Conversion Factor × 10000
-                        </p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">
-                          CF ≈ 0.188 for Li → Li₂CO₃
+                          Label Claim (mg) × V2 × Conversion Factor × 10000
                         </p>
                       </div>
                     </div>
-                    <span className="text-sm font-bold text-black">{RESULT_UNIT}</span>
+                    <span className="text-sm font-bold text-black shrink-0">{RESULT_UNIT}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Sample Preparation selector */}
+              {/* ── Sample Preparation Selector ── */}
               <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
                 <label className="block text-sm font-bold text-gray-700 mb-2">Select Sample Preparation</label>
                 <CustomDropdown
@@ -347,75 +417,95 @@ const CalculationDetailLithosun300: React.FC<Props> = ({
                 />
               </div>
 
-              {/* Instrument Concentration */}
+              {/* ── Blank Concentration ── */}
               <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
-                <h5 className="text-sm font-bold text-gray-700 mb-3">Instrument Concentration</h5>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {/* Sample */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Sample</label>
-                    <div className="flex gap-2">
+                <h5 className="text-sm font-bold text-gray-700 mb-3">Instrument Concentration (Blank)</h5>
+                <div className="flex gap-2">
+                  <input
+                    type="number" step="any"
+                    value={calculation.instrumentConcentrationBlank}
+                    readOnly={isLocked}
+                    onChange={(e) => handleField("instrumentConcentrationBlank", e.target.value)}
+                    onWheel={(e) => e.currentTarget.blur()}
+                    placeholder="Enter value"
+                    className={`flex-1 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.instrumentConcentrationBlank ? "border-amber-400" : "border-emerald-300"}`}
+                  />
+                  <div className="w-24 shrink-0">
+                    <CustomDropdown
+                      options={concUnitOptions}
+                      value={calculation.instrumentConcentrationBlankUnit}
+                      onChange={(v) => handleField("instrumentConcentrationBlankUnit", v)}
+                      placeholder="Unit"
+                      colorScheme="emerald"
+                    />
+                  </div>
+                </div>
+                {!calculation.instrumentConcentrationBlank && (
+                  <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" /> Required for calculation
+                  </p>
+                )}
+              </div>
+
+              {/* ── Per-Tablet Sample Concentrations ── */}
+              <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
+                <h5 className="text-sm font-bold text-gray-700 mb-1">Instrument Concentration (Sample) — Per Tablet</h5>
+                <p className="text-[10px] text-gray-500 mb-3">Enter each tablet's instrument reading and select the unit.</p>
+
+                {/* Unit selector (shared across all tablet sample values) */}
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs font-semibold text-gray-600 shrink-0">Unit</span>
+                  <div className="w-28">
+                    <CustomDropdown
+                      options={concUnitOptions}
+                      value={calculation.instrumentConcentrationSampleUnit}
+                      onChange={(v) => handleField("instrumentConcentrationSampleUnit", v)}
+                      placeholder="Unit"
+                      colorScheme="emerald"
+                    />
+                  </div>
+                </div>
+
+                {/* 6 tablet fields in a 2-col / 3-col grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {TABLET_SAMPLE_FIELDS.map((field, idx) => (
+                    <div key={field}>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">Tablet {idx + 1}</label>
                       <input
                         type="number" step="any"
-                        value={calculation.instrumentConcentrationSample}
+                        value={(calculation[field] as string) || ""}
                         readOnly={isLocked}
-                        onChange={(e) => handleField("instrumentConcentrationSample", e.target.value)}
+                        onChange={(e) => handleField(field, e.target.value || null)}
                         onWheel={(e) => e.currentTarget.blur()}
-                        placeholder="0.0"
-                        className={`flex-1 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.instrumentConcentrationSample ? "border-amber-400" : "border-emerald-300"}`}
+                        placeholder="Value"
+                        className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
                       />
-                      <div className="w-24 shrink-0">
-                        <CustomDropdown options={concUnitOptions} value={calculation.instrumentConcentrationSampleUnit} onChange={(v) => handleField("instrumentConcentrationSampleUnit", v)} placeholder="Unit" colorScheme="emerald" />
-                      </div>
                     </div>
-                    {!calculation.instrumentConcentrationSample && (
-                      <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Required for calculation</p>
-                    )}
-                  </div>
-                  {/* Blank */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Blank</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="number" step="any"
-                        value={calculation.instrumentConcentrationBlank}
-                        readOnly={isLocked}
-                        onChange={(e) => handleField("instrumentConcentrationBlank", e.target.value)}
-                        onWheel={(e) => e.currentTarget.blur()}
-                        placeholder="0.0"
-                        className={`flex-1 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.instrumentConcentrationBlank ? "border-amber-400" : "border-emerald-300"}`}
-                      />
-                      <div className="w-24 shrink-0">
-                        <CustomDropdown options={concUnitOptions} value={calculation.instrumentConcentrationBlankUnit} onChange={(v) => handleField("instrumentConcentrationBlankUnit", v)} placeholder="Unit" colorScheme="emerald" />
-                      </div>
-                    </div>
-                    {!calculation.instrumentConcentrationBlank && (
-                      <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Required for calculation</p>
-                    )}
-                  </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Conversion Factor & Label Claim */}
+              {/* ── Conversion Factor & Label Claim ── */}
               <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
                 <h5 className="text-sm font-bold text-gray-700 mb-3">Conversion Factor &amp; Label Claim</h5>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="min-w-0">
                     <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                      Conversion Factor{" "}
-                      <span className="font-normal text-gray-400">(Li → Li₂CO₃, typically 0.188)</span>
+                      Conversion Factor
                     </label>
                     <input
                       type="number" step="any"
-                      value={calculation.conversionFactor}
+                      value={calculation.conversionFactor!}
                       readOnly={isLocked}
                       onChange={(e) => handleField("conversionFactor", e.target.value)}
                       onWheel={(e) => e.currentTarget.blur()}
-                      placeholder="0.188"
+                      placeholder="Enter value"
                       className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.conversionFactor ? "border-amber-400" : "border-emerald-300"}`}
                     />
                     {!calculation.conversionFactor && (
-                      <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Required for calculation</p>
+                      <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" /> Required for calculation
+                      </p>
                     )}
                   </div>
                   <div className="min-w-0">
@@ -423,45 +513,89 @@ const CalculationDetailLithosun300: React.FC<Props> = ({
                     <div className="flex gap-2">
                       <input
                         type="number" step="any"
-                        value={calculation.labelClaim}
+                        value={calculation.labelClaim!}
                         readOnly={isLocked}
                         onChange={(e) => handleField("labelClaim", e.target.value)}
                         onWheel={(e) => e.currentTarget.blur()}
-                        placeholder="300"
+                        placeholder="Enter value"
                         className={`flex-1 min-w-0 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.labelClaim ? "border-amber-400" : "border-emerald-300"}`}
                       />
                       <div className="w-20 shrink-0">
-                        <CustomDropdown options={labelClaimUnitOptions} value={calculation.labelClaimUnit} onChange={(v) => handleField("labelClaimUnit", v)} placeholder="Unit" colorScheme="emerald" />
+                        <CustomDropdown
+                          options={labelClaimUnitOptions}
+                          value={calculation.labelClaimUnit}
+                          onChange={(v) => handleField("labelClaimUnit", v)}
+                          placeholder="Unit"
+                          colorScheme="emerald"
+                        />
                       </div>
                     </div>
                     {!calculation.labelClaim && (
-                      <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Required for calculation</p>
+                      <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" /> Required for calculation
+                      </p>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* Formula Breakdown */}
+              {/* ── Formula Derivation (V chips + per-tablet derivations) ── */}
               <div className="bg-white rounded-lg border-2 border-emerald-200 overflow-hidden">
                 <div className="bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 px-4 py-2">
-                  <h5 className="text-sm font-bold text-white">Formula Breakdown</h5>
+                  <h5 className="text-sm font-bold text-white">Formula Derivation</h5>
                 </div>
-                <div className="p-5 space-y-4">
+                <div className="p-5 space-y-5">
+
+                  {/* Prep value chips */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    <PrepChip label="V1 (Dissolution Vol.)" value={calculation.v1} unit="mL" />
-                    <PrepChip label="V2 (2nd Dil. Take)" value={calculation.v2} unit="mL" />
-                    <PrepChip label="V3 (2nd Dil. Makeup)" value={calculation.v3} unit="mL" />
-                    <DFChip
-                      label="DF = V3/V2"
-                      makeup={calculation.v3}
-                      take={calculation.v2}
-                      makeupLabel="V3"
-                      takeLabel="V2"
-                    />
+                    {/* V1 */}
+                    {(() => {
+                      const empty = !Number.isFinite(v1Ml);
+                      return (
+                        <div className={`rounded p-2.5 border ${empty ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"}`}>
+                          <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${empty ? "text-amber-600" : "text-emerald-700"}`}>V1</p>
+                          {empty ? (
+                            <p className="text-[10px] text-amber-600 font-semibold italic">Not filled (×1)</p>
+                          ) : (
+                            <p className="text-sm font-bold text-gray-900">{fmtN(v1Eff)} <span className="text-xs font-normal text-gray-500">mL</span></p>
+                          )}
+                        </div>
+                      );
+                    })()}
+                    {/* V2 */}
+                    {(() => {
+                      const empty = !Number.isFinite(v2Ml);
+                      return (
+                        <div className={`rounded p-2.5 border ${empty ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"}`}>
+                          <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${empty ? "text-amber-600" : "text-emerald-700"}`}>V2</p>
+                          {empty ? (
+                            <p className="text-[10px] text-amber-600 font-semibold italic">Not filled (×1)</p>
+                          ) : (
+                            <p className="text-sm font-bold text-gray-900">{fmtN(v2Eff)} <span className="text-xs font-normal text-gray-500">mL</span></p>
+                          )}
+                        </div>
+                      );
+                    })()}
+                    {/* V3 */}
+                    {(() => {
+                      const empty = !Number.isFinite(v3Ml);
+                      return (
+                        <div className={`rounded p-2.5 border ${empty ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"}`}>
+                          <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${empty ? "text-amber-600" : "text-emerald-700"}`}>V3</p>
+                          {empty ? (
+                            <p className="text-[10px] text-amber-600 font-semibold italic">Not filled (×1)</p>
+                          ) : (
+                            <p className="text-sm font-bold text-gray-900">{fmtN(v3Eff)} <span className="text-xs font-normal text-gray-500">mL</span></p>
+                          )}
+                        </div>
+                      );
+                    })()}
+                    {/* Conv. Factor */}
                     <div className="bg-emerald-50 rounded p-2.5 border border-emerald-200">
                       <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-0.5">Conv. Factor</p>
                       <p className="text-sm font-bold text-gray-900">{fmt4(calculation.conversionFactor)}</p>
                     </div>
+                    {/* Label Claim */}
                     <div className="bg-emerald-50 rounded p-2.5 border border-emerald-200">
                       <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-0.5">Label Claim</p>
                       <p className="text-sm font-bold text-gray-900">
@@ -471,33 +605,65 @@ const CalculationDetailLithosun300: React.FC<Props> = ({
                     </div>
                   </div>
 
-                  <div className="bg-emerald-50/60 rounded-lg p-4 border border-emerald-200">
-                    <div className="flex flex-col items-center">
-                      <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
-                        <p className="text-xs font-mono text-black break-words">
-                          ({fmtN4(sampleNum)} − {fmtN4(blankNum)}) × {fmtN4(v1Eff)} × {fmtN4(dfEff)} × 1000
-                        </p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">
-                          (Sample/Blank in ppm; DF=V3/V2={fmtN4(dfEff)})
-                        </p>
-                      </div>
-                      <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black break-words">
-                          {fmtN4(lcNum)} × {fmtN4(cfNum)} × 10000
-                        </p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">
-                          (Label Claim in mg after unit conversion)
-                        </p>
-                      </div>
+                  {/* ── Per-Tablet Derivations (simple, clean) ── */}
+                  {activeTabletIndices.length > 0 && Number.isFinite(blankNum) && Number.isFinite(cfNum) && Number.isFinite(lcNum) && (
+                    <div className="space-y-3 pt-2 border-t border-emerald-100">
+                      {activeTabletIndices.map(({ idx }) => {
+                        const samplePpm = tabletSampleNums[idx];
+                        const tabletResult = tabletResults.find((r) => r.tabletNumber === idx + 1);
+                        const resultVal = tabletResult && typeof tabletResult.result === "number" ? tabletResult.result : null;
+                        const pf = getPassFail(resultVal);
+
+                        return (
+                          <div key={idx} className="bg-gray-50 rounded-lg border border-emerald-100 overflow-hidden">
+                            {/* Tablet header */}
+                            <div className="flex items-center justify-between px-4 py-2 bg-emerald-50 border-b border-emerald-100">
+                              <span className="text-xs font-bold text-emerald-800">Tablet {idx + 1}</span>
+                              {resultVal !== null && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-bold text-gray-800">{resultVal.toFixed(3)}</span>
+                                  <span className="text-xs text-gray-500">{RESULT_UNIT}</span>
+                                  {pf && (
+                                    <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${pf === "pass" ? "bg-green-100 text-green-800 border border-green-300" : "bg-red-100 text-red-800 border border-red-300"}`}>
+                                      {pf === "pass" ? "Pass" : "Fail"}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Simple fraction derivation */}
+                            <div className="px-4 py-3 font-mono text-xs text-gray-700">
+                              {/* Numerator line */}
+                              <div className="text-center pb-1.5 border-b-2 border-gray-800">
+                                {Number.isFinite(samplePpm) ? (
+                                  <span>
+                                    ({fmtN(samplePpm)} − {fmtN(blankNum)}) × {fmtN(v1Eff)} × {fmtN(v3Eff)} × 1000
+                                  </span>
+                                ) : (
+                                  <span className="text-amber-500 italic font-sans text-[10px]">Awaiting sample value</span>
+                                )}
+                              </div>
+                              {/* Denominator line */}
+                              <div className="text-center pt-1.5">
+                                {Number.isFinite(lcNum) && Number.isFinite(cfNum) ? (
+                                  <span>
+                                    {fmtN(lcNum)} × {fmtN(v2Eff)} × {fmtN(cfNum)} × 10000
+                                  </span>
+                                ) : (
+                                  <span className="text-amber-500 italic font-sans text-[10px]">Awaiting LC / CF values</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </div>
-                  <p className="text-xs text-center text-gray-600">
-                    Output unit is fixed at <strong>{RESULT_UNIT}</strong>.
-                  </p>
+                  )}
                 </div>
               </div>
 
-              {/* Acceptance Limit */}
+              {/* ── Acceptance Limit ── */}
               <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
                 <h5 className="text-sm font-bold text-gray-700 mb-3">Acceptance Limit</h5>
                 <div className="flex items-center gap-2">
@@ -523,7 +689,7 @@ const CalculationDetailLithosun300: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Missing fields warning */}
+              {/* ── Missing fields warning ── */}
               {missingFields.length > 0 && (
                 <div className="bg-amber-50 border-2 border-amber-200 rounded-lg p-4 flex gap-3">
                   <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
@@ -536,30 +702,142 @@ const CalculationDetailLithosun300: React.FC<Props> = ({
                 </div>
               )}
 
-              {/* Result */}
-              {calculation.calculationResult && (
+              {/* ── Individual Tablet Results Table ── */}
+              {tabletResults.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-lg shadow-lg border-2 border-emerald-300 overflow-hidden"
+                  className="space-y-4"
                 >
-                  <div className="bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 px-4 py-2 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-white" />
-                    <h6 className="text-sm font-bold text-white">RESULT</h6>
-                  </div>
-                  <div className="flex items-center justify-between p-4 flex-wrap gap-3">
-                    <div className="flex items-baseline gap-2">
-                      <p className="text-3xl font-bold text-gray-800">{calculation.calculationResult ? parseFloat(calculation.calculationResult).toFixed(3) : ""}</p>
-                      <span className="text-lg font-semibold text-gray-600">{RESULT_UNIT}</span>
+                  <div className="bg-white rounded-lg shadow-lg border-2 border-emerald-300 overflow-hidden">
+                    <div className="bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 px-4 py-2">
+                      <h6 className="text-sm font-bold text-white flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" />
+                        Individual Tablet Results
+                      </h6>
                     </div>
-                    {passFail && (
-                      <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${passFail === "pass" ? "bg-green-100 text-green-800 border border-green-300" : "bg-red-100 text-red-800 border border-red-300"}`}>
-                        {passFail === "pass" ? "Pass" : "Fail"}
-                      </span>
-                    )}
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="bg-emerald-100">
+                            <th className="px-4 py-3 text-left text-sm font-bold text-emerald-900 border-r border-emerald-200 w-32" />
+                            {tabletResults.map((result) => (
+                              <th
+                                key={result.tabletNumber}
+                                className="px-4 py-3 text-center text-xs font-bold text-emerald-900 border-r border-emerald-200 last:border-r-0"
+                              >
+                                Tablet {result.tabletNumber}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="bg-white">
+                            <td className="px-4 py-4 text-xs font-semibold text-gray-500 border-r border-gray-200">
+                              Result
+                            </td>
+                            {tabletResults.map((result) => (
+                              <td
+                                key={result.tabletNumber}
+                                className="px-4 py-4 text-center border-r border-gray-200 last:border-r-0"
+                              >
+                                <div className="text-lg font-bold text-gray-800">
+                                  {typeof result.result === "number"
+                                    ? trimZeros(result.result)
+                                    : result.result}
+                                </div>
+                                {typeof result.result === "number" && (
+                                  <div className="text-xs text-gray-600 mt-1">{result.unit}</div>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+
+                          {hasLimits && (
+                            <tr className="bg-gray-50 border-t-2 border-emerald-200">
+                              <td className="px-4 py-3 text-xs font-semibold text-gray-500 border-r border-gray-200">
+                                Pass/Fail
+                                <div className="text-gray-400 font-normal">
+                                  {limitMin !== null && !isNaN(limitMin) ? `≥ ${limitMin.toFixed(1)}%` : ""}
+                                  {limitMin !== null && !isNaN(limitMin) && limitMax !== null && !isNaN(limitMax) ? " – " : ""}
+                                  {limitMax !== null && !isNaN(limitMax) ? `≤ ${limitMax.toFixed(1)}%` : ""}
+                                </div>
+                              </td>
+                              {tabletResults.map((result) => {
+                                const val = typeof result.result === "number" ? result.result : null;
+                                const pf = getPassFail(val);
+                                return (
+                                  <td
+                                    key={result.tabletNumber}
+                                    className="px-4 py-3 text-center border-r border-gray-200 last:border-r-0"
+                                  >
+                                    {val !== null && pf ? (
+                                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${pf === "pass" ? "bg-green-100 text-green-800 border border-green-300" : "bg-red-100 text-red-800 border border-red-300"}`}>
+                                        {pf === "pass" ? "Pass" : "Fail"}
+                                      </span>
+                                    ) : (
+                                      <span className="text-gray-400 text-xs">—</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Summary Statistics */}
+                  {summaryResults && (
+                    <div className="bg-white rounded-lg shadow-lg border-2 border-emerald-300 overflow-hidden">
+                      <div className="bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 px-4 py-2">
+                        <h6 className="text-sm font-bold text-white">Summary Statistics</h6>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="bg-emerald-100">
+                              <th className="px-6 py-3 text-center text-sm font-bold text-emerald-900 border-r border-emerald-200">Minimum</th>
+                              <th className="px-6 py-3 text-center text-sm font-bold text-emerald-900 border-r border-emerald-200">Average</th>
+                              <th className="px-6 py-3 text-center text-sm font-bold text-emerald-900">Maximum</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="bg-white">
+                              <td className="px-6 py-4 text-center border-r border-gray-200">
+                                <div className="text-xl font-bold text-gray-800">{trimZeros(summaryResults.min)}</div>
+                                <div className="text-xs text-gray-600 mt-1">{summaryResults.unit}</div>
+                              </td>
+                              <td className="px-6 py-4 text-center border-r border-gray-200">
+                                <div className="text-xl font-bold text-emerald-800">{trimZeros(summaryResults.avg)}</div>
+                                <div className="text-xs text-gray-600 mt-1">{summaryResults.unit}</div>
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <div className="text-xl font-bold text-gray-800">{trimZeros(summaryResults.max)}</div>
+                                <div className="text-xs text-gray-600 mt-1">{summaryResults.unit}</div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Preparation Info */}
+                  <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4">
+                    <div className="grid md:grid-cols-1 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-600 font-medium">Sample Preparation</p>
+                        <p className="text-gray-900 font-semibold">
+                          {calculation.selectedSamplePreparationLabel || "N/A"}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               )}
+
             </div>
           </motion.div>
         )}

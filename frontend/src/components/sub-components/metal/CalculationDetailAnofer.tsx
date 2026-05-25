@@ -223,9 +223,7 @@ const CalculationDetailAnofer: React.FC<Props> = ({
       calculation.labelClaim,
       calculation.labelClaimUnit
     );
-    const newLabel = selectedSamplePrep
-      ? `Calculation for ${selectedSamplePrep.label}`
-      : calculation.label;
+    const newLabel = calculation.label;
 
     if (
       ex.sw !== calculation.sw || ex.swUnit !== c.swUnit ||

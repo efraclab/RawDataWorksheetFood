@@ -187,9 +187,9 @@ const CalculationDetailLithosun400: React.FC<Props> = ({
 
   useEffect(() => {
     const { v1, v1Unit, v2, v2Unit, v3, v3Unit } = extractPrepValues(selectedSamplePrep);
-    const newLabel = selectedSamplePrep
-      ? `Calculation for ${selectedSamplePrep.label}`
-      : calculation.label;
+    
+    const newLabel = calculation.label;
+
     onUpdate({
       ...calculation,
       v1, v2, v3,

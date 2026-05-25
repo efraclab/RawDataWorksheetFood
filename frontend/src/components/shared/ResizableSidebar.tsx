@@ -139,13 +139,13 @@ const ResizableSidebar: React.FC<ResizableSidebarProps> = ({ children }) => {
       {/* Sidebar content fills the resizable container */}
       <div className="h-full w-full overflow-hidden">{children}</div>
 
-      {/* Hide button (hamburger) — top-right of the sidebar */}
+      {/* Hide button (hamburger) — rendered outside overflow-hidden so it is never clipped */}
       <button
         type="button"
         onClick={() => setHidden(true)}
         title="Hide sidebar (Ctrl+B)"
         aria-label="Hide sidebar"
-        className="absolute top-2 right-3 z-40 p-1.5 rounded-md bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+        className="absolute top-2 right-5 z-[60] p-1.5 rounded-md bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
       >
         <svg
           className="w-4 h-4"

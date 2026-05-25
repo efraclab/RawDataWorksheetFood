@@ -20,6 +20,7 @@ import MicroWorksheet from "./components/MicroWorksheet";
 import MetalWorksheet from "./components/MetalWorksheet";
 import DrugPrintReport from "./components/DrugPrintReport";
 import MicroPrintReport from "./components/MicroPrintReport";
+import MetalPrintReport from "./components/MetalPrintReport";
 import WorksheetSidebar from "./components/shared/WorksheetSidebar";
 import ResizableSidebar from "./components/shared/ResizableSidebar";
 import AiReviewTerminal from "./components/AiReviewTerminal";
@@ -263,7 +264,7 @@ function WorksheetPage(props: {
       instruments: (instrumentIds ?? []).map((i: string) => instruments.find((x: Instrument) => x.id === i.trim())?.name).filter(Boolean),
       chemicals:   (chemicalIds   ?? []).map((i: string) => chemicals.find((x: Chemical)   => x.slno === i.trim())?.name).filter(Boolean),
       standards:   (standardIds   ?? []).map((i: string) => standards.find((x: Standard)   => x.serialNo === i.trim())?.name).filter(Boolean),
-      media:       (mediaIds       ?? []).map((i: string) => media.find((x: Media)          => x.id === i.trim())?.name).filter(Boolean),
+      media:       (mediaIds       ?? []).map((i: string) => media.find((x: Media)          => x.id.toString() === i.trim())?.name).filter(Boolean),
     }));
 
     return reviewWorksheetWithAI({
@@ -350,6 +351,16 @@ function WorksheetPage(props: {
                   instruments={props.instruments}
                   chemicals={props.chemicals}
                   media={props.media}
+                  onClose={handleClosePrint}
+                />
+              ) : isMetal ? (
+                <MetalPrintReport
+                  worksheetInfo={printData.worksheetInfo}
+                  analysts={printData.analysts}
+                  sampleData={printData.sampleData}
+                  instruments={props.instruments}
+                  chemicals={props.chemicals}
+                  standards={props.standards}
                   onClose={handleClosePrint}
                 />
               ) : (

@@ -226,7 +226,9 @@ const CalculationDetailORS: React.FC<Props> = ({
       calculation.molecularWeight, calculation.molecularWeightUnit,
       calculation.labelClaim, calculation.labelClaimUnit,
     );
-    const newLabel = selectedSamplePrep ? `Calculation for ${selectedSamplePrep.label}` : calculation.label;
+
+    const newLabel = calculation.label;
+    
     if (
       ex.sw !== calculation.sw || ex.swUnit !== c.swUnit ||
       ex.v1 !== calculation.v1 || ex.v1Unit !== c.v1Unit ||

@@ -192,9 +192,7 @@ const CalculationDetailAasWater: React.FC<Props> = ({
       ex.v6, ex.v6Unit,
       ex.v7, ex.v7Unit,
     );
-    const newLabel = selectedSamplePrep
-      ? `Calculation for ${selectedSamplePrep.label}`
-      : calculation.label;
+    const newLabel = calculation.label;
 
     if (
       ex.v1 !== calculation.v1 || ex.v1Unit !== c.v1Unit ||

@@ -200,9 +200,7 @@ const CalculationDetailLithosun300: React.FC<Props> = ({
       );
     });
 
-    const newLabel = selectedSamplePrep
-      ? `Calculation for ${selectedSamplePrep.label}`
-      : calculation.label;
+    const newLabel = calculation.label;
 
     const resultFieldUpdates: Partial<CalculationLithosun300> = {};
     TABLET_RESULT_FIELDS.forEach((field, idx) => {

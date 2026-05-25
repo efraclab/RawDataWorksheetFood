@@ -204,9 +204,8 @@ const CalculationDetailTalc: React.FC<Props> = ({
       ex.v1, ex.v1Unit, ex.v2, ex.v2Unit, ex.v3, ex.v3Unit,
       ex.v4, ex.v4Unit, ex.v5, ex.v5Unit, ex.v6, ex.v6Unit, ex.v7, ex.v7Unit,
     );
-    const newLabel = selectedSamplePrep
-      ? `Calculation for ${selectedSamplePrep.label}`
-      : calculation.label;
+    
+    const newLabel = calculation.label;
 
     if (
       ex.v1 !== calculation.v1 || ex.v2 !== calculation.v2 || ex.v3 !== calculation.v3 ||

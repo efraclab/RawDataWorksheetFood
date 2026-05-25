@@ -193,7 +193,7 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
       ex.v6, ex.v6Unit,
       ex.v7, ex.v7Unit,
     );
-    const newLabel = selectedSamplePrep ? `Calculation for ${selectedSamplePrep.label}` : calculation.label;
+    const newLabel = calculation.label;
     const c = calculation as any;
     if (
       ex.sw !== calculation.sw || ex.swUnit !== c.swUnit ||

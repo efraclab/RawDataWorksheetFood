@@ -283,9 +283,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
       calculation.labelClaim
     );
 
-    const newLabel = selectedSamplePrep
-      ? `Calculation for ${selectedSamplePrep.label}`
-      : calculation.label;
+    const newLabel = calculation.label;
 
     if (
       extracted.sw !== calculation.sw ||

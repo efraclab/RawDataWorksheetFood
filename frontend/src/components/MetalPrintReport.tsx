@@ -9,765 +9,1423 @@ import type { ParameterDetail } from "../models/ParameterDetail";
 
 // ── Signature footer types ────────────────────────────────────────────────────
 interface FileSignatureData {
-  analyzedByName: string | null;
-  analysisCompletionDate: string | null;
-  approvedByReviewerName: string | null;
-  approvedAtReviewer: string | null;
+    analyzedByName: string | null;
+    analysisCompletionDate: string | null;
+    approvedByReviewerName: string | null;
+    approvedAtReviewer: string | null;
 }
 
 function parseDateSafe(raw: string): Date | null {
-  const s = raw.trim();
-  if (/^\d{4}[-/]/.test(s)) {
-    const d = new Date(s.replace(" ", "T"));
+    const s = raw.trim();
+    if (/^\d{4}[-/]/.test(s)) {
+        const d = new Date(s.replace(" ", "T"));
+        return isNaN(d.getTime()) ? null : d;
+    }
+    const m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})(?:[T ](\d{2}:\d{2}(?::\d{2})?))?/);
+    if (m) {
+        const iso = `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+        const d = new Date(m[4] ? `${iso}T${m[4]}` : `${iso}T00:00:00`);
+        return isNaN(d.getTime()) ? null : d;
+    }
+    const d = new Date(s);
     return isNaN(d.getTime()) ? null : d;
-  }
-  const m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})(?:[T ](\d{2}:\d{2}(?::\d{2})?))?/);
-  if (m) {
-    const iso = `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
-    const d = new Date(m[4] ? `${iso}T${m[4]}` : `${iso}T00:00:00`);
-    return isNaN(d.getTime()) ? null : d;
-  }
-  const d = new Date(s);
-  return isNaN(d.getTime()) ? null : d;
 }
 
 function formatFileDt(raw: string | null | undefined): string {
-  if (!raw) return "N/A";
-  const d = parseDateSafe(String(raw));
-  if (!d) return String(raw).trim() || "N/A";
-  const DD = String(d.getDate()).padStart(2, "0");
-  const MM = String(d.getMonth() + 1).padStart(2, "0");
-  const HH = String(d.getHours()).padStart(2, "0");
-  const mi = String(d.getMinutes()).padStart(2, "0");
-  const SS = String(d.getSeconds()).padStart(2, "0");
-  return `${DD}/${MM}/${d.getFullYear()} ${HH}:${mi}:${SS}`;
+    if (!raw) return "N/A";
+    const d = parseDateSafe(String(raw));
+    if (!d) return String(raw).trim() || "N/A";
+    const DD = String(d.getDate()).padStart(2, "0");
+    const MM = String(d.getMonth() + 1).padStart(2, "0");
+    const HH = String(d.getHours()).padStart(2, "0");
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    const SS = String(d.getSeconds()).padStart(2, "0");
+    return `${DD}/${MM}/${d.getFullYear()} ${HH}:${mi}:${SS}`;
 }
 
 // ── Reusable signature footer ─────────────────────────────────────────────────
 const FileSignatureFooter: React.FC<{ sig: FileSignatureData }> = ({ sig }) => (
-  <table
-    className="file-signature-footer"
-    style={{
-      width: "100%", borderCollapse: "collapse", fontSize: "10px",
-      marginTop: "4px", border: "1px solid black",
-      breakInside: "avoid", pageBreakInside: "avoid",
-    }}
-  >
-    <tbody>
-      <tr>
-        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>Analyzed By</td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
-          {sig.analyzedByName || "---"}
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>Analyzed On</td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
-          {formatFileDt(sig.analysisCompletionDate)}
-        </td>
-      </tr>
-      <tr>
-        <td style={{ padding: "4px 8px", border: "1px solid black" }}>Reviewed By</td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
-          {sig.approvedByReviewerName || "---"}
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black" }}>Reviewed On</td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
-          {formatFileDt(sig.approvedAtReviewer)}
-        </td>
-      </tr>
-    </tbody>
-  </table>
+    <table
+        className="file-signature-footer"
+        style={{
+            width: "100%", borderCollapse: "collapse", fontSize: "10px",
+            marginTop: "4px", border: "1px solid black",
+            breakInside: "avoid", pageBreakInside: "avoid",
+        }}
+    >
+        <tbody>
+            <tr>
+                <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>Analyzed By</td>
+                <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
+                    {sig.analyzedByName || "---"}
+                </td>
+                <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>Analyzed On</td>
+                <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
+                    {formatFileDt(sig.analysisCompletionDate)}
+                </td>
+            </tr>
+            <tr>
+                <td style={{ padding: "4px 8px", border: "1px solid black" }}>Reviewed By</td>
+                <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+                    {sig.approvedByReviewerName || "---"}
+                </td>
+                <td style={{ padding: "4px 8px", border: "1px solid black" }}>Reviewed On</td>
+                <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+                    {formatFileDt(sig.approvedAtReviewer)}
+                </td>
+            </tr>
+        </tbody>
+    </table>
 );
 
 // ── PdfPageRenderer ───────────────────────────────────────────────────────────
 const PdfPageRenderer: React.FC<{
-  base64: string;
-  fileName: string;
-  signature: FileSignatureData;
+    base64: string;
+    fileName: string;
+    signature: FileSignatureData;
 }> = ({ base64, fileName, signature }) => {
-  const [pages, setPages] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+    const [pages, setPages] = useState<string[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    setPages([]);
-    setLoading(true);
-    setError(null);
+    useEffect(() => {
+        let cancelled = false;
+        setPages([]);
+        setLoading(true);
+        setError(null);
 
-    const renderPdf = async () => {
-      try {
-        if (!(window as any).pdfjsLib) {
-          await new Promise<void>((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error("Failed to load PDF.js"));
-            document.head.appendChild(script);
-          });
-          (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-        }
+        const renderPdf = async () => {
+            try {
+                if (!(window as any).pdfjsLib) {
+                    await new Promise<void>((resolve, reject) => {
+                        const script = document.createElement("script");
+                        script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+                        script.onload = () => resolve();
+                        script.onerror = () => reject(new Error("Failed to load PDF.js"));
+                        document.head.appendChild(script);
+                    });
+                    (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
+                        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+                }
 
-        const pdfjsLib = (window as any).pdfjsLib;
-        const binary = atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                const pdfjsLib = (window as any).pdfjsLib;
+                const binary = atob(base64);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
-        const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
-        if (cancelled) return;
+                const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+                if (cancelled) return;
 
-        const dataUrls: string[] = [];
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          if (cancelled) return;
-          const page = await pdf.getPage(pageNum);
-          const viewport = page.getViewport({ scale: 1.2 });
-          const canvas = document.createElement("canvas");
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          const ctx = canvas.getContext("2d")!;
-          await page.render({ canvasContext: ctx, viewport }).promise;
-          if (cancelled) return;
-          dataUrls.push(canvas.toDataURL("image/png"));
-        }
+                const dataUrls: string[] = [];
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    if (cancelled) return;
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 1.2 });
+                    const canvas = document.createElement("canvas");
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    const ctx = canvas.getContext("2d")!;
+                    await page.render({ canvasContext: ctx, viewport }).promise;
+                    if (cancelled) return;
+                    dataUrls.push(canvas.toDataURL("image/png"));
+                }
 
-        if (!cancelled) { setPages(dataUrls); setLoading(false); }
-      } catch (err: any) {
-        if (!cancelled) { setError(err.message || "Failed to render PDF"); setLoading(false); }
-      }
-    };
+                if (!cancelled) { setPages(dataUrls); setLoading(false); }
+            } catch (err: any) {
+                if (!cancelled) { setError(err.message || "Failed to render PDF"); setLoading(false); }
+            }
+        };
 
-    renderPdf();
-    return () => { cancelled = true; };
-  }, [base64]);
+        renderPdf();
+        return () => { cancelled = true; };
+    }, [base64]);
 
-  if (error) {
+    if (error) {
+        return (
+            <div className="p-3 text-xs text-red-600 text-center border border-red-300 bg-red-50">
+                Could not render {fileName}: {error}
+            </div>
+        );
+    }
+    if (loading) {
+        return <div className="p-4 text-xs text-gray-500 text-center">Loading {fileName}…</div>;
+    }
+
     return (
-      <div className="p-3 text-xs text-red-600 text-center border border-red-300 bg-red-50">
-        Could not render {fileName}: {error}
-      </div>
+        <>
+            {pages.map((dataUrl, idx) => (
+                <div
+                    key={idx}
+                    className="pdf-page-with-sig"
+                    style={{ breakInside: "avoid", pageBreakInside: "avoid", marginBottom: "4px" }}
+                >
+                    <img
+                        src={dataUrl}
+                        alt={`${fileName} page ${idx + 1}`}
+                        style={{ width: "100%", display: "block", maxHeight: "87vh", objectFit: "contain" }}
+                    />
+                    <FileSignatureFooter sig={signature} />
+                </div>
+            ))}
+        </>
     );
-  }
-  if (loading) {
-    return <div className="p-4 text-xs text-gray-500 text-center">Loading {fileName}…</div>;
-  }
-
-  return (
-    <>
-      {pages.map((dataUrl, idx) => (
-        <div
-          key={idx}
-          className="pdf-page-with-sig"
-          style={{ breakInside: "avoid", pageBreakInside: "avoid", marginBottom: "4px" }}
-        >
-          <img
-            src={dataUrl}
-            alt={`${fileName} page ${idx + 1}`}
-            style={{ width: "100%", display: "block", maxHeight: "87vh", objectFit: "contain" }}
-          />
-          <FileSignatureFooter sig={signature} />
-        </div>
-      ))}
-    </>
-  );
 };
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface MetalPrintReportProps {
-  worksheetInfo: WorksheetDetail;
-  sampleData: SampleData;
-  analysts: Analyst[];
-  instruments: Instrument[];
-  chemicals: Chemical[];
-  standards: Standard[];
-  onClose: () => void;
+    worksheetInfo: WorksheetDetail;
+    sampleData: SampleData;
+    analysts: Analyst[];
+    instruments: Instrument[];
+    chemicals: Chemical[];
+    standards: Standard[];
+    onClose: () => void;
 }
 
 // ── Calculation type label map ────────────────────────────────────────────────
 const CALC_TYPE_LABELS: Record<string, string> = {
-  icpms_food:     "ICP-MS (Food)",
-  icpoes_food:    "ICP-OES (Food)",
-  icpms_water:    "ICP-MS (Water)",
-  icpoes_water:   "ICP-OES (Water)",
-  aas_water:      "AAS (Water)",
-  icpms_ich_q3d:  "ICP-MS (ICH-Q3D)",
-  ors:            "ORS",
-  anofer:         "Anofer",
-  zpto_shampoo:   "ZPTO Shampoo",
-  sodium_lactate: "Sodium Lactate",
-  lithosun300:    "Lithosun 300",
-  lithosun400:    "Lithosun 400",
-  meropenam:      "Meropenam",
-  sfgc:           "SFGC",
-  talc:           "Talc",
+    icpms_food: "ICP-MS (Food)",
+    icpoes_food: "ICP-OES (Food)",
+    icpms_water: "ICP-MS (Water)",
+    icpoes_water: "ICP-OES (Water)",
+    aas_water: "AAS (Water)",
+    icpms_ich_q3d: "ICP-MS (ICH-Q3D)",
+    ors: "ORS",
+    anofer: "Anofer",
+    zpto_shampoo: "ZPTO Shampoo",
+    sodium_lactate: "Sodium Lactate",
+    lithosun300: "Lithosun 300",
+    lithosun400: "Lithosun 400",
+    meropenam: "Meropenam",
+    sfgc: "SFGC",
+    talc: "Talc",
 };
 
 const PREP_TYPE_LABELS: Record<string, string> = {
-  ...CALC_TYPE_LABELS,
-  blank: "Blank Preparation",
+    ...CALC_TYPE_LABELS,
+    blank: "Blank Preparation",
 };
 
 // ── Helper: trim trailing zeros (up to 4 dp) ─────────────────────────────────
 const trimZeros = (v: string | number | null | undefined): string => {
-  if (v === null || v === undefined || v === "") return "—";
-  const n = typeof v === "number" ? v : parseFloat(String(v));
-  return Number.isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—";
+    if (v === null || v === undefined || v === "") return "—";
+    const n = typeof v === "number" ? v : parseFloat(String(v));
+    return Number.isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—";
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
 const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
-  worksheetInfo,
-  sampleData,
-  instruments,
-  chemicals,
-  standards,
+    worksheetInfo,
+    sampleData,
+    instruments,
+    chemicals,
+    standards,
 }) => {
-  // ── Helpers ────────────────────────────────────────────────────────────────
-  const safeJSONParse = (data: any, fallback: any = []) => {
-    if (!data) return fallback;
-    if (typeof data === "string") {
-      try { return JSON.parse(data); } catch { return fallback; }
-    }
-    return data;
-  };
-
-  const calcTypeLabel = (type: string | null | undefined): string =>
-    type ? (CALC_TYPE_LABELS[type.toLowerCase()] ?? type) : "";
-
-  const prepTypeLabel = (type: string | null | undefined): string =>
-    type ? (PREP_TYPE_LABELS[type.toLowerCase()] ?? type) : "";
-
-  // ── Signature section ──────────────────────────────────────────────────────
-  const renderSignatureSection = (param: ParameterDetail) => (
-    <div className="mb-2">
-      <table
-        className="file-signature-footer"
-        style={{
-          width: "100%", borderCollapse: "collapse", fontSize: "10px",
-          marginTop: "4px", border: "1px solid black",
-          breakInside: "avoid", pageBreakInside: "avoid",
-        }}
-      >
-        <tbody>
-          <tr>
-            <td style={{ padding: "4px 8px", border: "1px solid black" }}>Analyzed By</td>
-            <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
-              {(param as any).analyzedByName || "---"}
-            </td>
-            <td style={{ padding: "4px 8px", border: "1px solid black" }}>Analyzed On</td>
-            <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
-              {formatFileDt((param as any).analysisCompletionDate)}
-            </td>
-          </tr>
-          <tr>
-            <td style={{ padding: "4px 8px", border: "1px solid black" }}>Reviewed By</td>
-            <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
-              {(param as any).approvedByReviewerName || "---"}
-            </td>
-            <td style={{ padding: "4px 8px", border: "1px solid black" }}>Reviewed On</td>
-            <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
-              {formatFileDt((param as any).approvedAtReviewer)}
-            </td>
-          </tr>
-          <tr>
-            <td style={{ padding: "4px 8px", border: "1px solid black" }}>Approved By</td>
-            <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
-              {(param as any).approvedByQAName || "---"}
-            </td>
-            <td style={{ padding: "4px 8px", border: "1px solid black" }}>Approved On</td>
-            <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
-              {formatFileDt((param as any).approvedAtQA)}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  );
-
-  // ── Header & sample info ───────────────────────────────────────────────────
-  const renderHeaderAndSampleSection = (
-    param: any,
-    paramIdx: number,
-  ) => (
-    <div className="keep-together">
-      <div className="mb-2">
-        <table className="w-full table-fixed border border-black">
-          <tbody>
-            <tr className="bg-gray-200">
-              <td className="border border-black px-3 py-2 text-sm font-bold text-center" colSpan={4}>
-                EDWARD FOOD RESEARCH &amp; ANALYSIS CENTRE LTD
-              </td>
-            </tr>
-            <tr>
-              <td className="border border-black px-3 py-2 font-bold text-sm text-center" colSpan={4}>
-                Raw Data Worksheet
-              </td>
-            </tr>
-            <tr>
-              <td className="border border-black px-3 py-2 text-center font-bold text-md" colSpan={4}>
-                Annexure-{paramIdx + 1}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div className="mb-2">
-        <table className="w-full table-fixed border border-black text-sm">
-          <colgroup>
-            <col style={{ width: "30%" }} />
-            <col style={{ width: "30%" }} />
-            <col style={{ width: "20%" }} />
-            <col style={{ width: "20%" }} />
-          </colgroup>
-          <tbody>
-            <tr>
-              <td className="border border-black px-3 py-2" colSpan={2}>
-                Registration No: {worksheetInfo.sample.registrationNo}
-              </td>
-              <td className="border border-black px-3 py-2" colSpan={2}>
-                Date of Receipt: {sampleData.recieptDate || ""}
-              </td>
-            </tr>
-            <tr>
-              <td className="border border-black px-3 py-2" colSpan={2}>
-                Sample Name: {worksheetInfo.sample.sampleName}
-              </td>
-              <td className="border border-black px-3 py-2" colSpan={2}>
-                Due Date: {sampleData.tatDate || ""}
-              </td>
-            </tr>
-            <tr>
-              <td className="border border-black px-3 py-2" colSpan={2}>
-                Analysis Started On: {sampleData.analysisStartDate || ""}
-              </td>
-              <td className="border border-black px-3 py-2" colSpan={2}>
-                Analyzed On: {sampleData.analysisCompletionDate || ""}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div className="mb-2">
-        <table className="w-full border border-black text-sm">
-          <tbody>
-            <tr className="border-b border-black">
-              <td className="w-10 px-4 py-3 border-r border-black text-center">1</td>
-              <td className="w-1/3 px-4 py-3 border-r border-black">
-                Sample Particulars (All relevant information received with sample to be entered)
-              </td>
-              <td className="px-3 py-3">{worksheetInfo.sample.sampleName || "---"}</td>
-            </tr>
-            <tr className="border-b border-black">
-              <td className="w-10 px-4 py-3 border-r border-black text-center">2</td>
-              <td className="w-1/3 px-4 py-3 border-r border-black">
-                Test(s) required (all tests and condition to be entered)
-              </td>
-              <td className="px-3 py-3">{param.parameterName}</td>
-            </tr>
-            <tr className="border-b border-black">
-              <td className="w-10 px-4 py-3 border-r border-black text-center">3</td>
-              <td className="w-1/3 px-4 py-3 border-r border-black">
-                Method(s) of Analysis / testing
-              </td>
-              <td className="px-3 py-3">{param.methodName}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  // ── Metal prep steps table ─────────────────────────────────────────────────
-  // Steps for metal: Weighing, 1st–4th Dilution, Filtration
-  const renderMetalPrepStepsTable = (steps: any[]) => {
-    if (!steps || steps.length === 0) return null;
-
-    const validSteps = steps.filter(
-      (s: any) => s.value1 || s.value2 || s.unit1 || s.unit2,
-    );
-    if (validSteps.length === 0) return null;
-
-    const fmtVal = (val: any, unit?: any) => {
-      const v = val ?? "";
-      const u = unit ?? "";
-      return v ? `<strong>${v}${u ? " " + u : ""}</strong>` : "___";
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    const safeJSONParse = (data: any, fallback: any = []) => {
+        if (!data) return fallback;
+        if (typeof data === "string") {
+            try { return JSON.parse(data); } catch { return fallback; }
+        }
+        return data;
     };
 
-    const rows = validSteps.map((step: any) => {
-      let text = "";
-      switch (step.name) {
-        case "Weighing":
-          text = `Weigh accurately ${fmtVal(step.value1, step.unit1)} of sample${step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""}.`;
-          break;
-        case "1st Dilution":
-          text = `Make up to ${fmtVal(step.value1, step.unit1 || "mL")} (V1) with diluent.`;
-          break;
-        case "2nd Dilution":
-          text = `Take ${fmtVal(step.value1, step.unit1 || "mL")} (V2) and make up to ${fmtVal(step.value2, step.unit2 || "mL")} (V3) with diluent.`;
-          break;
-        case "3rd Dilution":
-          text = `Take ${fmtVal(step.value1, step.unit1 || "mL")} (V4) and make up to ${fmtVal(step.value2, step.unit2 || "mL")} (V5) with diluent.`;
-          break;
-        case "4th Dilution":
-          text = `Take ${fmtVal(step.value1, step.unit1 || "mL")} (V6) and make up to ${fmtVal(step.value2, step.unit2 || "mL")} (V7) with diluent.`;
-          break;
-        case "Filtration":
-          text = step.value1
-            ? `Filter through ${fmtVal(step.value1, step.unit1 || "µm")} filter.`
-            : "Filter the solution.";
-          break;
-        default:
-          text = `${step.name}: ${fmtVal(step.value1, step.unit1)}${step.value2 ? ` / ${fmtVal(step.value2, step.unit2)}` : ""}`;
-      }
-      return { stepName: step.name, text };
-    });
+    const calcTypeLabel = (type: string | null | undefined): string =>
+        type ? (CALC_TYPE_LABELS[type.toLowerCase()] ?? type) : "";
 
-    return (
-      <table className="w-full border border-black text-sm">
-        <tbody>
-          {rows.map((row, idx) => (
-            <tr key={idx} className="border-b border-black last:border-b-0">
-              <td className="w-1/3 px-3 py-2 font-bold bg-gray-100 border-r border-black">
-                {row.stepName}
-              </td>
-              <td className="px-3 py-2">
-                <span dangerouslySetInnerHTML={{ __html: row.text }} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    const prepTypeLabel = (type: string | null | undefined): string =>
+        type ? (PREP_TYPE_LABELS[type.toLowerCase()] ?? type) : "";
+
+    // ── Signature section ──────────────────────────────────────────────────────
+    const renderSignatureSection = (param: ParameterDetail) => (
+        <div className="mb-2">
+            <table
+                className="file-signature-footer"
+                style={{
+                    width: "100%", borderCollapse: "collapse", fontSize: "10px",
+                    marginTop: "4px", border: "1px solid black",
+                    breakInside: "avoid", pageBreakInside: "avoid",
+                }}
+            >
+                <tbody>
+                    <tr>
+                        <td style={{ padding: "4px 8px", border: "1px solid black" }}>Analyzed By</td>
+                        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+                            {(param as any).analyzedByName || "---"}
+                        </td>
+                        <td style={{ padding: "4px 8px", border: "1px solid black" }}>Analyzed On</td>
+                        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+                            {formatFileDt((param as any).analysisCompletionDate)}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style={{ padding: "4px 8px", border: "1px solid black" }}>Reviewed By</td>
+                        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+                            {(param as any).approvedByReviewerName || "---"}
+                        </td>
+                        <td style={{ padding: "4px 8px", border: "1px solid black" }}>Reviewed On</td>
+                        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+                            {formatFileDt((param as any).approvedAtReviewer)}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style={{ padding: "4px 8px", border: "1px solid black" }}>Approved By</td>
+                        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+                            {(param as any).approvedByQAName || "---"}
+                        </td>
+                        <td style={{ padding: "4px 8px", border: "1px solid black" }}>Approved On</td>
+                        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+                            {formatFileDt((param as any).approvedAtQA)}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     );
-  };
 
-  // ── Calculation derivation for metal ──────────────────────────────────────
-  // All metal calcs share the same formula structure:
-  //   (Sample Conc − Blank Conc) × V1 × DF1 × DF2 × DF3 × factor
-  //   ─────────────────────────────────────────────────────────────
-  //   SW × denominator constant
-  // We read the stored calc data and render a fraction-bar derivation.
-  const renderMetalCalcDerivation = (calcData: any, calcType: string) => {
-    const fmt = (v: any, u?: any) => {
-      const val = trimZeros(v);
-      if (val === "—") return "—";
-      return u ? `${val} ${u}` : val;
+    // ── Header & sample info ───────────────────────────────────────────────────
+    const renderHeaderAndSampleSection = (
+        param: any,
+        paramIdx: number,
+    ) => (
+        <div className="keep-together">
+            <div className="mb-2">
+                <table className="w-full table-fixed border border-black">
+                    <tbody>
+                        <tr className="bg-gray-200">
+                            <td className="border border-black px-3 py-2 text-sm font-bold text-center" colSpan={4}>
+                                EDWARD FOOD RESEARCH &amp; ANALYSIS CENTRE LTD
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="border border-black px-3 py-2 font-bold text-sm text-center" colSpan={4}>
+                                Raw Data Worksheet
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="border border-black px-3 py-2 text-center font-bold text-md" colSpan={4}>
+                                Annexure-{paramIdx + 1}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div className="mb-2">
+                <table className="w-full table-fixed border border-black text-sm">
+                    <colgroup>
+                        <col style={{ width: "30%" }} />
+                        <col style={{ width: "30%" }} />
+                        <col style={{ width: "20%" }} />
+                        <col style={{ width: "20%" }} />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td className="border border-black px-3 py-2" colSpan={2}>
+                                Registration No: {worksheetInfo.sample.registrationNo}
+                            </td>
+                            <td className="border border-black px-3 py-2" colSpan={2}>
+                                Date of Receipt: {sampleData.recieptDate || ""}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="border border-black px-3 py-2" colSpan={2}>
+                                Sample Name: {worksheetInfo.sample.sampleName}
+                            </td>
+                            <td className="border border-black px-3 py-2" colSpan={2}>
+                                Due Date: {sampleData.tatDate || ""}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="border border-black px-3 py-2" colSpan={2}>
+                                Analysis Started On: {sampleData.analysisStartDate || ""}
+                            </td>
+                            <td className="border border-black px-3 py-2" colSpan={2}>
+                                Analyzed On: {sampleData.analysisCompletionDate || ""}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div className="mb-2">
+                <table className="w-full border border-black text-sm">
+                    <tbody>
+                        <tr className="border-b border-black">
+                            <td className="w-10 px-4 py-3 border-r border-black text-center">1</td>
+                            <td className="w-1/3 px-4 py-3 border-r border-black">
+                                Sample Particulars (All relevant information received with sample to be entered)
+                            </td>
+                            <td className="px-3 py-3">{worksheetInfo.sample.sampleName || "---"}</td>
+                        </tr>
+                        <tr className="border-b border-black">
+                            <td className="w-10 px-4 py-3 border-r border-black text-center">2</td>
+                            <td className="w-1/3 px-4 py-3 border-r border-black">
+                                Test(s) required (all tests and condition to be entered)
+                            </td>
+                            <td className="px-3 py-3">{param.parameterName}</td>
+                        </tr>
+                        <tr className="border-b border-black">
+                            <td className="w-10 px-4 py-3 border-r border-black text-center">3</td>
+                            <td className="w-1/3 px-4 py-3 border-r border-black">
+                                Method(s) of Analysis / testing
+                            </td>
+                            <td className="px-3 py-3">{param.methodName}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+
+    // ── Metal prep steps table ─────────────────────────────────────────────────
+    // Steps for metal: Weighing, 1st–4th Dilution, Filtration
+    const renderMetalPrepStepsTable = (steps: any[]) => {
+        if (!steps || steps.length === 0) return null;
+
+        const validSteps = steps.filter(
+            (s: any) => s.value1 || s.value2 || s.unit1 || s.unit2,
+        );
+        if (validSteps.length === 0) return null;
+
+        const fmtVal = (val: any, unit?: any) => {
+            const v = val ?? "";
+            const u = unit ?? "";
+            return v ? `<strong>${v}${u ? " " + u : ""}</strong>` : "___";
+        };
+
+        const rows = validSteps.map((step: any) => {
+            let text = "";
+            switch (step.name) {
+                case "Weighing":
+                    text = `Weigh accurately ${fmtVal(step.value1, step.unit1)} of sample${step.logBookID ? ` (Log Book ID: ${step.logBookID})` : ""}.`;
+                    break;
+                case "1st Dilution":
+                    text = `Make up to ${fmtVal(step.value1, step.unit1 || "mL")} (V1) with diluent.`;
+                    break;
+                case "2nd Dilution":
+                    text = `Take ${fmtVal(step.value1, step.unit1 || "mL")} (V2) and make up to ${fmtVal(step.value2, step.unit2 || "mL")} (V3) with diluent.`;
+                    break;
+                case "3rd Dilution":
+                    text = `Take ${fmtVal(step.value1, step.unit1 || "mL")} (V4) and make up to ${fmtVal(step.value2, step.unit2 || "mL")} (V5) with diluent.`;
+                    break;
+                case "4th Dilution":
+                    text = `Take ${fmtVal(step.value1, step.unit1 || "mL")} (V6) and make up to ${fmtVal(step.value2, step.unit2 || "mL")} (V7) with diluent.`;
+                    break;
+                case "Filtration":
+                    text = step.value1
+                        ? `Filter through ${fmtVal(step.value1, step.unit1 || "µm")} filter.`
+                        : "Filter the solution.";
+                    break;
+                default:
+                    text = `${step.name}: ${fmtVal(step.value1, step.unit1)}${step.value2 ? ` / ${fmtVal(step.value2, step.unit2)}` : ""}`;
+            }
+            return { stepName: step.name, text };
+        });
+
+        return (
+            <table className="w-full border border-black text-sm">
+                <tbody>
+                    {rows.map((row, idx) => (
+                        <tr key={idx} className="border-b border-black last:border-b-0">
+                            <td className="w-1/3 px-3 py-2 font-bold bg-gray-100 border-r border-black">
+                                {row.stepName}
+                            </td>
+                            <td className="px-3 py-2">
+                                <span dangerouslySetInnerHTML={{ __html: row.text }} />
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        );
     };
 
-    const sampleConc = calcData.instrumentConcentrationSample;
-    const sampleUnit = calcData.instrumentConcentrationSampleUnit || "";
-    const blankConc  = calcData.instrumentConcentrationBlank;
-    const blankUnit  = calcData.instrumentConcentrationBlankUnit || "";
+    // ── Calculation derivation for metal ──────────────────────────────────────
+    // Renders the symbolic formula + numeric derivation for every calc type.
+    // All values are converted to the canonical unit BEFORE display so the
+    // derivation matches exactly what the source components compute.
+    const renderMetalCalcDerivation = (calcData: any, calcType: string) => {
 
-    // Volumes from prep
-    const v1 = calcData.v1; const v1u = calcData.v1Unit || "mL";
-    const v2 = calcData.v2; const v2u = calcData.v2Unit || "mL";
-    const v3 = calcData.v3; const v3u = calcData.v3Unit || "mL";
-    const v4 = calcData.v4; const v4u = calcData.v4Unit || "mL";
-    const v5 = calcData.v5; const v5u = calcData.v5Unit || "mL";
-    const v6 = calcData.v6; const v6u = calcData.v6Unit || "mL";
-    const v7 = calcData.v7; const v7u = calcData.v7Unit || "mL";
+        // ── Unit converters (mirrors source components) ─────────────────────────
+        const toMl = (v: any, u?: string): number => {
+            const n = parseFloat(v ?? "");
+            if (!isFinite(n)) return NaN;
+            const unit = (u || "mL").trim().toLowerCase();
+            if (unit === "l") return n * 1000;
+            if (unit === "μl" || unit === "ul") return n / 1000;
+            return n; // mL
+        };
+        const toPpb = (v: any, u?: string): number => {
+            const n = parseFloat(v ?? "");
+            if (!isFinite(n)) return NaN;
+            const unit = (u || "ppb").trim().toLowerCase();
+            if (unit === "ppm" || unit === "mg/l") return n * 1000;
+            return n; // ppb / μg/L
+        };
+        const toPpm = (v: any, u?: string): number => {
+            const n = parseFloat(v ?? "");
+            if (!isFinite(n)) return NaN;
+            const unit = (u || "ppm").trim().toLowerCase();
+            if (unit === "ppb" || unit === "μg/l") return n / 1000;
+            return n; // ppm / mg/L
+        };
+        const toG = (v: any, u?: string): number => {
+            const n = parseFloat(v ?? "");
+            if (!isFinite(n)) return NaN;
+            const unit = (u || "g").trim().toLowerCase();
+            if (unit === "mg") return n / 1000;
+            if (unit === "kg") return n * 1000;
+            if (unit === "μg" || unit === "mcg") return n / 1_000_000;
+            return n; // g
+        };
+        const toMg = (v: any, u?: string): number => {
+            const n = parseFloat(v ?? "");
+            if (!isFinite(n)) return NaN;
+            const unit = (u || "mg").trim().toLowerCase();
+            if (unit === "g") return n * 1000;
+            if (unit === "kg") return n * 1_000_000;
+            if (unit === "μg" || unit === "mcg") return n / 1000;
+            return n; // mg
+        };
+        const toGmol = (v: any, u?: string): number => {
+            const n = parseFloat(v ?? "");
+            if (!isFinite(n)) return NaN;
+            const unit = (u || "g/mol").trim().toLowerCase();
+            if (unit === "kg/mol") return n * 1000;
+            return n; // g/mol
+        };
 
-    const hasV = (v: any) => v !== null && v !== undefined && v !== "";
-    const v1Active = hasV(v1);
-    const df1Active = hasV(v2) && hasV(v3);
-    const df2Active = hasV(v4) && hasV(v5);
-    const df3Active = hasV(v6) && hasV(v7);
+        const fmtN = (n: number): string =>
+            isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—";
+        const hasV = (v: any) => v !== null && v !== undefined && v !== "";
+        // swPresent: true only when sw has a non-null, non-empty, non-zero value
+        const swIsPresent = (v: any) => hasV(v) && parseFloat(v) !== 0;
 
-    const df1 = df1Active
-      ? trimZeros(parseFloat(v3) / parseFloat(v2))
-      : null;
-    const df2 = df2Active
-      ? trimZeros(parseFloat(v5) / parseFloat(v4))
-      : null;
-    const df3 = df3Active
-      ? trimZeros(parseFloat(v7) / parseFloat(v6))
-      : null;
+        // ── Raw stored values ────────────────────────────────────────────────────
+        const sRaw = calcData.instrumentConcentrationSample;
+        const sU = calcData.instrumentConcentrationSampleUnit || "";
+        const bRaw = calcData.instrumentConcentrationBlank;
+        const bU = calcData.instrumentConcentrationBlankUnit || "";
 
-    // Extra fields (ORS, Meropenam, etc.)
-    const sw  = calcData.sw;
-    const swU = calcData.swUnit || "mg";
+        const v1r = calcData.v1; const v1u = calcData.v1Unit || "mL";
+        const v2r = calcData.v2; const v2u = calcData.v2Unit || "mL";
+        const v3r = calcData.v3; const v3u = calcData.v3Unit || "mL";
+        const v4r = calcData.v4; const v4u = calcData.v4Unit || "mL";
+        const v5r = calcData.v5; const v5u = calcData.v5Unit || "mL";
+        const v6r = calcData.v6; const v6u = calcData.v6Unit || "mL";
+        const v7r = calcData.v7; const v7u = calcData.v7Unit || "mL";
 
-    // Build symbolic numerator parts
-    const numSymParts: string[] = ["(Sample Conc. − Blank Conc.)"];
-    if (v1Active) numSymParts.push("× V1");
-    if (df1Active) numSymParts.push("× DF1 (V3/V2)");
-    if (df2Active) numSymParts.push("× DF2 (V5/V4)");
-    if (df3Active) numSymParts.push("× DF3 (V7/V6)");
+        const swRaw = calcData.sw; const swU = calcData.swUnit || "mg";
 
-    // Build value numerator parts
-    const sConc = fmt(sampleConc, sampleUnit);
-    const bConc = hasV(blankConc) && parseFloat(blankConc) !== 0
-      ? fmt(blankConc, blankUnit)
-      : "0";
-    const numValParts: string[] = [`(${sConc} − ${bConc})`];
-    if (v1Active) numValParts.push(`× ${fmt(v1, v1u)}`);
-    if (df1Active && df1) numValParts.push(`× ${df1}`);
-    if (df2Active && df2) numValParts.push(`× ${df2}`);
-    if (df3Active && df3) numValParts.push(`× ${df3}`);
+        const t = calcType.toLowerCase();
 
-    // Denominator depends on calc type
-    let denomSym = "SW (mg)";
-    let denomVal = fmt(sw, swU);
-    let denomConst = "";
+        // ── Determine if this type uses ppb or ppm for concentration ─────────────
+        // icpms_food, icpoes_food, icpms_water, icpoes_water, aas_water,
+        // icpms_ich_q3d  → ppb
+        // everything else → ppm
+        const usesPpb = ["icpms_food", "icpoes_food", "icpms_water", "icpoes_water",
+            "aas_water", "icpms_ich_q3d"].includes(t);
 
-    const t = calcType.toLowerCase();
+        const sCanon = usesPpb ? toPpb(sRaw, sU) : toPpm(sRaw, sU);
+        const bCanon = usesPpb ? toPpb(bRaw, bU) : toPpm(bRaw, bU);
+        const concUnit = usesPpb ? "ppb" : "ppm";
 
-    if (t.includes("food") || t.includes("ich_q3d")) {
-      // mg/Kg: × 1000 × 1000 / (SW_mg × 10000)
-      numSymParts.push("× 1000 × 1000");
-      numValParts.push("× 1,000,000");
-      denomSym = "SW (mg) × 10000";
-      denomConst = "× 10000";
-    } else if (t.includes("water") || t === "aas_water") {
-      // mg/L: × 1000 / (V1_mL)
-      numSymParts.push("× 1000");
-      numValParts.push("× 1000");
-      denomSym = "V1 (mL)";
-      denomVal = v1Active ? fmt(v1, v1u) : "V1";
-      denomConst = "";
-    } else if (t === "meropenam") {
-      // % LC: × 1000 × 1000 / (SW_mg × LC_mg × 10000)
-      const lc  = calcData.labelClaim;
-      const lcU = calcData.labelClaimUnit || "mg";
-      numSymParts.push("× 1000 × 1000");
-      numValParts.push("× 1,000,000");
-      denomSym = "SW (mg) × Label Claim (mg) × 10000";
-      denomVal = `${fmt(sw, swU)} × ${fmt(lc, lcU)} × 10000`;
-      denomConst = "";
-    } else if (t === "sfgc" || t === "talc") {
-      // %: × 1000 / (SW_g × 10000)  [SW already in g for SFGC]
-      numSymParts.push("× 1000");
-      numValParts.push("× 1000");
-      denomSym = "SW (g) × 10000";
-      denomConst = "× 10000";
-    } else if (t === "ors") {
-      const mw  = calcData.molecularWeight;
-      const mwU = calcData.molecularWeightUnit || "g/mol";
-      const sw2 = calcData.sachetWeightAvg;
-      const sw2U = calcData.sachetWeightAvgUnit || "g";
-      numSymParts.push("× MW × 1000");
-      numValParts.push(`× ${fmt(mw, mwU)} × 1000`);
-      denomSym = "SW (mg) × Label Claim × 10000";
-      const lc  = calcData.labelClaim;
-      denomVal = `${fmt(sw, swU)} × ${fmt(sw2, sw2U)} × ${fmt(lc)} × 10000`;
-      denomConst = "";
-    } else {
-      // Generic: pass-through
-      numSymParts.push("× factor");
-      numValParts.push("× factor");
-    }
+        // ── Volume conversions (all → mL) ────────────────────────────────────────
+        const v1Ml = toMl(v1r, v1u);
+        const v2Ml = toMl(v2r, v2u);
+        const v3Ml = toMl(v3r, v3u);
+        const v4Ml = toMl(v4r, v4u);
+        const v5Ml = toMl(v5r, v5u);
+        const v6Ml = toMl(v6r, v6u);
+        const v7Ml = toMl(v7r, v7u);
 
-    const numSym = numSymParts.join(" ");
-    const denSym = denomSym + (denomConst ? " " + denomConst : "");
-    const numVal = numValParts.join(" ");
-    const denVal = denomVal + (denomConst ? ` ${denomConst}` : "");
+        const v1Active = hasV(v1r);
+        const df1Active = hasV(v2r) && hasV(v3r);
+        const df2Active = hasV(v4r) && hasV(v5r);
+        const df3Active = hasV(v6r) && hasV(v7r);
 
-    const result = calcData.calculationResult;
-    const resultUnit = calcData.calculationResultUnit || "";
-    const limitMin = calcData.acceptanceLimitMin;
-    const limitMax = calcData.acceptanceLimitMax;
+        const df1 = (df1Active && isFinite(v2Ml) && isFinite(v3Ml) && v2Ml !== 0) ? v3Ml / v2Ml : NaN;
+        const df2 = (df2Active && isFinite(v4Ml) && isFinite(v5Ml) && v4Ml !== 0) ? v5Ml / v4Ml : NaN;
+        const df3 = (df3Active && isFinite(v6Ml) && isFinite(v7Ml) && v6Ml !== 0) ? v7Ml / v6Ml : NaN;
 
-    const passFail = (() => {
-      if (!result) return null;
-      const v = parseFloat(result);
-      if (!Number.isFinite(v)) return null;
-      const min = limitMin ? parseFloat(limitMin) : null;
-      const max = limitMax ? parseFloat(limitMax) : null;
-      if (min === null && max === null) return null;
-      return (min === null || v >= min) && (max === null || v <= max) ? "pass" : "fail";
-    })();
+        const result = calcData.calculationResult;
+        const resultUnit = calcData.calculationResultUnit || "";
+        const limitMin = calcData.acceptanceLimitMin;
+        const limitMax = calcData.acceptanceLimitMax;
 
-    return (
-      <div className="bg-gray-100 border border-black p-3 mb-3 calc-block" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-        {/* DF legend */}
-        {(df1Active || df2Active || df3Active) && (
-          <p className="text-xs text-gray-500 mb-2">
-            {df1Active && "DF1 = V3/V2"}
-            {df1Active && (df2Active || df3Active) && "  |  "}
-            {df2Active && "DF2 = V5/V4"}
-            {df2Active && df3Active && "  |  "}
-            {df3Active && "DF3 = V7/V6"}
-          </p>
-        )}
+        // ── Build formula parts per calc type ────────────────────────────────────
+        // numSym / denSym  = symbolic formula
+        // numVal / denVal  = numeric derivation (canonical units)
+        let numSym: string[] = [];
+        let denSym = "";
+        let numVal: string[] = [];
+        let denVal = "";
 
-        {/* Symbolic formula */}
-        <p className="font-bold text-sm mb-2">Formula:</p>
-        <div className="formula-display my-2" style={{ breakInside: "avoid" }}>
-          <div className="flex items-center justify-center gap-3">
-            <div className="formula-fraction text-center">
-              <div className="numerator px-4 py-1 border-b-2 border-black text-xs font-mono">
-                {numSym}
-              </div>
-              <div className="denominator px-4 py-1 text-xs font-mono">{denSym}</div>
+        // Concentration net term (shared by all types)
+        const sFmt = isFinite(sCanon) ? `${fmtN(sCanon)} ${concUnit}` : `${sRaw || "—"} ${sU}`;
+        const bFmt = (() => {
+            if (!hasV(bRaw) || parseFloat(bRaw) === 0) return `0 ${concUnit}`;
+            const bc = isFinite(bCanon) ? `${fmtN(bCanon)} ${concUnit}` : `${bRaw} ${bU}`;
+            return bc;
+        })();
+        numSym.push(`(Sample Conc. − Blank Conc.)`);
+        numVal.push(`(${sFmt} − ${bFmt})`);
+
+        // V1 (all types except Lithosun 300/400 which use V1 directly anyway)
+        if (v1Active && !["lithosun300", "lithosun400"].includes(t)) {
+            numSym.push(`× V1`);
+            numVal.push(`× ${isFinite(v1Ml) ? fmtN(v1Ml) + " mL" : fmtN(parseFloat(v1r)) + " " + v1u}`);
+        }
+
+        // DF1 / DF2 / DF3 (most types)
+        if (!["lithosun300", "lithosun400", "zpto_shampoo"].includes(t)) {
+            if (df1Active) { numSym.push("× DF1"); numVal.push(`× ${isFinite(df1) ? fmtN(df1) : "—"}`); }
+            if (df2Active) { numSym.push("× DF2"); numVal.push(`× ${isFinite(df2) ? fmtN(df2) : "—"}`); }
+            if (df3Active) { numSym.push("× DF3"); numVal.push(`× ${isFinite(df3) ? fmtN(df3) : "—"}`); }
+        }
+
+        // ── Type-specific numerator additions & denominator ──────────────────────
+
+        if (["icpms_food", "icpoes_food", "icpms_ich_q3d"].includes(t)) {
+            // Result (mg/Kg) = (Sample_ppb − Blank_ppb) × V1_mL × DF1×DF2×DF3
+            //                  ─────────────────────────────────────────────────
+            //                                   SW_mg
+            const swMg = toMg(swRaw, swU);
+            numSym.push("");  // no extra numerator factor
+            denSym = "SW (mg)";
+            denVal = swIsPresent(swRaw)
+                ? `${isFinite(swMg) ? fmtN(swMg) : fmtN(parseFloat(swRaw))} mg`
+                : "—";
+
+        } else if (["icpms_water", "icpoes_water", "aas_water"].includes(t)) {
+            // Result (mg/L) = (Sample_ppb − Blank_ppb) × V1_mL × DF1×DF2×DF3
+            //                 ─────────────────────────────────────────────────
+            //                                    1000
+            denSym = "1000";
+            denVal = "1000";
+
+        } else if (t === "anofer") {
+            // % of LC = (Sample_ppm − Blank_ppm) × V1_mL × DF1×DF2 × AvgWeight_mg × 100
+            //           ──────────────────────────────────────────────────────────────────
+            //                             SW_mg × LabelClaim_mg
+            const avgW = calcData.avgWeight; const avgU2 = calcData.avgWeightUnit || "mg";
+            const lc = calcData.labelClaim; const lcU2 = calcData.labelClaimUnit || "mg";
+            const swMg = toMg(swRaw, swU);
+            const avgMg = toMg(avgW, avgU2);
+            const lcMg = toMg(lc, lcU2);
+            numSym.push("× Avg. Weight (mg) × 100");
+            numVal.push(`× ${isFinite(avgMg) ? fmtN(avgMg) : fmtN(parseFloat(avgW))} mg × 100`);
+            denSym = "SW (mg) × Label Claim (mg)";
+            const swPartAnofer = swIsPresent(swRaw) ? `${isFinite(swMg) ? fmtN(swMg) : fmtN(parseFloat(swRaw))} mg` : null;
+            const lcPartAnofer = `${isFinite(lcMg) ? fmtN(lcMg) : fmtN(parseFloat(lc))} mg`;
+            denVal = swPartAnofer ? `${swPartAnofer} × ${lcPartAnofer}` : lcPartAnofer;
+
+        } else if (t === "ors") {
+            // % of LC = (Sample_ppm − Blank_ppm) × V1_mL × DF1×DF2×DF3 × SachetWeight_g × 100 × 1000
+            //           ─────────────────────────────────────────────────────────────────────────────────
+            //                     SW_g × 1,000,000 × MolecularWeight (g/mol) × LabelClaim_g
+            const sachet = calcData.sachetWeightAvg; const sachetU = calcData.sachetWeightAvgUnit || "g";
+            const mw = calcData.molecularWeight; const mwU2 = calcData.molecularWeightUnit || "g/mol";
+            const lc = calcData.labelClaim; const lcU2 = calcData.labelClaimUnit || "g";
+            const swG = toG(swRaw, swU);
+            const sachetG = toG(sachet, sachetU);
+            const mwGmol = toGmol(mw, mwU2);
+            const lcG = toG(lc, lcU2);
+            numSym.push("× Sachet Weight (g) × 100 × 1000");
+            numVal.push(`× ${isFinite(sachetG) ? fmtN(sachetG) : fmtN(parseFloat(sachet))} g × 100 × 1000`);
+            denSym = "SW (g) × 1,000,000 × MW (g/mol) × Label Claim (g)";
+            const swPartOrs = swIsPresent(swRaw) ? `${isFinite(swG) ? fmtN(swG) : fmtN(parseFloat(swRaw))} g` : null;
+            const orsRest = `1,000,000 × ${isFinite(mwGmol) ? fmtN(mwGmol) : fmtN(parseFloat(mw))} g/mol × ${isFinite(lcG) ? fmtN(lcG) : fmtN(parseFloat(lc))} g`;
+            denVal = swPartOrs ? `${swPartOrs} × ${orsRest}` : orsRest;
+
+        } else if (t === "zpto_shampoo") {
+            // % of LC = (Sample_ppm − Blank_ppm) × V1_mL × DF1 × Sp. Gravity × MW₁ × 100
+            //           ────────────────────────────────────────────────────────────────────
+            //                         SW_g × 10000 × MW₂ × Label Claim
+            const sg = calcData.specificGravity;
+            const mw1 = calcData.molecularWeight1;
+            const mw2 = calcData.molecularWeight2;
+            const lc = calcData.labelClaim;
+            const swG = toG(swRaw, swU);
+            // ZPTO has only one DF = V3/V2
+            const dfZp = (isFinite(v2Ml) && isFinite(v3Ml) && v2Ml !== 0) ? v3Ml / v2Ml : NaN;
+            numSym.push("× DF1 × Specific Gravity × MW₁ × 100");
+            numVal.push(`× ${isFinite(dfZp) ? fmtN(dfZp) : "—"} × ${fmtN(parseFloat(sg))} × ${fmtN(parseFloat(mw1))} × 100`);
+            denSym = "SW (g) × 10000 × MW₂ × Label Claim";
+            const swPartZp = swIsPresent(swRaw) ? `${isFinite(swG) ? fmtN(swG) : fmtN(parseFloat(swRaw))} g` : null;
+            const zpRest = `10000 × ${fmtN(parseFloat(mw2))} × ${fmtN(parseFloat(lc))}`;
+            denVal = swPartZp ? `${swPartZp} × ${zpRest}` : zpRest;
+
+        } else if (t === "sodium_lactate") {
+            // Content (%) = (Sample_ppm − Blank_ppm) × V1_mL × DF1×DF2×DF3
+            //               ─────────────────────────────────────────────────
+            //                                  10000
+            denSym = "10000";
+            denVal = "10000";
+
+        } else if (t === "talc") {
+            // Content (%) = (Sample_ppm − Blank_ppm) × V1_mL × DF1×DF2×DF3
+            //               ─────────────────────────────────────────────────
+            //                               SW_g × 10000
+            const swG = toMg(swRaw, swU);
+            denSym = "SW (mg) × 10000";
+            denVal = swIsPresent(swRaw)
+                ? `${isFinite(swG) ? fmtN(swG) : fmtN(parseFloat(swRaw))} mg × 10000`
+                : "10000";
+
+        } else if (t === "sfgc") {
+            // Content (%) = (Sample_ppm − Blank_ppm) × V1_mL × DF1×DF2×DF3 × 1000
+            //               ──────────────────────────────────────────────────────────
+            //                                   SW_mg × 10000
+            const swMg = toMg(swRaw, swU);
+            numSym.push("× 1000");
+            numVal.push("× 1000");
+            denSym = "SW (mg) × 10000";
+            denVal = swIsPresent(swRaw)
+                ? `${isFinite(swMg) ? fmtN(swMg) : fmtN(parseFloat(swRaw))} mg × 10000`
+                : "10000";
+
+        } else if (t === "meropenam") {
+            // % of LC = (Sample_ppm − Blank_ppm) × V1_mL × DF1×DF2×DF3 × 1000 × 1000
+            //           ──────────────────────────────────────────────────────────────────
+            //                         SW_mg × 10000 × Label Claim_mg
+            const lc = calcData.labelClaim; const lcU2 = calcData.labelClaimUnit || "mg";
+            const swMg = toMg(swRaw, swU);
+            const lcMg = toMg(lc, lcU2);
+            numSym.push("× 1000 × 1000");
+            numVal.push("× 1000 × 1000");
+            denSym = "SW (mg) × 10000 × Label Claim (mg)";
+            const swPartMero = swIsPresent(swRaw) ? `${isFinite(swMg) ? fmtN(swMg) : fmtN(parseFloat(swRaw))} mg` : null;
+            const meroRest = `10000 × ${isFinite(lcMg) ? fmtN(lcMg) : fmtN(parseFloat(lc))} mg`;
+            denVal = swPartMero ? `${swPartMero} × ${meroRest}` : meroRest;
+
+        } else if (t === "lithosun300" || t === "lithosun400") {
+            // % of LC = (Sample_ppm − Blank_ppm) × V1_mL × V3_mL × 1000
+            //           ─────────────────────────────────────────────────────
+            //               Label Claim_mg × V2_mL × CF × 10000
+            const lc = calcData.labelClaim; const lcU2 = calcData.labelClaimUnit || "mg";
+            const cf = calcData.conversionFactor ?? calcData.cf;
+            const lcMg = toMg(lc, lcU2);
+            // For Lithosun, V1 and V3 are in numerator directly (not DF ratio)
+            numSym = [`(Sample Conc. − Blank Conc.) × V1 (mL) × V3 (mL) × 1000`];
+            numVal = [`(${sFmt} − ${bFmt}) × ${isFinite(v1Ml) ? fmtN(v1Ml) : fmtN(parseFloat(v1r))} mL × ${isFinite(v3Ml) ? fmtN(v3Ml) : fmtN(parseFloat(v3r))} mL × 1000`];
+            denSym = "Label Claim (mg) × V2 (mL) × CF × 10000";
+            denVal = `${isFinite(lcMg) ? fmtN(lcMg) : fmtN(parseFloat(lc))} mg × ${isFinite(v2Ml) ? fmtN(v2Ml) : fmtN(parseFloat(v2r))} mL × ${fmtN(parseFloat(cf))} × 10000`;
+
+            // NOTE: this branch is only used for the symbolic formula display.
+            // Per-tablet derivations are rendered by renderLithosun300Calculation /
+            // renderLithosun400Calculation below.
+
+        } else {
+            // Fallback generic
+            denSym = "—";
+            denVal = "—";
+        }
+
+        // Remove empty string entries pushed by icpms_food/icpoes_food/icpms_ich_q3d
+        const filteredNumSym = numSym.filter(s => s !== "");
+        const filteredNumVal = numVal.filter(s => s !== "");
+
+        const numSymStr = filteredNumSym.join(" ");
+        const numValStr = filteredNumVal.join(" ");
+
+        const passFail = (() => {
+            if (!result) return null;
+            const v = parseFloat(result);
+            if (!Number.isFinite(v)) return null;
+            const min = limitMin ? parseFloat(limitMin) : null;
+            const max = limitMax ? parseFloat(limitMax) : null;
+            if (min === null && max === null) return null;
+            return (min === null || v >= min) && (max === null || v <= max) ? "pass" : "fail";
+        })();
+
+        return (
+            <div className="bg-gray-100 border border-black p-3 mb-3 calc-block">
+
+                {/* DF legend */}
+                {(df1Active || df2Active || df3Active) && !["lithosun300", "lithosun400", "zpto_shampoo"].includes(t) && (
+                    <p className="text-xs text-gray-500 mb-2">
+                        {df1Active && "DF1 = V3/V2"}
+                        {df1Active && (df2Active || df3Active) && "  |  "}
+                        {df2Active && "DF2 = V5/V4"}
+                        {df2Active && df3Active && "  |  "}
+                        {df3Active && "DF3 = V7/V6"}
+                    </p>
+                )}
+                {t === "zpto_shampoo" && (df1Active) && (
+                    <p className="text-xs text-gray-500 mb-2">DF1 = V3/V2</p>
+                )}
+
+                {/* Symbolic formula */}
+                <p className="font-bold text-sm mb-2">Formula:</p>
+                <div className="formula-display my-2" style={{ breakInside: "avoid" }}>
+                    <div className="flex items-center justify-center gap-3">
+                        <div className="formula-fraction text-center">
+                            <div className="numerator px-4 py-1 border-b-2 border-black text-xs font-mono">
+                                {numSymStr}
+                            </div>
+                            <div className="denominator px-4 py-1 text-xs font-mono">{denSym}</div>
+                        </div>
+                        <span className="text-sm font-bold">{resultUnit}</span>
+                    </div>
+                </div>
+
+                {/* Value derivation */}
+                <p className="font-bold text-sm mb-2 mt-3">Derivation:</p>
+                <div className="formula-display my-2" style={{ breakInside: "avoid" }}>
+                    <div className="flex items-center justify-center gap-3">
+                        <div className="formula-fraction text-center">
+                            <div className="numerator px-4 py-1 border-b-2 border-black text-xs font-mono">
+                                {numValStr}
+                            </div>
+                            <div className="denominator px-4 py-1 text-xs font-mono">{denVal}</div>
+                        </div>
+                        {result && (
+                            <span className="text-sm font-bold">
+                                = {trimZeros(result)} {resultUnit}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Acceptance limit + pass/fail */}
+                {(limitMin || limitMax) && (
+                    <div className="mt-3 flex items-center gap-4 flex-wrap">
+                        <p className="text-xs font-semibold text-gray-700">
+                            Acceptance Limit:&nbsp;
+                            {limitMin && limitMax
+                                ? `${trimZeros(limitMin)} – ${trimZeros(limitMax)} ${resultUnit}`
+                                : limitMin
+                                    ? `≥ ${trimZeros(limitMin)} ${resultUnit}`
+                                    : `≤ ${trimZeros(limitMax)} ${resultUnit}`}
+                        </p>
+                        {passFail && (
+                            <span
+                                className={`px-2 py-0.5 text-xs font-bold rounded border ${passFail === "pass"
+                                    ? "bg-green-100 text-green-800 border-green-400"
+                                    : "bg-red-100 text-red-800 border-red-400"
+                                    }`}
+                            >
+                                {passFail === "pass" ? "PASS" : "FAIL"}
+                            </span>
+                        )}
+                    </div>
+                )}
             </div>
-            <span className="text-sm font-bold">= {resultUnit}</span>
-          </div>
-        </div>
+        );
+    };
 
-        {/* Value derivation */}
-        <p className="font-bold text-sm mb-2 mt-3">Derivation:</p>
+    // ── ORS-specific extra fields ──────────────────────────────────────────────
+    const renderORSExtraFields = (calcData: any) => {
+        const rows: { label: string; value: string }[] = [];
+        if (calcData.sachetWeightAvg)
+            rows.push({ label: "Sachet Weight (Avg)", value: `${trimZeros(calcData.sachetWeightAvg)} ${calcData.sachetWeightAvgUnit || "g"}` });
+        if (calcData.molecularWeight)
+            rows.push({ label: "Molecular Weight", value: `${trimZeros(calcData.molecularWeight)} ${calcData.molecularWeightUnit || "g/mol"}` });
+        if (calcData.labelClaim)
+            rows.push({ label: "Label Claim", value: `${trimZeros(calcData.labelClaim)} ${calcData.labelClaimUnit || ""}` });
+        if (rows.length === 0) return null;
+        return (
+            <table className="w-full border border-black text-sm mb-2">
+                <tbody>
+                    {rows.map((r, i) => (
+                        <tr key={i} className="border-b border-black last:border-b-0">
+                            <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">{r.label}</td>
+                            <td className="px-3 py-1.5">{r.value}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        );
+    };
+
+    // ── Meropenam-specific extra fields ───────────────────────────────────────
+    const renderMeropenamExtraFields = (calcData: any) => {
+        if (!calcData.labelClaim) return null;
+        return (
+            <table className="w-full border border-black text-sm mb-2">
+                <tbody>
+                    <tr>
+                        <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
+                        <td className="px-3 py-1.5">
+                            {trimZeros(calcData.labelClaim)} {calcData.labelClaimUnit || "mg"}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        );
+    };
+
+    // ── Shared Lithosun formula symbolic block ─────────────────────────────────
+    const renderLithosunFormulaSymbolic = () => (
         <div className="formula-display my-2" style={{ breakInside: "avoid" }}>
-          <div className="flex items-center justify-center gap-3">
-            <div className="formula-fraction text-center">
-              <div className="numerator px-4 py-1 border-b-2 border-black text-xs font-mono">
-                {numVal}
-              </div>
-              <div className="denominator px-4 py-1 text-xs font-mono">{denVal}</div>
+            <p className="font-bold text-sm mb-2">Formula :</p>
+            <div className="flex items-center justify-center gap-3">
+                <div className="formula-fraction text-center">
+                    <div className="numerator px-4 py-1 border-b-2 border-black text-xs font-mono">
+                        (Sample Conc. − Blank Conc.) × V1 (mL) × V3 (mL) × 1000
+                    </div>
+                    <div className="denominator px-4 py-1 text-xs font-mono">
+                        Label Claim (mg) × V2 (mL) × Conversion Factor × 10000
+                    </div>
+                </div>
+                <span className="text-sm font-bold">% of LC</span>
             </div>
-            {result && (
-              <span className="text-sm font-bold">
-                = {trimZeros(result)} {resultUnit}
-              </span>
-            )}
-          </div>
         </div>
-
-        {/* Acceptance limit + pass/fail */}
-        {(limitMin || limitMax) && (
-          <div className="mt-3 flex items-center gap-4 flex-wrap">
-            <p className="text-xs font-semibold text-gray-700">
-              Acceptance Limit:&nbsp;
-              {limitMin && limitMax
-                ? `${trimZeros(limitMin)} – ${trimZeros(limitMax)} ${resultUnit}`
-                : limitMin
-                ? `≥ ${trimZeros(limitMin)} ${resultUnit}`
-                : `≤ ${trimZeros(limitMax)} ${resultUnit}`}
-            </p>
-            {passFail && (
-              <span
-                className={`px-2 py-0.5 text-xs font-bold rounded border ${
-                  passFail === "pass"
-                    ? "bg-green-100 text-green-800 border-green-400"
-                    : "bg-red-100 text-red-800 border-red-400"
-                }`}
-              >
-                {passFail === "pass" ? "PASS" : "FAIL"}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
     );
-  };
 
-  // ── ORS-specific extra fields ──────────────────────────────────────────────
-  const renderORSExtraFields = (calcData: any) => {
-    const rows: { label: string; value: string }[] = [];
-    if (calcData.sachetWeightAvg)
-      rows.push({ label: "Sachet Weight (Avg)", value: `${trimZeros(calcData.sachetWeightAvg)} ${calcData.sachetWeightAvgUnit || "g"}` });
-    if (calcData.molecularWeight)
-      rows.push({ label: "Molecular Weight", value: `${trimZeros(calcData.molecularWeight)} ${calcData.molecularWeightUnit || "g/mol"}` });
-    if (calcData.labelClaim)
-      rows.push({ label: "Label Claim", value: `${trimZeros(calcData.labelClaim)} ${calcData.labelClaimUnit || ""}` });
-    if (rows.length === 0) return null;
+    // ── Helper: render one per-tablet derivation row ───────────────────────────
+    const renderTabletDerivation = (
+        tabletNum: number,
+        samplePpm: number | null,
+        blankPpm: number,
+        v1Ml: number,
+        v2Ml: number,
+        v3Ml: number,
+        cf: number,
+        lcMg: number,
+        result: string | number | null | undefined,
+    ) => {
+        const fmtN = (n: number) => (isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—");
+        const num = samplePpm !== null
+            ? `(${fmtN(samplePpm)} ppm − ${fmtN(blankPpm)} ppm) × ${fmtN(v1Ml)} mL × ${fmtN(v3Ml)} mL × 1000`
+            : "—";
+        const den = `${fmtN(lcMg)} mg × ${fmtN(v2Ml)} mL × ${fmtN(cf)} × 10000`;
+        return (
+            <div key={tabletNum} className="bg-gray-100 border border-black p-3 mb-2 calc-block" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                <p className="font-bold text-xs mb-1">Derivation (Tablet {tabletNum}) :</p>
+                <div className="formula-display my-1" style={{ breakInside: "avoid" }}>
+                    <div className="flex items-center justify-center gap-3 flex-wrap">
+                        <div className="formula-fraction text-center">
+                            <div className="numerator px-4 py-1 border-b-2 border-black text-xs font-mono">{num}</div>
+                            <div className="denominator px-4 py-1 text-xs font-mono">{den}</div>
+                        </div>
+                        {result !== null && result !== undefined && result !== "" && (
+                            <span className="text-sm font-bold">= {trimZeros(result)} % of LC</span>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ── Lithosun 300: single time point, 6 tablets ────────────────────────────
+    const renderLithosun300Calculation = (calc: any, idx: number, samplePreps: any[] = [], standardPreps: any[] = []) => {
+        const calcData = safeJSONParse(calc.data, {});
+        const label = `${calc.label} (Lithosun 300)`;
+
+        const matchedSamplePrepIdx = calcData.selectedSamplePreparationLabel
+            ? samplePreps.findIndex((p: any) => p.label === calcData.selectedSamplePreparationLabel)
+            : -1;
+        const matchedSamplePrep = matchedSamplePrepIdx !== -1 ? samplePreps[matchedSamplePrepIdx] : null;
+        const matchedStandardPrep = matchedSamplePrepIdx !== -1 ? (standardPreps[matchedSamplePrepIdx] ?? null) : null;
+
+        const _toMl = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "mL").trim().toLowerCase(); if (uu === "l") return n * 1000; if (uu === "μl" || uu === "ul") return n / 1000; return n; };
+        const _toMg = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "mg").trim().toLowerCase(); if (uu === "g") return n * 1000; if (uu === "kg") return n * 1e6; if (uu === "μg" || uu === "mcg") return n / 1000; return n; };
+        const _toPpm = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "ppm").trim().toLowerCase(); if (uu === "ppb" || uu === "μg/l") return n / 1000; return n; };
+        const fmtN = (n: number) => (isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—");
+
+        const v1Ml = _toMl(calcData.v1, calcData.v1Unit || "mL");
+        const v2Ml = _toMl(calcData.v2, calcData.v2Unit || "mL");
+        const v3Ml = _toMl(calcData.v3, calcData.v3Unit || "mL");
+        const cf = parseFloat(calcData.conversionFactor ?? calcData.cf ?? "");
+        const lcMg = _toMg(calcData.labelClaim, calcData.labelClaimUnit || "mg");
+        const blankPpm = _toPpm(calcData.instrumentConcentrationBlank, calcData.instrumentConcentrationBlankUnit || "ppm");
+
+        const TABLETS = [1, 2, 3, 4, 5, 6] as const;
+        const tabletSamples = TABLETS.map(t => ({
+            t,
+            sampleRaw: calcData[`instrumentConcentrationSampleTablet${t}`] as string | null,
+            result: calcData[`calculationResultTablet${t}`] as string | null,
+        }));
+        const hasAnyTabletData = tabletSamples.some(ts => ts.sampleRaw !== null && ts.sampleRaw !== undefined && ts.sampleRaw !== "");
+
+        // Summary — computed from the 6 tablet result fields (these are saved; min/avg/max are not)
+        const tabletNums: number[] = [1, 2, 3, 4, 5, 6]
+            .map(t => parseFloat(calcData[`calculationResultTablet${t}`] ?? ""))
+            .filter(n => isFinite(n));
+        const summaryMin = tabletNums.length ? Math.min(...tabletNums) : null;
+        const summaryAvg = tabletNums.length ? tabletNums.reduce((a, b) => a + b, 0) / tabletNums.length : null;
+        const summaryMax = tabletNums.length ? Math.max(...tabletNums) : null;
+
+        return (
+            <div key={idx} className="mb-4">
+                <p className="font-bold text-sm mb-2">{label}</p>
+
+                {/* Parameter summary table */}
+                <table className="w-full border border-black text-sm mb-2">
+                    <tbody>
+                        {matchedSamplePrep && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Sample Preparation</td>
+                                <td className="px-3 py-1.5">{matchedSamplePrep.label}</td>
+                            </tr>
+                        )}
+                        {matchedStandardPrep && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Standard Preparation</td>
+                                <td className="px-3 py-1.5">{matchedStandardPrep.label}</td>
+                            </tr>
+                        )}
+                        {calcData.instrumentConcentrationBlank !== undefined && calcData.instrumentConcentrationBlank !== "" && calcData.instrumentConcentrationBlank !== "0" && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Blank Concentration</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.instrumentConcentrationBlank)} {calcData.instrumentConcentrationBlankUnit || "ppm"}</td>
+                            </tr>
+                        )}
+                        {calcData.labelClaim && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.labelClaim)} {calcData.labelClaimUnit || "mg"}</td>
+                            </tr>
+                        )}
+                        {calcData.conversionFactor && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Conversion Factor</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.conversionFactor)}</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+
+                {/* Per-tablet sample concentrations */}
+                {hasAnyTabletData && (
+                    <table className="w-full border border-black text-sm mb-2">
+                        <thead>
+                            <tr className="bg-gray-100">
+                                <th className="border border-black px-3 py-2 text-left font-bold">Tablet</th>
+                                <th className="border border-black px-3 py-2 text-left font-bold">Sample Concentration</th>
+                                <th className="border border-black px-3 py-2 text-left font-bold">Calculation Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {tabletSamples.map(({ t, sampleRaw, result }) => (
+                                <tr key={t}>
+                                    <td className="border border-black px-3 py-1.5 font-bold">Tablet {t}</td>
+                                    <td className="border border-black px-3 py-1.5">
+                                        {sampleRaw ? `${trimZeros(sampleRaw)} ${calcData.instrumentConcentrationSampleUnit || "ppm"}` : "—"}
+                                    </td>
+                                    <td className="border border-black px-3 py-1.5">
+                                        {result ? `${trimZeros(result)} % of LC` : "—"}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+
+                {/* Formula */}
+                {renderLithosunFormulaSymbolic()}
+
+                {/* Per-tablet derivations */}
+                {hasAnyTabletData && tabletSamples.map(({ t, sampleRaw, result }) => {
+                    const samplePpm = _toPpm(sampleRaw, calcData.instrumentConcentrationSampleUnit || "ppm");
+                    return renderTabletDerivation(
+                        t, isFinite(samplePpm) ? samplePpm : null,
+                        isFinite(blankPpm) ? blankPpm : 0,
+                        isFinite(v1Ml) ? v1Ml : 1,
+                        isFinite(v2Ml) ? v2Ml : 1,
+                        isFinite(v3Ml) ? v3Ml : 1,
+                        isFinite(cf) ? cf : 1,
+                        isFinite(lcMg) ? lcMg : 1,
+                        result,
+                    );
+                })}
+
+                {/* Calculation Summary */}
+                {summaryMin !== null && (
+                    <div className="mt-1 mb-4 calc-summary-group">
+                        <table className="w-full border border-black">
+                            <tbody>
+                                <tr className="bg-gray-100">
+                                    <td colSpan={3} className="p-3 border-b border-black">
+                                        <p className="font-bold text-sm">
+                                            Calculation Summary
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="text-center p-3 border-r border-black">
+                                        <p className="font-semibold text-xs">Minimum</p>
+                                        <p className="text-lg font-bold">{summaryMin !== null ? `${trimZeros(summaryMin)} % of LC` : "—"}</p>
+                                    </td>
+                                    <td className="text-center p-3 border-r border-black">
+                                        <p className="font-semibold text-xs">Average</p>
+                                        <p className="text-lg font-bold">{summaryAvg !== null ? `${trimZeros(summaryAvg)} % of LC` : "—"}</p>
+                                    </td>
+                                    <td className="text-center p-3">
+                                        <p className="font-semibold text-xs">Maximum</p>
+                                        <p className="text-lg font-bold">{summaryMax !== null ? `${trimZeros(summaryMax)} % of LC` : "—"}</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // ── Lithosun 400: multiple time points × 6 tablets ────────────────────────
+    const renderLithosun400Calculation = (calc: any, idx: number, samplePreps: any[] = [], standardPreps: any[] = []) => {
+        const calcData = safeJSONParse(calc.data, {});
+        const label = `${calc.label} (Lithosun 400)`;
+
+        const matchedSamplePrepIdx = calcData.selectedSamplePreparationLabel
+            ? samplePreps.findIndex((p: any) => p.label === calcData.selectedSamplePreparationLabel)
+            : -1;
+        const matchedSamplePrep = matchedSamplePrepIdx !== -1 ? samplePreps[matchedSamplePrepIdx] : null;
+        const matchedStandardPrep = matchedSamplePrepIdx !== -1 ? (standardPreps[matchedSamplePrepIdx] ?? null) : null;
+
+        const _toMl = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "mL").trim().toLowerCase(); if (uu === "l") return n * 1000; if (uu === "μl" || uu === "ul") return n / 1000; return n; };
+        const _toMg = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "mg").trim().toLowerCase(); if (uu === "g") return n * 1000; if (uu === "kg") return n * 1e6; if (uu === "μg" || uu === "mcg") return n / 1000; return n; };
+        const _toPpm = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "ppm").trim().toLowerCase(); if (uu === "ppb" || uu === "μg/l") return n / 1000; return n; };
+        const fmtN = (n: number) => (isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—");
+
+        const v1Ml = _toMl(calcData.v1, calcData.v1Unit || "mL");
+        const v2Ml = _toMl(calcData.v2, calcData.v2Unit || "mL");
+        const v3Ml = _toMl(calcData.v3, calcData.v3Unit || "mL");
+        const cf = parseFloat(calcData.conversionFactor ?? "");
+        const lcMg = _toMg(calcData.labelClaim, calcData.labelClaimUnit || "mg");
+
+        const numTP = calcData.numberOfTimePoints || 2;
+        const TABLETS = [1, 2, 3, 4, 5, 6] as const;
+
+        // Build time-point data
+        const timePoints = Array.from({ length: numTP }, (_, i) => {
+            const tp = i + 1;
+            const tpLabelRaw = (calcData[`timePointLabel${tp}`] as string | null) ?? "";
+            // Append "Hrs" if the label doesn't already contain hr/hrs/hour
+            const tpLabel = tpLabelRaw
+                ? /hr|hour/i.test(tpLabelRaw) ? tpLabelRaw : `${tpLabelRaw} Hrs`
+                : null;
+            const blankRaw = calcData[`instrumentConcentrationBlankT${tp}`] as string | null;
+            const blankUnit = (calcData[`instrumentConcentrationBlankUnitT${tp}`] as string) || "ppm";
+            const blankPpm = _toPpm(blankRaw, blankUnit);
+            const tablets = TABLETS.map(tab => ({
+                tab,
+                sampleRaw: calcData[`sampleT${tp}Tab${tab}`] as string | null,
+                result: calcData[`resultT${tp}Tab${tab}`] as string | null,
+            }));
+
+            // Compute min/avg/max from saved tablet result fields (saved by onUpdate)
+            // Fall back to computing from tablet results if the saved fields are missing/zero
+            const savedMin = calcData[`minT${tp}`];
+            const savedAvg = calcData[`avgT${tp}`];
+            const savedMax = calcData[`maxT${tp}`];
+            const tabletNums400: number[] = tablets
+                .map(ts => parseFloat(ts.result ?? ""))
+                .filter(n => isFinite(n));
+            const computedMin = tabletNums400.length ? Math.min(...tabletNums400) : null;
+            const computedAvg = tabletNums400.length ? tabletNums400.reduce((a, b) => a + b, 0) / tabletNums400.length : null;
+            const computedMax = tabletNums400.length ? Math.max(...tabletNums400) : null;
+            // Prefer computed (always accurate) over saved (may be stale/0)
+            const min = computedMin !== null ? computedMin : (savedMin !== undefined ? savedMin : null);
+            const avg = computedAvg !== null ? computedAvg : (savedAvg !== undefined ? savedAvg : null);
+            const max = computedMax !== null ? computedMax : (savedMax !== undefined ? savedMax : null);
+
+            return {
+                tp, tpLabel,
+                blankRaw, blankUnit, blankPpm,
+                tablets,
+                min, avg, max,
+                limitMin: calcData[`acceptanceLimitMin${tp}`],
+                limitMax: calcData[`acceptanceLimitMax${tp}`],
+            };
+        });
+
+        const hasAnyData = timePoints.some(tp => tp.tablets.some(ts => ts.sampleRaw));
+
+        return (
+            <div key={idx} className="mb-4">
+                <p className="font-bold text-sm mb-2">{label}</p>
+
+                {/* Top summary table */}
+                <table className="w-full border border-black text-sm mb-2">
+                    <tbody>
+                        {matchedSamplePrep && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Sample Preparation</td>
+                                <td className="px-3 py-1.5">{matchedSamplePrep.label}</td>
+                            </tr>
+                        )}
+                        {matchedStandardPrep && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Standard Preparation</td>
+                                <td className="px-3 py-1.5">{matchedStandardPrep.label}</td>
+                            </tr>
+                        )}
+                        {calcData.labelClaim && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.labelClaim)} {calcData.labelClaimUnit || "mg"}</td>
+                            </tr>
+                        )}
+                        {calcData.conversionFactor && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Conversion Factor</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.conversionFactor)}</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+
+                {/* Formula (once) */}
+                {hasAnyData && renderLithosunFormulaSymbolic()}
+
+                {/* Per-time-point blocks */}
+                {timePoints.map(({ tp, tpLabel, blankRaw, blankUnit, blankPpm, tablets, min, avg, max, limitMin, limitMax }) => {
+                    const hasTabletData = tablets.some(ts => ts.sampleRaw);
+                    if (!hasTabletData) return null;
+                    return (
+                        <div key={tp} className="mb-4" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                            {/* Time-point header */}
+                            <p className="font-bold text-sm mb-2 bg-gray-200 border border-black px-3 py-1">
+                                {tp === 1 ? "1st" : tp === 2 ? "2nd" : tp === 3 ? "3rd" : `${tp}th`} Time Point{tpLabel ? ` (${tpLabel})` : ``}
+                            </p>
+
+                            {/* Standard & Sample prep refs */}
+                            <table className="w-full border border-black text-sm mb-2">
+                                <tbody>
+                                    {matchedStandardPrep && (
+                                        <tr className="border-b border-black">
+                                            <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Standard Preparation</td>
+                                            <td className="px-3 py-1.5">{matchedStandardPrep.label}</td>
+                                        </tr>
+                                    )}
+                                    {matchedSamplePrep && (
+                                        <tr className="border-b border-black">
+                                            <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Sample Preparation</td>
+                                            <td className="px-3 py-1.5">{matchedSamplePrep.label}</td>
+                                        </tr>
+                                    )}
+                                    {blankRaw !== null && blankRaw !== undefined && blankRaw !== "" && blankRaw !== "0" && (
+                                        <tr className="border-b border-black">
+                                            <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Blank Concentration</td>
+                                            <td className="px-3 py-1.5">{trimZeros(blankRaw)} {blankUnit}</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+
+                            {/* Per-tablet sample & result table */}
+                            <table className="w-full border border-black text-sm mb-2">
+                                <thead>
+                                    <tr className="bg-gray-100">
+                                        <th className="border border-black px-3 py-2 text-left font-bold">Tablet</th>
+                                        <th className="border border-black px-3 py-2 text-left font-bold">Sample Concentration</th>
+                                        <th className="border border-black px-3 py-2 text-left font-bold">Calculation Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {tablets.map(({ tab, sampleRaw, result }) => (
+                                        <tr key={tab}>
+                                            <td className="border border-black px-3 py-1.5 font-bold">Tablet {tab}</td>
+                                            <td className="border border-black px-3 py-1.5">
+                                                {sampleRaw ? `${trimZeros(sampleRaw)} ${blankUnit}` : "—"}
+                                            </td>
+                                            <td className="border border-black px-3 py-1.5">
+                                                {result ? `${trimZeros(result)} % of LC` : "—"}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            {/* Per-tablet derivations */}
+                            {tablets.map(({ tab, sampleRaw, result }) => {
+                                const samplePpm = _toPpm(sampleRaw, blankUnit);
+                                return renderTabletDerivation(
+                                    tab,
+                                    isFinite(samplePpm) ? samplePpm : null,
+                                    isFinite(blankPpm) ? blankPpm : 0,
+                                    isFinite(v1Ml) ? v1Ml : 1,
+                                    isFinite(v2Ml) ? v2Ml : 1,
+                                    isFinite(v3Ml) ? v3Ml : 1,
+                                    isFinite(cf) ? cf : 1,
+                                    isFinite(lcMg) ? lcMg : 1,
+                                    result,
+                                );
+                            })}
+
+                            {/* Time-point summary */}
+                            {min !== null && (
+
+                                <div className="mt-4 calc-summary-group">
+                                    <table className="w-full">
+                                        <tbody>
+                                            <tr className="bg-gray-100">
+                                                <td colSpan={3} className="p-3 border-b border-black">
+                                                    <p className="font-bold text-sm">Calculation Summary</p>
+                                                </td>
+                                            </tr>
+                                            <tr className="">
+                                                <td className="text-center p-3 border-r border-black">
+                                                    <p className="font-semibold text-xs">Minimum</p>
+                                                    <p className="text-lg font-bold">
+                                                        {min !== null ? `${trimZeros(min)} % of LC` : "—"}
+                                                    </p>
+                                                </td>
+                                                <td className="text-center p-3 border-r border-black">
+                                                    <p className="font-semibold text-xs">Average</p>
+                                                    <p className="text-lg font-bold">
+                                                        {avg !== null ? `${trimZeros(avg)} % of LC` : "—"}
+                                                    </p>
+                                                </td>
+                                                <td className="text-center p-3">
+                                                    <p className="font-semibold text-xs">Maximum</p>
+                                                    <p className="text-lg font-bold">
+                                                        {max !== null ? `${trimZeros(max)} % of LC` : "—"}
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    // ── Render a single calculation ────────────────────────────────────────────
+    const renderCalculation = (calc: any, idx: number, samplePreps: any[] = [], standardPreps: any[] = []) => {
+        const calcType = (calc.calculationType || "").toLowerCase();
+        if (calcType === "lithosun300") return renderLithosun300Calculation(calc, idx, samplePreps, standardPreps);
+        if (calcType === "lithosun400") return renderLithosun400Calculation(calc, idx, samplePreps, standardPreps);
+        const calcData = safeJSONParse(calc.data, {});
+        const label = calcTypeLabel(calcType) ? `${calc.label} (${calcTypeLabel(calcType)})` : calc.label;
+
+        // Find matched sample prep by label, then derive paired standard prep by index
+        const matchedSamplePrepIdx = calcData.selectedSamplePreparationLabel
+            ? samplePreps.findIndex((p: any) => p.label === calcData.selectedSamplePreparationLabel)
+            : -1;
+        const matchedSamplePrep = matchedSamplePrepIdx !== -1 ? samplePreps[matchedSamplePrepIdx] : null;
+        const matchedStandardPrep = matchedSamplePrepIdx !== -1 ? (standardPreps[matchedSamplePrepIdx] ?? null) : null;
+
+        // ── Helper converters (same as renderMetalCalcDerivation) ────────────────
+        const _toG = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "g").trim().toLowerCase(); if (uu === "mg") return n / 1000; if (uu === "kg") return n * 1000; if (uu === "μg" || uu === "mcg") return n / 1e6; return n; };
+        const _toMg = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "mg").trim().toLowerCase(); if (uu === "g") return n * 1000; if (uu === "kg") return n * 1e6; if (uu === "μg" || uu === "mcg") return n / 1000; return n; };
+        const _toMl = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "mL").trim().toLowerCase(); if (uu === "l") return n * 1000; if (uu === "μl" || uu === "ul") return n / 1000; return n; };
+        const _hasV = (v: any) => v !== null && v !== undefined && v !== "";
+        const _fmtC = (canonical: number, cu: string, origVal: any, origU: string) => {
+            const s = `${trimZeros(canonical)} ${cu}`;
+            return (origU.toLowerCase() !== cu.toLowerCase() && _hasV(origVal)) ? `${s}` : s;
+        };
+
+        // ── Build display rows for the parameter summary table ───────────────────
+        const t = calcType.toLowerCase();
+        const SW_TYPES = ["icpms_food", "icpoes_food", "icpms_ich_q3d", "anofer", "ors", "zpto_shampoo", "sodium_lactate", "talc", "sfgc", "meropenam"];
+        const swRaw = calcData.sw; const swU = calcData.swUnit || "mg";
+
+        // Determine canonical SW unit per type
+        // icpms_food / icpoes_food / icpms_ich_q3d / talc / ors / zpto_shampoo → g
+        // sfgc / meropenam / anofer → mg
+        const swUsesG = ["ors", "zpto_shampoo"].includes(t);
+        const swCanon = swUsesG ? _toG(swRaw, swU) : _toMg(swRaw, swU);
+        const swCanonUnit = swUsesG ? "g" : "mg";
+        const swDisplay = _hasV(swRaw) && isFinite(swCanon) ? _fmtC(swCanon, swCanonUnit, swRaw, swU) : null;
+
+        return (
+            <div key={idx} className="mb-4">
+                <p className="font-bold text-sm mb-2">{label}</p>
+
+                {/* Parameter summary table */}
+                <table className="w-full border border-black text-sm mb-2">
+                    <tbody>
+                        {matchedSamplePrep && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Sample Preparation</td>
+                                <td className="px-3 py-1.5">{matchedSamplePrep.label}</td>
+                            </tr>
+                        )}
+                        {matchedStandardPrep && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Standard Preparation</td>
+                                <td className="px-3 py-1.5">{matchedStandardPrep.label}</td>
+                            </tr>
+                        )}
+                        {calcData.instrumentConcentrationSample !== undefined && calcData.instrumentConcentrationSample !== "" && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Sample Concentration</td>
+                                <td className="px-3 py-1.5">
+                                    {trimZeros(calcData.instrumentConcentrationSample)}{" "}{calcData.instrumentConcentrationSampleUnit || ""}
+                                </td>
+                            </tr>
+                        )}
+                        {calcData.instrumentConcentrationBlank !== undefined && calcData.instrumentConcentrationBlank !== "" && calcData.instrumentConcentrationBlank !== "0" && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Blank Concentration</td>
+                                <td className="px-3 py-1.5">
+                                    {trimZeros(calcData.instrumentConcentrationBlank)}{" "}{calcData.instrumentConcentrationBlankUnit || ""}
+                                </td>
+                            </tr>
+                        )}
+                        {/* Sample Weight (SW) intentionally omitted from this table */}
+                        {/* Anofer extra: Avg Weight + Label Claim */}
+                        {t === "anofer" && _hasV(calcData.avgWeight) && (() => {
+                            const avgU2 = calcData.avgWeightUnit || "mg";
+                            const avgMg = _toMg(calcData.avgWeight, avgU2);
+                            return isFinite(avgMg) ? (
+                                <tr className="border-b border-black">
+                                    <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Avg. Weight</td>
+                                    <td className="px-3 py-1.5">{_fmtC(avgMg, "mg", calcData.avgWeight, avgU2)}</td>
+                                </tr>
+                            ) : null;
+                        })()}
+                        {/* ORS extra fields — inlined to avoid a separate table gap */}
+                        {t === "ors" && calcData.sachetWeightAvg && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Sachet Weight (Avg)</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.sachetWeightAvg)} {calcData.sachetWeightAvgUnit || "g"}</td>
+                            </tr>
+                        )}
+                        {t === "ors" && calcData.molecularWeight && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Molecular Weight</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.molecularWeight)} {calcData.molecularWeightUnit || "g/mol"}</td>
+                            </tr>
+                        )}
+                        {t === "ors" && calcData.labelClaim && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.labelClaim)} {calcData.labelClaimUnit || ""}</td>
+                            </tr>
+                        )}
+                        {/* Meropenam extra fields — inlined to avoid a separate table gap */}
+                        {t === "meropenam" && calcData.labelClaim && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.labelClaim)} {calcData.labelClaimUnit || "mg"}</td>
+                            </tr>
+                        )}
+                        {["anofer", "lithosun300", "lithosun400"].includes(t) && _hasV(calcData.labelClaim) && (() => {
+                            const lcU2 = calcData.labelClaimUnit || "mg";
+                            const lcMg = _toMg(calcData.labelClaim, lcU2);
+                            return isFinite(lcMg) ? (
+                                <tr className="border-b border-black">
+                                    <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
+                                    <td className="px-3 py-1.5">{_fmtC(lcMg, "mg", calcData.labelClaim, lcU2)}</td>
+                                </tr>
+                            ) : null;
+                        })()}
+                    </tbody>
+                </table>
+
+                {/* Formula + derivation */}
+                {calcData.instrumentConcentrationSample && renderMetalCalcDerivation(calcData, calcType)}
+            </div>
+        );
+    };
+
+    // ── Main return ────────────────────────────────────────────────────────────
     return (
-      <table className="w-full border border-black text-sm mb-2">
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i} className="border-b border-black last:border-b-0">
-              <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">{r.label}</td>
-              <td className="px-3 py-1.5">{r.value}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    );
-  };
-
-  // ── Meropenam-specific extra fields ───────────────────────────────────────
-  const renderMeropenamExtraFields = (calcData: any) => {
-    if (!calcData.labelClaim) return null;
-    return (
-      <table className="w-full border border-black text-sm mb-2">
-        <tbody>
-          <tr>
-            <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
-            <td className="px-3 py-1.5">
-              {trimZeros(calcData.labelClaim)} {calcData.labelClaimUnit || "mg"}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    );
-  };
-
-  // ── Render a single calculation ────────────────────────────────────────────
-  const renderCalculation = (calc: any, idx: number, samplePreps: any[] = [], standardPreps: any[] = []) => {
-    const calcData = safeJSONParse(calc.data, {});
-    const calcType = calc.calculationType || "";
-    const label = calcType ? `${calc.label} (${calcTypeLabel(calcType)})` : calc.label;
-
-    // Find matched sample prep by label, then derive paired standard prep by index
-    const matchedSamplePrepIdx = calcData.selectedSamplePreparationLabel
-      ? samplePreps.findIndex((p: any) => p.label === calcData.selectedSamplePreparationLabel)
-      : -1;
-    const matchedSamplePrep = matchedSamplePrepIdx !== -1 ? samplePreps[matchedSamplePrepIdx] : null;
-    const matchedStandardPrep = matchedSamplePrepIdx !== -1 ? (standardPreps[matchedSamplePrepIdx] ?? null) : null;
-
-    return (
-      <div key={idx} className="mb-4">
-        <p className="font-bold text-sm mb-2">{label}</p>
-
-        {/* Instrument concentration summary */}
-        <table className="w-full border border-black text-sm mb-2">
-          <tbody>
-            {calcData.instrumentConcentrationSample !== undefined && calcData.instrumentConcentrationSample !== "" && (
-              <tr className="border-b border-black">
-                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">
-                  Sample Concentration
-                </td>
-                <td className="px-3 py-1.5">
-                  {trimZeros(calcData.instrumentConcentrationSample)}{" "}
-                  {calcData.instrumentConcentrationSampleUnit || ""}
-                </td>
-              </tr>
-            )}
-            {calcData.instrumentConcentrationBlank !== undefined && calcData.instrumentConcentrationBlank !== "" && calcData.instrumentConcentrationBlank !== "0" && (
-              <tr className="border-b border-black">
-                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">
-                  Blank Concentration
-                </td>
-                <td className="px-3 py-1.5">
-                  {trimZeros(calcData.instrumentConcentrationBlank)}{" "}
-                  {calcData.instrumentConcentrationBlankUnit || ""}
-                </td>
-              </tr>
-            )}
-            {matchedSamplePrep && (
-              <tr className="border-t border-black">
-                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">
-                  Selected Sample Preparation
-                </td>
-                <td className="px-3 py-1.5">{matchedSamplePrep.label}</td>
-              </tr>
-            )}
-            {matchedStandardPrep && (
-              <tr className="border-t border-black">
-                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">
-                  Selected Standard Preparation
-                </td>
-                <td className="px-3 py-1.5">{matchedStandardPrep.label}</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
-        {/* Type-specific extra fields */}
-        {calcType === "ors" && renderORSExtraFields(calcData)}
-        {calcType === "meropenam" && renderMeropenamExtraFields(calcData)}
-
-        {/* Formula + derivation */}
-        {calcData.instrumentConcentrationSample && renderMetalCalcDerivation(calcData, calcType)}
-      </div>
-    );
-  };
-
-  // ── Main return ────────────────────────────────────────────────────────────
-  return (
-    <>
-      <style>
-        {`
+        <>
+            <style>
+                {`
           @media print {
             @page {
               size: A4;
@@ -813,289 +1471,290 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
           table { border-collapse: collapse; width: 100%; }
           table td { border: 1px solid black; padding: 8px; }
         `}
-      </style>
+            </style>
 
-      <div className="print-container">
-        {worksheetInfo.parameters.map((param: any, paramIdx: number) => {
-          // Filter reference data by ids attached to this parameter
-          const filteredInstruments = instruments.filter((inst) =>
-            param.instrumentIds?.includes(inst.id),
-          );
-          const filteredChemicals = chemicals.filter((chem) =>
-            param.chemicalIds?.includes(chem.slno),
-          );
-          const filteredStandards = standards.filter((std) =>
-            param.standardIds?.includes(std.serialNo),
-          );
+            <div className="print-container">
+                {worksheetInfo.parameters.map((param: any, paramIdx: number) => {
+                    // Instruments, chemicals and standards are stored as embedded objects
+                    // directly on each parameter — use them directly, no ID look-up needed.
+                    const filteredInstruments: any[] = Array.isArray(param.instruments)
+                        ? param.instruments
+                        : [];
+                    const filteredChemicals: any[] = Array.isArray(param.chemicals)
+                        ? param.chemicals
+                        : [];
+                    const filteredStandards: any[] = Array.isArray(param.standards)
+                        ? param.standards
+                        : [];
 
-          const allPreparations: any[] = safeJSONParse(param.preparations, []);
-          const standardPreps = allPreparations.filter(
-            (p) => p.preparationCategory === "standard",
-          );
-          const samplePreps = allPreparations.filter(
-            (p) => p.preparationCategory === "sample",
-          );
-          const blankPreps = allPreparations.filter(
-            (p) => p.preparationCategory === "blank",
-          );
-          const calculations: any[] = Array.isArray(param.calculations) ? param.calculations : [];
+                    const allPreparations: any[] = safeJSONParse(param.preparations, []);
+                    const standardPreps = allPreparations.filter(
+                        (p) => p.preparationCategory === "standard",
+                    );
+                    const samplePreps = allPreparations.filter(
+                        (p) => p.preparationCategory === "sample",
+                    );
+                    const blankPreps = allPreparations.filter(
+                        (p) => p.preparationCategory === "blank",
+                    );
+                    const calculations: any[] = Array.isArray(param.calculations) ? param.calculations : [];
 
-          return (
-            <div key={paramIdx} className={paramIdx > 0 ? "page-break-before" : ""} style={paramIdx > 0 ? { breakBefore: "page", pageBreakBefore: "always" } : undefined}>
-              {renderHeaderAndSampleSection(param, paramIdx)}
+                    return (
+                        <div key={paramIdx} className={paramIdx > 0 ? "page-break-before" : ""} style={paramIdx > 0 ? { breakBefore: "page", pageBreakBefore: "always" } : undefined}>
+                            {renderHeaderAndSampleSection(param, paramIdx)}
 
-              <div className="mt-4">
-                {/* Parameter heading */}
-                <div className="keep-together">
-                  <h3 className="text-lg bg-gray-200 font-bold border border-black mb-3 px-3 py-2 uppercase">
-                    Parameter: {param.parameterName} ({param.paraCode})
-                  </h3>
-                </div>
+                            <div className="mt-4">
+                                {/* Parameter heading */}
+                                <div className="keep-together">
+                                    <h3 className="text-lg bg-gray-200 font-bold border border-black mb-3 px-3 py-2 uppercase">
+                                        Parameter: {param.parameterName} ({param.paraCode})
+                                    </h3>
+                                </div>
 
-                {/* ── Instruments ──────────────────────────────────── */}
-                {filteredInstruments.length > 0 && (
-                  <div className="section-container mb-4">
-                    <h4 className="text-md uppercase font-bold mb-2">Instruments Used</h4>
-                    <table className="w-full border border-black text-sm">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="border border-black px-3 py-2 text-left font-bold">Instrument Id</th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">Instrument Name</th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">Calibration Done On</th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">Calibration Due On</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredInstruments.map((inst, idx) => (
-                          <tr key={idx}>
-                            <td className="border border-black px-3 py-2">{inst.instrumentTag}</td>
-                            <td className="border border-black px-3 py-2">{inst.name}</td>
-                            <td className="border border-black px-3 py-2">
-                              {inst.calibrationDoneDate
-                                ? new Date(inst.calibrationDoneDate).toLocaleDateString("en-GB")
-                                : "N/A"}
-                            </td>
-                            <td className="border border-black px-3 py-2">
-                              {inst.calibrationDueDate
-                                ? new Date(inst.calibrationDueDate).toLocaleDateString("en-GB")
-                                : "N/A"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* ── Chemicals ─────────────────────────────────────── */}
-                {filteredChemicals.length > 0 && (
-                  <div className="section-container mb-4">
-                    <h4 className="text-md uppercase font-bold mb-2">Chemicals/Reagents Used</h4>
-                    <table className="w-full border border-black text-sm">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="border border-black px-3 py-2 text-left font-bold">Chemical Name</th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">Code</th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">Make</th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">Batch No.</th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">Validity</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredChemicals.map((chem, idx) => (
-                          <tr key={idx}>
-                            <td className="border border-black px-3 py-2">{chem.name}</td>
-                            <td className="border border-black px-3 py-2">{chem.code || "N/A"}</td>
-                            <td className="border border-black px-3 py-2">{chem.make || "N/A"}</td>
-                            <td className="border border-black px-3 py-2">{chem.batchNo || "N/A"}</td>
-                            <td className="border border-black px-3 py-2">
-                              {chem.exp_Date
-                                ? new Date(chem.exp_Date).toLocaleDateString("en-GB")
-                                : "N/A"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* ── Standards ─────────────────────────────────────── */}
-                {filteredStandards.length > 0 && (
-                  <div className="section-container mb-4">
-                    <h4 className="text-md uppercase font-bold mb-2">Standards Used</h4>
-                    <table className="w-full border border-black text-sm">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="border border-black px-3 py-2 text-left font-bold">Standard Name</th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">Purity</th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">Make</th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">Batch No.</th>
-                          <th className="border border-black px-3 py-2 text-left font-bold">Validity</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredStandards.map((std, idx) => (
-                          <tr key={idx}>
-                            <td className="border border-black px-3 py-2">{std.name}</td>
-                            <td className="border border-black px-3 py-2">{std.purity || "N/A"}</td>
-                            <td className="border border-black px-3 py-2">{std.make || "N/A"}</td>
-                            <td className="border border-black px-3 py-2">{std.batchNo || "N/A"}</td>
-                            <td className="border border-black px-3 py-2">
-                              {std.validity
-                                ? new Date(std.validity).toLocaleDateString("en-GB")
-                                : "N/A"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* ── Standard Preparations ─────────────────────────── */}
-                {(() => {
-                  const renderable = standardPreps
-                    .map((prep: any) => ({
-                      prep,
-                      table: renderMetalPrepStepsTable(safeJSONParse(prep.steps, [])),
-                    }))
-                    .filter(({ table }) => table !== null);
-                  if (renderable.length === 0) return null;
-                  return (
-                    <div className="mb-6">
-                      <h4 className="text-md uppercase font-bold mb-2">Standard Preparations</h4>
-                      {renderable.map(({ prep, table }, idx) => (
-                        <div key={idx} className="section-container mb-3">
-                          <p className="font-bold text-sm mb-1">
-                            {prep.label}
-                            {prep.preparationType ? ` (${prepTypeLabel(prep.preparationType)})` : ""}
-                          </p>
-                          {table}
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
-
-                {/* ── Sample Preparations ───────────────────────────── */}
-                {(() => {
-                  const renderable = samplePreps
-                    .map((prep: any) => ({
-                      prep,
-                      table: renderMetalPrepStepsTable(safeJSONParse(prep.steps, [])),
-                    }))
-                    .filter(({ table }) => table !== null);
-                  if (renderable.length === 0) return null;
-                  return (
-                    <div className="mb-6">
-                      <h4 className="text-md uppercase font-bold mb-2">Sample Preparations</h4>
-                      {renderable.map(({ prep, table }, idx) => (
-                        <div key={idx} className="section-container mb-3">
-                          <p className="font-bold text-sm mb-1">
-                            {prep.label}
-                            {prep.preparationType ? ` (${prepTypeLabel(prep.preparationType)})` : ""}
-                          </p>
-                          {table}
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
-
-                {/* ── Blank Preparations ────────────────────────────── */}
-                {blankPreps.length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="text-md uppercase font-bold mb-2">Blank Preparations</h4>
-                    {blankPreps.map((prep: any, idx: number) => (
-                      <div key={idx} className="section-container mb-3">
-                        <p className="font-bold text-sm mb-1">{prep.label}</p>
-                        {prep.content && (
-                          <div
-                            className="text-sm"
-                            style={{ fontFamily: "inherit", fontSize: "0.875rem", lineHeight: "1.6" }}
-                            dangerouslySetInnerHTML={{ __html: prep.content }}
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* ── Calculations ──────────────────────────────────── */}
-                {calculations.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="text-md uppercase font-bold mb-2">Calculations</h4>
-                    {calculations.map((calc: any, idx: number) =>
-                      renderCalculation(calc, idx, samplePreps, standardPreps),
-                    )}
-                  </div>
-                )}
-
-                {/* ── Signature + attached files ────────────────────── */}
-                <div>
-                  {renderSignatureSection(param)}
-                </div>
-
-                {/* ── Attached Files ────────────────────────────────── */}
-                {param.files && Array.isArray(param.files) &&
-                  param.files.filter((f: any) => f.fileDataBase64).length > 0 && (
-                    <div className="section-container mb-4">
-                      <h4 className="text-md uppercase font-bold mb-2 no-print">Attached Files</h4>
-                      {(() => {
-                        const fileSig: FileSignatureData = {
-                          analyzedByName: (param as any).analyzedByName || null,
-                          analysisCompletionDate: (param as any).analysisCompletionDate || null,
-                          approvedByReviewerName: (param as any).approvedByReviewerName || null,
-                          approvedAtReviewer: (param as any).approvedAtReviewer || null,
-                        };
-                        return param.files
-                          .filter((f: any) => f.fileDataBase64)
-                          .map((f: any, fi: number) => {
-                            const isPdf =
-                              f.fileName?.toLowerCase().endsWith(".pdf") ||
-                              f.fileDataBase64?.startsWith("JVBER");
-                            const isImage = /\.(png|jpg|jpeg|gif|bmp|webp)$/i.test(f.fileName || "");
-                            return (
-                              <div key={fi}>
-                                {isPdf ? (
-                                  <PdfPageRenderer
-                                    base64={f.fileDataBase64}
-                                    fileName={f.fileName || `file_${fi + 1}.pdf`}
-                                    signature={fileSig}
-                                  />
-                                ) : isImage ? (
-                                  <div
-                                    className="pdf-page-with-sig"
-                                    style={{ breakInside: "avoid", pageBreakInside: "avoid" }}
-                                  >
-                                    <img
-                                      src={`data:image/${f.fileName?.split(".").pop()?.toLowerCase() || "jpeg"};base64,${f.fileDataBase64}`}
-                                      alt={f.fileName}
-                                      className="max-w-full block"
-                                      style={{ objectFit: "contain" }}
-                                    />
-                                    <FileSignatureFooter sig={fileSig} />
-                                  </div>
-                                ) : (
-                                  <p className="text-xs text-gray-500 text-center py-2">
-                                    {f.fileName} (preview not available)
-                                  </p>
+                                {/* ── Instruments ──────────────────────────────────── */}
+                                {filteredInstruments.length > 0 && (
+                                    <div className="section-container mb-4">
+                                        <h4 className="text-md uppercase font-bold mb-2">Instruments Used</h4>
+                                        <table className="w-full border border-black text-sm">
+                                            <thead>
+                                                <tr className="bg-gray-100">
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Instrument Id</th>
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Instrument Name</th>
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Calibration Done On</th>
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Calibration Due On</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {filteredInstruments.map((inst, idx) => (
+                                                    <tr key={idx}>
+                                                        <td className="border border-black px-3 py-2">{inst.instrumentTag}</td>
+                                                        <td className="border border-black px-3 py-2">{inst.name}</td>
+                                                        <td className="border border-black px-3 py-2">
+                                                            {inst.calibrationDoneDate
+                                                                ? new Date(inst.calibrationDoneDate).toLocaleDateString("en-GB")
+                                                                : "N/A"}
+                                                        </td>
+                                                        <td className="border border-black px-3 py-2">
+                                                            {inst.calibrationDueDate
+                                                                ? new Date(inst.calibrationDueDate).toLocaleDateString("en-GB")
+                                                                : "N/A"}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 )}
-                              </div>
-                            );
-                          });
-                      })()}
-                    </div>
-                  )}
 
-              </div>
+                                {/* ── Chemicals ─────────────────────────────────────── */}
+                                {filteredChemicals.length > 0 && (
+                                    <div className="section-container mb-4">
+                                        <h4 className="text-md uppercase font-bold mb-2">Chemicals/Reagents Used</h4>
+                                        <table className="w-full border border-black text-sm">
+                                            <thead>
+                                                <tr className="bg-gray-100">
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Chemical Name</th>
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Code</th>
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Make</th>
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Batch No.</th>
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Validity</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {filteredChemicals.map((chem, idx) => (
+                                                    <tr key={idx}>
+                                                        <td className="border border-black px-3 py-2">{chem.name}</td>
+                                                        <td className="border border-black px-3 py-2">{chem.code || "N/A"}</td>
+                                                        <td className="border border-black px-3 py-2">{chem.make || "N/A"}</td>
+                                                        <td className="border border-black px-3 py-2">{chem.batchNo || "N/A"}</td>
+                                                        <td className="border border-black px-3 py-2">
+                                                            {chem.expDate
+                                                                ? new Date(chem.expDate).toLocaleDateString("en-GB")
+                                                                : "N/A"}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+
+                                {/* ── Standards ─────────────────────────────────────── */}
+                                {filteredStandards.length > 0 && (
+                                    <div className="section-container mb-4">
+                                        <h4 className="text-md uppercase font-bold mb-2">Standards Used</h4>
+                                        <table className="w-full border border-black text-sm">
+                                            <thead>
+                                                <tr className="bg-gray-100">
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Standard Name</th>
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Purity</th>
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Make</th>
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Batch No.</th>
+                                                    <th className="border border-black px-3 py-2 text-left font-bold">Validity</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {filteredStandards.map((std, idx) => (
+                                                    <tr key={idx}>
+                                                        <td className="border border-black px-3 py-2">{std.name}</td>
+                                                        <td className="border border-black px-3 py-2">{std.purity || "N/A"}</td>
+                                                        <td className="border border-black px-3 py-2">{std.make || "N/A"}</td>
+                                                        <td className="border border-black px-3 py-2">{std.batchNo || "N/A"}</td>
+                                                        <td className="border border-black px-3 py-2">
+                                                            {std.validity
+                                                                ? new Date(std.validity).toLocaleDateString("en-GB")
+                                                                : "N/A"}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+
+                                {/* ── Standard Preparations ─────────────────────────── */}
+                                {(() => {
+                                    const renderable = standardPreps
+                                        .map((prep: any) => ({
+                                            prep,
+                                            table: renderMetalPrepStepsTable(safeJSONParse(prep.steps, [])),
+                                        }))
+                                        .filter(({ table }) => table !== null);
+                                    if (renderable.length === 0) return null;
+                                    return (
+                                        <div className="mb-6">
+                                            <h4 className="text-md uppercase font-bold mb-2">Standard Preparations</h4>
+                                            {renderable.map(({ prep, table }, idx) => (
+                                                <div key={idx} className="section-container mb-3">
+                                                    <p className="font-bold text-sm mb-1">
+                                                        {prep.label}
+                                                        {prep.preparationType ? ` (${prepTypeLabel(prep.preparationType)})` : ""}
+                                                    </p>
+                                                    {table}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* ── Sample Preparations ───────────────────────────── */}
+                                {(() => {
+                                    const renderable = samplePreps
+                                        .map((prep: any) => ({
+                                            prep,
+                                            table: renderMetalPrepStepsTable(safeJSONParse(prep.steps, [])),
+                                        }))
+                                        .filter(({ table }) => table !== null);
+                                    if (renderable.length === 0) return null;
+                                    return (
+                                        <div className="mb-6">
+                                            <h4 className="text-md uppercase font-bold mb-2">Sample Preparations</h4>
+                                            {renderable.map(({ prep, table }, idx) => (
+                                                <div key={idx} className="section-container mb-3">
+                                                    <p className="font-bold text-sm mb-1">
+                                                        {prep.label}
+                                                        {prep.preparationType ? ` (${prepTypeLabel(prep.preparationType)})` : ""}
+                                                    </p>
+                                                    {table}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* ── Blank Preparations ────────────────────────────── */}
+                                {blankPreps.length > 0 && (
+                                    <div className="mb-6">
+                                        <h4 className="text-md uppercase font-bold mb-2">Blank Preparations</h4>
+                                        {blankPreps.map((prep: any, idx: number) => (
+                                            <div key={idx} className="section-container mb-3">
+                                                <p className="font-bold text-sm mb-1">{prep.label}</p>
+                                                {prep.content && (
+                                                    <div
+                                                        className="text-sm"
+                                                        style={{ fontFamily: "inherit", fontSize: "0.875rem", lineHeight: "1.6" }}
+                                                        dangerouslySetInnerHTML={{ __html: prep.content }}
+                                                    />
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* ── Calculations ──────────────────────────────────── */}
+                                {calculations.length > 0 && (
+                                    <div className="mb-4">
+                                        <h4 className="text-md uppercase font-bold mb-2">Calculations</h4>
+                                        {calculations.map((calc: any, idx: number) =>
+                                            renderCalculation(calc, idx, samplePreps, standardPreps),
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* ── Signature + attached files ────────────────────── */}
+                                <div>
+                                    {renderSignatureSection(param)}
+                                </div>
+
+                                {/* ── Attached Files ────────────────────────────────── */}
+                                {param.files && Array.isArray(param.files) &&
+                                    param.files.filter((f: any) => f.fileDataBase64).length > 0 && (
+                                        <div className="section-container mb-4">
+                                            <h4 className="text-md uppercase font-bold mb-2 no-print">Attached Files</h4>
+                                            {(() => {
+                                                const fileSig: FileSignatureData = {
+                                                    analyzedByName: (param as any).analyzedByName || null,
+                                                    analysisCompletionDate: (param as any).analysisCompletionDate || null,
+                                                    approvedByReviewerName: (param as any).approvedByReviewerName || null,
+                                                    approvedAtReviewer: (param as any).approvedAtReviewer || null,
+                                                };
+                                                return param.files
+                                                    .filter((f: any) => f.fileDataBase64)
+                                                    .map((f: any, fi: number) => {
+                                                        const isPdf =
+                                                            f.fileName?.toLowerCase().endsWith(".pdf") ||
+                                                            f.fileDataBase64?.startsWith("JVBER");
+                                                        const isImage = /\.(png|jpg|jpeg|gif|bmp|webp)$/i.test(f.fileName || "");
+                                                        return (
+                                                            <div key={fi}>
+                                                                {isPdf ? (
+                                                                    <PdfPageRenderer
+                                                                        base64={f.fileDataBase64}
+                                                                        fileName={f.fileName || `file_${fi + 1}.pdf`}
+                                                                        signature={fileSig}
+                                                                    />
+                                                                ) : isImage ? (
+                                                                    <div
+                                                                        className="pdf-page-with-sig"
+                                                                        style={{ breakInside: "avoid", pageBreakInside: "avoid" }}
+                                                                    >
+                                                                        <img
+                                                                            src={`data:image/${f.fileName?.split(".").pop()?.toLowerCase() || "jpeg"};base64,${f.fileDataBase64}`}
+                                                                            alt={f.fileName}
+                                                                            className="max-w-full block"
+                                                                            style={{ objectFit: "contain" }}
+                                                                        />
+                                                                        <FileSignatureFooter sig={fileSig} />
+                                                                    </div>
+                                                                ) : (
+                                                                    <p className="text-xs text-gray-500 text-center py-2">
+                                                                        {f.fileName} (preview not available)
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    });
+                                            })()}
+                                        </div>
+                                    )}
+
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
-          );
-        })}
-      </div>
-    </>
-  );
+        </>
+    );
 };
 
 export default MetalPrintReport;

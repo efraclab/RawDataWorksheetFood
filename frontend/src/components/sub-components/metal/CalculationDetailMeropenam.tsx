@@ -23,7 +23,7 @@ const concUnitOptions = [
 
 const labelClaimUnitOptions = [
   { value: "mg", label: "mg" },
-  { value: "g",  label: "g"  },
+  { value: "g", label: "g" },
   { value: "kg", label: "kg" },
 ];
 
@@ -36,10 +36,10 @@ const toCanonicalPpm = (value: number, unit: string): number => {
   if (!Number.isFinite(value)) return NaN;
   switch (unit) {
     case "ppm":
-    case "mg/L":  return value;
+    case "mg/L": return value;
     case "ppb":
-    case "μg/L":  return value / 1000;
-    default:       return value;
+    case "μg/L": return value / 1000;
+    default: return value;
   }
 };
 
@@ -48,13 +48,13 @@ const toCanonicalMg = (value: number, unit?: string | null): number => {
   if (!Number.isFinite(value)) return NaN;
   if (!unit) return value; // If missing, assume mg directly
   switch (unit.trim().toLowerCase()) {
-    case "mg":  return value;
-    case "g":   return value * 1000;
-    case "kg":  return value * 1_000_000;
+    case "mg": return value;
+    case "g": return value * 1000;
+    case "kg": return value * 1_000_000;
     case "µg":
     case "ug":
     case "mcg": return value / 1000;
-    default:    return value;
+    default: return value;
   }
 };
 
@@ -64,10 +64,10 @@ const toCanonicalML = (value: number, unit?: string | null): number => {
   if (!unit) return value;
   switch (unit.trim().toLowerCase()) {
     case "ml": return value;
-    case "l":  return value * 1000;
+    case "l": return value * 1000;
     case "µl":
     case "ul": return value / 1000;
-    default:   return value;
+    default: return value;
   }
 };
 
@@ -90,30 +90,30 @@ const hasVal = (v: string | null | undefined): boolean =>
 
 // DF = makeup / take — returns NaN when either value is missing
 const calcDF = (
-  makeup: string | null, makeupUnit?: string | null, 
+  makeup: string | null, makeupUnit?: string | null,
   take?: string | null, takeUnit?: string | null
 ): number => {
   const m = toCanonicalML(parseFloat(makeup ?? ""), makeupUnit);
-  const t = toCanonicalML(parseFloat(take  ?? ""), takeUnit);
+  const t = toCanonicalML(parseFloat(take ?? ""), takeUnit);
   return Number.isFinite(m) && Number.isFinite(t) && t !== 0 ? m / t : NaN;
 };
 
 // ─── Extract prep values ──────────────────────────────────────────────────────
 const extractValues = (sp?: SamplePreparationMetal) => {
-  const empty = { 
+  const empty = {
     sw: null, swUnit: null,
-    v1: null, v1Unit: null, 
-    v2: null, v2Unit: null, 
-    v3: null, v3Unit: null, 
-    v4: null, v4Unit: null, 
-    v5: null, v5Unit: null, 
-    v6: null, v6Unit: null, 
-    v7: null, v7Unit: null 
+    v1: null, v1Unit: null,
+    v2: null, v2Unit: null,
+    v3: null, v3Unit: null,
+    v4: null, v4Unit: null,
+    v5: null, v5Unit: null,
+    v6: null, v6Unit: null,
+    v7: null, v7Unit: null
   };
-  
+
   if (!sp) return empty;
   const steps = Array.isArray(sp.steps) ? sp.steps : [];
-  
+
   const wt = steps.find((s) => s.name === "Weighing");
   const d1 = steps.find((s) => s.name === "1st Dilution");
   const d2 = steps.find((s) => s.name === "2nd Dilution");
@@ -135,31 +135,30 @@ const extractValues = (sp?: SamplePreparationMetal) => {
 // ─── Core formula ──────────────────────────────────────────────────────────────
 const computeResult = (
   instSample: string, instSampleUnit: string,
-  instBlank: string,  instBlankUnit: string,
-  sw:  string | null, swUnit?: string | null,
+  instBlank: string, instBlankUnit: string,
+  sw: string | null, swUnit?: string | null,
   labelClaim?: string, labelClaimUnit?: string,
-  v1?:  string | null, v1Unit?: string | null,
-  v2?:  string | null, v2Unit?: string | null,
-  v3?:  string | null, v3Unit?: string | null,
-  v4?:  string | null, v4Unit?: string | null,
-  v5?:  string | null, v5Unit?: string | null,
-  v6?:  string | null, v6Unit?: string | null,
-  v7?:  string | null, v7Unit?: string | null,
+  v1?: string | null, v1Unit?: string | null,
+  v2?: string | null, v2Unit?: string | null,
+  v3?: string | null, v3Unit?: string | null,
+  v4?: string | null, v4Unit?: string | null,
+  v5?: string | null, v5Unit?: string | null,
+  v6?: string | null, v6Unit?: string | null,
+  v7?: string | null, v7Unit?: string | null,
 ): string | null => {
   const sample = toCanonicalPpm(parseFloat(instSample), instSampleUnit);
   if (!Number.isFinite(sample)) return null;
-  const blank  = toCanonicalPpm(parseFloat(instBlank),  instBlankUnit);
-  const net    = sample - (Number.isFinite(blank) ? blank : 0);
+  const blank = toCanonicalPpm(parseFloat(instBlank), instBlankUnit);
+  const net = sample - (Number.isFinite(blank) ? blank : 0);
 
   // Convert SW to mg. If missing or invalid, default to 1000 mg (1 g) to preserve scale.
   const swN = toCanonicalMg(parseFloat(sw ?? ""), swUnit);
-  const swVal = Number.isFinite(swN) && swN > 0 ? swN : 1000;
 
   const lcMg = toCanonicalMg(parseFloat(labelClaim!), labelClaimUnit!);
   if (!Number.isFinite(lcMg) || lcMg <= 0) return null;
 
   const v1n_ml = toCanonicalML(parseFloat(v1 ?? ""), v1Unit);
-  const v1n  = Number.isFinite(v1n_ml) ? v1n_ml : 1;
+  const v1n = Number.isFinite(v1n_ml) ? v1n_ml : 1;
 
   const v2n = toCanonicalML(parseFloat(v2 ?? ""), v2Unit);
   const v3n = toCanonicalML(parseFloat(v3 ?? ""), v3Unit);
@@ -173,16 +172,18 @@ const computeResult = (
   const v7n = toCanonicalML(parseFloat(v7 ?? ""), v7Unit);
   const df3 = Number.isFinite(v6n) && Number.isFinite(v7n) && v6n !== 0 ? v7n / v6n : 1;
 
-  const numerator   = net * v1n * df1 * df2 * df3 * 1000 * 1000;
-  
+  const numerator = net * v1n * df1 * df2 * df3 * 1000 * 1000;
+
   // Since SW is in mg, the constant is scaled down by 1000:
   // (SW_g * 10000 * LC_mg) => ((SW_mg / 1000) * 10000 * LC_mg) => (SW_mg * 10 * LC_mg)
-  const denominator = swVal * 10000 * lcMg;
-  
+  const denominator = ((!Number.isFinite(swN) || swN === 0)
+    ? 1
+    : swN) * 10000 * lcMg;
+
   if (denominator === 0) return null;
 
   const result = numerator / denominator;
-  return Number.isFinite(result) ? trimZeros(result) : null;
+  return Number.isFinite(result) ? result.toFixedNoRound(4).toFixed(3) : null;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -202,7 +203,7 @@ const CalculationDetailMeropenam: React.FC<Props> = ({
   const c = calculation as any;
 
   // ─── DF flags ─────────────────────────────────────────────────────────────
-  const v1Active  = hasVal(calculation.v1);
+  const v1Active = hasVal(calculation.v1);
   const df1Active = hasVal(calculation.v2) && hasVal(calculation.v3);
   const df2Active = hasVal(calculation.v4) && hasVal(calculation.v5);
   const df3Active = hasVal(calculation.v6) && hasVal(calculation.v7);
@@ -222,28 +223,28 @@ const CalculationDetailMeropenam: React.FC<Props> = ({
       ex.sw, ex.swUnit,
       calculation.labelClaim,
       calculation.labelClaimUnit,
-      ex.v1, ex.v1Unit, 
-      ex.v2, ex.v2Unit, 
-      ex.v3, ex.v3Unit, 
-      ex.v4, ex.v4Unit, 
-      ex.v5, ex.v5Unit, 
-      ex.v6, ex.v6Unit, 
+      ex.v1, ex.v1Unit,
+      ex.v2, ex.v2Unit,
+      ex.v3, ex.v3Unit,
+      ex.v4, ex.v4Unit,
+      ex.v5, ex.v5Unit,
+      ex.v6, ex.v6Unit,
       ex.v7, ex.v7Unit,
     );
-    
+
     const newLabel = calculation.label;
 
     if (
       ex.sw !== calculation.sw || ex.swUnit !== c.swUnit ||
       ex.v1 !== calculation.v1 || ex.v1Unit !== c.v1Unit ||
-      ex.v2 !== calculation.v2 || ex.v2Unit !== c.v2Unit || 
+      ex.v2 !== calculation.v2 || ex.v2Unit !== c.v2Unit ||
       ex.v3 !== calculation.v3 || ex.v3Unit !== c.v3Unit ||
-      ex.v4 !== calculation.v4 || ex.v4Unit !== c.v4Unit || 
+      ex.v4 !== calculation.v4 || ex.v4Unit !== c.v4Unit ||
       ex.v5 !== calculation.v5 || ex.v5Unit !== c.v5Unit ||
-      ex.v6 !== calculation.v6 || ex.v6Unit !== c.v6Unit || 
+      ex.v6 !== calculation.v6 || ex.v6Unit !== c.v6Unit ||
       ex.v7 !== calculation.v7 || ex.v7Unit !== c.v7Unit ||
       newResult !== calculation.calculationResult ||
-      newLabel  !== calculation.label ||
+      newLabel !== calculation.label ||
       calculation.calculationResultUnit !== RESULT_UNIT
     ) {
       onUpdate({
@@ -280,11 +281,11 @@ const CalculationDetailMeropenam: React.FC<Props> = ({
     parseFloat(calculation.instrumentConcentrationBlank),
     calculation.instrumentConcentrationBlankUnit,
   );
-  
+
   const swNumRaw = parseFloat(calculation.sw ?? "");
   // Default to 1000 mg visually if SW is empty so the formula remains clear
-  const swNum = Number.isFinite(swNumRaw) && swNumRaw > 0 ? toCanonicalMg(swNumRaw, c.swUnit) : 1000;
-  const lcMg  = toCanonicalMg(parseFloat(calculation.labelClaim), calculation.labelClaimUnit);
+  const swNum = toCanonicalMg(swNumRaw, c.swUnit);
+  const lcMg = toCanonicalMg(parseFloat(calculation.labelClaim), calculation.labelClaimUnit);
 
   const numParts: string[] = ["(Sample Conc. − Blank Conc.)"];
   numParts.push("V1 (mL)");
@@ -296,12 +297,12 @@ const CalculationDetailMeropenam: React.FC<Props> = ({
   // ─── Missing fields ───────────────────────────────────────────────────────
   const missingFields: string[] = [];
   if (!hasVal(calculation.instrumentConcentrationSample)) missingFields.push("Sample Concentration");
-  if (!hasVal(calculation.labelClaim))                   missingFields.push("Label Claim");
+  if (!hasVal(calculation.labelClaim)) missingFields.push("Label Claim");
 
   // ─── Pass / Fail ──────────────────────────────────────────────────────────
   const getPassFail = (): "pass" | "fail" | null => {
     if (!calculation.calculationResult) return null;
-    const v   = parseFloat(calculation.calculationResult);
+    const v = parseFloat(calculation.calculationResult);
     if (!Number.isFinite(v)) return null;
     const min = calculation.acceptanceLimitMin ? parseFloat(calculation.acceptanceLimitMin) : null;
     const max = calculation.acceptanceLimitMax ? parseFloat(calculation.acceptanceLimitMax) : null;
@@ -333,7 +334,7 @@ const CalculationDetailMeropenam: React.FC<Props> = ({
   const DFChip = ({
     label, makeup, makeupUnit, take, takeUnit, makeupLabel, takeLabel,
   }: { label: string; makeup: string | null; makeupUnit?: string; take: string | null; takeUnit?: string; makeupLabel: string; takeLabel: string }) => {
-    const df    = calcDF(makeup, makeupUnit, take, takeUnit);
+    const df = calcDF(makeup, makeupUnit, take, takeUnit);
     const ready = Number.isFinite(df);
     return (
       <div className={`rounded p-2.5 border ${ready ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200"}`}>
@@ -487,7 +488,7 @@ const CalculationDetailMeropenam: React.FC<Props> = ({
                     <div className={`rounded p-2.5 border ${hasVal(calculation.sw) ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"}`}>
                       <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${hasVal(calculation.sw) ? "text-emerald-700" : "text-amber-600"}`}>SW (from prep)</p>
                       <p className="text-sm font-bold text-gray-900">
-                        {hasVal(calculation.sw) ? <>{fmt4(calculation.sw ?? "")} <span className="text-xs font-normal text-gray-500">{c.swUnit || "mg"}</span></> : <span className="text-xs font-semibold italic text-amber-600">Not filled (Defaults to 1g)</span>}
+                        {hasVal(calculation.sw) ? <>{fmt4(calculation.sw ?? "")} <span className="text-xs font-normal text-gray-500">{c.swUnit || "mg"}</span></> : <span className="text-[10px] font-semibold italic text-amber-600">Not filled (×1)</span>}
                       </p>
                     </div>
                     <PrepChip label="V1 (Vol. Makeup)" value={calculation.v1} unit={c.v1Unit || "mL"} />
@@ -504,7 +505,7 @@ const CalculationDetailMeropenam: React.FC<Props> = ({
                     <DFChip label="DF1 = V3/V2" makeup={calculation.v3} makeupUnit={c.v3Unit} take={calculation.v2} takeUnit={c.v2Unit} makeupLabel="V3" takeLabel="V2" />
                     <DFChip label="DF2 = V5/V4" makeup={calculation.v5} makeupUnit={c.v5Unit} take={calculation.v4} takeUnit={c.v4Unit} makeupLabel="V5" takeLabel="V4" />
                     <DFChip label="DF3 = V7/V6" makeup={calculation.v7} makeupUnit={c.v7Unit} take={calculation.v6} takeUnit={c.v6Unit} makeupLabel="V7" takeLabel="V6" />
-                    
+
                     <div className="bg-emerald-50 rounded p-2.5 border border-emerald-200">
                       <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-0.5">Label Claim</p>
                       <p className="text-sm font-bold text-gray-900">{fmt4(calculation.labelClaim)} <span className="text-xs font-normal text-gray-500">{calculation.labelClaimUnit}</span></p>
@@ -517,7 +518,7 @@ const CalculationDetailMeropenam: React.FC<Props> = ({
                         <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
                           <p className="text-xs font-mono text-black break-words">
                             ({fmtN4(samplePpm)} ppm − {Number.isFinite(blankPpm) ? fmtN4(blankPpm) : "0"} ppm)
-                            {v1Active  ? ` × ${fmtN4(toCanonicalML(parseFloat(calculation.v1!), c.v1Unit))} mL` : ""}
+                            {v1Active ? ` × ${fmtN4(toCanonicalML(parseFloat(calculation.v1!), c.v1Unit))} mL` : ""}
                             {df1Active && Number.isFinite(df1Val) ? ` × ${fmtN4(df1Val)}` : ""}
                             {df2Active && Number.isFinite(df2Val) ? ` × ${fmtN4(df2Val)}` : ""}
                             {df3Active && Number.isFinite(df3Val) ? ` × ${fmtN4(df3Val)}` : ""}
@@ -525,7 +526,23 @@ const CalculationDetailMeropenam: React.FC<Props> = ({
                           </p>
                         </div>
                         <div className="text-center px-2 w-full">
-                          <p className="text-xs font-mono text-black break-words">{fmtN4(swNum)} mg × {fmtN4(lcMg)} mg × 10000</p>
+                          <p className="text-xs font-mono text-black break-words">
+                            {Number.isFinite(swNum) && (
+                              <>
+                                {fmtN4(swNum)} {c.swUnit || "mg"}
+                              </>
+                            )}
+
+                            {Number.isFinite(swNum) && Number.isFinite(lcMg) && " × "}
+
+                            {Number.isFinite(lcMg) && (
+                              <>
+                                {fmtN4(lcMg)} {calculation.labelClaimUnit || "mg"}
+                              </>
+                            )}
+
+                            {(Number.isFinite(swNum) || Number.isFinite(lcMg)) && " × 10000"}
+                          </p>
                         </div>
                       </div>
                     </div>

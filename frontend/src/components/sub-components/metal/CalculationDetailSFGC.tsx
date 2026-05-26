@@ -428,7 +428,7 @@ const CalculationDetailSFGC: React.FC<Props> = ({
                         </p>
                       </div>
                       <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">SW(g) × 10000</p>
+                        <p className="text-xs font-mono text-black">SW(mg) × 10000</p>
                       </div>
                     </div>
                     <span className="text-sm font-bold text-black shrink-0">= {RESULT_UNIT}</span>

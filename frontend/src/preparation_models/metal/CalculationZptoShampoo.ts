@@ -14,14 +14,6 @@ export interface CalculationZptoShampoo {
   /** 2nd Dilution value2 — makeup volume → DF = V3/V2 */
   v3: string | null;
 
-  /** Pycnometer weights used to derive specific gravity. */
-  w1EmptyPycnometer: string;
-  w1Unit: string;
-  w2PycnometerWithSample: string;
-  w2Unit: string;
-  w3PycnometerWithWater: string;
-  w3Unit: string;
-
   /** Specific gravity (typically (W2−W1)/(W3−W1), but user may override). */
   specificGravity: string;
 

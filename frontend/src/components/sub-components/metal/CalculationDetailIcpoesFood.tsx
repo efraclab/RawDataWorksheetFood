@@ -32,16 +32,16 @@ const toCanonicalPpb = (value: number, unit: string): number => {
 };
 
 /** Any weight unit → g */
-const toCanonicalG = (value: number, unit?: string | null): number => {
+const toCanonicalMg = (value: number, unit?: string | null): number => {
   if (!Number.isFinite(value)) return NaN;
-  if (!unit) return value;
+  if (!unit) return value; // If missing, assume mg directly
   switch (unit.trim().toLowerCase()) {
-    case "g":   return value;
-    case "mg":  return value / 1000;
-    case "kg":  return value * 1000;
+    case "mg":  return value;
+    case "g":   return value * 1000;
+    case "kg":  return value * 1_000_000;
     case "µg":
     case "ug":
-    case "mcg": return value / 1_000_000;
+    case "mcg": return value / 1000;
     default:    return value;
   }
 };
@@ -74,10 +74,6 @@ const fmtN4 = (n: number): string => trimZeros(n);
 const hasVal = (v: string | null | undefined): boolean =>
   !!v && v.trim() !== "" && Number.isFinite(parseFloat(v));
 
-const safeNum = (v: string | null): number => {
-  const n = parseFloat(v ?? "");
-  return Number.isFinite(n) ? n : 1;
-};
 
 const extractValues = (sp?: SamplePreparationMetal) => {
   const empty = {
@@ -138,7 +134,7 @@ const CalculationDetailIcpoesFood: React.FC<Props> = ({
   const df1 = df1Active ? _df(calculation.v3, c.v3Unit, calculation.v2, c.v2Unit) : null;
   const df2 = df2Active ? _df(calculation.v5, c.v5Unit, calculation.v4, c.v4Unit) : null;
   const df3 = df3Active ? _df(calculation.v7, c.v7Unit, calculation.v6, c.v6Unit) : null;
-  const swG = toCanonicalG(parseFloat(calculation.sw ?? ""), c.swUnit);
+  const swG = toCanonicalMg(parseFloat(calculation.sw ?? ""), c.swUnit);
   const v1Ml = hasVal(calculation.v1) ? toCanonicalML(parseFloat(calculation.v1!), c.v1Unit) : null;
 
   const computeResult = (
@@ -160,7 +156,7 @@ const CalculationDetailIcpoesFood: React.FC<Props> = ({
     const blank = toCanonicalPpb(blankRaw, instBlankUnit);
 
     // SW → g
-    const swG = toCanonicalG(parseFloat(sw ?? ""), swUnit);
+    const swG = toCanonicalMg(parseFloat(sw ?? ""), swUnit);
     if (!Number.isFinite(swG) || swG === 0) return null;
 
     // V1 → mL (absent → ×1)
@@ -178,7 +174,7 @@ const CalculationDetailIcpoesFood: React.FC<Props> = ({
     const df3n = Number.isFinite(v6n) && Number.isFinite(v7n) && v6n !== 0 ? v7n / v6n : 1;
 
     // ppb × mL × DFs / (g × 1000) = mg/Kg ✓
-    const result = ((sample - blank) * v1n * df1n * df2n * df3n) / (swG * 1000);
+    const result = ((sample - blank) * v1n * df1n * df2n * df3n) / (swG);
     if (!Number.isFinite(result)) return null;
     return result.toFixedNoRound(4).toFixed(3);
   };
@@ -338,7 +334,7 @@ const CalculationDetailIcpoesFood: React.FC<Props> = ({
                         <p className="text-xs font-mono text-black break-words">{formulaNumerator}</p>
                       </div>
                       <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">Sample Weight (SW1) × 1000</p>
+                        <p className="text-xs font-mono text-black">SW(mg)</p>
                       </div>
                     </div>
                     <span className="text-sm font-bold text-black">mg/Kg</span>
@@ -414,7 +410,7 @@ const CalculationDetailIcpoesFood: React.FC<Props> = ({
                         <p className="text-[10px] text-gray-500 mt-0.5">(Sample/Blank converted to ppb; missing V1 or DFs treated as ×1)</p>
                       </div>
                       <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">{fmtN4(swG)} g × 1000</p>
+                        <p className="text-xs font-mono text-black">{fmtN4(swG)} mg</p>
                       </div>
                     </div>
                   </div>

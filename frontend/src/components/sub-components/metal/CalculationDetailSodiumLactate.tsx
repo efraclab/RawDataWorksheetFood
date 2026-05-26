@@ -53,10 +53,10 @@ const fmt4 = (v: string | null | undefined): string => {
   if (v === null || v === undefined || v === "") return "—";
   const n = parseFloat(v);
   if (!Number.isFinite(n)) return v;
-  return n.toFixed(4);
+  return parseFloat(n.toFixed(4)).toString();
 };
 
-const fmtN4 = (n: number): string => (Number.isFinite(n) ? n.toFixed(4) : "—");
+const fmtN4 = (n: number): string => (Number.isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—");
 
 const hasVal = (v: string | null | undefined): boolean =>
   !!v && v.trim() !== "" && Number.isFinite(parseFloat(v));
@@ -227,15 +227,17 @@ const CalculationDetailSodiumLactate: React.FC<Props> = ({
     onUpdate({ ...calculation, [field]: value });
   };
 
-  // Derived display values
-  const samplePpm = toCanonicalPpm(
-    parseFloat(calculation.instrumentConcentrationSample),
-    calculation.instrumentConcentrationSampleUnit,
-  );
-  const blankPpm = toCanonicalPpm(
-    parseFloat(calculation.instrumentConcentrationBlank),
-    calculation.instrumentConcentrationBlankUnit,
-  );
+  // Derived display values — raw (as entered) and canonical ppm
+  const sampleRawVal  = parseFloat(calculation.instrumentConcentrationSample);
+  const blankRawVal   = parseFloat(calculation.instrumentConcentrationBlank);
+  const sampleUnit    = calculation.instrumentConcentrationSampleUnit;
+  const blankUnit     = calculation.instrumentConcentrationBlankUnit;
+  const samplePpm     = toCanonicalPpm(sampleRawVal, sampleUnit);
+  const blankPpm      = toCanonicalPpm(blankRawVal,  blankUnit);
+  // Are the entered units already ppm (no conversion to show)?
+  const sampleIsPpm   = sampleUnit === "ppm" || sampleUnit === "mg/L";
+  const blankIsPpm    = blankUnit  === "ppm" || blankUnit  === "mg/L";
+  const showConversion = !sampleIsPpm || !blankIsPpm;
 
   // Dynamic formula numerator — only shows terms with actual values
   const formulaParts: string[] = [];
@@ -387,16 +389,16 @@ const CalculationDetailSodiumLactate: React.FC<Props> = ({
                   <div>
                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Prep Values</p>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <PrepChip label="Volume Makeup (V1)" value={Number.isFinite(v1Ml) ? v1Ml.toFixed(4) : null} unit="mL" />
-                      <PrepChip label="V2" value={Number.isFinite(v2Ml) ? v2Ml.toFixed(4) : null} unit="mL" />
-                      <PrepChip label="V3" value={Number.isFinite(v3Ml) ? v3Ml.toFixed(4) : null} unit="mL" />
-                      <PrepChip label="V4" value={Number.isFinite(v4Ml) ? v4Ml.toFixed(4) : null} unit="mL" />
-                      <PrepChip label="V5" value={Number.isFinite(v5Ml) ? v5Ml.toFixed(4) : null} unit="mL" />
-                      <PrepChip label="V6" value={Number.isFinite(v6Ml) ? v6Ml.toFixed(4) : null} unit="mL" />
-                      <PrepChip label="V7" value={Number.isFinite(v7Ml) ? v7Ml.toFixed(4) : null} unit="mL" />
-                      <DFChip label="DF1 = V3/V2" numerator={Number.isFinite(v3Ml) ? v3Ml.toFixed(4) : null} denominator={Number.isFinite(v2Ml) ? v2Ml.toFixed(4) : null} value={df1} />
-                      <DFChip label="DF2 = V5/V4" numerator={Number.isFinite(v5Ml) ? v5Ml.toFixed(4) : null} denominator={Number.isFinite(v4Ml) ? v4Ml.toFixed(4) : null} value={df2} />
-                      <DFChip label="DF3 = V7/V6" numerator={Number.isFinite(v7Ml) ? v7Ml.toFixed(4) : null} denominator={Number.isFinite(v6Ml) ? v6Ml.toFixed(4) : null} value={df3} />
+                      <PrepChip label="Volume Makeup (V1)" value={Number.isFinite(v1Ml) ? fmtN4(v1Ml) : null} unit="mL" />
+                      <PrepChip label="V2" value={Number.isFinite(v2Ml) ? fmtN4(v2Ml) : null} unit="mL" />
+                      <PrepChip label="V3" value={Number.isFinite(v3Ml) ? fmtN4(v3Ml) : null} unit="mL" />
+                      <PrepChip label="V4" value={Number.isFinite(v4Ml) ? fmtN4(v4Ml) : null} unit="mL" />
+                      <PrepChip label="V5" value={Number.isFinite(v5Ml) ? fmtN4(v5Ml) : null} unit="mL" />
+                      <PrepChip label="V6" value={Number.isFinite(v6Ml) ? fmtN4(v6Ml) : null} unit="mL" />
+                      <PrepChip label="V7" value={Number.isFinite(v7Ml) ? fmtN4(v7Ml) : null} unit="mL" />
+                      <DFChip label="DF1 = V3/V2" numerator={Number.isFinite(v3Ml) ? fmtN4(v3Ml) : null} denominator={Number.isFinite(v2Ml) ? fmtN4(v2Ml) : null} value={df1} />
+                      <DFChip label="DF2 = V5/V4" numerator={Number.isFinite(v5Ml) ? fmtN4(v5Ml) : null} denominator={Number.isFinite(v4Ml) ? fmtN4(v4Ml) : null} value={df2} />
+                      <DFChip label="DF3 = V7/V6" numerator={Number.isFinite(v7Ml) ? fmtN4(v7Ml) : null} denominator={Number.isFinite(v6Ml) ? fmtN4(v6Ml) : null} value={df3} />
                     </div>
                   </div>
 
@@ -404,14 +406,21 @@ const CalculationDetailSodiumLactate: React.FC<Props> = ({
                   <div className="bg-emerald-50/60 rounded-lg p-4 border border-emerald-200">
                     <div className="flex flex-col items-center">
                       <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
+                        {/* Show raw entered values with their unit (ppb/ppm/etc.) */}
                         <p className="text-xs font-mono text-black break-words">
-                          ({fmtN4(samplePpm)} − {fmtN4(blankPpm)})
-                          {v1Active ? ` × ${fmtN4(v1Ml)}` : ""}
+                          ({Number.isFinite(sampleRawVal) ? fmtN4(sampleRawVal) : "—"} {sampleUnit} − {Number.isFinite(blankRawVal) ? fmtN4(blankRawVal) : "—"} {blankUnit})
+                          {v1Active ? ` × ${fmtN4(v1Ml)} mL` : ""}
                           {df1Active && df1 !== null ? ` × ${fmtN4(df1)}` : ""}
                           {df2Active && df2 !== null ? ` × ${fmtN4(df2)}` : ""}
                           {df3Active && df3 !== null ? ` × ${fmtN4(df3)}` : ""}
                         </p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">(Sample/Blank in ppm; all volumes in mL; missing V1 or DFs treated as ×1)</p>
+                        {/* If units need conversion, show the ppm-converted values actually used */}
+                        {showConversion && (
+                          <p className="text-[10px] text-blue-600 mt-1 font-mono">
+                            → converted: ({Number.isFinite(samplePpm) ? fmtN4(samplePpm) : "—"} ppm − {Number.isFinite(blankPpm) ? fmtN4(blankPpm) : "—"} ppm)
+                          </p>
+                        )}
+                        <p className="text-[10px] text-gray-500 mt-0.5">(Volumes in mL; ppb/μg/L → ppm for calculation; missing V1 or DFs treated as ×1)</p>
                       </div>
                       <div className="text-center px-2 w-full">
                         <p className="text-xs font-mono text-black">10000</p>

@@ -64,17 +64,17 @@ const toCanonicalML = (value: number, unit?: string | null): number => {
   if (!unit) return value;
   switch (unit.trim().toLowerCase()) {
     case "ml": return value;
-    case "l":  return value * 1000;
+    case "l": return value * 1000;
     case "µl":
     case "ul": return value / 1000;
-    default:   return value;
+    default: return value;
   }
 };
 
 /** Unit-aware DF = makeup[mL] / take[mL] */
 const calcDF = (
   makeup: string | null, makeupUnit: string | null,
-  take: string | null,   takeUnit: string | null,
+  take: string | null, takeUnit: string | null,
 ): number => {
   const m = toCanonicalML(parseFloat(makeup ?? ""), makeupUnit);
   const t = toCanonicalML(parseFloat(take ?? ""), takeUnit);
@@ -85,10 +85,10 @@ const fmt4 = (v: string | null | undefined): string => {
   if (v === null || v === undefined || v === "") return "—";
   const n = parseFloat(v);
   if (!Number.isFinite(n)) return v;
-  return n.toFixed(4);
+  return trimZeros(n);
 };
 
-const fmtN4 = (n: number): string => (Number.isFinite(n) ? n.toFixed(4) : "—");
+const fmtN4 = (n: number): string => (Number.isFinite(n) ? trimZeros(n) : "—");
 
 const prepNum = (v: string | null): number => {
   const n = parseFloat(v ?? "");
@@ -118,14 +118,12 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
     const empty = isPrepEmpty(value);
     return (
       <div
-        className={`rounded p-2.5 border ${
-          empty ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"
-        }`}
+        className={`rounded p-2.5 border ${empty ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"
+          }`}
       >
         <p
-          className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${
-            empty ? "text-amber-600" : "text-emerald-700"
-          }`}
+          className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${empty ? "text-amber-600" : "text-emerald-700"
+            }`}
         >
           {label}
         </p>
@@ -166,19 +164,17 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
     const ready = Number.isFinite(df);
     return (
       <div
-        className={`rounded p-2.5 border ${
-          ready ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200"
-        }`}
+        className={`rounded p-2.5 border ${ready ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200"
+          }`}
       >
         <p
-          className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${
-            ready ? "text-blue-700" : "text-gray-400"
-          }`}
+          className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${ready ? "text-blue-700" : "text-gray-400"
+            }`}
         >
           {label}
         </p>
         <p className="text-sm font-bold text-gray-900">
-          {ready ? df.toFixed(4) : "—"}
+          {ready ? trimZeros(df) : "—"}
         </p>
         <p className="text-[10px] text-gray-500">
           {makeupLabel} / {takeLabel}
@@ -198,10 +194,10 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
     const d1 = stepsArr.find((s) => s.name === "1st Dilution");
     const d2 = stepsArr.find((s) => s.name === "2nd Dilution");
     return {
-      sw: weighing?.value1 ?? null,     swUnit: (weighing as any)?.unit1 ?? "g",
-      v1: d1?.value1 ?? null,           v1Unit: (d1 as any)?.unit1 ?? "mL",
-      v2: d2?.value1 ?? null,           v2Unit: (d2 as any)?.unit1 ?? "mL",
-      v3: d2?.value2 ?? null,           v3Unit: (d2 as any)?.unit2 ?? "mL",
+      sw: weighing?.value1 ?? null, swUnit: (weighing as any)?.unit1 ?? "g",
+      v1: d1?.value1 ?? null, v1Unit: (d1 as any)?.unit1 ?? "mL",
+      v2: d2?.value1 ?? null, v2Unit: (d2 as any)?.unit1 ?? "mL",
+      v3: d2?.value2 ?? null, v3Unit: (d2 as any)?.unit2 ?? "mL",
     };
   };
 
@@ -217,10 +213,10 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
     instSampleUnit: string,
     instBlank: string,
     instBlankUnit: string,
-    sw: string | null,     swUnit: string | null,
-    v1: string | null,     v1Unit: string | null,
-    v2: string | null,     v2Unit: string | null,
-    v3: string | null,     v3Unit: string | null,
+    sw: string | null, swUnit: string | null,
+    v1: string | null, v1Unit: string | null,
+    v2: string | null, v2Unit: string | null,
+    v3: string | null, v3Unit: string | null,
     specificGravity: string,
     molecularWeight1: string,
     molecularWeight2: string,
@@ -234,18 +230,18 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
 
     // SW → g (missing → 1)
     const swMl = toCanonicalGrams(parseFloat(sw ?? ""), swUnit ?? "g");
-    const swn  = Number.isFinite(swMl) ? swMl : 1;
+    const swn = Number.isFinite(swMl) ? swMl : 1;
 
     // V1 → mL (missing → 1)
     const v1Ml = toCanonicalML(parseFloat(v1 ?? ""), v1Unit);
-    const v1n  = Number.isFinite(v1Ml) ? v1Ml : 1;
+    const v1n = Number.isFinite(v1Ml) ? v1Ml : 1;
 
     // DF = V3[mL] / V2[mL] (missing → 1)
     const v2Ml = toCanonicalML(parseFloat(v2 ?? ""), v2Unit);
     const v3Ml = toCanonicalML(parseFloat(v3 ?? ""), v3Unit);
-    const df   = Number.isFinite(v2Ml) && Number.isFinite(v3Ml) && v2Ml !== 0 ? v3Ml / v2Ml : 1;
+    const df = Number.isFinite(v2Ml) && Number.isFinite(v3Ml) && v2Ml !== 0 ? v3Ml / v2Ml : 1;
 
-    const sg  = parseFloat(specificGravity);
+    const sg = parseFloat(specificGravity);
     const mw1 = parseFloat(molecularWeight1);
     const mw2 = parseFloat(molecularWeight2);
     const lcN = parseFloat(labelClaim);
@@ -273,10 +269,10 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
       calculation.instrumentConcentrationSampleUnit,
       calculation.instrumentConcentrationBlank,
       calculation.instrumentConcentrationBlankUnit,
-      extracted.sw,     extracted.swUnit,
-      extracted.v1,     extracted.v1Unit,
-      extracted.v2,     extracted.v2Unit,
-      extracted.v3,     extracted.v3Unit,
+      extracted.sw, extracted.swUnit,
+      extracted.v1, extracted.v1Unit,
+      extracted.v2, extracted.v2Unit,
+      extracted.v3, extracted.v3Unit,
       calculation.specificGravity,
       calculation.molecularWeight1,
       calculation.molecularWeight2,
@@ -330,27 +326,18 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
     onUpdate({ ...calculation, [field]: value });
   };
 
-  // Auto-compute SG suggestion from W1/W2/W3 for display
-  const w1g = toCanonicalGrams(parseFloat(calculation.w1EmptyPycnometer), calculation.w1Unit);
-  const w2g = toCanonicalGrams(parseFloat(calculation.w2PycnometerWithSample), calculation.w2Unit);
-  const w3g = toCanonicalGrams(parseFloat(calculation.w3PycnometerWithWater), calculation.w3Unit);
-  const sgFromPycnometer =
-    Number.isFinite(w1g) && Number.isFinite(w2g) && Number.isFinite(w3g) && w3g - w1g !== 0
-      ? (w2g - w1g) / (w3g - w1g)
-      : NaN;
-
   // Canonical display values — all converted to their base units
   const cZpto = calculation as any;
 
   const swGrams = toCanonicalGrams(parseFloat(calculation.sw ?? ""), cZpto.swUnit ?? "g");
-  const swEff   = Number.isFinite(swGrams) ? swGrams : prepNum(calculation.sw);
+  const swEff = Number.isFinite(swGrams) ? swGrams : prepNum(calculation.sw);
 
   const v1MlZ = toCanonicalML(parseFloat(calculation.v1 ?? ""), cZpto.v1Unit);
-  const v1Eff  = Number.isFinite(v1MlZ) ? v1MlZ : prepNum(calculation.v1);
+  const v1Eff = Number.isFinite(v1MlZ) ? v1MlZ : prepNum(calculation.v1);
 
   const v2MlZ = toCanonicalML(parseFloat(calculation.v2 ?? ""), cZpto.v2Unit);
   const v3MlZ = toCanonicalML(parseFloat(calculation.v3 ?? ""), cZpto.v3Unit);
-  const dfEff  = Number.isFinite(v2MlZ) && Number.isFinite(v3MlZ) && v2MlZ !== 0
+  const dfEff = Number.isFinite(v2MlZ) && Number.isFinite(v3MlZ) && v2MlZ !== 0
     ? v3MlZ / v2MlZ
     : prepNum(calculation.v3) / prepNum(calculation.v2);
 
@@ -408,9 +395,8 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
       className="bg-white rounded-xl shadow-lg border-2 border-emerald-200 overflow-hidden mb-6"
     >
       <div
-        className={`relative bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 ${
-          isExpanded ? "rounded-t-lg" : "rounded-lg"
-        }`}
+        className={`relative bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 ${isExpanded ? "rounded-t-lg" : "rounded-lg"
+          }`}
       >
         <div className="relative flex items-center justify-between px-4 py-3">
           <div
@@ -490,7 +476,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                     <div className="flex-1 flex flex-col items-center">
                       <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
-                          (Inst. Conc. Sample − Blank) × Vol. Makeup × DF × Specific Gravity × MW₁ × 100
+                          (Inst. Conc. Sample − Blank) × Vol. Makeup × DF1 × Specific Gravity × MW₁ × 100
                         </p>
                       </div>
                       <div className="text-center px-2 w-full">
@@ -546,11 +532,10 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                         }
                         onWheel={(e) => e.currentTarget.blur()}
                         placeholder="Enter value"
-                        className={`flex-1 min-w-0 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
-                          !calculation.instrumentConcentrationSample
-                            ? "border-amber-400"
-                            : "border-emerald-300"
-                        }`}
+                        className={`flex-1 min-w-0 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.instrumentConcentrationSample
+                          ? "border-amber-400"
+                          : "border-emerald-300"
+                          }`}
                       />
                       <div className="w-24 shrink-0">
                         <CustomDropdown
@@ -585,11 +570,10 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                         }
                         onWheel={(e) => e.currentTarget.blur()}
                         placeholder="Enter value"
-                        className={`flex-1 min-w-0 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
-                          !calculation.instrumentConcentrationBlank
-                            ? "border-amber-400"
-                            : "border-emerald-300"
-                        }`}
+                        className={`flex-1 min-w-0 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.instrumentConcentrationBlank
+                          ? "border-amber-400"
+                          : "border-emerald-300"
+                          }`}
                       />
                       <div className="w-24 shrink-0">
                         <CustomDropdown
@@ -615,96 +599,17 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
               {/* Pycnometer weights for Specific Gravity */}
               <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
                 <h5 className="text-sm font-bold text-gray-700 mb-3">
-                  Pycnometer Weights &amp; Specific Gravity
+                  Specific Gravity &amp; Label Claim
                 </h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  {/* Specific Gravity */}
                   <div className="min-w-0">
                     <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                      W1 — Empty Pycnometer
+                      Specific Gravity
                     </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        step="any"
-                        value={calculation.w1EmptyPycnometer}
-                        readOnly={isLocked}
-                        onChange={(e) => handleField("w1EmptyPycnometer", e.target.value)}
-                        onWheel={(e) => e.currentTarget.blur()}
-                        placeholder="Enter value"
-                        className="flex-1 min-w-0 px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                      />
-                      <div className="w-20 shrink-0">
-                        <CustomDropdown
-                          options={weightUnitOptions}
-                          value={calculation.w1Unit}
-                          onChange={(v) => handleField("w1Unit", v)}
-                          placeholder="Unit"
-                          colorScheme="emerald"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="min-w-0">
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                      W2 — Pycnometer + Sample
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        step="any"
-                        value={calculation.w2PycnometerWithSample}
-                        readOnly={isLocked}
-                        onChange={(e) => handleField("w2PycnometerWithSample", e.target.value)}
-                        onWheel={(e) => e.currentTarget.blur()}
-                        placeholder="Enter value"
-                        className="flex-1 min-w-0 px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                      />
-                      <div className="w-20 shrink-0">
-                        <CustomDropdown
-                          options={weightUnitOptions}
-                          value={calculation.w2Unit}
-                          onChange={(v) => handleField("w2Unit", v)}
-                          placeholder="Unit"
-                          colorScheme="emerald"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="min-w-0">
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                      W3 — Pycnometer + Water
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        step="any"
-                        value={calculation.w3PycnometerWithWater}
-                        readOnly={isLocked}
-                        onChange={(e) => handleField("w3PycnometerWithWater", e.target.value)}
-                        onWheel={(e) => e.currentTarget.blur()}
-                        placeholder="Enter value"
-                        className="flex-1 min-w-0 px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                      />
-                      <div className="w-20 shrink-0">
-                        <CustomDropdown
-                          options={weightUnitOptions}
-                          value={calculation.w3Unit}
-                          onChange={(v) => handleField("w3Unit", v)}
-                          placeholder="Unit"
-                          colorScheme="emerald"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="min-w-0 md:col-span-2 lg:col-span-3">
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                      Specific Gravity{" "}
-                      {Number.isFinite(sgFromPycnometer) && (
-                        <span className="text-[10px] text-gray-500 font-normal">
-                          (W2−W1)/(W3−W1) = {fmtN4(sgFromPycnometer)}
-                        </span>
-                      )}
-                    </label>
+
                     <input
                       type="number"
                       step="any"
@@ -713,25 +618,57 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                       onChange={(e) => handleField("specificGravity", e.target.value)}
                       onWheel={(e) => e.currentTarget.blur()}
                       placeholder="Enter value"
-                      className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
-                        !calculation.specificGravity ? "border-amber-400" : "border-emerald-300"
-                      }`}
+                      className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.specificGravity
+                          ? "border-amber-400"
+                          : "border-emerald-300"
+                        }`}
                     />
+
                     {!calculation.specificGravity && (
                       <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3" /> Required for calculation
+                        <AlertTriangle className="w-3 h-3" />
+                        Required for calculation
                       </p>
                     )}
                   </div>
+
+                  {/* Label Claim */}
+                  <div className="min-w-0">
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                      Label Claim
+                    </label>
+
+                    <input
+                      type="number"
+                      step="any"
+                      value={calculation.labelClaim}
+                      readOnly={isLocked}
+                      onChange={(e) => handleField("labelClaim", e.target.value)}
+                      onWheel={(e) => e.currentTarget.blur()}
+                      placeholder="Enter value"
+                      className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.labelClaim
+                          ? "border-amber-400"
+                          : "border-emerald-300"
+                        }`}
+                    />
+
+                    {!calculation.labelClaim && (
+                      <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        Required for calculation
+                      </p>
+                    )}
+                  </div>
+
                 </div>
               </div>
 
               {/* Molecular Weights & Label Claim */}
               <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
                 <h5 className="text-sm font-bold text-gray-700 mb-3">
-                  Molecular Weights &amp; Label Claim
+                  Molecular Weights
                 </h5>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="min-w-0">
                     <label className="block text-xs font-semibold text-gray-600 mb-1.5">
                       MW₁ (Compound)
@@ -744,9 +681,8 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                       onChange={(e) => handleField("molecularWeight1", e.target.value)}
                       onWheel={(e) => e.currentTarget.blur()}
                       placeholder="Enter value"
-                      className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
-                        !calculation.molecularWeight1 ? "border-amber-400" : "border-emerald-300"
-                      }`}
+                      className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.molecularWeight1 ? "border-amber-400" : "border-emerald-300"
+                        }`}
                     />
                     {!calculation.molecularWeight1 && (
                       <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
@@ -766,33 +702,10 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                       onChange={(e) => handleField("molecularWeight2", e.target.value)}
                       onWheel={(e) => e.currentTarget.blur()}
                       placeholder="Enter value"
-                      className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
-                        !calculation.molecularWeight2 ? "border-amber-400" : "border-emerald-300"
-                      }`}
+                      className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.molecularWeight2 ? "border-amber-400" : "border-emerald-300"
+                        }`}
                     />
                     {!calculation.molecularWeight2 && (
-                      <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3" /> Required for calculation
-                      </p>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                      Label Claim
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      value={calculation.labelClaim}
-                      readOnly={isLocked}
-                      onChange={(e) => handleField("labelClaim", e.target.value)}
-                      onWheel={(e) => e.currentTarget.blur()}
-                      placeholder="Enter value"
-                      className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
-                        !calculation.labelClaim ? "border-amber-400" : "border-emerald-300"
-                      }`}
-                    />
-                    {!calculation.labelClaim && (
                       <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3" /> Required for calculation
                       </p>
@@ -810,15 +723,15 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                 </div>
                 <div className="p-5 space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <PrepChip label="SW1 (Sample Wt.)" value={Number.isFinite(swGrams) ? swGrams.toFixed(4) : calculation.sw} unit="g" />
-                    <PrepChip label="V1 (Vol. Makeup)" value={Number.isFinite(v1MlZ) ? v1MlZ.toFixed(4) : calculation.v1} unit="mL" />
-                    <PrepChip label="V2 (2nd Dil. Take)" value={Number.isFinite(v2MlZ) ? v2MlZ.toFixed(4) : calculation.v2} unit="mL" />
-                    <PrepChip label="V3 (2nd Dil. Makeup)" value={Number.isFinite(v3MlZ) ? v3MlZ.toFixed(4) : calculation.v3} unit="mL" />
+                    <PrepChip label="SW1 (Sample Wt.)" value={Number.isFinite(swGrams) ? trimZeros(swGrams) : calculation.sw} unit="g" />
+                    <PrepChip label="V1 (Vol. Makeup)" value={Number.isFinite(v1MlZ) ? trimZeros(v1MlZ) : calculation.v1} unit="mL" />
+                    <PrepChip label="V2 (2nd Dil. Take)" value={Number.isFinite(v2MlZ) ? trimZeros(v2MlZ) : calculation.v2} unit="mL" />
+                    <PrepChip label="V3 (2nd Dil. Makeup)" value={Number.isFinite(v3MlZ) ? trimZeros(v3MlZ) : calculation.v3} unit="mL" />
                     <DFChip
                       label="DF = V3/V2"
-                      makeup={Number.isFinite(v3MlZ) ? v3MlZ.toFixed(4) : calculation.v3}
+                      makeup={Number.isFinite(v3MlZ) ? trimZeros(v3MlZ) : calculation.v3}
                       makeupUnit={null}
-                      take={Number.isFinite(v2MlZ) ? v2MlZ.toFixed(4) : calculation.v2}
+                      take={Number.isFinite(v2MlZ) ? trimZeros(v2MlZ) : calculation.v2}
                       takeUnit={null}
                       makeupLabel="V3"
                       takeLabel="V2"
@@ -867,7 +780,7 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                           {fmtN4(mw1Num)} × 100
                         </p>
                         <p className="text-[10px] text-gray-500 mt-0.5">
-                          (Sample/Blank in ppm; V1, V2, V3 in mL; SW in g; DF=V3/V2={fmtN4(dfEff)})
+                          (Sample/Blank in ppm; V1, V2, V3 in mL; SW in g; DF1=V3/V2={fmtN4(dfEff)})
                         </p>
                       </div>
                       <div className="text-center px-2 w-full">
@@ -959,11 +872,10 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                     </div>
                     {passFail && (
                       <span
-                        className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
-                          passFail === "pass"
-                            ? "bg-green-100 text-green-800 border border-green-300"
-                            : "bg-red-100 text-red-800 border border-red-300"
-                        }`}
+                        className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${passFail === "pass"
+                          ? "bg-green-100 text-green-800 border border-green-300"
+                          : "bg-red-100 text-red-800 border border-red-300"
+                          }`}
                       >
                         {passFail === "pass" ? "Pass" : "Fail"}
                       </span>

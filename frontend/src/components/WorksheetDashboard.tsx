@@ -728,13 +728,13 @@ export default function WorksheetDashboard({
                       key={worksheet.id}
                       onClick={() => handleWorksheetClick(worksheet)}
                       style={{ animationDelay: `${index * 30}ms` }}
-                      className="anim-fadeInUp worksheet-card flex flex-col h-full group bg-white border border-slate-200 rounded-2xl cursor-pointer overflow-hidden shadow-sm"
+                      className="anim-fadeInUp worksheet-card flex flex-col h-full group bg-white border border-slate-200 rounded-2xl cursor-pointer shadow-sm"
                     >
                       {/* Shimmer sweep */}
                       <div className="card-shimmer" />
 
                       {/* Header — animated gradient */}
-                      <div className="relative nav-gradient px-4 py-3.5 overflow-hidden">
+                      <div className="relative nav-gradient px-4 py-3.5 overflow-hidden rounded-t-2xl">
                         <div className="absolute inset-0 dot-grid opacity-[0.04] pointer-events-none" />
                         <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-300/25 to-transparent" />
                         {/* Morphing blob decoration */}
@@ -796,7 +796,7 @@ export default function WorksheetDashboard({
                       </div>
 
                       {/* Status footer */}
-                      <div className={`${sc.bg} border-t ${sc.border} px-4 py-2.5 flex items-center justify-between`}>
+                      <div className={`${sc.bg} border-t ${sc.border} px-4 py-2.5 flex items-center justify-between rounded-b-2xl`}>
                         <div className="flex items-center gap-1.5">
                           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 status-dot ${sc.dot}`} />
                           <span className={`text-[9.5px] font-medium uppercase tracking-wider ${sc.text}`}>

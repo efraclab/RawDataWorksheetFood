@@ -156,7 +156,7 @@ const compute = (
   const df3 = Number.isFinite(v6n) && Number.isFinite(v7n) && v6n !== 0 ? v7n / v6n : 1;
 
   const numerator = (sample - blank) * v1n * df1 * df2 * df3;
-  const denominator = swG * 1000;
+  const denominator = swG;
   if (denominator === 0) return null;
   const result = numerator / denominator;
   return Number.isFinite(result) ? result.toFixedNoRound(4).toFixed(3) : null;
@@ -511,7 +511,7 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
                           </p>
                         </div>
                         <div className="text-center px-2 w-full">
-                          <p className="text-xs font-mono text-black">{fmtN4(swEff)} g × 1000</p>
+                          <p className="text-xs font-mono text-black">{fmtN4(swEff)} g</p>
                         </div>
                       </div>
                     </div>

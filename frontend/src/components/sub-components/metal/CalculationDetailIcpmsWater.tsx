@@ -371,7 +371,7 @@ const CalculationDetailIcpmsWater: React.FC<Props> = ({
                     <div className="flex flex-col items-center">
                       <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
-                          ({fmtN4(samplePpb)} − {fmtN4(blankPpb)})
+                          ({fmtN4(samplePpb)} ppb − {fmtN4(blankPpb)} ppb)
                           {v1Active && v1Ml !== null ? ` × ${fmtN4(v1Ml)} mL` : ""}
                           {df1Active && df1 !== null ? ` × ${fmtN4(df1)}` : ""}
                           {df2Active && df2 !== null ? ` × ${fmtN4(df2)}` : ""}

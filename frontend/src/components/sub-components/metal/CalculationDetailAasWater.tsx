@@ -25,13 +25,13 @@ const RESULT_UNIT = "mg/L";
 // ─── Unit converters ──────────────────────────────────────────────────────────
 
 /** Any concentration unit → ppb (μg/L) */
-const toCanonicalPpb = (value: number, unit: string): number => {
+const toCanonicalPpm = (value: number, unit: string): number => {
   if (!Number.isFinite(value)) return NaN;
   switch (unit) {
-    case "ppb":
-    case "μg/L": return value;
     case "ppm":
-    case "mg/L": return value * 1000;
+    case "mg/L": return value;
+    case "ppb":
+    case "μg/L": return value / 1000;
     default: return value;
   }
 };
@@ -122,9 +122,9 @@ const computeResult = (
   v7?: string | null, v7Unit?: string | null,
 ): string | null => {
   // Concentrations → ppb
-  const sample = toCanonicalPpb(parseFloat(instSample), instSampleUnit);
+  const sample = toCanonicalPpm(parseFloat(instSample), instSampleUnit);
   if (!Number.isFinite(sample)) return null;
-  const blank = toCanonicalPpb(parseFloat(instBlank), instBlankUnit);
+  const blank = toCanonicalPpm(parseFloat(instBlank), instBlankUnit);
   if (!Number.isFinite(blank)) return null;
 
   // V1 → mL (absent → treat as ×1)
@@ -144,7 +144,7 @@ const computeResult = (
   const v7n = toCanonicalML(parseFloat(v7 ?? ""), v7Unit);
   const df3 = Number.isFinite(v6n) && Number.isFinite(v7n) && v6n !== 0 ? v7n / v6n : 1;
 
-  const result = ((sample - blank) * v1n * df1 * df2 * df3) / 1000;
+  const result = ((sample - blank) * v1n * df1 * df2 * df3);
   if (!Number.isFinite(result)) return null;
   return result.toFixedNoRound(4).toFixed(3);
 };
@@ -230,11 +230,11 @@ const CalculationDetailAasWater: React.FC<Props> = ({
   };
 
   // ─── Derived display numbers (all normalised) ─────────────────────────────
-  const samplePpb = toCanonicalPpb(
+  const samplePpb = toCanonicalPpm(
     parseFloat(calculation.instrumentConcentrationSample),
     calculation.instrumentConcentrationSampleUnit,
   );
-  const blankPpb = toCanonicalPpb(
+  const blankPpb = toCanonicalPpm(
     parseFloat(calculation.instrumentConcentrationBlank),
     calculation.instrumentConcentrationBlankUnit,
   );
@@ -383,13 +383,10 @@ const CalculationDetailAasWater: React.FC<Props> = ({
                 <div className="bg-gray-50 rounded p-3">
                   <div className="flex items-center gap-2">
                     <div className="flex-1 flex flex-col items-center">
-                      <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
+                      <div className="text-center px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
                           {numParts.join(" × ")}
                         </p>
-                      </div>
-                      <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">1000</p>
                       </div>
                     </div>
                     <span className="text-sm font-bold text-black shrink-0">= {RESULT_UNIT}</span>
@@ -538,17 +535,14 @@ const CalculationDetailAasWater: React.FC<Props> = ({
                   {Number.isFinite(samplePpb) && Number.isFinite(blankPpb) && (
                     <div className="bg-emerald-50/60 rounded-lg p-4 border border-emerald-200">
                       <div className="flex flex-col items-center">
-                        <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
+                        <div className="text-center px-2 w-full">
                           <p className="text-xs font-mono text-black break-words">
-                            ({fmtN4(samplePpb)} ppb − {fmtN4(blankPpb)} ppb)
+                            ({fmtN4(samplePpb)} ppm − {fmtN4(blankPpb)} ppm)
                             {v1Active && v1Ml !== null ? ` × ${fmtN4(v1Ml)} mL` : ""}
                             {df1Active && Number.isFinite(df1Val) ? ` × ${fmtN4(df1Val)}` : ""}
                             {df2Active && Number.isFinite(df2Val) ? ` × ${fmtN4(df2Val)}` : ""}
                             {df3Active && Number.isFinite(df3Val) ? ` × ${fmtN4(df3Val)}` : ""}
                           </p>
-                        </div>
-                        <div className="text-center px-2 w-full">
-                          <p className="text-xs font-mono text-black">1000</p>
                         </div>
                       </div>
                     </div>

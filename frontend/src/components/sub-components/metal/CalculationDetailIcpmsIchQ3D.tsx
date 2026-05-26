@@ -36,13 +36,13 @@ const toCanonicalG = (value: number, unit?: string | null): number => {
   if (!Number.isFinite(value)) return NaN;
   if (!unit) return value;
   switch (unit.trim().toLowerCase()) {
-    case "g":   return value;
-    case "mg":  return value / 1000;
-    case "kg":  return value * 1000;
+    case "g": return value;
+    case "mg": return value / 1000;
+    case "kg": return value * 1000;
     case "µg":
     case "ug":
     case "mcg": return value / 1_000_000;
-    default:    return value;
+    default: return value;
   }
 };
 
@@ -52,10 +52,10 @@ const toCanonicalML = (value: number, unit?: string | null): number => {
   if (!unit) return value;
   switch (unit.trim().toLowerCase()) {
     case "ml": return value;
-    case "l":  return value * 1000;
+    case "l": return value * 1000;
     case "µl":
     case "ul": return value / 1000;
-    default:   return value;
+    default: return value;
   }
 };
 
@@ -94,14 +94,14 @@ const extractValues = (sp?: SamplePreparationMetal) => {
   const d3 = steps.find((s) => s.name === "3rd Dilution");
   const d4 = steps.find((s) => s.name === "4th Dilution");
   return {
-    sw: weighing?.value1 ?? null,  swUnit: (weighing as any)?.unit1 ?? "g",
-    v1: d1?.value1 ?? null,        v1Unit: (d1 as any)?.unit1 ?? "mL",
-    v2: d2?.value1 ?? null,        v2Unit: (d2 as any)?.unit1 ?? "mL",
-    v3: d2?.value2 ?? null,        v3Unit: (d2 as any)?.unit2 ?? "mL",
-    v4: d3?.value1 ?? null,        v4Unit: (d3 as any)?.unit1 ?? "mL",
-    v5: d3?.value2 ?? null,        v5Unit: (d3 as any)?.unit2 ?? "mL",
-    v6: d4?.value1 ?? null,        v6Unit: (d4 as any)?.unit1 ?? "mL",
-    v7: d4?.value2 ?? null,        v7Unit: (d4 as any)?.unit2 ?? "mL",
+    sw: weighing?.value1 ?? null, swUnit: (weighing as any)?.unit1 ?? "g",
+    v1: d1?.value1 ?? null, v1Unit: (d1 as any)?.unit1 ?? "mL",
+    v2: d2?.value1 ?? null, v2Unit: (d2 as any)?.unit1 ?? "mL",
+    v3: d2?.value2 ?? null, v3Unit: (d2 as any)?.unit2 ?? "mL",
+    v4: d3?.value1 ?? null, v4Unit: (d3 as any)?.unit1 ?? "mL",
+    v5: d3?.value2 ?? null, v5Unit: (d3 as any)?.unit2 ?? "mL",
+    v6: d4?.value1 ?? null, v6Unit: (d4 as any)?.unit1 ?? "mL",
+    v7: d4?.value2 ?? null, v7Unit: (d4 as any)?.unit2 ?? "mL",
   };
 };
 
@@ -158,7 +158,6 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
 
     // SW → g
     const swG = toCanonicalG(parseFloat(sw ?? ""), swUnit);
-    if (!Number.isFinite(swG) || swG === 0) return null;
 
     // V1 → mL (absent → ×1)
     const v1n = hasVal(v1) ? toCanonicalML(parseFloat(v1!), v1Unit) : 1;
@@ -174,7 +173,12 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
     const df2n = Number.isFinite(v4n) && Number.isFinite(v5n) && v4n !== 0 ? v5n / v4n : 1;
     const df3n = Number.isFinite(v6n) && Number.isFinite(v7n) && v6n !== 0 ? v7n / v6n : 1;
 
-    const result = ((sample - blank) * v1n * df1n * df2n * df3n) / (swG * 1000);
+    const result =
+      ((sample - blank) * v1n * df1n * df2n * df3n) /
+      ((!Number.isFinite(swG) || swG === 0)
+        ? 1000
+        : (swG * 1000));
+
     if (!Number.isFinite(result)) return null;
     return result.toFixedNoRound(4).toFixed(3);
   };
@@ -209,14 +213,14 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
     ) {
       onUpdate({
         ...calculation,
-        sw: ex.sw,        swUnit: ex.swUnit,
-        v1: ex.v1,        v1Unit: ex.v1Unit,
-        v2: ex.v2,        v2Unit: ex.v2Unit,
-        v3: ex.v3,        v3Unit: ex.v3Unit,
-        v4: ex.v4,        v4Unit: ex.v4Unit,
-        v5: ex.v5,        v5Unit: ex.v5Unit,
-        v6: ex.v6,        v6Unit: ex.v6Unit,
-        v7: ex.v7,        v7Unit: ex.v7Unit,
+        sw: ex.sw, swUnit: ex.swUnit,
+        v1: ex.v1, v1Unit: ex.v1Unit,
+        v2: ex.v2, v2Unit: ex.v2Unit,
+        v3: ex.v3, v3Unit: ex.v3Unit,
+        v4: ex.v4, v4Unit: ex.v4Unit,
+        v5: ex.v5, v5Unit: ex.v5Unit,
+        v6: ex.v6, v6Unit: ex.v6Unit,
+        v7: ex.v7, v7Unit: ex.v7Unit,
         calculationResult: newResult,
         calculationResultUnit: RESULT_UNIT,
         label: newLabel,
@@ -385,7 +389,7 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
                       <PrepChip label="SW1" value={calculation.sw} unit={c.swUnit || "g"} />
                       <PrepChip label="Volume Makeup (V1)" value={calculation.v1} unit={c.v1Unit || "mL"} />
                       <PrepChip label="V2" value={calculation.v2} unit={c.v2Unit || "mL"} />
-                      <PrepChip label="V3" value={calculation.v3} unit={c.v3Unit || "mL"}/>
+                      <PrepChip label="V3" value={calculation.v3} unit={c.v3Unit || "mL"} />
                       <PrepChip label="V4" value={calculation.v4} unit={c.v4Unit || "mL"} />
                       <PrepChip label="V5" value={calculation.v5} unit={c.v5Unit || "mL"} />
                       <PrepChip label="V6" value={calculation.v6} unit={c.v6Unit || "mL"} />
@@ -399,7 +403,7 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
                     <div className="flex flex-col items-center">
                       <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
-                          ({fmtN4(samplePpb)} − {fmtN4(blankPpb)})
+                          ({fmtN4(samplePpb)} ppb − {fmtN4(blankPpb)} ppb)
                           {v1Active && v1Ml !== null ? ` × ${fmtN4(v1Ml)} mL` : ""}
                           {df1Active && df1 !== null ? ` × ${fmtN4(df1)}` : ""}
                           {df2Active && df2 !== null ? ` × ${fmtN4(df2)}` : ""}
@@ -407,7 +411,15 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
                         </p>
                       </div>
                       <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">{fmtN4(swG)} g × 1000</p>
+                        <p className="text-xs font-mono text-black">
+                          {Number.isFinite(swG) ? (
+                            <>
+                              {fmtN4(swG)} {c.swUnit || "g"} × 1000
+                            </>
+                          ) : (
+                            "—"
+                          )}
+                        </p>
                       </div>
                     </div>
                   </div>

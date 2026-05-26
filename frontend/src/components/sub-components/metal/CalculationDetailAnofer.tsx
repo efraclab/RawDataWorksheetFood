@@ -483,14 +483,9 @@ const CalculationDetailAnofer: React.FC<Props> = ({
                         />
                       </div>
                     </div>
-                    {/* Show normalised ppm hint when entered in a non-ppm unit */}
                     {hasVal(calculation.instrumentConcentrationSample) &&
                       calculation.instrumentConcentrationSampleUnit !== "ppm" &&
-                      calculation.instrumentConcentrationSampleUnit !== "mg/L" && (
-                        <p className="text-[10px] text-emerald-700 mt-1">
-                          ≡ {fmtN4(sampleNum)} ppm (used in calculation)
-                        </p>
-                      )}
+                      calculation.instrumentConcentrationSampleUnit !== "mg/L"}
                     {!calculation.instrumentConcentrationSample && (
                       <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3" /> Required for calculation
@@ -521,11 +516,7 @@ const CalculationDetailAnofer: React.FC<Props> = ({
                     </div>
                     {hasVal(calculation.instrumentConcentrationBlank) &&
                       calculation.instrumentConcentrationBlankUnit !== "ppm" &&
-                      calculation.instrumentConcentrationBlankUnit !== "mg/L" && (
-                        <p className="text-[10px] text-emerald-700 mt-1">
-                          ≡ {fmtN4(blankEff)} ppm (used in calculation)
-                        </p>
-                      )}
+                      calculation.instrumentConcentrationBlankUnit !== "mg/L"}
                     {!calculation.instrumentConcentrationBlank && (
                       <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3" /> Required for calculation
@@ -562,11 +553,7 @@ const CalculationDetailAnofer: React.FC<Props> = ({
                       </div>
                     </div>
                     {hasVal(calculation.avgWeight) &&
-                      calculation.avgWeightUnit !== "g" && (
-                        <p className="text-[10px] text-emerald-700 mt-1">
-                          ≡ {fmtN4(avgNum)} mg (used in calculation)
-                        </p>
-                      )}
+                      calculation.avgWeightUnit !== "g"}
                     {!calculation.avgWeight && (
                       <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3" /> Required for calculation
@@ -582,7 +569,7 @@ const CalculationDetailAnofer: React.FC<Props> = ({
                         placeholder="Enter value" className={`flex-1 min-w-0 px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!calculation.labelClaim ? "border-amber-400" : "border-emerald-300"}`}
                       />
                       <div className="w-20 shrink-0">
-                        <CustomDropdown options={weightUnitOptions} value={calculation.labelClaimUnit} onChange={(v) => handleField("labelClaimUnit", v)} placeholder="Unit" colorScheme="emerald" />
+                        <CustomDropdown options={weightUnitOptions} value={calculation.labelClaimUnit || "mg"} onChange={(v) => handleField("labelClaimUnit", v)} placeholder="Unit" colorScheme="emerald" />
                       </div>
                     </div>
                   </div>
@@ -643,7 +630,7 @@ const CalculationDetailAnofer: React.FC<Props> = ({
                         </div>
                         <div className="text-center px-2 w-full">
                           <p className="text-xs font-mono text-black break-words">
-                            {fmtN4(swEff)} mg × {fmtN4(lcNum)}
+                            {fmtN4(swEff)} mg × {fmtN4(lcNum)} mg
                           </p>
                         </div>
                       </div>

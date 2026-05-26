@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Clock,
   AlertTriangle,
+  Calculator,
 } from "lucide-react";
 import type { SamplePreparationMetal } from "../../../preparation_models/metal/SamplePreparationMetal";
 import CustomDropdown from "../../shared/CustomDropdown";
@@ -168,6 +169,7 @@ const CalculationDetailLithosun400: React.FC<Props> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [timePointResults, setTimePointResults] = useState<TimePointResult[]>([]);
+  const [overallSummary, setOverallSummary] = useState<{ min: number; avg: number; max: number } | null>(null);
 
   const selectedSamplePrep = samplePreparations.find(
     (p) => p.label === calculation.selectedSamplePreparationLabel,
@@ -214,18 +216,21 @@ const CalculationDetailLithosun400: React.FC<Props> = ({
         const tpBlankUnit = (calculation[blankUnitField(tp)] as string | null) ?? "ppm";
         const r = computeTabletResult(
           raw,
-          tpBlankUnit,
-          tpBlankRaw,
-          tpBlankUnit,
-          calculation.v1,
-          calculation.v2,
-          calculation.v3,
+          tpBlankUnit,           // sampleUnit  (shared unit for this time point)
+          tpBlankRaw,            // blankRaw
+          tpBlankUnit,           // blankUnit
+          calculation.v1,        // v1
+          (calculation as any).v1Unit ?? "mL",  // v1Unit
+          calculation.v2,        // v2
+          (calculation as any).v2Unit ?? "mL",  // v2Unit
+          calculation.v3,        // v3
+          (calculation as any).v3Unit ?? "mL",  // v3Unit
           calculation.conversionFactor!,
           calculation.labelClaim!,
           calculation.labelClaimUnit!,
         );
         const key = resultField(tp, tab);
-        updates[key] = r !== null ? r.toFixed(3) : undefined;
+        updates[key] = r !== null ? r.toFixed(3) : null;
         if (r !== null) tablets.push({ tabletNumber: tab, result: r });
       }
 
@@ -234,9 +239,9 @@ const CalculationDetailLithosun400: React.FC<Props> = ({
       const max = nums.length ? Math.max(...nums) : 0;
       const avg = nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
 
-      updates[minField(tp)] = nums.length ? min : undefined;
-      updates[avgField(tp)] = nums.length ? avg : undefined;
-      updates[maxField(tp)] = nums.length ? max : undefined;
+      updates[minField(tp)] = nums.length ? min : null;
+      updates[avgField(tp)] = nums.length ? avg : null;
+      updates[maxField(tp)] = nums.length ? max : null;
 
       if (tablets.length > 0) {
         results.push({
@@ -249,6 +254,19 @@ const CalculationDetailLithosun400: React.FC<Props> = ({
     }
 
     setTimePointResults(results);
+
+    // Overall summary across ALL time points and ALL tablets
+    const allNums = results.flatMap((tpr) => tpr.tablets.map((t) => t.result));
+    if (allNums.length > 0) {
+      setOverallSummary({
+        min: Math.min(...allNums),
+        max: Math.max(...allNums),
+        avg: allNums.reduce((a, b) => a + b, 0) / allNums.length,
+      });
+    } else {
+      setOverallSummary(null);
+    }
+
     onUpdate({ ...calculation, ...updates, calculationResultUnit: RESULT_UNIT });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -669,7 +687,7 @@ const CalculationDetailLithosun400: React.FC<Props> = ({
                                 const raw = calculation[sampleField(tp, tab)] as string | null;
                                 const samplePpm = toCanonicalPpm(
                                   parseFloat(raw ?? ""),
-                                  tpBlankUnit,
+                                  tpBlankUnit,  // shared unit applies to both sample and blank
                                 );
                                 const resultKey = resultField(tp, tab);
                                 const resultRaw = calculation[resultKey] as string | null;
@@ -926,12 +944,69 @@ const CalculationDetailLithosun400: React.FC<Props> = ({
                     );
                   })}
 
+                  {/* ── Per-time-point Summary Cards ── */}
+                  {timePointResults.length > 1 && (
+                    <div className="bg-white rounded-lg shadow-lg border-2 border-emerald-300 overflow-hidden">
+                      <div className="bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 px-4 py-2">
+                        <h6 className="text-sm font-bold text-white flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4" />
+                          Per Time Point Summary
+                        </h6>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="bg-emerald-100">
+                              <th className="px-4 py-2.5 text-left font-bold text-emerald-900 border-r border-emerald-200">
+                                Time Point
+                              </th>
+                              <th className="px-4 py-2.5 text-center font-bold text-emerald-900 border-r border-emerald-200">
+                                Min
+                              </th>
+                              <th className="px-4 py-2.5 text-center font-bold text-emerald-900 border-r border-emerald-200">
+                                Avg
+                              </th>
+                              <th className="px-4 py-2.5 text-center font-bold text-emerald-900">
+                                Max
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {timePointResults.map((tpr, idx) => (
+                              <tr
+                                key={tpr.tp}
+                                className={idx % 2 === 0 ? "bg-white" : "bg-emerald-50/30"}
+                              >
+                                <td className="px-4 py-2.5 font-semibold text-gray-700 border-r border-gray-200">
+                                  After {tpr.label} Hr.
+                                </td>
+                                <td className="px-4 py-2.5 text-center font-bold text-gray-800 border-r border-gray-200">
+                                  {trimZeros(tpr.min)}
+                                </td>
+                                <td className="px-4 py-2.5 text-center font-bold text-emerald-700 border-r border-gray-200">
+                                  {trimZeros(tpr.avg)}
+                                </td>
+                                <td className="px-4 py-2.5 text-center font-bold text-gray-800">
+                                  {trimZeros(tpr.max)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Preparation info footer */}
-                  <div className="bg-white/80 rounded-lg border border-gray-200 p-4">
-                    <p className="text-xs font-medium text-gray-600">Sample Preparation</p>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {calculation.selectedSamplePreparationLabel || "N/A"}
-                    </p>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4">
+                    <div className="grid md:grid-cols-1 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-600 font-medium">Sample Preparation</p>
+                        <p className="text-gray-900 font-semibold">
+                          {calculation.selectedSamplePreparationLabel || "N/A"}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               )}

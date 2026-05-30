@@ -22,11 +22,13 @@ const concUnitOptions = [
 
 const RESULT_UNIT = "mg/L";
 
-const toCanonicalPpb = (value: number, unit: string): number => {
-  if (!Number.isFinite(value)) return value;
+const toCanonicalPpm = (value: number, unit: string): number => {
+  if (!Number.isFinite(value)) return NaN;
   switch (unit) {
-    case "ppb": case "μg/L": return value;
-    case "ppm": case "mg/L": return value * 1000;
+    case "ppm":
+    case "mg/L": return value;
+    case "ppb":
+    case "μg/L": return value / 1000;
     default: return value;
   }
 };
@@ -59,10 +61,7 @@ const fmtN4 = (n: number): string => trimZeros(n);
 const hasVal = (v: string | null | undefined): boolean =>
   !!v && v.trim() !== "" && Number.isFinite(parseFloat(v));
 
-const safeNum = (v: string | null): number => {
-  const n = parseFloat(v ?? "");
-  return Number.isFinite(n) ? n : 1;
-};
+
 
 const extractValues = (sp?: SamplePreparationMetal) => {
   const empty = {
@@ -133,11 +132,11 @@ const CalculationDetailIcpmsWater: React.FC<Props> = ({
     v6: string | null, v6Unit: string | null,
     v7: string | null, v7Unit: string | null,
   ): string | null => {
-    const sample = toCanonicalPpb(parseFloat(instSample), instSampleUnit);
+    const sample = toCanonicalPpm(parseFloat(instSample), instSampleUnit);
     if (!Number.isFinite(sample)) return null;
     const blankRaw = parseFloat(instBlank);
     if (!Number.isFinite(blankRaw)) return null;
-    const blank = toCanonicalPpb(blankRaw, instBlankUnit);
+    const blank = toCanonicalPpm(blankRaw, instBlankUnit);
 
     // V1 → mL (absent → ×1)
     const v1n = hasVal(v1) ? toCanonicalML(parseFloat(v1!), v1Unit) : 1;
@@ -154,7 +153,7 @@ const CalculationDetailIcpmsWater: React.FC<Props> = ({
     const df3n = Number.isFinite(v6n) && Number.isFinite(v7n) && v6n !== 0 ? v7n / v6n : 1;
 
     // ppb × mL × DFs / 1000 = µg/L × mL × (mL/mL) / 1000 = mg/L ✓
-    const result = ((sample - blank) * v1n * df1n * df2n * df3n) / 1000;
+    const result = ((sample - blank) * v1n * df1n * df2n * df3n);
     if (!Number.isFinite(result)) return null;
     return result.toFixedNoRound(4).toFixed(3);
   };
@@ -208,8 +207,8 @@ const CalculationDetailIcpmsWater: React.FC<Props> = ({
 
   const rawSampleNum = parseFloat(calculation.instrumentConcentrationSample);
   const rawBlankNum = parseFloat(calculation.instrumentConcentrationBlank);
-  const samplePpb = toCanonicalPpb(rawSampleNum, calculation.instrumentConcentrationSampleUnit);
-  const blankPpb = toCanonicalPpb(rawBlankNum, calculation.instrumentConcentrationBlankUnit);
+  const samplePpb = toCanonicalPpm(rawSampleNum, calculation.instrumentConcentrationSampleUnit);
+  const blankPpb = toCanonicalPpm(rawBlankNum, calculation.instrumentConcentrationBlankUnit);
 
   const missingFields: string[] = [];
   if (!calculation.instrumentConcentrationSample) missingFields.push("Sample Concentration");
@@ -307,11 +306,8 @@ const CalculationDetailIcpmsWater: React.FC<Props> = ({
                 <div className="bg-gray-50 rounded p-3">
                   <div className="flex items-center gap-2">
                     <div className="flex-1 flex flex-col items-center">
-                      <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
-                        <p className="text-xs font-mono text-black break-words">{formulaNumerator}</p>
-                      </div>
                       <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">1000</p>
+                        <p className="text-xs font-mono text-black break-words">{formulaNumerator}</p>
                       </div>
                     </div>
                     <span className="text-sm font-bold text-black">mg/L</span>
@@ -369,18 +365,14 @@ const CalculationDetailIcpmsWater: React.FC<Props> = ({
                   </div>
                   <div className="bg-emerald-50/60 rounded-lg p-4 border border-emerald-200">
                     <div className="flex flex-col items-center">
-                      <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
+                      <div className="text-center px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
-                          ({fmtN4(samplePpb)} ppb − {fmtN4(blankPpb)} ppb)
+                          ({fmtN4(samplePpb)} ppm − {fmtN4(blankPpb)} ppm)
                           {v1Active && v1Ml !== null ? ` × ${fmtN4(v1Ml)} mL` : ""}
                           {df1Active && df1 !== null ? ` × ${fmtN4(df1)}` : ""}
                           {df2Active && df2 !== null ? ` × ${fmtN4(df2)}` : ""}
                           {df3Active && df3 !== null ? ` × ${fmtN4(df3)}` : ""}
                         </p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">(Sample/Blank converted to ppb; missing V1 or DFs treated as ×1)</p>
-                      </div>
-                      <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">1000</p>
                       </div>
                     </div>
                   </div>

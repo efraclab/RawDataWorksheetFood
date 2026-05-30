@@ -1,16 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Droplets, Trash, AlertTriangle } from "lucide-react";
-import type { SamplePreparationMetal } from "../../../preparation_models/metal/SamplePreparationMetal";
-import type { SamplePreparationMetalStep } from "../../../preparation_models/metal/SamplePreparationMetalStep";
-import { getMetalPrepDilutionErrors } from "../../../preparation_models/metal/metalPrepValidation";
+import { getMetalStandardPrepDilutionErrors } from "../../../preparation_models/metal/metalPrepValidation";
 import CustomDropdown from "../../shared/CustomDropdown";
-
-const weightUnitOptions = [
-  { value: "mg", label: "mg" },
-  { value: "g", label: "g" },
-  { value: "kg", label: "kg" },
-];
+import type { StandardPreparationMetal } from "../../../preparation_models/metal/StandardPreparationMetal";
+import type { StandardPreparationMetalStep } from "../../../preparation_models/metal/StandardPreparationMetalStep";
 
 const filtrationUnitOptions = [
   { value: "micron", label: "micron" },
@@ -23,25 +17,31 @@ const volumeUnitOptions = [
   { value: "µL", label: "µL" },
 ];
 
+const concUnitOptions = [
+  { value: "ppb", label: "ppb" },
+  { value: "ppm", label: "ppm" },
+  { value: "μg/L", label: "μg/L" },
+  { value: "mg/L", label: "mg/L" },
+];
+
 interface StandardPreparationMetalDetailProps {
-  samplePreparation: SamplePreparationMetal;
+  standardPreparation: StandardPreparationMetal;
   onStepChange: (
-    samplePreparationId: number,
-    stepName: SamplePreparationMetalStep["name"],
+    standardPreparationId: number,
+    stepName: StandardPreparationMetalStep["name"],
     field:
       | "value1"
       | "unit1"
       | "value2"
       | "unit2"
-      | "logBookID"
-      | "solventChemical",
+      | "logBookID",
     newValue: string
   ) => void;
   onRemove: () => void;
 }
 
 const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailProps> = ({
-  samplePreparation,
+  standardPreparation,
   onStepChange,
   onRemove,
 }) => {
@@ -50,13 +50,13 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
   const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
 
   // Ensure steps is an array before mapping
-  const stepsArray: SamplePreparationMetalStep[] = Array.isArray(
-    samplePreparation?.steps
+  const stepsArray: StandardPreparationMetalStep[] = Array.isArray(
+    standardPreparation?.steps
   )
-    ? samplePreparation.steps
+    ? standardPreparation.steps
     : [];
 
-  const dilutionErrors = getMetalPrepDilutionErrors(samplePreparation);
+  const dilutionErrors = getMetalStandardPrepDilutionErrors(standardPreparation);
   const stepHasError = (stepName: string) =>
     dilutionErrors.some((e) => e.startsWith(stepName));
 
@@ -92,7 +92,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
 
               <div>
                 <h4 className="text-sm font-semibold text-white tracking-wide">
-                  {`${samplePreparation.label}`}
+                  {`${standardPreparation.label}`}
                 </h4>
                 <p className="text-xs text-emerald-100">
                   Standard Preparation Details
@@ -123,7 +123,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 whileTap={{ scale: 0.9 }}
                 className="p-2 bg-white/20 rounded-lg transition-all duration-200 border border-white/30"
-                title={`Remove ${samplePreparation.label}`}
+                title={`Remove ${standardPreparation.label}`}
               >
                 <Trash className="w-4 h-4 text-white" />
               </motion.button>
@@ -142,7 +142,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
             >
               <div className="p-5 space-y-3 bg-gradient-to-br from-emerald-50/50 to-slate-50/30">
                 {stepsArray.map((step, index) => {
-                  const isWeighing = step.name === "Weighing";
+                  const isStockSolution = step.name === "Stock Solution";
                   const is1stDilution = step.name === "1st Dilution";
                   const is2ndDilution = step.name === "2nd Dilution";
                   const is3rdDilution = step.name === "3rd Dilution";
@@ -188,11 +188,11 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                               <div className="h-px flex-1 bg-gradient-to-r from-slate-300 to-transparent" />
                             </div>
 
-                            {isWeighing && (
+                            {isStockSolution && (
                               <div className="space-y-3">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   <span className="text-gray-600 font-medium">
-                                    Weigh accurately
+                                    Pipette out accurately
                                   </span>
                                   <input
                                     type="number"
@@ -201,7 +201,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                     value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparation.id,
+                                        standardPreparation.id,
                                         step.name,
                                         "value1",
                                         e.target.value
@@ -216,16 +216,16 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                       }
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()}
-                                    placeholder="Enter Weight"
+                                    placeholder="Enter Volume"
                                     className={`w-30 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} focus:border-transparent transition-all`}
                                   />
                                   <div className="w-20">
                                     <CustomDropdown
-                                      options={weightUnitOptions}
-                                      value={step.unit1 || "mg"}
+                                      options={volumeUnitOptions}
+                                      value={step.unit1 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
-                                          samplePreparation.id,
+                                          standardPreparation.id,
                                           step.name,
                                           "unit1",
                                           newUnit
@@ -236,17 +236,18 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                     />
                                   </div>
                                   <span className="text-gray-600 font-medium">
-                                    of
+                                    of Stock Started Concentration
                                   </span>
-
                                   <input
-                                    type="text"
-                                    value={step.solventChemical || ""}
+                                    type="number"
+                                    min="0"
+                                    inputMode="decimal"
+                                    value={step.value2 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparation.id,
+                                        standardPreparation.id,
                                         step.name,
-                                        "solventChemical",
+                                        "value2",
                                         e.target.value
                                       )
                                     }
@@ -259,9 +260,25 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                       }
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()}
-                                    placeholder="Sample"
-                                    className={`flex-1 min-w-[120px] px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
+                                    placeholder="Enter Concentration"
+                                    className={`w-30 px-2.5 py-1.5 border ${inputBorderColor} rounded-lg text-xs focus:outline-none focus:ring-2 ${focusRingColor} transition-all`}
                                   />
+                                  <div className="w-20">
+                                    <CustomDropdown
+                                      options={concUnitOptions}
+                                      value={step.unit2 || "ppm"}
+                                      onChange={(newUnit) =>
+                                        onStepChange(
+                                          standardPreparation.id,
+                                          step.name,
+                                          "unit2",
+                                          newUnit
+                                        )
+                                      }
+                                      placeholder="Unit"
+                                      colorScheme={colorScheme}
+                                    />
+                                  </div>
                                 </div>
 
                                 {/* Log Book ID Input */}
@@ -274,7 +291,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                     value={step.logBookID || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparation.id,
+                                        standardPreparation.id,
                                         step.name,
                                         "logBookID",
                                         e.target.value
@@ -310,7 +327,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                     value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparation.id,
+                                        standardPreparation.id,
                                         step.name,
                                         "value1",
                                         e.target.value
@@ -334,7 +351,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                       value={step.unit1 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
-                                          samplePreparation.id,
+                                          standardPreparation.id,
                                           step.name,
                                           "unit1",
                                           newUnit
@@ -371,7 +388,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                     value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparation.id,
+                                        standardPreparation.id,
                                         step.name,
                                         "value1",
                                         e.target.value
@@ -395,7 +412,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                       value={step.unit1 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
-                                          samplePreparation.id,
+                                          standardPreparation.id,
                                           step.name,
                                           "unit1",
                                           newUnit
@@ -416,7 +433,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                     value={step.value2 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparation.id,
+                                        standardPreparation.id,
                                         step.name,
                                         "value2",
                                         e.target.value
@@ -440,7 +457,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                       value={step.unit2 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
-                                          samplePreparation.id,
+                                          standardPreparation.id,
                                           step.name,
                                           "unit2",
                                           newUnit
@@ -477,7 +494,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                     value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparation.id,
+                                        standardPreparation.id,
                                         step.name,
                                         "value1",
                                         e.target.value
@@ -501,7 +518,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                       value={step.unit1 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
-                                          samplePreparation.id,
+                                          standardPreparation.id,
                                           step.name,
                                           "unit1",
                                           newUnit
@@ -522,7 +539,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                     value={step.value2 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparation.id,
+                                        standardPreparation.id,
                                         step.name,
                                         "value2",
                                         e.target.value
@@ -546,7 +563,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                       value={step.unit2 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
-                                          samplePreparation.id,
+                                          standardPreparation.id,
                                           step.name,
                                           "unit2",
                                           newUnit
@@ -583,7 +600,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                     value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparation.id,
+                                        standardPreparation.id,
                                         step.name,
                                         "value1",
                                         e.target.value
@@ -607,7 +624,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                       value={step.unit1 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
-                                          samplePreparation.id,
+                                          standardPreparation.id,
                                           step.name,
                                           "unit1",
                                           newUnit
@@ -628,7 +645,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                     value={step.value2 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparation.id,
+                                        standardPreparation.id,
                                         step.name,
                                         "value2",
                                         e.target.value
@@ -652,7 +669,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                       value={step.unit2 || "ml"}
                                       onChange={(newUnit) =>
                                         onStepChange(
-                                          samplePreparation.id,
+                                          standardPreparation.id,
                                           step.name,
                                           "unit2",
                                           newUnit
@@ -682,7 +699,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                   value={step.value1 || ""}
                                   onChange={(e) =>
                                     onStepChange(
-                                      samplePreparation.id,
+                                      standardPreparation.id,
                                       step.name,
                                       "value1",
                                       e.target.value
@@ -706,7 +723,7 @@ const StandardPreparationMetalDetail: React.FC<StandardPreparationMetalDetailPro
                                     value={step.unit1 || "micron"}
                                     onChange={(newUnit) =>
                                       onStepChange(
-                                        samplePreparation.id,
+                                        standardPreparation.id,
                                         step.name,
                                         "unit1",
                                         newUnit

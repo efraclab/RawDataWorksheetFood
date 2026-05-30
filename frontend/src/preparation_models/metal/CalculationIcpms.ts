@@ -1,8 +1,8 @@
-export interface CalculationIcpmsFood {
+export interface CalculationIcpms {
   id: number;
   label: string;
 
-  /** Label of the SamplePreparationIcpmsFood whose values feed this calculation. */
+  /** Label of the SamplePreparationIcpms whose values feed this calculation. */
   selectedSamplePreparationLabel: string | null;
 
   /**

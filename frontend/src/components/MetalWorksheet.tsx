@@ -7,7 +7,7 @@ import type { Chemical } from "../preparation_models/Chemical";
 import { CgTrash } from "react-icons/cg";
 import { BiTestTube } from "react-icons/bi";
 import { IoFlask } from "react-icons/io5";
-import type { CalculationIcpmsFood } from "../preparation_models/metal/CalculationIcpmsFood";
+import type { CalculationIcpms } from "../preparation_models/metal/CalculationIcpms";
 import type { CalculationIcpoesFood } from "../preparation_models/metal/CalculationIcpoesFood";
 import type { CalculationIcpmsWater } from "../preparation_models/metal/CalculationIcpmsWater";
 import type { CalculationIcpoesWater } from "../preparation_models/metal/CalculationIcpoesWater";
@@ -20,10 +20,11 @@ import type { CalculationSodiumLactate } from "../preparation_models/metal/Calcu
 import type { CalculationLithosun300 } from "../preparation_models/metal/CalculationLithosun300";
 import type { SamplePreparationMetal } from "../preparation_models/metal/SamplePreparationMetal";
 import type { SamplePreparationMetalStep } from "../preparation_models/metal/SamplePreparationMetalStep";
+import type { StandardPreparationMetal } from "../preparation_models/metal/StandardPreparationMetal";
 import { areAllMetalPrepsDilutionValid } from "../preparation_models/metal/metalPrepValidation";
 import SamplePreparationMetalDetail from "./sub-components/metal/SamplePreparationMetalDetail";
 import StandardPreparationMetalDetail from "./sub-components/metal/StandardPreparationMetalDetail";
-import CalculationDetailIcpmsFood from "./sub-components/metal/CalculationDetailIcpmsFood";
+import CalculationDetailIcpms from "./sub-components/metal/CalculationDetailIcpms";
 import CalculationDetailIcpoesFood from "./sub-components/metal/CalculationDetailIcpoesFood";
 import CalculationDetailIcpmsWater from "./sub-components/metal/CalculationDetailIcpmsWater";
 import CalculationDetailIcpoesWater from "./sub-components/metal/CalculationDetailIcpoesWater";
@@ -87,6 +88,7 @@ import type { CalculationTalc } from "../preparation_models/metal/CalculationTal
 import CalculationDetailMeropenam from "./sub-components/metal/CalculationDetailMeropenam";
 import CalculationDetailSFGC from "./sub-components/metal/CalculationDetailSFGC";
 import CalculationDetailTalc from "./sub-components/metal/CalculationDetailTalc";
+import type { StandardPreparationMetalStep } from "../preparation_models/metal/StandardPreparationMetalStep";
 
 
 const Target: React.FC<{ className: string }> = ({ className }) => (
@@ -198,7 +200,7 @@ interface WorksheetProps {
   onSidebarActionsReady?: (actions: WorksheetSidebarActions) => void;
 }
 
-const createNewSamplePreparationIcpmsFood = (
+const createNewSamplePreparationIcpms = (
   index: number,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
@@ -303,9 +305,9 @@ const createNewSamplePreparationZptoShampoo = (
   ],
 });
 
-const createNewCalculationIcpmsFood = (
+const createNewCalculationIcpms = (
   index: number,
-): CalculationIcpmsFood => ({
+): CalculationIcpms => ({
   id: Date.now() + index,
   label: `Calculation ${index + 1}`,
   selectedSamplePreparationLabel: null,
@@ -850,11 +852,11 @@ export const createNewCalculationSFGC = (index: number): CalculationSFGC => ({
 
 const createNewStandardPreparationMetal = (
   index: number,
-): SamplePreparationMetal => ({
+): StandardPreparationMetal => ({
   id: Date.now() + index,
   label: `Standard Preparation ${index + 1}`,
   steps: [
-    { name: "Weighing" },
+    { name: "Stock Solution" },
     { name: "1st Dilution" },
     { name: "2nd Dilution" },
     { name: "3rd Dilution" },
@@ -883,7 +885,7 @@ const PREPARATION_GROUPS = {
 } as const;
 
 const METAL_GROUP_TO_TYPE: Record<string, string> = {
-  icpmsFood: "icpms_food",
+  icpmsFood: "icpms",
   icpoesFood: "icpoes_food",
   icpmsWater: "icpms_water",
   icpmsIchQ3D: "icpms_ich_q3d",
@@ -1100,11 +1102,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     Record<number, string[]>
   >({});
   const [
-    samplePreparationIcpmsFoodPerParam,
-    setSamplePreparationIcpmsFoodPerParam,
+    samplePreparationIcpmsPerParam,
+    setSamplePreparationIcpmsPerParam,
   ] = useState<Record<number, SamplePreparationMetal[]>>({});
-  const [calculationsIcpmsFoodPerParam, setCalculationsIcpmsFoodPerParam] =
-    useState<Record<number, CalculationIcpmsFood[]>>({});
+  const [calculationsIcpmsPerParam, setCalculationsIcpmsPerParam] =
+    useState<Record<number, CalculationIcpms[]>>({});
   const [
     samplePreparationIcpoesFoodPerParam,
     setSamplePreparationIcpoesFoodPerParam,
@@ -1192,7 +1194,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     useState<Record<number, CalculationTalc[]>>({});
 
   const [standardPreparationMetalPerParam, setStandardPreparationMetalPerParam] =
-    useState<Record<number, Record<string, SamplePreparationMetal[]>>>({});
+    useState<Record<number, Record<string, StandardPreparationMetal[]>>>({});
   const [blankPreparationPerParam, setBlankPreparationPerParam] = useState<
     Record<number, BlankPreparationModel[]>
   >({});
@@ -1574,7 +1576,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           const prepTypes = param.preparations.map(
             (p: any) => p.preparationType,
           );
-          if (prepTypes.includes("icpms_food")) groupKeys["icpmsFood"] = at;
+          if (prepTypes.includes("icpms")) groupKeys["icpmsFood"] = at;
           if (prepTypes.includes("icpoes_food")) groupKeys["icpoesFood"] = at;
           if (prepTypes.includes("icpms_water")) groupKeys["icpmsWater"] = at;
           if (prepTypes.includes("icpoes_water")) groupKeys["icpoesWater"] = at;
@@ -1684,7 +1686,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           if (prepCategory === "standard") {
             // Standard preparations - route by preparationType
             switch (prepType) {
-              case "icpms_food":
+              case "icpms":
                 preparationCollections.metalStd["icpmsFood"] = preparationCollections.metalStd["icpmsFood"] || [];
                 preparationCollections.metalStd["icpmsFood"].push(newPrep);
                 break;
@@ -1760,7 +1762,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           } else if (prepCategory === "sample") {
             // Sample preparations - route by preparationType
             switch (prepType) {
-              case "icpms_food":
+              case "icpms":
                 preparationCollections.icpmsFoodSpl.push(newPrep);
                 break;
               case "icpoes_food":
@@ -1832,7 +1834,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         });
 
         if (preparationCollections.icpmsFoodSpl.length > 0) {
-          setSamplePreparationIcpmsFoodPerParam((prev) => ({
+          setSamplePreparationIcpmsPerParam((prev) => ({
             ...prev,
             [paramId]: preparationCollections.icpmsFoodSpl,
           }));
@@ -1974,7 +1976,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
       if (param.calculations && Array.isArray(param.calculations)) {
         const restoredCalculations = {
-          icpmsFood: [] as CalculationIcpmsFood[],
+          icpmsFood: [] as CalculationIcpms[],
           icpoesFood: [] as CalculationIcpoesFood[],
           icpmsWater: [] as CalculationIcpmsWater[],
           icpoesWater: [] as CalculationIcpoesWater[],
@@ -2004,8 +2006,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             // Route based on calculationType
             switch (calcType) {
 
-              case "icpms_food": {
-                const icpmsFoodCalc: CalculationIcpmsFood = {
+              case "icpms": {
+                const icpmsFoodCalc: CalculationIcpms = {
                   id: baseId + 9500,
                   label: parsedData.label || calc.label,
                   selectedSamplePreparationLabel: parsedData.selectedSamplePreparationLabel ?? null,
@@ -2551,7 +2553,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         // Set calculation state ONLY if arrays have items
 
         if (restoredCalculations.icpmsFood.length > 0) {
-          setCalculationsIcpmsFoodPerParam((prev) => ({
+          setCalculationsIcpmsPerParam((prev) => ({
             ...prev,
             [paramId]: restoredCalculations.icpmsFood,
           }));
@@ -2663,12 +2665,12 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         // Check for ICP-MS (Food) preparations
         if (
           param.preparations.some(
-            (p: any) => p.preparationType === "icpms_food",
+            (p: any) => p.preparationType === "icpms",
           ) ||
           (param.calculations &&
             Array.isArray(param.calculations) &&
             param.calculations.some(
-              (c: any) => c.calculationType === "icpms_food",
+              (c: any) => c.calculationType === "icpms",
             ))
         ) {
           activeGroups.push("icpmsFood");
@@ -2944,14 +2946,14 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
       parameters: addedParameters.map((param) => {
         const preparations = [
           // Sample Preparations for ICP-MS FOOD
-          ...(samplePreparationIcpmsFoodPerParam[param.id] || []).map((sp) => ({
+          ...(samplePreparationIcpmsPerParam[param.id] || []).map((sp) => ({
             label: sp.label,
             preparationCategory: "sample",
-            preparationType: "icpms_food",
+            preparationType: "icpms",
             assignedStandardId: null,
             steps: JSON.stringify(sp.steps),
           })),
-          // Sample Preparations for ICP-OES (Food)
+          // Sample Preparations for ICP-OES
           ...(samplePreparationIcpoesFoodPerParam[param.id] || []).map((sp) => ({
             label: sp.label,
             preparationCategory: "sample",
@@ -3084,11 +3086,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
         // Collect all calculations with their types
         const calculations = [
-          ...(calculationsIcpmsFoodPerParam[param.id] || []).map((calc) => {
+          ...(calculationsIcpmsPerParam[param.id] || []).map((calc) => {
             const dataObj = { ...calc } as any;
             return {
               label: calc.label,
-              calculationType: "icpms_food",
+              calculationType: "icpms",
               data: JSON.stringify(dataObj),
             };
           }),
@@ -3596,10 +3598,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
               validity: std.validity,
             })),
             preparations: [
-              ...(samplePreparationIcpmsFoodPerParam[newId] || []).map((sp) => ({
+              ...(samplePreparationIcpmsPerParam[newId] || []).map((sp) => ({
                 label: sp.label,
                 preparationCategory: "sample",
-                preparationType: "icpms_food",
+                preparationType: "icpms",
                 assignedStandardId: "",
                 steps: JSON.stringify(sp.steps),
               })),
@@ -3693,11 +3695,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
               }),
             ],
             calculations: [
-              ...(calculationsIcpmsFoodPerParam[newId] || []).map((calc) => {
+              ...(calculationsIcpmsPerParam[newId] || []).map((calc) => {
                 const dataObj = { ...calc } as any;
                 return {
                   label: calc.label,
-                  calculationType: "icpms_food",
+                  calculationType: "icpms",
                   data: JSON.stringify(dataObj),
                 };
               }),
@@ -3877,8 +3879,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             });
           }
 
-          if (samplePreparationIcpmsFoodPerParam[newId]) {
-            setSamplePreparationIcpmsFoodPerParam((prev) => {
+          if (samplePreparationIcpmsPerParam[newId]) {
+            setSamplePreparationIcpmsPerParam((prev) => {
               const { [newId]: preps, ...rest } = prev;
               return { ...rest, [serverParameterId]: preps };
             });
@@ -3961,8 +3963,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             });
           }
 
-          if (calculationsIcpmsFoodPerParam[newId]) {
-            setCalculationsIcpmsFoodPerParam((prev) => {
+          if (calculationsIcpmsPerParam[newId]) {
+            setCalculationsIcpmsPerParam((prev) => {
               const { [newId]: calcs, ...rest } = prev;
               return { ...rest, [serverParameterId]: calcs };
             });
@@ -4101,7 +4103,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           cleanupState(setAddedInstruments);
           cleanupState(setAddedChemicals);
           cleanupState(setAddedStandards);
-          cleanupState(setSamplePreparationIcpmsFoodPerParam);
+          cleanupState(setSamplePreparationIcpmsPerParam);
           cleanupState(setSamplePreparationIcpoesFoodPerParam);
           cleanupState(setSamplePreparationIcpmsWaterPerParam);
           cleanupState(setSamplePreparationIcpmsIchQ3DPerParam);
@@ -4109,7 +4111,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           cleanupState(setSamplePreparationAnoferPerParam);
           cleanupState(setSamplePreparationZptoShampooPerParam);
           cleanupState(setSamplePreparationSodiumLactatePerParam);
-          cleanupState(setCalculationsIcpmsFoodPerParam);
+          cleanupState(setCalculationsIcpmsPerParam);
           cleanupState(setCalculationsIcpoesFoodPerParam);
           cleanupState(setCalculationsIcpmsWaterPerParam);
           cleanupState(setCalculationsIcpmsIchQ3DPerParam);
@@ -4299,7 +4301,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     cleanupState(setOtherInfoPerParam);
     cleanupState(setAdditionalInfoPerParam);
     cleanupState(setShowAdditionalInfo);
-    cleanupState(setCalculationsIcpmsFoodPerParam);
+    cleanupState(setCalculationsIcpmsPerParam);
     cleanupState(setCalculationsIcpoesFoodPerParam);
     cleanupState(setCalculationsIcpmsWaterPerParam);
     cleanupState(setCalculationsIcpmsIchQ3DPerParam);
@@ -4307,7 +4309,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     cleanupState(setCalculationsAnoferPerParam);
     cleanupState(setCalculationsZptoShampooPerParam);
     cleanupState(setCalculationsSodiumLactatePerParam);
-    cleanupState(setSamplePreparationIcpmsFoodPerParam);
+    cleanupState(setSamplePreparationIcpmsPerParam);
     cleanupState(setSamplePreparationIcpoesFoodPerParam);
     cleanupState(setSamplePreparationIcpmsWaterPerParam);
     cleanupState(setSamplePreparationIcpmsIchQ3DPerParam);
@@ -4501,10 +4503,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     if (!param) return null;
 
     const preparations = [
-      ...(samplePreparationIcpmsFoodPerParam[paramId] || []).map((sp) => ({
+      ...(samplePreparationIcpmsPerParam[paramId] || []).map((sp) => ({
         label: sp.label,
         preparationCategory: "sample",
-        preparationType: "icpms_food",
+        preparationType: "icpms",
         assignedStandardId: null,
         steps: JSON.stringify(sp.steps),
       })),
@@ -4629,11 +4631,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     ];
 
     const calculations = [
-      ...(calculationsIcpmsFoodPerParam[paramId] || []).map((calc) => {
+      ...(calculationsIcpmsPerParam[paramId] || []).map((calc) => {
         const d = { ...calc } as any;
         return {
           label: calc.label,
-          calculationType: "icpms_food",
+          calculationType: "icpms",
           data: JSON.stringify(d),
         };
       }),
@@ -5932,18 +5934,21 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   // ────────────────────────────────────────────────────────────────────────
   // ICP-MS (Food) handlers
   // ────────────────────────────────────────────────────────────────────────
-  const handleAddSamplePreparationIcpmsFood = (parameterId: number) => {
-    setSamplePreparationIcpmsFoodPerParam((prev) => {
+  const handleAddSamplePreparationIcpms = (parameterId: number) => {
+    setSamplePreparationIcpmsPerParam((prev) => {
       const current = prev[parameterId] || [];
       const newIndex = current.length;
       return {
         ...prev,
         [parameterId]: [
           ...current,
-          createNewSamplePreparationIcpmsFood(newIndex),
+          createNewSamplePreparationIcpms(newIndex),
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationIcpms = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["icpmsFood"] || [];
       return {
@@ -5956,12 +5961,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     });
   };
 
-  const handleRemoveSamplePreparationIcpmsFood = (
+  const handleRemoveSamplePreparationIcpms = (
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationIcpmsFoodPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
-    setSamplePreparationIcpmsFoodPerParam((prev) => {
+    setSamplePreparationIcpmsPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
         .map((p, idx) => ({
@@ -5970,28 +5974,32 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["icpmsFood"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), icpmsFood: updated },
-        };
-      });
-    }
   };
 
-  const handleSamplePreparationIcpmsFoodStepChange = (
+  const handleRemoveStandardPreparationIcpms = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["icpmsFood"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), icpmsFood: updated },
+      };
+    });
+  };
+
+  const handleSamplePreparationIcpmsStepChange = (
     parameterId: number,
     samplePreparationId: number,
     stepName: SamplePreparationMetalStep["name"],
     field: "value1" | "unit1" | "value2" | "unit2" | "logBookID" | "solventChemical",
     newValue: string,
   ) => {
-    setSamplePreparationIcpmsFoodPerParam((prev) => {
+    setSamplePreparationIcpmsPerParam((prev) => {
       const list = prev[parameterId] || [];
       const updated = list.map((sp) => {
         if (sp.id !== samplePreparationId) return sp;
@@ -6006,25 +6014,25 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     });
   };
 
-  const handleAddCalculationIcpmsFood = (parameterId: number) => {
-    setCalculationsIcpmsFoodPerParam((prev) => {
+  const handleAddCalculationIcpms = (parameterId: number) => {
+    setCalculationsIcpmsPerParam((prev) => {
       const current = prev[parameterId] || [];
       const newIndex = current.length;
       return {
         ...prev,
         [parameterId]: [
           ...current,
-          createNewCalculationIcpmsFood(newIndex),
+          createNewCalculationIcpms(newIndex),
         ],
       };
     });
   };
 
-  const handleRemoveCalculationIcpmsFood = (
+  const handleRemoveCalculationIcpms = (
     parameterId: number,
     calcId: number,
   ) => {
-    setCalculationsIcpmsFoodPerParam((prev) => {
+    setCalculationsIcpmsPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((c) => c.id !== calcId)
         .map((c, idx) => ({
@@ -6035,11 +6043,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     });
   };
 
-  const handleUpdateCalculationIcpmsFood = (
+  const handleUpdateCalculationIcpms = (
     parameterId: number,
-    updatedCalc: CalculationIcpmsFood,
+    updatedCalc: CalculationIcpms,
   ) => {
-    setCalculationsIcpmsFoodPerParam((prev) => ({
+    setCalculationsIcpmsPerParam((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((c) =>
         c.id === updatedCalc.id ? updatedCalc : c,
@@ -6059,6 +6067,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationIcpoesFood = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["icpoesFood"] || [];
       return {
@@ -6075,7 +6086,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationIcpoesFoodPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationIcpoesFoodPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
@@ -6085,18 +6095,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["icpoesFood"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), icpoesFood: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationIcpoesFood = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["icpoesFood"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), icpoesFood: updated },
+      };
+    });
   };
 
   const handleSamplePreparationIcpoesFoodStepChange = (
@@ -6174,6 +6188,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationIcpmsWater = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["icpmsWater"] || [];
       return {
@@ -6190,7 +6207,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationIcpmsWaterPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationIcpmsWaterPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
@@ -6200,18 +6216,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["icpmsWater"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), icpmsWater: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationIcpmsWater = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["icpmsWater"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), icpmsWater: updated },
+      };
+    });
   };
 
   const handleSamplePreparationIcpmsWaterStepChange = (
@@ -6289,6 +6309,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationIcpoesWater = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["icpoesWater"] || [];
       return {
@@ -6305,7 +6328,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationIcpoesWaterPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationIcpoesWaterPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
@@ -6315,18 +6337,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["icpoesWater"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), icpoesWater: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationIcpoesWater = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["icpoesWater"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), icpoesWater: updated },
+      };
+    });
   };
 
   const handleSamplePreparationIcpoesWaterStepChange = (
@@ -6404,6 +6430,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationAasWater = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["aasWater"] || [];
       return {
@@ -6420,7 +6449,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationAasWaterPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationAasWaterPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
@@ -6430,18 +6458,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["aasWater"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), aasWater: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationAasWater = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["aasWater"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), aasWater: updated },
+      };
+    });
   };
 
   const handleSamplePreparationAasWaterStepChange = (
@@ -6519,6 +6551,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationIcpmsIchQ3D = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["icpmsIchQ3D"] || [];
       return {
@@ -6535,7 +6570,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationIcpmsIchQ3DPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationIcpmsIchQ3DPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
@@ -6545,18 +6579,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["icpmsIchQ3D"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), icpmsIchQ3D: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationIcpmsIchQ3D = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["icpmsIchQ3D"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), icpmsIchQ3D: updated },
+      };
+    });
   };
 
   const handleSamplePreparationIcpmsIchQ3DStepChange = (
@@ -6634,6 +6672,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationORS = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["ors"] || [];
       return {
@@ -6650,7 +6691,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationORSPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationORSPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
@@ -6660,18 +6700,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["ors"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), ors: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationORS = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["ors"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), ors: updated },
+      };
+    });
   };
 
   const handleSamplePreparationORSStepChange = (
@@ -6749,6 +6793,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationAnofer = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["anofer"] || [];
       return {
@@ -6765,7 +6812,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationAnoferPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationAnoferPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
@@ -6775,18 +6821,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["anofer"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), anofer: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationAnofer = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["anofer"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), anofer: updated },
+      };
+    });
   };
 
   const handleSamplePreparationAnoferStepChange = (
@@ -6864,6 +6914,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationZptoShampoo = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["zptoShampoo"] || [];
       return {
@@ -6880,7 +6933,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationZptoShampooPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationZptoShampooPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
@@ -6890,18 +6942,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["zptoShampoo"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), zptoShampoo: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationZptoShampoo = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["zptoShampoo"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), zptoShampoo: updated },
+      };
+    });
   };
 
   const handleSamplePreparationZptoShampooStepChange = (
@@ -6979,6 +7035,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationSodiumLactate = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["sodiumLactate"] || [];
       return {
@@ -6995,7 +7054,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationSodiumLactatePerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationSodiumLactatePerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
@@ -7005,18 +7063,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["sodiumLactate"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), sodiumLactate: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationSodiumLactate = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["sodiumLactate"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), sodiumLactate: updated },
+      };
+    });
   };
 
   const handleSamplePreparationSodiumLactateStepChange = (
@@ -7094,6 +7156,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationLithosun300 = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["lithosun300"] || [];
       return {
@@ -7110,7 +7175,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationLithosun300PerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationLithosun300PerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
@@ -7120,18 +7184,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["lithosun300"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), lithosun300: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationLithosun300 = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["lithosun300"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), lithosun300: updated },
+      };
+    });
   };
 
   const handleSamplePreparationLithosun300StepChange = (
@@ -7209,6 +7277,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationLithosun400 = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["lithosun400"] || [];
       return {
@@ -7225,7 +7296,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationLithosun400PerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationLithosun400PerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
@@ -7235,18 +7305,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["lithosun400"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), lithosun400: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationLithosun400 = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["lithosun400"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), lithosun400: updated },
+      };
+    });
   };
 
   const handleSamplePreparationLithosun400StepChange = (
@@ -7325,6 +7399,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationMeropenam = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["meropenam"] || [];
       return {
@@ -7341,7 +7418,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationMeropenamPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationMeropenamPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
@@ -7351,18 +7427,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["meropenam"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), meropenam: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationMeropenam = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["meropenam"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), meropenam: updated },
+      };
+    });
   };
 
   const handleSamplePreparationMeropenamStepChange = (
@@ -7440,6 +7520,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationTalc = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["talc"] || [];
       return {
@@ -7456,21 +7539,26 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationTalcPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationTalcPerParam((prev) => {
       const current = prev[parameterId] || [];
       return { ...prev, [parameterId]: current.filter((p) => p.id !== prepId) };
     });
-    if (removedIdx !== -1) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["talc"] || [];
-        const updated = current.filter((_, i) => i !== removedIdx);
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), talc: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationTalc = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["talc"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), talc: updated },
+      };
+    });
   };
 
   const handleSamplePreparationTalcStepChange = (
@@ -7545,6 +7633,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         ],
       };
     });
+  };
+
+  const handleAddStandardPreparationSFGC = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["sfgc"] || [];
       return {
@@ -7561,7 +7652,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     prepId: number,
   ) => {
-    const removedIdx = (samplePreparationSFGCPerParam[parameterId] || []).findIndex((p) => p.id === prepId);
     setSamplePreparationSFGCPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
@@ -7571,18 +7661,22 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }));
       return { ...prev, [parameterId]: updated };
     });
-    if (removedIdx >= 0) {
-      setStandardPreparationMetalPerParam((prev) => {
-        const current = prev[parameterId]?.["sfgc"] || [];
-        const updated = current
-          .filter((_, i) => i !== removedIdx)
-          .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
-        return {
-          ...prev,
-          [parameterId]: { ...(prev[parameterId] || {}), sfgc: updated },
-        };
-      });
-    }
+  };
+
+  const handleRemoveStandardPreparationSFGC = (
+    parameterId: number,
+    prepId: number,
+  ) => {
+    setStandardPreparationMetalPerParam((prev) => {
+      const current = prev[parameterId]?.["sfgc"] || [];
+      const updated = current
+        .filter((p) => p.id !== prepId)
+        .map((p, i) => ({ ...p, label: `Standard Preparation ${i + 1}` }));
+      return {
+        ...prev,
+        [parameterId]: { ...(prev[parameterId] || {}), sfgc: updated },
+      };
+    });
   };
 
   const handleSamplePreparationSFGCStepChange = (
@@ -7653,7 +7747,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     parameterId: number,
     groupId: string,
     samplePreparationId: number,
-    stepName: SamplePreparationMetalStep["name"],
+    stepName: StandardPreparationMetalStep["name"],
     field: "value1" | "unit1" | "value2" | "unit2" | "logBookID" | "solventChemical",
     newValue: string,
   ) => {
@@ -7685,11 +7779,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
       if (currentGroups.includes(groupId)) {
         if (groupId === "icpmsFood") {
-          setSamplePreparationIcpmsFoodPerParam((p) => {
+          setSamplePreparationIcpmsPerParam((p) => {
             const { [parameterId]: _omit, ...rest } = p;
             return rest;
           });
-          setCalculationsIcpmsFoodPerParam((p) => {
+          setCalculationsIcpmsPerParam((p) => {
             const { [parameterId]: _omit, ...rest } = p;
             return rest;
           });
@@ -7858,8 +7952,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
       // ── Single-select: clear ALL data for each replaced group ──────────────
       const clearGroupData = (oldGroupId: string) => {
         if (oldGroupId === "icpmsFood") {
-          setSamplePreparationIcpmsFoodPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
-          setCalculationsIcpmsFoodPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
+          setSamplePreparationIcpmsPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
+          setCalculationsIcpmsPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
         }
         if (oldGroupId === "icpoesFood") {
           setSamplePreparationIcpoesFoodPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
@@ -13487,18 +13581,18 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for ICP-MS (Food)
+                                      Preparations for ICP-MS
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      ICP-MS (Food) — Sample Preparation &amp; Calculations
+                                      Preparations &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
 
                                 <div className="px-4 py-1 bg-gradient-to-r from-emerald-50 to-emerald-50 border border-emerald-200 rounded-full shadow-sm">
                                   <span className="text-xs font-bold text-emerald-800">
-                                    {((samplePreparationIcpmsFoodPerParam[selectedParam.id] || []).length +
-                                      (calculationsIcpmsFoodPerParam[selectedParam.id] || []).length)}{" "}
+                                    {((samplePreparationIcpmsPerParam[selectedParam.id] || []).length +
+                                      (calculationsIcpmsPerParam[selectedParam.id] || []).length)}{" "}
                                     Items
                                   </span>
                                 </div>
@@ -13509,59 +13603,45 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for ICP-MS (Food)
+                                    Sample Preparations for ICP-MS
                                   </h3>
                                   <button
-                                    onClick={() => handleAddSamplePreparationIcpmsFood(selectedParam.id)}
+                                    onClick={() => handleAddSamplePreparationIcpms(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
 
                                 <AnimatePresence>
-                                  {(samplePreparationIcpmsFoodPerParam[selectedParam.id] || []).map((samplePrep, idx) => {
-                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["icpmsFood"] || [])[idx];
-                                    return (
-                                      <motion.div
-                                        key={samplePrep.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                      >
-                                        {standardPrep && (
-                                          <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
-                                            onStepChange={(spId, stepName, field, val) =>
-                                              handleStandardPreparationMetalStepChange(selectedParam.id, "icpmsFood", spId, stepName, field, val)
-                                            }
-                                            onRemove={() => handleRemoveSamplePreparationIcpmsFood(selectedParam.id, samplePrep.id)}
-                                          />
-                                        )}
-                                        <div className="mt-2">
-                                          <SamplePreparationMetalDetail
-                                            samplePreparation={samplePrep}
-                                            onStepChange={(samplePrepId, stepName, field, newValue) =>
-                                              handleSamplePreparationIcpmsFoodStepChange(
-                                                selectedParam.id,
-                                                samplePrepId,
-                                                stepName,
-                                                field,
-                                                newValue,
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparationIcpmsFood(selectedParam.id, samplePrep.id)
-                                            }
-                                          />
-                                        </div>
-                                      </motion.div>
-                                    );
-                                  })}
+                                  {(samplePreparationIcpmsPerParam[selectedParam.id] || []).map((samplePrep) => (
+                                    <motion.div
+                                      key={samplePrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <SamplePreparationMetalDetail
+                                        samplePreparation={samplePrep}
+                                        onStepChange={(samplePrepId, stepName, field, newValue) =>
+                                          handleSamplePreparationIcpmsStepChange(
+                                            selectedParam.id,
+                                            samplePrepId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveSamplePreparationIcpms(selectedParam.id, samplePrep.id)
+                                        }
+                                      />
+                                    </motion.div>
+                                  ))}
                                 </AnimatePresence>
 
-                                {(samplePreparationIcpmsFoodPerParam[selectedParam.id] || []).length === 0 && (
+                                {(samplePreparationIcpmsPerParam[selectedParam.id] || []).length === 0 && (
                                   <motion.div
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
@@ -13573,24 +13653,78 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for ICP-MS
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationIcpms(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsFood"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "icpmsFood", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationIcpms(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsFood"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
                                 )}
 
                                 {/* Weight Sheet attacher — only when at least one prep exists */}
-                                {(samplePreparationIcpmsFoodPerParam[selectedParam.id] || []).length > 0 && (
+                                {(samplePreparationIcpmsPerParam[selectedParam.id] || []).length > 0 && (
                                   <div className="pointer-events-auto mt-4">
                                     <WorksheetFileAttacher
-                                      files={getFilesForPrep(selectedParam.id, "icpms_food", "Weight Sheet")}
+                                      files={getFilesForPrep(selectedParam.id, "icpms", "Weight Sheet")}
                                       onAdd={(newFiles) =>
-                                        handleAddPrepFiles(selectedParam.id, "icpms_food", "Weight Sheet", newFiles)
+                                        handleAddPrepFiles(selectedParam.id, "icpms", "Weight Sheet", newFiles)
                                       }
                                       onRemove={(index) =>
-                                        handleRemovePrepFile(selectedParam.id, "icpms_food", "Weight Sheet", index)
+                                        handleRemovePrepFile(selectedParam.id, "icpms", "Weight Sheet", index)
                                       }
-                                      preparationType="icpms_food"
+                                      preparationType="icpms"
                                       sectionLabel="Weight Sheet"
                                       isLocked={shouldDisableContent}
                                     />
@@ -13601,13 +13735,12 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
                             {/* Complete Preparation block — gates Calculations */}
                             {canManagePrep &&
-                              (samplePreparationIcpmsFoodPerParam[selectedParam.id] || []).length > 0 &&
+                              (samplePreparationIcpmsPerParam[selectedParam.id] || []).length > 0 &&
                               (() => {
                                 const isGroupCompleted =
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsFood"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
-                                  ...(samplePreparationIcpmsFoodPerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsFood"] || []),
+                                  ...(samplePreparationIcpmsPerParam[selectedParam.id] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -13620,7 +13753,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                         </div>
                                         <div className="flex-1">
                                           <p className="text-sm font-semibold text-emerald-800">
-                                            ICP-MS (Food) Preparation Completed
+                                            ICP-MS Preparation Completed
                                           </p>
                                           <p className="text-xs text-emerald-600">
                                             Completed at{" "}
@@ -13657,7 +13790,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                           </svg>
-                                          Mark ICP-MS (Food) Preparation as Complete
+                                          Mark ICP-MS Preparation as Complete
                                         </button>
                                       </div>
                                     )}
@@ -13666,7 +13799,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               })()}
 
                             {/* Locked-out warning */}
-                            {(samplePreparationIcpmsFoodPerParam[selectedParam.id] || []).length > 0 &&
+                            {(samplePreparationIcpmsPerParam[selectedParam.id] || []).length > 0 &&
                               !groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsFood"] &&
                               !canManagePrep && (
                                 <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
@@ -13680,17 +13813,17 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               )}
 
                             {/* Calculations Section — gated on group prep completion */}
-                            {(samplePreparationIcpmsFoodPerParam[selectedParam.id] || []).length > 0 &&
+                            {(samplePreparationIcpmsPerParam[selectedParam.id] || []).length > 0 &&
                               groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsFood"] && (
                                 <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                                   <div className="mt-8">
                                     <div className="flex items-center justify-between mb-4 px-2">
                                       <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                         <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                        Calculations for ICP-MS (Food)
+                                        Calculations for ICP-MS
                                       </h3>
                                       <button
-                                        onClick={() => handleAddCalculationIcpmsFood(selectedParam.id)}
+                                        onClick={() => handleAddCalculationIcpms(selectedParam.id)}
                                         className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                       >
                                         <Plus className="w-4 h-4" />
@@ -13699,20 +13832,20 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                     </div>
 
                                     <AnimatePresence>
-                                      {(calculationsIcpmsFoodPerParam[selectedParam.id] || []).map((calc) => (
+                                      {(calculationsIcpmsPerParam[selectedParam.id] || []).map((calc) => (
                                         <div key={calc.id}>
-                                          <CalculationDetailIcpmsFood
+                                          <CalculationDetailIcpms
                                             calculation={calc}
-                                            samplePreparations={samplePreparationIcpmsFoodPerParam[selectedParam.id] || []}
-                                            onUpdate={(updated) => handleUpdateCalculationIcpmsFood(selectedParam.id, updated)}
-                                            onRemove={() => handleRemoveCalculationIcpmsFood(selectedParam.id, calc.id)}
+                                            samplePreparations={samplePreparationIcpmsPerParam[selectedParam.id] || []}
+                                            onUpdate={(updated) => handleUpdateCalculationIcpms(selectedParam.id, updated)}
+                                            onRemove={() => handleRemoveCalculationIcpms(selectedParam.id, calc.id)}
                                             isLocked={isFullyLocked}
                                           />
                                         </div>
                                       ))}
                                     </AnimatePresence>
 
-                                    {(calculationsIcpmsFoodPerParam[selectedParam.id] || []).length === 0 && (
+                                    {(calculationsIcpmsPerParam[selectedParam.id] || []).length === 0 && (
                                       <motion.div
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
@@ -13726,7 +13859,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                             No calculations added yet
                                           </p>
                                           <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                            Click "Add Calculation" to create an ICP-MS (Food) calculation
+                                            Click "Add Calculation" to create an ICP-MS calculation
                                           </p>
                                         </div>
                                       </motion.div>
@@ -13761,10 +13894,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for ICP-OES (Food)
+                                      Preparations for ICP-OES
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      ICP-OES (Food) — Sample Preparation &amp; Calculations
+                                      Preparations &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -13783,56 +13916,42 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for ICP-OES (Food)
+                                    Sample Preparations for ICP-OES
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationIcpoesFood(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
 
                                 <AnimatePresence>
-                                  {(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).map((samplePrep, idx) => {
-                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["icpoesFood"] || [])[idx];
-                                    return (
-                                      <motion.div
-                                        key={samplePrep.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                      >
-                                        {standardPrep && (
-                                          <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
-                                            onStepChange={(spId, stepName, field, val) =>
-                                              handleStandardPreparationMetalStepChange(selectedParam.id, "icpoesFood", spId, stepName, field, val)
-                                            }
-                                            onRemove={() => handleRemoveSamplePreparationIcpoesFood(selectedParam.id, samplePrep.id)}
-                                          />
-                                        )}
-                                        <div className="mt-2">
-                                          <SamplePreparationMetalDetail
-                                            samplePreparation={samplePrep}
-                                            onStepChange={(samplePrepId, stepName, field, newValue) =>
-                                              handleSamplePreparationIcpoesFoodStepChange(
-                                                selectedParam.id,
-                                                samplePrepId,
-                                                stepName,
-                                                field,
-                                                newValue,
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparationIcpoesFood(selectedParam.id, samplePrep.id)
-                                            }
-                                          />
-                                        </div>
-                                      </motion.div>
-                                    );
-                                  })}
+                                  {(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).map((samplePrep) => (
+                                    <motion.div
+                                      key={samplePrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <SamplePreparationMetalDetail
+                                        samplePreparation={samplePrep}
+                                        onStepChange={(samplePrepId, stepName, field, newValue) =>
+                                          handleSamplePreparationIcpoesFoodStepChange(
+                                            selectedParam.id,
+                                            samplePrepId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveSamplePreparationIcpoesFood(selectedParam.id, samplePrep.id)
+                                        }
+                                      />
+                                    </motion.div>
+                                  ))}
                                 </AnimatePresence>
 
                                 {(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).length === 0 && (
@@ -13847,7 +13966,61 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for ICP-OES
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationIcpoesFood(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["icpoesFood"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "icpoesFood", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationIcpoesFood(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["icpoesFood"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -13881,7 +14054,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesFood"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpoesFood"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -13894,7 +14066,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                         </div>
                                         <div className="flex-1">
                                           <p className="text-sm font-semibold text-emerald-800">
-                                            ICP-OES (Food) Preparation Completed
+                                            ICP-OES Preparation Completed
                                           </p>
                                           <p className="text-xs text-emerald-600">
                                             Completed at{" "}
@@ -13931,7 +14103,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                           </svg>
-                                          Mark ICP-OES (Food) Preparation as Complete
+                                          Mark ICP-OES Preparation as Complete
                                         </button>
                                       </div>
                                     )}
@@ -13961,7 +14133,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                     <div className="flex items-center justify-between mb-4 px-2">
                                       <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                         <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                        Calculations for ICP-OES (Food)
+                                        Calculations for ICP-OES
                                       </h3>
                                       <button
                                         onClick={() => handleAddCalculationIcpoesFood(selectedParam.id)}
@@ -14000,7 +14172,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                             No calculations added yet
                                           </p>
                                           <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                            Click "Add Calculation" to create an ICP-OES (Food) calculation
+                                            Click "Add Calculation" to create an ICP-OES calculation
                                           </p>
                                         </div>
                                       </motion.div>
@@ -14035,10 +14207,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for ICP-MS (Water)
+                                      Preparations for ICP-MS (Water)
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      ICP-MS (Water) — Sample Preparation &amp; Calculations
+                                      Preparations &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -14057,56 +14229,42 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for ICP-MS (Water)
+                                    Sample Preparations for ICP-MS (Water)
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationIcpmsWater(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
 
                                 <AnimatePresence>
-                                  {(samplePreparationIcpmsWaterPerParam[selectedParam.id] || []).map((samplePrep, idx) => {
-                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["icpmsWater"] || [])[idx];
-                                    return (
-                                      <motion.div
-                                        key={samplePrep.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                      >
-                                        {standardPrep && (
-                                          <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
-                                            onStepChange={(spId, stepName, field, val) =>
-                                              handleStandardPreparationMetalStepChange(selectedParam.id, "icpmsWater", spId, stepName, field, val)
-                                            }
-                                            onRemove={() => handleRemoveSamplePreparationIcpmsWater(selectedParam.id, samplePrep.id)}
-                                          />
-                                        )}
-                                        <div className="mt-2">
-                                          <SamplePreparationMetalDetail
-                                            samplePreparation={samplePrep}
-                                            onStepChange={(samplePrepId, stepName, field, newValue) =>
-                                              handleSamplePreparationIcpmsWaterStepChange(
-                                                selectedParam.id,
-                                                samplePrepId,
-                                                stepName,
-                                                field,
-                                                newValue,
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparationIcpmsWater(selectedParam.id, samplePrep.id)
-                                            }
-                                          />
-                                        </div>
-                                      </motion.div>
-                                    );
-                                  })}
+                                  {(samplePreparationIcpmsWaterPerParam[selectedParam.id] || []).map((samplePrep) => (
+                                    <motion.div
+                                      key={samplePrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <SamplePreparationMetalDetail
+                                        samplePreparation={samplePrep}
+                                        onStepChange={(samplePrepId, stepName, field, newValue) =>
+                                          handleSamplePreparationIcpmsWaterStepChange(
+                                            selectedParam.id,
+                                            samplePrepId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveSamplePreparationIcpmsWater(selectedParam.id, samplePrep.id)
+                                        }
+                                      />
+                                    </motion.div>
+                                  ))}
                                 </AnimatePresence>
 
                                 {(samplePreparationIcpmsWaterPerParam[selectedParam.id] || []).length === 0 && (
@@ -14121,7 +14279,61 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for ICP-MS (Water)
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationIcpmsWater(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsWater"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "icpmsWater", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationIcpmsWater(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsWater"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -14155,7 +14367,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsWater"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationIcpmsWaterPerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsWater"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -14306,10 +14517,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for ICP-OES (Water)
+                                      Preparations for ICP-OES (Water)
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      ICP-OES (Water) — Sample Preparation &amp; Calculations
+                                      Preparations &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -14325,55 +14536,41 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for ICP-OES (Water)
+                                    Sample Preparations for ICP-OES (Water)
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationIcpoesWater(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
                                 <AnimatePresence>
-                                  {(samplePreparationIcpoesWaterPerParam[selectedParam.id] || []).map((samplePrep, idx) => {
-                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["icpoesWater"] || [])[idx];
-                                    return (
-                                      <motion.div
-                                        key={samplePrep.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                      >
-                                        {standardPrep && (
-                                          <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
-                                            onStepChange={(spId, stepName, field, val) =>
-                                              handleStandardPreparationMetalStepChange(selectedParam.id, "icpoesWater", spId, stepName, field, val)
-                                            }
-                                            onRemove={() => handleRemoveSamplePreparationIcpoesWater(selectedParam.id, samplePrep.id)}
-                                          />
-                                        )}
-                                        <div className="mt-2">
-                                          <SamplePreparationMetalDetail
-                                            samplePreparation={samplePrep}
-                                            onStepChange={(samplePrepId, stepName, field, newValue) =>
-                                              handleSamplePreparationIcpoesWaterStepChange(
-                                                selectedParam.id,
-                                                samplePrepId,
-                                                stepName,
-                                                field,
-                                                newValue,
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparationIcpoesWater(selectedParam.id, samplePrep.id)
-                                            }
-                                          />
-                                        </div>
-                                      </motion.div>
-                                    );
-                                  })}
+                                  {(samplePreparationIcpoesWaterPerParam[selectedParam.id] || []).map((samplePrep) => (
+                                    <motion.div
+                                      key={samplePrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <SamplePreparationMetalDetail
+                                        samplePreparation={samplePrep}
+                                        onStepChange={(samplePrepId, stepName, field, newValue) =>
+                                          handleSamplePreparationIcpoesWaterStepChange(
+                                            selectedParam.id,
+                                            samplePrepId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveSamplePreparationIcpoesWater(selectedParam.id, samplePrep.id)
+                                        }
+                                      />
+                                    </motion.div>
+                                  ))}
                                 </AnimatePresence>
                                 {(samplePreparationIcpoesWaterPerParam[selectedParam.id] || []).length === 0 && (
                                   <motion.div
@@ -14387,7 +14584,60 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for ICP-OES (Water)
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationIcpoesWater(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["icpoesWater"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "icpoesWater", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationIcpoesWater(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["icpoesWater"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -14417,7 +14667,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesWater"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationIcpoesWaterPerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpoesWater"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -14562,10 +14811,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for AAS (Water)
+                                      Preparations for AAS (Water)
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      AAS (Water) — Sample Preparation &amp; Calculations
+                                      Preparations &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -14581,55 +14830,41 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for AAS (Water)
+                                    Sample Preparations for AAS (Water)
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationAasWater(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
                                 <AnimatePresence>
-                                  {(samplePreparationAasWaterPerParam[selectedParam.id] || []).map((samplePrep, idx) => {
-                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["aasWater"] || [])[idx];
-                                    return (
-                                      <motion.div
-                                        key={samplePrep.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                      >
-                                        {standardPrep && (
-                                          <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
-                                            onStepChange={(spId, stepName, field, val) =>
-                                              handleStandardPreparationMetalStepChange(selectedParam.id, "aasWater", spId, stepName, field, val)
-                                            }
-                                            onRemove={() => handleRemoveSamplePreparationAasWater(selectedParam.id, samplePrep.id)}
-                                          />
-                                        )}
-                                        <div className="mt-2">
-                                          <SamplePreparationMetalDetail
-                                            samplePreparation={samplePrep}
-                                            onStepChange={(samplePrepId, stepName, field, newValue) =>
-                                              handleSamplePreparationAasWaterStepChange(
-                                                selectedParam.id,
-                                                samplePrepId,
-                                                stepName,
-                                                field,
-                                                newValue,
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparationAasWater(selectedParam.id, samplePrep.id)
-                                            }
-                                          />
-                                        </div>
-                                      </motion.div>
-                                    );
-                                  })}
+                                  {(samplePreparationAasWaterPerParam[selectedParam.id] || []).map((samplePrep) => (
+                                    <motion.div
+                                      key={samplePrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <SamplePreparationMetalDetail
+                                        samplePreparation={samplePrep}
+                                        onStepChange={(samplePrepId, stepName, field, newValue) =>
+                                          handleSamplePreparationAasWaterStepChange(
+                                            selectedParam.id,
+                                            samplePrepId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveSamplePreparationAasWater(selectedParam.id, samplePrep.id)
+                                        }
+                                      />
+                                    </motion.div>
+                                  ))}
                                 </AnimatePresence>
                                 {(samplePreparationAasWaterPerParam[selectedParam.id] || []).length === 0 && (
                                   <motion.div
@@ -14643,7 +14878,60 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for AAS (Water)
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationAasWater(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["aasWater"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "aasWater", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationAasWater(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["aasWater"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -14673,7 +14961,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["aasWater"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationAasWaterPerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["aasWater"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -14821,10 +15108,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for ICP-MS (ICH-Q3D)
+                                      Preparations for ICP-MS (ICH-Q3D)
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      ICP-MS (ICH-Q3D) — Sample Preparation &amp; Calculations
+                                      Preparations &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -14843,56 +15130,42 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for ICP-MS (ICH-Q3D)
+                                    Sample Preparations for ICP-MS (ICH-Q3D)
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationIcpmsIchQ3D(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
 
                                 <AnimatePresence>
-                                  {(samplePreparationIcpmsIchQ3DPerParam[selectedParam.id] || []).map((samplePrep, idx) => {
-                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["icpmsIchQ3D"] || [])[idx];
-                                    return (
-                                      <motion.div
-                                        key={samplePrep.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                      >
-                                        {standardPrep && (
-                                          <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
-                                            onStepChange={(spId, stepName, field, val) =>
-                                              handleStandardPreparationMetalStepChange(selectedParam.id, "icpmsIchQ3D", spId, stepName, field, val)
-                                            }
-                                            onRemove={() => handleRemoveSamplePreparationIcpmsIchQ3D(selectedParam.id, samplePrep.id)}
-                                          />
-                                        )}
-                                        <div className="mt-2">
-                                          <SamplePreparationMetalDetail
-                                            samplePreparation={samplePrep}
-                                            onStepChange={(samplePrepId, stepName, field, newValue) =>
-                                              handleSamplePreparationIcpmsIchQ3DStepChange(
-                                                selectedParam.id,
-                                                samplePrepId,
-                                                stepName,
-                                                field,
-                                                newValue,
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparationIcpmsIchQ3D(selectedParam.id, samplePrep.id)
-                                            }
-                                          />
-                                        </div>
-                                      </motion.div>
-                                    );
-                                  })}
+                                  {(samplePreparationIcpmsIchQ3DPerParam[selectedParam.id] || []).map((samplePrep) => (
+                                    <motion.div
+                                      key={samplePrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <SamplePreparationMetalDetail
+                                        samplePreparation={samplePrep}
+                                        onStepChange={(samplePrepId, stepName, field, newValue) =>
+                                          handleSamplePreparationIcpmsIchQ3DStepChange(
+                                            selectedParam.id,
+                                            samplePrepId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveSamplePreparationIcpmsIchQ3D(selectedParam.id, samplePrep.id)
+                                        }
+                                      />
+                                    </motion.div>
+                                  ))}
                                 </AnimatePresence>
 
                                 {(samplePreparationIcpmsIchQ3DPerParam[selectedParam.id] || []).length === 0 && (
@@ -14907,7 +15180,61 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for ICP-MS (ICH-Q3D)
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationIcpmsIchQ3D(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsIchQ3D"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "icpmsIchQ3D", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationIcpmsIchQ3D(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsIchQ3D"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -14941,7 +15268,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpmsIchQ3D"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationIcpmsIchQ3DPerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["icpmsIchQ3D"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -15117,56 +15443,42 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for ORS
+                                    Sample Preparations for ORS
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationORS(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
 
                                 <AnimatePresence>
-                                  {(samplePreparationORSPerParam[selectedParam.id] || []).map((samplePrep, idx) => {
-                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["ors"] || [])[idx];
-                                    return (
-                                      <motion.div
-                                        key={samplePrep.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                      >
-                                        {standardPrep && (
-                                          <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
-                                            onStepChange={(spId, stepName, field, val) =>
-                                              handleStandardPreparationMetalStepChange(selectedParam.id, "ors", spId, stepName, field, val)
-                                            }
-                                            onRemove={() => handleRemoveSamplePreparationORS(selectedParam.id, samplePrep.id)}
-                                          />
-                                        )}
-                                        <div className="mt-2">
-                                          <SamplePreparationMetalDetail
-                                            samplePreparation={samplePrep}
-                                            onStepChange={(samplePrepId, stepName, field, newValue) =>
-                                              handleSamplePreparationORSStepChange(
-                                                selectedParam.id,
-                                                samplePrepId,
-                                                stepName,
-                                                field,
-                                                newValue,
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparationORS(selectedParam.id, samplePrep.id)
-                                            }
-                                          />
-                                        </div>
-                                      </motion.div>
-                                    );
-                                  })}
+                                  {(samplePreparationORSPerParam[selectedParam.id] || []).map((samplePrep) => (
+                                    <motion.div
+                                      key={samplePrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <SamplePreparationMetalDetail
+                                        samplePreparation={samplePrep}
+                                        onStepChange={(samplePrepId, stepName, field, newValue) =>
+                                          handleSamplePreparationORSStepChange(
+                                            selectedParam.id,
+                                            samplePrepId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveSamplePreparationORS(selectedParam.id, samplePrep.id)
+                                        }
+                                      />
+                                    </motion.div>
+                                  ))}
                                 </AnimatePresence>
 
                                 {(samplePreparationORSPerParam[selectedParam.id] || []).length === 0 && (
@@ -15181,7 +15493,61 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for ORS
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationORS(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["ors"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "ors", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationORS(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["ors"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -15215,7 +15581,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["ors"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationORSPerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["ors"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -15369,10 +15734,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for Anofer
+                                      Preparations for Anofer
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      Anofer — Sample Preparation &amp; Calculations
+                                      Preparations &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -15391,56 +15756,42 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for Anofer
+                                    Sample Preparations for Anofer
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationAnofer(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
 
                                 <AnimatePresence>
-                                  {(samplePreparationAnoferPerParam[selectedParam.id] || []).map((samplePrep, idx) => {
-                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["anofer"] || [])[idx];
-                                    return (
-                                      <motion.div
-                                        key={samplePrep.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                      >
-                                        {standardPrep && (
-                                          <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
-                                            onStepChange={(spId, stepName, field, val) =>
-                                              handleStandardPreparationMetalStepChange(selectedParam.id, "anofer", spId, stepName, field, val)
-                                            }
-                                            onRemove={() => handleRemoveSamplePreparationAnofer(selectedParam.id, samplePrep.id)}
-                                          />
-                                        )}
-                                        <div className="mt-2">
-                                          <SamplePreparationMetalDetail
-                                            samplePreparation={samplePrep}
-                                            onStepChange={(samplePrepId, stepName, field, newValue) =>
-                                              handleSamplePreparationAnoferStepChange(
-                                                selectedParam.id,
-                                                samplePrepId,
-                                                stepName,
-                                                field,
-                                                newValue,
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparationAnofer(selectedParam.id, samplePrep.id)
-                                            }
-                                          />
-                                        </div>
-                                      </motion.div>
-                                    );
-                                  })}
+                                  {(samplePreparationAnoferPerParam[selectedParam.id] || []).map((samplePrep) => (
+                                    <motion.div
+                                      key={samplePrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <SamplePreparationMetalDetail
+                                        samplePreparation={samplePrep}
+                                        onStepChange={(samplePrepId, stepName, field, newValue) =>
+                                          handleSamplePreparationAnoferStepChange(
+                                            selectedParam.id,
+                                            samplePrepId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveSamplePreparationAnofer(selectedParam.id, samplePrep.id)
+                                        }
+                                      />
+                                    </motion.div>
+                                  ))}
                                 </AnimatePresence>
 
                                 {(samplePreparationAnoferPerParam[selectedParam.id] || []).length === 0 && (
@@ -15455,7 +15806,61 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for Anofer
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationAnofer(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["anofer"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "anofer", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationAnofer(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["anofer"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -15489,7 +15894,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["anofer"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationAnoferPerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["anofer"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -15643,10 +16047,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for ZPTO Shampoo
+                                      Preparations for ZPTO Shampoo
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      ZPTO Shampoo — Sample Preparation &amp; Calculations
+                                      Preparations &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -15665,56 +16069,42 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for ZPTO Shampoo
+                                    Sample Preparations for ZPTO Shampoo
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationZptoShampoo(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
 
                                 <AnimatePresence>
-                                  {(samplePreparationZptoShampooPerParam[selectedParam.id] || []).map((samplePrep, idx) => {
-                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["zptoShampoo"] || [])[idx];
-                                    return (
-                                      <motion.div
-                                        key={samplePrep.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                      >
-                                        {standardPrep && (
-                                          <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
-                                            onStepChange={(spId, stepName, field, val) =>
-                                              handleStandardPreparationMetalStepChange(selectedParam.id, "zptoShampoo", spId, stepName, field, val)
-                                            }
-                                            onRemove={() => handleRemoveSamplePreparationZptoShampoo(selectedParam.id, samplePrep.id)}
-                                          />
-                                        )}
-                                        <div className="mt-2">
-                                          <SamplePreparationMetalDetail
-                                            samplePreparation={samplePrep}
-                                            onStepChange={(samplePrepId, stepName, field, newValue) =>
-                                              handleSamplePreparationZptoShampooStepChange(
-                                                selectedParam.id,
-                                                samplePrepId,
-                                                stepName,
-                                                field,
-                                                newValue,
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparationZptoShampoo(selectedParam.id, samplePrep.id)
-                                            }
-                                          />
-                                        </div>
-                                      </motion.div>
-                                    );
-                                  })}
+                                  {(samplePreparationZptoShampooPerParam[selectedParam.id] || []).map((samplePrep) => (
+                                    <motion.div
+                                      key={samplePrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <SamplePreparationMetalDetail
+                                        samplePreparation={samplePrep}
+                                        onStepChange={(samplePrepId, stepName, field, newValue) =>
+                                          handleSamplePreparationZptoShampooStepChange(
+                                            selectedParam.id,
+                                            samplePrepId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveSamplePreparationZptoShampoo(selectedParam.id, samplePrep.id)
+                                        }
+                                      />
+                                    </motion.div>
+                                  ))}
                                 </AnimatePresence>
 
                                 {(samplePreparationZptoShampooPerParam[selectedParam.id] || []).length === 0 && (
@@ -15729,7 +16119,61 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for ZPTO Shampoo
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationZptoShampoo(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["zptoShampoo"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "zptoShampoo", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationZptoShampoo(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["zptoShampoo"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                       <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -15763,7 +16207,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["zptoShampoo"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationZptoShampooPerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["zptoShampoo"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -15915,10 +16358,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for Sodium Lactate
+                                      Preparations for Sodium Lactate
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      Sodium Lactate — Sample Preparation &amp; Calculations
+                                      Preparations &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -15937,57 +16380,42 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for Sodium Lactate
+                                    Sample Preparations for Sodium Lactate
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationSodiumLactate(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
 
                                 <AnimatePresence>
-                                  {(samplePreparationSodiumLactatePerParam[selectedParam.id] || []).map((samplePrep, idx) => {
-                                    const standardPrep = (standardPreparationMetalPerParam[selectedParam.id]?.["sodiumLactate"] || [])[idx];
-                                    return (
-                                      <motion.div
-                                        key={samplePrep.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                      >
-                                        {standardPrep && (
-                                          <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
-                                            onStepChange={(spId, stepName, field, val) =>
-                                              handleStandardPreparationMetalStepChange(selectedParam.id, "sodiumLactate", spId, stepName, field, val)
-                                            }
-                                            onRemove={() => handleRemoveSamplePreparationSodiumLactate(selectedParam.id, samplePrep.id)}
-                                          />
-                                        )}
-                                        <div className="mt-2">
-                                          <SamplePreparationMetalDetail
-                                            samplePreparation={samplePrep}
-                                            onStepChange={(samplePrepId, stepName, field, newValue) =>
-                                              handleSamplePreparationSodiumLactateStepChange(
-                                                selectedParam.id,
-                                                samplePrepId,
-                                                stepName,
-                                                field,
-                                                newValue,
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveSamplePreparationSodiumLactate(selectedParam.id, samplePrep.id)
-                                            }
-                                            isLocked={isPreparationLocked}
-                                          />
-                                        </div>
-                                      </motion.div>
-                                    );
-                                  })}
+                                  {(samplePreparationSodiumLactatePerParam[selectedParam.id] || []).map((samplePrep) => (
+                                    <motion.div
+                                      key={samplePrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <SamplePreparationMetalDetail
+                                        samplePreparation={samplePrep}
+                                        onStepChange={(samplePrepId, stepName, field, newValue) =>
+                                          handleSamplePreparationSodiumLactateStepChange(
+                                            selectedParam.id,
+                                            samplePrepId,
+                                            stepName,
+                                            field,
+                                            newValue,
+                                          )
+                                        }
+                                        onRemove={() =>
+                                          handleRemoveSamplePreparationSodiumLactate(selectedParam.id, samplePrep.id)
+                                        }
+                                      />
+                                    </motion.div>
+                                  ))}
                                 </AnimatePresence>
 
                                 {(samplePreparationSodiumLactatePerParam[selectedParam.id] || []).length === 0 && (
@@ -16002,7 +16430,60 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for Sodium Lactate
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationSodiumLactate(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["sodiumLactate"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "sodiumLactate", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationSodiumLactate(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["sodiumLactate"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -16036,7 +16517,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["sodiumLactate"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationSodiumLactatePerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["sodiumLactate"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -16187,10 +16667,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for Lithosun 300
+                                      Preparations for Lithosun 300
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      Lithosun 300 — Sample Preparation &amp; Calculations
+                                      Preparations &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -16209,14 +16689,14 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for Lithosun 300
+                                    Sample Preparations for Lithosun 300
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationLithosun300(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
 
@@ -16232,7 +16712,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       >
                                         {standardPrep && (
                                           <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
+                                            standardPreparation={standardPrep}
                                             onStepChange={(spId, stepName, field, val) =>
                                               handleStandardPreparationMetalStepChange(selectedParam.id, "lithosun300", spId, stepName, field, val)
                                             }
@@ -16267,7 +16747,60 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for Lithosun 300
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationLithosun300(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["lithosun300"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "lithosun300", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationLithosun300(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["lithosun300"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -16301,7 +16834,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["lithosun300"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationLithosun300PerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["lithosun300"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -16453,10 +16985,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for Lithosun 400
+                                      Preparations for Lithosun 400
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      Lithosun 400 — Sample Preparation &amp; Calculations
+                                      Sample Preparation &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -16475,14 +17007,14 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for Lithosun 400
+                                    Sample Preparations for Lithosun 400
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationLithosun400(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
 
@@ -16498,7 +17030,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       >
                                         {standardPrep && (
                                           <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
+                                            standardPreparation={standardPrep}
                                             onStepChange={(spId, stepName, field, val) =>
                                               handleStandardPreparationMetalStepChange(selectedParam.id, "lithosun400", spId, stepName, field, val)
                                             }
@@ -16533,7 +17065,60 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for Lithosun 400
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationLithosun400(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["lithosun400"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "lithosun400", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationLithosun400(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["lithosun400"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -16567,7 +17152,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["lithosun400"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationLithosun400PerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["lithosun400"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -16719,10 +17303,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for Meropenam
+                                      Preparations for Meropenam
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      Meropenam Sample Preparation &amp; Calculations
+                                      Sample Preparation &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -16741,14 +17325,14 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for Meropenam
+                                    Sample Preparations for Meropenam
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationMeropenam(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
 
@@ -16764,7 +17348,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       >
                                         {standardPrep && (
                                           <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
+                                            standardPreparation={standardPrep}
                                             onStepChange={(spId, stepName, field, val) =>
                                               handleStandardPreparationMetalStepChange(selectedParam.id, "meropenam", spId, stepName, field, val)
                                             }
@@ -16799,7 +17383,60 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for Meropenam
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationMeropenam(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["meropenam"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "meropenam", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationMeropenam(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["meropenam"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -16833,7 +17470,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["meropenam"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationMeropenamPerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["meropenam"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -16985,10 +17621,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for Talc
+                                      Preparations for Talc
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      Talc Sample Preparation &amp; Calculations
+                                      Sample Preparation &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -17007,14 +17643,14 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for Talc
+                                    Sample Preparations for Talc
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationTalc(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
 
@@ -17030,7 +17666,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       >
                                         {standardPrep && (
                                           <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
+                                            standardPreparation={standardPrep}
                                             onStepChange={(spId, stepName, field, val) =>
                                               handleStandardPreparationMetalStepChange(selectedParam.id, "talc", spId, stepName, field, val)
                                             }
@@ -17065,7 +17701,60 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for Talc
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationTalc(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["talc"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "talc", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationTalc(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["talc"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -17099,7 +17788,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["talc"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationTalcPerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["talc"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -17251,10 +17939,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   </div>
                                   <div>
                                     <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Sample Preparations for SFGC
+                                      Preparations for SFGC
                                     </h2>
                                     <p className="text-sm text-emerald-600/80 font-medium">
-                                      SFGC Sample Preparation &amp; Calculations
+                                      Sample Preparation &amp; Calculations
                                     </p>
                                   </div>
                                 </div>
@@ -17273,14 +17961,14 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 <div className="flex items-center justify-between mb-4 px-2">
                                   <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                                     <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparations for SFGC
+                                    Sample Preparations for SFGC
                                   </h3>
                                   <button
                                     onClick={() => handleAddSamplePreparationSFGC(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Add Preparation
+                                    Add Sample Preparation
                                   </button>
                                 </div>
 
@@ -17296,7 +17984,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       >
                                         {standardPrep && (
                                           <StandardPreparationMetalDetail
-                                            samplePreparation={standardPrep}
+                                            standardPreparation={standardPrep}
                                             onStepChange={(spId, stepName, field, val) =>
                                               handleStandardPreparationMetalStepChange(selectedParam.id, "sfgc", spId, stepName, field, val)
                                             }
@@ -17331,7 +18019,60 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       </div>
                                       <p className="text-base font-bold text-emerald-800 mb-1">No sample preparations added yet</p>
                                       <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                                        Click "Add Preparation" to add one
+                                        Click "Add Sample Preparation" to add one
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+                              {/* Standard Preparation Section */}
+                              <div className="mt-6">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                    Standard Preparations for SFGC
+                                  </h3>
+                                  <button
+                                    onClick={() => handleAddStandardPreparationSFGC(selectedParam.id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add Standard Preparation
+                                  </button>
+                                </div>
+
+                                <AnimatePresence>
+                                  {(standardPreparationMetalPerParam[selectedParam.id]?.["sfgc"] || []).map((standardPrep) => (
+                                    <motion.div
+                                      key={standardPrep.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                    >
+                                      <StandardPreparationMetalDetail
+                                        standardPreparation={standardPrep}
+                                        onStepChange={(spId, stepName, field, val) =>
+                                          handleStandardPreparationMetalStepChange(selectedParam.id, "sfgc", spId, stepName, field, val)
+                                        }
+                                        onRemove={() => handleRemoveStandardPreparationSFGC(selectedParam.id, standardPrep.id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+
+                                {(standardPreparationMetalPerParam[selectedParam.id]?.["sfgc"] || []).length === 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                  >
+                                    <div className="relative z-10">
+                                      <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                        <IoFlask className="w-10 h-10 text-emerald-400" />
+                                      </div>
+                                      <p className="text-base font-bold text-emerald-800 mb-1">No standard preparations added yet</p>
+                                      <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
+                                        Click "Add Standard Preparation" to add one
                                       </p>
                                     </div>
                                   </motion.div>
@@ -17365,7 +18106,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["sfgc"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
                                   ...(samplePreparationSFGCPerParam[selectedParam.id] || []),
-                                  ...(standardPreparationMetalPerParam[selectedParam.id]?.["sfgc"] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">

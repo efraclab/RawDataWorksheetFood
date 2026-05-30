@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Calculator, Trash, CheckCircle2, AlertTriangle } from "lucide-react";
-import type { CalculationIcpmsFood } from "../../../preparation_models/metal/CalculationIcpmsFood";
+import type { CalculationIcpms } from "../../../preparation_models/metal/CalculationIcpms";
 import type { SamplePreparationMetal } from "../../../preparation_models/metal/SamplePreparationMetal";
 import CustomDropdown from "../../shared/CustomDropdown";
 
 interface Props {
-  calculation: CalculationIcpmsFood;
+  calculation: CalculationIcpms;
   samplePreparations: SamplePreparationMetal[];
-  onUpdate: (updated: CalculationIcpmsFood) => void;
+  onUpdate: (updated: CalculationIcpms) => void;
   onRemove: () => void;
   isLocked?: boolean;
 }
@@ -24,14 +24,14 @@ const RESULT_UNIT = "mg/Kg";
 
 // ─── Unit converters ──────────────────────────────────────────────────────────
 
-const toCanonicalPpb = (value: number, unit: string): number => {
+const toCanonicalPpm = (value: number, unit: string): number => {
   if (!Number.isFinite(value)) return NaN;
   switch (unit) {
-    case "ppb":
-    case "μg/L": return value;           // already ppb
     case "ppm":
-    case "mg/L": return value * 1000;    // ppm → ppb
-    default:     return value;
+    case "mg/L": return value;
+    case "ppb":
+    case "μg/L": return value / 1000;
+    default: return value;
   }
 };
 
@@ -132,9 +132,9 @@ const compute = (
   v7?: string | null, v7Unit?: string | null,
 ): string | null => {
   // Concentrations → ppm
-  const sample = toCanonicalPpb(parseFloat(instSample), instSampleUnit);
+  const sample = toCanonicalPpm(parseFloat(instSample), instSampleUnit);
   if (!Number.isFinite(sample)) return null;
-  const blank = toCanonicalPpb(parseFloat(instBlank), instBlankUnit);
+  const blank = toCanonicalPpm(parseFloat(instBlank), instBlankUnit);
   if (!Number.isFinite(blank)) return null;
 
   // SW → g
@@ -163,7 +163,7 @@ const compute = (
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
-const CalculationDetailIcpmsFood: React.FC<Props> = ({
+const CalculationDetailIcpms: React.FC<Props> = ({
   calculation,
   samplePreparations,
   onUpdate,
@@ -173,7 +173,7 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
   const [isExpanded, setIsExpanded] = useState(true);
 
   // Cast to any once — unit fields (swUnit, v1Unit…v7Unit) are not in the
-  // CalculationIcpmsFood type but are stored on the object at runtime.
+  // CalculationIcpms type but are stored on the object at runtime.
   const c = calculation as any;
 
   const selectedSamplePrep = samplePreparations.find(
@@ -238,7 +238,7 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
     calculation.instrumentConcentrationBlankUnit,
   ]);
   // ─── Field update helper ──────────────────────────────────────────────────
-  const handleField = (field: keyof CalculationIcpmsFood, value: string | null) => {
+  const handleField = (field: keyof CalculationIcpms, value: string | null) => {
     if (isLocked) return;
     onUpdate({ ...calculation, [field]: value });
   };
@@ -246,8 +246,8 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
   // ─── Derived display numbers (all normalised) ─────────────────────────────
   const rawSampleNum = parseFloat(calculation.instrumentConcentrationSample);
   const rawBlankNum = parseFloat(calculation.instrumentConcentrationBlank);
-  const samplePpm = toCanonicalPpb(rawSampleNum, calculation.instrumentConcentrationSampleUnit);
-  const blankPpm = toCanonicalPpb(rawBlankNum, calculation.instrumentConcentrationBlankUnit);
+  const samplePpm = toCanonicalPpm(rawSampleNum, calculation.instrumentConcentrationSampleUnit);
+  const blankPpm = toCanonicalPpm(rawBlankNum, calculation.instrumentConcentrationBlankUnit);
   const swEff = toCanonicalG(parseFloat(calculation.sw ?? ""), c.swUnit);
   const v1Ml = hasVal(calculation.v1)
     ? toCanonicalML(parseFloat(calculation.v1!), c.v1Unit)
@@ -500,14 +500,11 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
                       <div className="flex flex-col items-center">
                         <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
                           <p className="text-xs font-mono text-black break-words">
-                            ({fmtN4(samplePpm)} ppb − {fmtN4(blankPpm)} ppb)
+                            ({fmtN4(samplePpm)} ppm − {fmtN4(blankPpm)} ppm)
                             {v1Active && v1Ml !== null ? ` × ${fmtN4(v1Ml)} mL` : ""}
                             {df1Active && df1Val !== null ? ` × ${fmtN4(df1Val)}` : ""}
                             {df2Active && df2Val !== null ? ` × ${fmtN4(df2Val)}` : ""}
                             {df3Active && df3Val !== null ? ` × ${fmtN4(df3Val)}` : ""}
-                          </p>
-                          <p className="text-[10px] text-gray-500 mt-0.5">
-                            (Sample/Blank in ppb; V1/DF values in mL; missing factors treated as ×1)
                           </p>
                         </div>
                         <div className="text-center px-2 w-full">
@@ -518,7 +515,7 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
                   )}
 
                   <p className="text-xs text-center text-gray-600">
-                    All values are converted to canonical units (ppb, mL, g) before calculation. Output unit is fixed at{" "}
+                    Output unit is fixed at{" "}
                     <strong>{RESULT_UNIT}</strong>.
                   </p>
                 </div>
@@ -578,4 +575,4 @@ const CalculationDetailIcpmsFood: React.FC<Props> = ({
   );
 };
 
-export default CalculationDetailIcpmsFood;
+export default CalculationDetailIcpms;

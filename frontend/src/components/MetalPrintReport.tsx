@@ -184,7 +184,7 @@ interface MetalPrintReportProps {
 
 // ── Calculation type label map ────────────────────────────────────────────────
 const CALC_TYPE_LABELS: Record<string, string> = {
-    icpms_food: "ICP-MS (Food)",
+    icpms: "ICP-MS",
     icpoes_food: "ICP-OES (Food)",
     icpms_water: "ICP-MS (Water)",
     icpoes_water: "ICP-OES (Water)",
@@ -217,9 +217,6 @@ const trimZeros = (v: string | number | null | undefined): string => {
 const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
     worksheetInfo,
     sampleData,
-    instruments,
-    chemicals,
-    standards,
 }) => {
     // ── Helpers ────────────────────────────────────────────────────────────────
     const safeJSONParse = (data: any, fallback: any = []) => {
@@ -521,10 +518,10 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
         const t = calcType.toLowerCase();
 
         // ── Determine if this type uses ppb or ppm for concentration ─────────────
-        // icpms_food, icpoes_food, icpms_water, icpoes_water, aas_water,
+        // icpms, icpoes_food, icpms_water, icpoes_water, aas_water,
         // icpms_ich_q3d  → ppb
         // everything else → ppm
-        const usesPpb = ["icpms_food", "icpoes_food", "icpms_water", "icpoes_water",
+        const usesPpb = ["icpms", "icpoes_food", "icpms_water", "icpoes_water",
             "aas_water", "icpms_ich_q3d"].includes(t);
 
         const sCanon = usesPpb ? toPpb(sRaw, sU) : toPpm(sRaw, sU);
@@ -587,7 +584,7 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
 
         // ── Type-specific numerator additions & denominator ──────────────────────
 
-        if (["icpms_food", "icpoes_food", "icpms_ich_q3d"].includes(t)) {
+        if (["icpms", "icpoes_food", "icpms_ich_q3d"].includes(t)) {
             // Result (mg/Kg) = (Sample_ppb − Blank_ppb) × V1_mL × DF1×DF2×DF3
             //                  ─────────────────────────────────────────────────
             //                                   SW_mg
@@ -723,7 +720,7 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
             denVal = "—";
         }
 
-        // Remove empty string entries pushed by icpms_food/icpoes_food/icpms_ich_q3d
+        // Remove empty string entries pushed by icpms/icpoes_food/icpms_ich_q3d
         const filteredNumSym = numSym.filter(s => s !== "");
         const filteredNumVal = numVal.filter(s => s !== "");
 
@@ -817,45 +814,8 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
     };
 
     // ── ORS-specific extra fields ──────────────────────────────────────────────
-    const renderORSExtraFields = (calcData: any) => {
-        const rows: { label: string; value: string }[] = [];
-        if (calcData.sachetWeightAvg)
-            rows.push({ label: "Sachet Weight (Avg)", value: `${trimZeros(calcData.sachetWeightAvg)} ${calcData.sachetWeightAvgUnit || "g"}` });
-        if (calcData.molecularWeight)
-            rows.push({ label: "Molecular Weight", value: `${trimZeros(calcData.molecularWeight)} ${calcData.molecularWeightUnit || "g/mol"}` });
-        if (calcData.labelClaim)
-            rows.push({ label: "Label Claim", value: `${trimZeros(calcData.labelClaim)} ${calcData.labelClaimUnit || ""}` });
-        if (rows.length === 0) return null;
-        return (
-            <table className="w-full border border-black text-sm mb-2">
-                <tbody>
-                    {rows.map((r, i) => (
-                        <tr key={i} className="border-b border-black last:border-b-0">
-                            <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">{r.label}</td>
-                            <td className="px-3 py-1.5">{r.value}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        );
-    };
 
     // ── Meropenam-specific extra fields ───────────────────────────────────────
-    const renderMeropenamExtraFields = (calcData: any) => {
-        if (!calcData.labelClaim) return null;
-        return (
-            <table className="w-full border border-black text-sm mb-2">
-                <tbody>
-                    <tr>
-                        <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
-                        <td className="px-3 py-1.5">
-                            {trimZeros(calcData.labelClaim)} {calcData.labelClaimUnit || "mg"}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        );
-    };
 
     // ── Shared Lithosun formula symbolic block ─────────────────────────────────
     const renderLithosunFormulaSymbolic = () => (
@@ -911,7 +871,7 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
     };
 
     // ── Lithosun 300: single time point, 6 tablets ────────────────────────────
-    const renderLithosun300Calculation = (calc: any, idx: number, samplePreps: any[] = [], standardPreps: any[] = []) => {
+    const renderLithosun300Calculation = (calc: any, idx: number, samplePreps: any[] = [] = []) => {
         const calcData = safeJSONParse(calc.data, {});
         const label = `${calc.label} (Lithosun 300)`;
 
@@ -919,12 +879,10 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
             ? samplePreps.findIndex((p: any) => p.label === calcData.selectedSamplePreparationLabel)
             : -1;
         const matchedSamplePrep = matchedSamplePrepIdx !== -1 ? samplePreps[matchedSamplePrepIdx] : null;
-        const matchedStandardPrep = matchedSamplePrepIdx !== -1 ? (standardPreps[matchedSamplePrepIdx] ?? null) : null;
 
         const _toMl = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "mL").trim().toLowerCase(); if (uu === "l") return n * 1000; if (uu === "μl" || uu === "ul") return n / 1000; return n; };
         const _toMg = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "mg").trim().toLowerCase(); if (uu === "g") return n * 1000; if (uu === "kg") return n * 1e6; if (uu === "μg" || uu === "mcg") return n / 1000; return n; };
         const _toPpm = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "ppm").trim().toLowerCase(); if (uu === "ppb" || uu === "μg/l") return n / 1000; return n; };
-        const fmtN = (n: number) => (isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—");
 
         const v1Ml = _toMl(calcData.v1, calcData.v1Unit || "mL");
         const v2Ml = _toMl(calcData.v2, calcData.v2Unit || "mL");
@@ -960,12 +918,6 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
                             <tr className="border-b border-black">
                                 <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Sample Preparation</td>
                                 <td className="px-3 py-1.5">{matchedSamplePrep.label}</td>
-                            </tr>
-                        )}
-                        {matchedStandardPrep && (
-                            <tr className="border-b border-black">
-                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Standard Preparation</td>
-                                <td className="px-3 py-1.5">{matchedStandardPrep.label}</td>
                             </tr>
                         )}
                         {calcData.instrumentConcentrationBlank !== undefined && calcData.instrumentConcentrationBlank !== "" && calcData.instrumentConcentrationBlank !== "0" && (
@@ -1068,7 +1020,7 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
     };
 
     // ── Lithosun 400: multiple time points × 6 tablets ────────────────────────
-    const renderLithosun400Calculation = (calc: any, idx: number, samplePreps: any[] = [], standardPreps: any[] = []) => {
+    const renderLithosun400Calculation = (calc: any, idx: number, samplePreps: any[] = [] = []) => {
         const calcData = safeJSONParse(calc.data, {});
         const label = `${calc.label} (Lithosun 400)`;
 
@@ -1076,12 +1028,10 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
             ? samplePreps.findIndex((p: any) => p.label === calcData.selectedSamplePreparationLabel)
             : -1;
         const matchedSamplePrep = matchedSamplePrepIdx !== -1 ? samplePreps[matchedSamplePrepIdx] : null;
-        const matchedStandardPrep = matchedSamplePrepIdx !== -1 ? (standardPreps[matchedSamplePrepIdx] ?? null) : null;
 
         const _toMl = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "mL").trim().toLowerCase(); if (uu === "l") return n * 1000; if (uu === "μl" || uu === "ul") return n / 1000; return n; };
         const _toMg = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "mg").trim().toLowerCase(); if (uu === "g") return n * 1000; if (uu === "kg") return n * 1e6; if (uu === "μg" || uu === "mcg") return n / 1000; return n; };
         const _toPpm = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "ppm").trim().toLowerCase(); if (uu === "ppb" || uu === "μg/l") return n / 1000; return n; };
-        const fmtN = (n: number) => (isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—");
 
         const v1Ml = _toMl(calcData.v1, calcData.v1Unit || "mL");
         const v2Ml = _toMl(calcData.v2, calcData.v2Unit || "mL");
@@ -1150,12 +1100,6 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
                                 <td className="px-3 py-1.5">{matchedSamplePrep.label}</td>
                             </tr>
                         )}
-                        {matchedStandardPrep && (
-                            <tr className="border-b border-black">
-                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Standard Preparation</td>
-                                <td className="px-3 py-1.5">{matchedStandardPrep.label}</td>
-                            </tr>
-                        )}
                         {calcData.labelClaim && (
                             <tr className="border-b border-black">
                                 <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
@@ -1175,7 +1119,7 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
                 {hasAnyData && renderLithosunFormulaSymbolic()}
 
                 {/* Per-time-point blocks */}
-                {timePoints.map(({ tp, tpLabel, blankRaw, blankUnit, blankPpm, tablets, min, avg, max, limitMin, limitMax }) => {
+                {timePoints.map(({ tp, tpLabel, blankRaw, blankUnit, blankPpm, tablets, min, avg, max }) => {
                     const hasTabletData = tablets.some(ts => ts.sampleRaw);
                     if (!hasTabletData) return null;
                     return (
@@ -1188,12 +1132,6 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
                             {/* Standard & Sample prep refs */}
                             <table className="w-full border border-black text-sm mb-2">
                                 <tbody>
-                                    {matchedStandardPrep && (
-                                        <tr className="border-b border-black">
-                                            <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Standard Preparation</td>
-                                            <td className="px-3 py-1.5">{matchedStandardPrep.label}</td>
-                                        </tr>
-                                    )}
                                     {matchedSamplePrep && (
                                         <tr className="border-b border-black">
                                             <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Sample Preparation</td>
@@ -1292,10 +1230,10 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
     };
 
     // ── Render a single calculation ────────────────────────────────────────────
-    const renderCalculation = (calc: any, idx: number, samplePreps: any[] = [], standardPreps: any[] = []) => {
+    const renderCalculation = (calc: any, idx: number, samplePreps: any[] = [] = []) => {
         const calcType = (calc.calculationType || "").toLowerCase();
-        if (calcType === "lithosun300") return renderLithosun300Calculation(calc, idx, samplePreps, standardPreps);
-        if (calcType === "lithosun400") return renderLithosun400Calculation(calc, idx, samplePreps, standardPreps);
+        if (calcType === "lithosun300") return renderLithosun300Calculation(calc, idx, samplePreps);
+        if (calcType === "lithosun400") return renderLithosun400Calculation(calc, idx, samplePreps);
         const calcData = safeJSONParse(calc.data, {});
         const label = calcTypeLabel(calcType) ? `${calc.label} (${calcTypeLabel(calcType)})` : calc.label;
 
@@ -1304,12 +1242,9 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
             ? samplePreps.findIndex((p: any) => p.label === calcData.selectedSamplePreparationLabel)
             : -1;
         const matchedSamplePrep = matchedSamplePrepIdx !== -1 ? samplePreps[matchedSamplePrepIdx] : null;
-        const matchedStandardPrep = matchedSamplePrepIdx !== -1 ? (standardPreps[matchedSamplePrepIdx] ?? null) : null;
 
         // ── Helper converters (same as renderMetalCalcDerivation) ────────────────
-        const _toG = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "g").trim().toLowerCase(); if (uu === "mg") return n / 1000; if (uu === "kg") return n * 1000; if (uu === "μg" || uu === "mcg") return n / 1e6; return n; };
         const _toMg = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "mg").trim().toLowerCase(); if (uu === "g") return n * 1000; if (uu === "kg") return n * 1e6; if (uu === "μg" || uu === "mcg") return n / 1000; return n; };
-        const _toMl = (v: any, u?: string) => { const n = parseFloat(v ?? ""); if (!isFinite(n)) return NaN; const uu = (u || "mL").trim().toLowerCase(); if (uu === "l") return n * 1000; if (uu === "μl" || uu === "ul") return n / 1000; return n; };
         const _hasV = (v: any) => v !== null && v !== undefined && v !== "";
         const _fmtC = (canonical: number, cu: string, origVal: any, origU: string) => {
             const s = `${trimZeros(canonical)} ${cu}`;
@@ -1318,16 +1253,10 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
 
         // ── Build display rows for the parameter summary table ───────────────────
         const t = calcType.toLowerCase();
-        const SW_TYPES = ["icpms_food", "icpoes_food", "icpms_ich_q3d", "anofer", "ors", "zpto_shampoo", "sodium_lactate", "talc", "sfgc", "meropenam"];
-        const swRaw = calcData.sw; const swU = calcData.swUnit || "mg";
-
+ 
         // Determine canonical SW unit per type
-        // icpms_food / icpoes_food / icpms_ich_q3d / talc / ors / zpto_shampoo → g
+        // icpms / icpoes_food / icpms_ich_q3d / talc / ors / zpto_shampoo → g
         // sfgc / meropenam / anofer → mg
-        const swUsesG = ["ors", "zpto_shampoo"].includes(t);
-        const swCanon = swUsesG ? _toG(swRaw, swU) : _toMg(swRaw, swU);
-        const swCanonUnit = swUsesG ? "g" : "mg";
-        const swDisplay = _hasV(swRaw) && isFinite(swCanon) ? _fmtC(swCanon, swCanonUnit, swRaw, swU) : null;
 
         return (
             <div key={idx} className="mb-4">
@@ -1340,12 +1269,6 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
                             <tr className="border-b border-black">
                                 <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Sample Preparation</td>
                                 <td className="px-3 py-1.5">{matchedSamplePrep.label}</td>
-                            </tr>
-                        )}
-                        {matchedStandardPrep && (
-                            <tr className="border-b border-black">
-                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Selected Standard Preparation</td>
-                                <td className="px-3 py-1.5">{matchedStandardPrep.label}</td>
                             </tr>
                         )}
                         {calcData.instrumentConcentrationSample !== undefined && calcData.instrumentConcentrationSample !== "" && (
@@ -1686,7 +1609,7 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
                                     <div className="mb-4">
                                         <h4 className="text-md uppercase font-bold mb-2">Calculations</h4>
                                         {calculations.map((calc: any, idx: number) =>
-                                            renderCalculation(calc, idx, samplePreps, standardPreps),
+                                            renderCalculation(calc, idx, samplePreps),
                                         )}
                                     </div>
                                 )}

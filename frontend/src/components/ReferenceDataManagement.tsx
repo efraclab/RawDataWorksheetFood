@@ -797,6 +797,7 @@ function FormModal({
       'purchaseDate', 'warrenty_UOTO', 'amc_UPTO', 'cmc_UPTO',
       'calibrationDoneDate', 'calibrationDueDate', // Instruments
       'expDate', // Media
+      'validity', // Standards <-- ADD THIS LINE
     ];
     
     dateFields.forEach(field => {
@@ -1066,7 +1067,8 @@ function FormModal({
           />
           <FormField
             label="Validity"
-            value={formData.validity || ""}
+            type="date"
+            value={formatDateForInput(formData.validity || "")}
             onChange={(v) => handleChange("validity", v)}
           />
           <FormField

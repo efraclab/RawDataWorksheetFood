@@ -389,7 +389,7 @@ const CalculationDetailAasWater: React.FC<Props> = ({
                         </p>
                       </div>
                     </div>
-                    <span className="text-sm font-bold text-black shrink-0">= {RESULT_UNIT}</span>
+                    <span className="text-sm font-bold text-black shrink-0">{RESULT_UNIT}</span>
                   </div>
                 </div>
               </div>
@@ -549,7 +549,7 @@ const CalculationDetailAasWater: React.FC<Props> = ({
                   )}
 
                   <p className="text-xs text-center text-gray-600">
-                    All values are converted to canonical units (ppb, mL) before calculation. Output unit is fixed at{" "}
+                    Output unit is fixed at{" "}
                     <strong>{RESULT_UNIT}</strong>.
                   </p>
                 </div>

@@ -22,11 +22,13 @@ const concUnitOptions = [
 
 const RESULT_UNIT = "mg/Kg";
 
-const toCanonicalPpb = (value: number, unit: string): number => {
-  if (!Number.isFinite(value)) return value;
+const toCanonicalPpm = (value: number, unit: string): number => {
+  if (!Number.isFinite(value)) return NaN;
   switch (unit) {
-    case "ppb": case "μg/L": return value;
-    case "ppm": case "mg/L": return value * 1000;
+    case "ppm":
+    case "mg/L": return value;
+    case "ppb":
+    case "μg/L": return value / 1000;
     default: return value;
   }
 };
@@ -150,11 +152,11 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
     v6: string | null, v6Unit: string | null,
     v7: string | null, v7Unit: string | null,
   ): string | null => {
-    const sample = toCanonicalPpb(parseFloat(instSample), instSampleUnit);
+    const sample = toCanonicalPpm(parseFloat(instSample), instSampleUnit);
     if (!Number.isFinite(sample)) return null;
     const blankRaw = parseFloat(instBlank);
     if (!Number.isFinite(blankRaw)) return null;
-    const blank = toCanonicalPpb(blankRaw, instBlankUnit);
+    const blank = toCanonicalPpm(blankRaw, instBlankUnit);
 
     // SW → g
     const swG = toCanonicalG(parseFloat(sw ?? ""), swUnit);
@@ -176,8 +178,8 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
     const result =
       ((sample - blank) * v1n * df1n * df2n * df3n) /
       ((!Number.isFinite(swG) || swG === 0)
-        ? 1000
-        : (swG * 1000));
+        ? 1
+        : (swG));
 
     if (!Number.isFinite(result)) return null;
     return result.toFixedNoRound(4).toFixed(3);
@@ -240,8 +242,8 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
 
   const rawSampleNum = parseFloat(calculation.instrumentConcentrationSample);
   const rawBlankNum = parseFloat(calculation.instrumentConcentrationBlank);
-  const samplePpb = toCanonicalPpb(rawSampleNum, calculation.instrumentConcentrationSampleUnit);
-  const blankPpb = toCanonicalPpb(rawBlankNum, calculation.instrumentConcentrationBlankUnit);
+  const samplePpm = toCanonicalPpm(rawSampleNum, calculation.instrumentConcentrationSampleUnit);
+  const blankPpm = toCanonicalPpm(rawBlankNum, calculation.instrumentConcentrationBlankUnit);
 
   const missingFields: string[] = [];
   if (!calculation.instrumentConcentrationSample) missingFields.push("Sample Concentration");
@@ -343,7 +345,7 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
                         <p className="text-xs font-mono text-black break-words">{formulaNumerator}</p>
                       </div>
                       <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">Sample Weight (SW1) × 1000</p>
+                        <p className="text-xs font-mono text-black">Sample Weight (SW1)</p>
                       </div>
                     </div>
                     <span className="text-sm font-bold text-black">mg/Kg</span>
@@ -403,7 +405,7 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
                     <div className="flex flex-col items-center">
                       <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
-                          ({fmtN4(samplePpb)} ppb − {fmtN4(blankPpb)} ppb)
+                          ({fmtN4(samplePpm)} ppm − {fmtN4(blankPpm)} ppm)
                           {v1Active && v1Ml !== null ? ` × ${fmtN4(v1Ml)} mL` : ""}
                           {df1Active && df1 !== null ? ` × ${fmtN4(df1)}` : ""}
                           {df2Active && df2 !== null ? ` × ${fmtN4(df2)}` : ""}
@@ -411,15 +413,16 @@ const CalculationDetailIcpmsIchQ3D: React.FC<Props> = ({
                         </p>
                       </div>
                       <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">
+                        
                           {Number.isFinite(swG) ? (
                             <>
-                              {fmtN4(swG)} {c.swUnit || "g"} × 1000
+                            <p className="text-xs font-mono text-black">
+                              {fmtN4(swG)} {c.swUnit || "g"}
+                        </p>
                             </>
                           ) : (
                             "—"
                           )}
-                        </p>
                       </div>
                     </div>
                   </div>

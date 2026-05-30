@@ -362,8 +362,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Models\\Requests\\LogInRequest.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-04T06:26:35.517Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-04T06:26:35.517Z"
             },
             {
               "$type": "Document",
@@ -399,8 +398,7 @@
               "RelativeToolTip": "RawDataWorkSheet\\Repositories\\StandardRepository.cs",
               "ViewState": "AgIAABAAAAAAAAAAAAAzwBoAAAAxAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-12T06:08:29.329Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-12T06:08:29.329Z"
             },
             {
               "$type": "Document",
@@ -422,7 +420,7 @@
               "RelativeDocumentMoniker": "RawDataWorkSheet\\Models\\References\\StandardMaster.cs",
               "ToolTip": "C:\\bikash\\react-projects\\raw-data-worksheet-app\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models\\References\\StandardMaster.cs",
               "RelativeToolTip": "RawDataWorkSheet\\Models\\References\\StandardMaster.cs",
-              "ViewState": "AgIAAAQAAAAAAAAAAAAzwA4AAAAsAAAAAAAAAA==",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAAwA4AAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-12T06:03:26.067Z",
               "EditorCaption": ""

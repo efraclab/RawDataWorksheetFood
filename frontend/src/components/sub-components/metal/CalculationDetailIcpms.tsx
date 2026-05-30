@@ -344,7 +344,7 @@ const CalculationDetailIcpms: React.FC<Props> = ({
             </motion.div>
             <div>
               <h4 className="text-sm font-semibold text-white tracking-wide">{calculation.label}</h4>
-              <p className="text-xs text-emerald-100">ICP-MS (Food) — Content (mg/Kg) calculation</p>
+              <p className="text-xs text-emerald-100">ICP-MS — Content (mg/Kg) calculation</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -391,7 +391,7 @@ const CalculationDetailIcpms: React.FC<Props> = ({
                         <p className="text-xs font-mono text-black break-words">{formulaNumerator}</p>
                       </div>
                       <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">Sample Weight (SW1) × 1000</p>
+                        <p className="text-xs font-mono text-black">Sample Weight (SW1)</p>
                       </div>
                     </div>
                     <span className="text-sm font-bold text-black shrink-0">= {RESULT_UNIT}</span>

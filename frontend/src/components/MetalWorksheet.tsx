@@ -8,7 +8,7 @@ import { CgTrash } from "react-icons/cg";
 import { BiTestTube } from "react-icons/bi";
 import { IoFlask } from "react-icons/io5";
 import type { CalculationIcpms } from "../preparation_models/metal/CalculationIcpms";
-import type { CalculationIcpoesFood } from "../preparation_models/metal/CalculationIcpoesFood";
+import type { CalculationIcpoes } from "../preparation_models/metal/CalculationIcpoes";
 import type { CalculationIcpmsWater } from "../preparation_models/metal/CalculationIcpmsWater";
 import type { CalculationIcpoesWater } from "../preparation_models/metal/CalculationIcpoesWater";
 import type { CalculationAasWater } from "../preparation_models/metal/CalculationAasWater";
@@ -25,7 +25,7 @@ import { areAllMetalPrepsDilutionValid } from "../preparation_models/metal/metal
 import SamplePreparationMetalDetail from "./sub-components/metal/SamplePreparationMetalDetail";
 import StandardPreparationMetalDetail from "./sub-components/metal/StandardPreparationMetalDetail";
 import CalculationDetailIcpms from "./sub-components/metal/CalculationDetailIcpms";
-import CalculationDetailIcpoesFood from "./sub-components/metal/CalculationDetailIcpoesFood";
+import CalculationDetailIcpoes from "./sub-components/metal/CalculationDetailIcpoes";
 import CalculationDetailIcpmsWater from "./sub-components/metal/CalculationDetailIcpmsWater";
 import CalculationDetailIcpoesWater from "./sub-components/metal/CalculationDetailIcpoesWater";
 import CalculationDetailAasWater from "./sub-components/metal/CalculationDetailAasWater";
@@ -215,7 +215,7 @@ const createNewSamplePreparationIcpms = (
   ],
 });
 
-const createNewSamplePreparationIcpoesFood = (
+const createNewSamplePreparationIcpoes = (
   index: number,
 ): SamplePreparationMetal => ({
   id: Date.now() + index,
@@ -329,9 +329,9 @@ const createNewCalculationIcpms = (
   calculationResultUnit: "mg/Kg",
 });
 
-const createNewCalculationIcpoesFood = (
+const createNewCalculationIcpoes = (
   index: number,
-): CalculationIcpoesFood => ({
+): CalculationIcpoes => ({
   id: Date.now() + index,
   label: `Calculation ${index + 1}`,
   selectedSamplePreparationLabel: null,
@@ -866,8 +866,8 @@ const createNewStandardPreparationMetal = (
 });
 
 const PREPARATION_GROUPS = {
-  icpmsFood: { id: "icpmsFood", label: "ICP-MS (Food)", color: "emerald" },
-  icpoesFood: { id: "icpoesFood", label: "ICP-OES (Food)", color: "emerald" },
+  icpmsFood: { id: "icpmsFood", label: "ICP-MS", color: "emerald" },
+  icpoesFood: { id: "icpoesFood", label: "ICP-OES", color: "emerald" },
   icpmsWater: { id: "icpmsWater", label: "ICP-MS (Water)", color: "emerald" },
   icpoesWater: { id: "icpoesWater", label: "ICP-OES (Water)", color: "emerald" },
   aasWater: { id: "aasWater", label: "AAS (Water)", color: "emerald" },
@@ -886,7 +886,7 @@ const PREPARATION_GROUPS = {
 
 const METAL_GROUP_TO_TYPE: Record<string, string> = {
   icpmsFood: "icpms",
-  icpoesFood: "icpoes_food",
+  icpoesFood: "icpoes",
   icpmsWater: "icpms_water",
   icpmsIchQ3D: "icpms_ich_q3d",
   ors: "ors",
@@ -1108,11 +1108,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   const [calculationsIcpmsPerParam, setCalculationsIcpmsPerParam] =
     useState<Record<number, CalculationIcpms[]>>({});
   const [
-    samplePreparationIcpoesFoodPerParam,
-    setSamplePreparationIcpoesFoodPerParam,
+    samplePreparationIcpoesPerParam,
+    setSamplePreparationIcpoesPerParam,
   ] = useState<Record<number, SamplePreparationMetal[]>>({});
-  const [calculationsIcpoesFoodPerParam, setCalculationsIcpoesFoodPerParam] =
-    useState<Record<number, CalculationIcpoesFood[]>>({});
+  const [calculationsIcpoesPerParam, setCalculationsIcpoesPerParam] =
+    useState<Record<number, CalculationIcpoes[]>>({});
   const [
     samplePreparationIcpmsWaterPerParam,
     setSamplePreparationIcpmsWaterPerParam,
@@ -1577,7 +1577,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             (p: any) => p.preparationType,
           );
           if (prepTypes.includes("icpms")) groupKeys["icpmsFood"] = at;
-          if (prepTypes.includes("icpoes_food")) groupKeys["icpoesFood"] = at;
+          if (prepTypes.includes("icpoes")) groupKeys["icpoesFood"] = at;
           if (prepTypes.includes("icpms_water")) groupKeys["icpmsWater"] = at;
           if (prepTypes.includes("icpoes_water")) groupKeys["icpoesWater"] = at;
           if (prepTypes.includes("aas_water")) groupKeys["aasWater"] = at;
@@ -1690,7 +1690,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                 preparationCollections.metalStd["icpmsFood"] = preparationCollections.metalStd["icpmsFood"] || [];
                 preparationCollections.metalStd["icpmsFood"].push(newPrep);
                 break;
-              case "icpoes_food":
+              case "icpoes":
                 preparationCollections.metalStd["icpoesFood"] = preparationCollections.metalStd["icpoesFood"] || [];
                 preparationCollections.metalStd["icpoesFood"].push(newPrep);
                 break;
@@ -1765,7 +1765,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
               case "icpms":
                 preparationCollections.icpmsFoodSpl.push(newPrep);
                 break;
-              case "icpoes_food":
+              case "icpoes":
                 preparationCollections.icpoesFoodSpl.push(newPrep);
                 break;
               case "icpms_water":
@@ -1841,7 +1841,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }
 
         if (preparationCollections.icpoesFoodSpl.length > 0) {
-          setSamplePreparationIcpoesFoodPerParam((prev) => ({
+          setSamplePreparationIcpoesPerParam((prev) => ({
             ...prev,
             [paramId]: preparationCollections.icpoesFoodSpl,
           }));
@@ -1977,7 +1977,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
       if (param.calculations && Array.isArray(param.calculations)) {
         const restoredCalculations = {
           icpmsFood: [] as CalculationIcpms[],
-          icpoesFood: [] as CalculationIcpoesFood[],
+          icpoesFood: [] as CalculationIcpoes[],
           icpmsWater: [] as CalculationIcpmsWater[],
           icpoesWater: [] as CalculationIcpoesWater[],
           aasWater: [] as CalculationAasWater[],
@@ -2032,8 +2032,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                 break;
               }
 
-              case "icpoes_food": {
-                const icpoesFoodCalc: CalculationIcpoesFood = {
+              case "icpoes": {
+                const icpoesFoodCalc: CalculationIcpoes = {
                   id: baseId + 9600,
                   label: parsedData.label || calc.label,
                   selectedSamplePreparationLabel:
@@ -2418,7 +2418,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                   acceptanceLimitMax: parsedData.acceptanceLimitMax || "",
                   calculationResult: parsedData.calculationResult ?? null,
                   calculationResultUnit: parsedData.calculationResultUnit ?? "% of LC",
-                  labelClaimUnit: parsedData.labelClaim ?? ""
+                  labelClaimUnit: parsedData.labelClaimUnit ?? ""
                 };
                 restoredCalculations.anofer.push(anoferCalc);
                 break;
@@ -2560,7 +2560,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }
 
         if (restoredCalculations.icpoesFood.length > 0) {
-          setCalculationsIcpoesFoodPerParam((prev) => ({
+          setCalculationsIcpoesPerParam((prev) => ({
             ...prev,
             [paramId]: restoredCalculations.icpoesFood,
           }));
@@ -2662,7 +2662,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
       if (param.preparations && Array.isArray(param.preparations)) {
 
-        // Check for ICP-MS (Food) preparations
+        // Check for ICP-MS preparations
         if (
           param.preparations.some(
             (p: any) => p.preparationType === "icpms",
@@ -2676,15 +2676,15 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           activeGroups.push("icpmsFood");
         }
 
-        // Check for ICP-OES (Food) preparations
+        // Check for ICP-OES preparations
         if (
           param.preparations.some(
-            (p: any) => p.preparationType === "icpoes_food",
+            (p: any) => p.preparationType === "icpoes",
           ) ||
           (param.calculations &&
             Array.isArray(param.calculations) &&
             param.calculations.some(
-              (c: any) => c.calculationType === "icpoes_food",
+              (c: any) => c.calculationType === "icpoes",
             ))
         ) {
           activeGroups.push("icpoesFood");
@@ -2954,10 +2954,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             steps: JSON.stringify(sp.steps),
           })),
           // Sample Preparations for ICP-OES
-          ...(samplePreparationIcpoesFoodPerParam[param.id] || []).map((sp) => ({
+          ...(samplePreparationIcpoesPerParam[param.id] || []).map((sp) => ({
             label: sp.label,
             preparationCategory: "sample",
-            preparationType: "icpoes_food",
+            preparationType: "icpoes",
             assignedStandardId: null,
             steps: JSON.stringify(sp.steps),
           })),
@@ -3094,11 +3094,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
               data: JSON.stringify(dataObj),
             };
           }),
-          ...(calculationsIcpoesFoodPerParam[param.id] || []).map((calc) => {
+          ...(calculationsIcpoesPerParam[param.id] || []).map((calc) => {
             const dataObj = { ...calc } as any;
             return {
               label: calc.label,
-              calculationType: "icpoes_food",
+              calculationType: "icpoes",
               data: JSON.stringify(dataObj),
             };
           }),
@@ -3605,10 +3605,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                 assignedStandardId: "",
                 steps: JSON.stringify(sp.steps),
               })),
-              ...(samplePreparationIcpoesFoodPerParam[newId] || []).map((sp) => ({
+              ...(samplePreparationIcpoesPerParam[newId] || []).map((sp) => ({
                 label: sp.label,
                 preparationCategory: "sample",
-                preparationType: "icpoes_food",
+                preparationType: "icpoes",
                 assignedStandardId: "",
                 steps: JSON.stringify(sp.steps),
               })),
@@ -3703,11 +3703,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                   data: JSON.stringify(dataObj),
                 };
               }),
-              ...(calculationsIcpoesFoodPerParam[newId] || []).map((calc) => {
+              ...(calculationsIcpoesPerParam[newId] || []).map((calc) => {
                 const dataObj = { ...calc } as any;
                 return {
                   label: calc.label,
-                  calculationType: "icpoes_food",
+                  calculationType: "icpoes",
                   data: JSON.stringify(dataObj),
                 };
               }),
@@ -3886,8 +3886,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             });
           }
 
-          if (samplePreparationIcpoesFoodPerParam[newId]) {
-            setSamplePreparationIcpoesFoodPerParam((prev) => {
+          if (samplePreparationIcpoesPerParam[newId]) {
+            setSamplePreparationIcpoesPerParam((prev) => {
               const { [newId]: preps, ...rest } = prev;
               return { ...rest, [serverParameterId]: preps };
             });
@@ -3970,8 +3970,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
             });
           }
 
-          if (calculationsIcpoesFoodPerParam[newId]) {
-            setCalculationsIcpoesFoodPerParam((prev) => {
+          if (calculationsIcpoesPerParam[newId]) {
+            setCalculationsIcpoesPerParam((prev) => {
               const { [newId]: calcs, ...rest } = prev;
               return { ...rest, [serverParameterId]: calcs };
             });
@@ -4104,7 +4104,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           cleanupState(setAddedChemicals);
           cleanupState(setAddedStandards);
           cleanupState(setSamplePreparationIcpmsPerParam);
-          cleanupState(setSamplePreparationIcpoesFoodPerParam);
+          cleanupState(setSamplePreparationIcpoesPerParam);
           cleanupState(setSamplePreparationIcpmsWaterPerParam);
           cleanupState(setSamplePreparationIcpmsIchQ3DPerParam);
           cleanupState(setSamplePreparationORSPerParam);
@@ -4112,7 +4112,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           cleanupState(setSamplePreparationZptoShampooPerParam);
           cleanupState(setSamplePreparationSodiumLactatePerParam);
           cleanupState(setCalculationsIcpmsPerParam);
-          cleanupState(setCalculationsIcpoesFoodPerParam);
+          cleanupState(setCalculationsIcpoesPerParam);
           cleanupState(setCalculationsIcpmsWaterPerParam);
           cleanupState(setCalculationsIcpmsIchQ3DPerParam);
           cleanupState(setCalculationsORSPerParam);
@@ -4302,7 +4302,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     cleanupState(setAdditionalInfoPerParam);
     cleanupState(setShowAdditionalInfo);
     cleanupState(setCalculationsIcpmsPerParam);
-    cleanupState(setCalculationsIcpoesFoodPerParam);
+    cleanupState(setCalculationsIcpoesPerParam);
     cleanupState(setCalculationsIcpmsWaterPerParam);
     cleanupState(setCalculationsIcpmsIchQ3DPerParam);
     cleanupState(setCalculationsORSPerParam);
@@ -4310,7 +4310,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     cleanupState(setCalculationsZptoShampooPerParam);
     cleanupState(setCalculationsSodiumLactatePerParam);
     cleanupState(setSamplePreparationIcpmsPerParam);
-    cleanupState(setSamplePreparationIcpoesFoodPerParam);
+    cleanupState(setSamplePreparationIcpoesPerParam);
     cleanupState(setSamplePreparationIcpmsWaterPerParam);
     cleanupState(setSamplePreparationIcpmsIchQ3DPerParam);
     cleanupState(setSamplePreparationORSPerParam);
@@ -4510,10 +4510,10 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         assignedStandardId: null,
         steps: JSON.stringify(sp.steps),
       })),
-      ...(samplePreparationIcpoesFoodPerParam[paramId] || []).map((sp) => ({
+      ...(samplePreparationIcpoesPerParam[paramId] || []).map((sp) => ({
         label: sp.label,
         preparationCategory: "sample",
-        preparationType: "icpoes_food",
+        preparationType: "icpoes",
         assignedStandardId: null,
         steps: JSON.stringify(sp.steps),
       })),
@@ -4639,11 +4639,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           data: JSON.stringify(d),
         };
       }),
-      ...(calculationsIcpoesFoodPerParam[paramId] || []).map((calc) => {
+      ...(calculationsIcpoesPerParam[paramId] || []).map((calc) => {
         const d = { ...calc } as any;
         return {
           label: calc.label,
-          calculationType: "icpoes_food",
+          calculationType: "icpoes",
           data: JSON.stringify(d),
         };
       }),
@@ -5932,7 +5932,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   };
 
   // ────────────────────────────────────────────────────────────────────────
-  // ICP-MS (Food) handlers
+  // ICP-MS handlers
   // ────────────────────────────────────────────────────────────────────────
   const handleAddSamplePreparationIcpms = (parameterId: number) => {
     setSamplePreparationIcpmsPerParam((prev) => {
@@ -6055,21 +6055,21 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     }));
   };
 
-  const handleAddSamplePreparationIcpoesFood = (parameterId: number) => {
-    setSamplePreparationIcpoesFoodPerParam((prev) => {
+  const handleAddSamplePreparationIcpoes = (parameterId: number) => {
+    setSamplePreparationIcpoesPerParam((prev) => {
       const current = prev[parameterId] || [];
       const newIndex = current.length;
       return {
         ...prev,
         [parameterId]: [
           ...current,
-          createNewSamplePreparationIcpoesFood(newIndex),
+          createNewSamplePreparationIcpoes(newIndex),
         ],
       };
     });
   };
 
-  const handleAddStandardPreparationIcpoesFood = (parameterId: number) => {
+  const handleAddStandardPreparationIcpoes = (parameterId: number) => {
     setStandardPreparationMetalPerParam((prev) => {
       const current = prev[parameterId]?.["icpoesFood"] || [];
       return {
@@ -6082,11 +6082,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     });
   };
 
-  const handleRemoveSamplePreparationIcpoesFood = (
+  const handleRemoveSamplePreparationIcpoes = (
     parameterId: number,
     prepId: number,
   ) => {
-    setSamplePreparationIcpoesFoodPerParam((prev) => {
+    setSamplePreparationIcpoesPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((p) => p.id !== prepId)
         .map((p, idx) => ({
@@ -6097,7 +6097,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     });
   };
 
-  const handleRemoveStandardPreparationIcpoesFood = (
+  const handleRemoveStandardPreparationIcpoes = (
     parameterId: number,
     prepId: number,
   ) => {
@@ -6113,14 +6113,14 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     });
   };
 
-  const handleSamplePreparationIcpoesFoodStepChange = (
+  const handleSamplePreparationIcpoesStepChange = (
     parameterId: number,
     samplePreparationId: number,
     stepName: SamplePreparationMetalStep["name"],
     field: "value1" | "unit1" | "value2" | "unit2" | "logBookID" | "solventChemical",
     newValue: string,
   ) => {
-    setSamplePreparationIcpoesFoodPerParam((prev) => {
+    setSamplePreparationIcpoesPerParam((prev) => {
       const list = prev[parameterId] || [];
       const updated = list.map((sp) => {
         if (sp.id !== samplePreparationId) return sp;
@@ -6135,25 +6135,25 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     });
   };
 
-  const handleAddCalculationIcpoesFood = (parameterId: number) => {
-    setCalculationsIcpoesFoodPerParam((prev) => {
+  const handleAddCalculationIcpoes = (parameterId: number) => {
+    setCalculationsIcpoesPerParam((prev) => {
       const current = prev[parameterId] || [];
       const newIndex = current.length;
       return {
         ...prev,
         [parameterId]: [
           ...current,
-          createNewCalculationIcpoesFood(newIndex),
+          createNewCalculationIcpoes(newIndex),
         ],
       };
     });
   };
 
-  const handleRemoveCalculationIcpoesFood = (
+  const handleRemoveCalculationIcpoes = (
     parameterId: number,
     calcId: number,
   ) => {
-    setCalculationsIcpoesFoodPerParam((prev) => {
+    setCalculationsIcpoesPerParam((prev) => {
       const updated = (prev[parameterId] || [])
         .filter((c) => c.id !== calcId)
         .map((c, idx) => ({
@@ -6164,11 +6164,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
     });
   };
 
-  const handleUpdateCalculationIcpoesFood = (
+  const handleUpdateCalculationIcpoes = (
     parameterId: number,
-    updatedCalc: CalculationIcpoesFood,
+    updatedCalc: CalculationIcpoes,
   ) => {
-    setCalculationsIcpoesFoodPerParam((prev) => ({
+    setCalculationsIcpoesPerParam((prev) => ({
       ...prev,
       [parameterId]: (prev[parameterId] || []).map((c) =>
         c.id === updatedCalc.id ? updatedCalc : c,
@@ -7789,11 +7789,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           });
         }
         if (groupId === "icpoesFood") {
-          setSamplePreparationIcpoesFoodPerParam((p) => {
+          setSamplePreparationIcpoesPerParam((p) => {
             const { [parameterId]: _omit, ...rest } = p;
             return rest;
           });
-          setCalculationsIcpoesFoodPerParam((p) => {
+          setCalculationsIcpoesPerParam((p) => {
             const { [parameterId]: _omit, ...rest } = p;
             return rest;
           });
@@ -7956,8 +7956,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           setCalculationsIcpmsPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
         }
         if (oldGroupId === "icpoesFood") {
-          setSamplePreparationIcpoesFoodPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
-          setCalculationsIcpoesFoodPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
+          setSamplePreparationIcpoesPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
+          setCalculationsIcpoesPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
         }
         if (oldGroupId === "icpmsWater") {
           setSamplePreparationIcpmsWaterPerParam((p) => { const { [parameterId]: _o, ...r } = p; return r; });
@@ -8062,8 +8062,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
   const getAvailablePreparationGroups = () => {
     return [
-      { id: "icpmsFood", label: "ICP-MS (Food)", color: "emerald" },
-      { id: "icpoesFood", label: "ICP-OES (Food)", color: "emerald" },
+      { id: "icpmsFood", label: "ICP-MS", color: "emerald" },
+      { id: "icpoesFood", label: "ICP-OES", color: "emerald" },
       { id: "icpmsWater", label: "ICP-MS (Water)", color: "emerald" },
       { id: "icpoesWater", label: "ICP-OES (Water)", color: "emerald" },
       { id: "aasWater", label: "AAS (Water)", color: "emerald" },
@@ -13904,8 +13904,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
                                 <div className="px-4 py-1 bg-gradient-to-r from-emerald-50 to-emerald-50 border border-emerald-200 rounded-full shadow-sm">
                                   <span className="text-xs font-bold text-emerald-800">
-                                    {((samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).length +
-                                      (calculationsIcpoesFoodPerParam[selectedParam.id] || []).length)}{" "}
+                                    {((samplePreparationIcpoesPerParam[selectedParam.id] || []).length +
+                                      (calculationsIcpoesPerParam[selectedParam.id] || []).length)}{" "}
                                     Items
                                   </span>
                                 </div>
@@ -13919,7 +13919,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                     Sample Preparations for ICP-OES
                                   </h3>
                                   <button
-                                    onClick={() => handleAddSamplePreparationIcpoesFood(selectedParam.id)}
+                                    onClick={() => handleAddSamplePreparationIcpoes(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
@@ -13928,7 +13928,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 </div>
 
                                 <AnimatePresence>
-                                  {(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).map((samplePrep) => (
+                                  {(samplePreparationIcpoesPerParam[selectedParam.id] || []).map((samplePrep) => (
                                     <motion.div
                                       key={samplePrep.id}
                                       initial={{ opacity: 0, y: 10 }}
@@ -13938,7 +13938,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                       <SamplePreparationMetalDetail
                                         samplePreparation={samplePrep}
                                         onStepChange={(samplePrepId, stepName, field, newValue) =>
-                                          handleSamplePreparationIcpoesFoodStepChange(
+                                          handleSamplePreparationIcpoesStepChange(
                                             selectedParam.id,
                                             samplePrepId,
                                             stepName,
@@ -13947,14 +13947,14 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                           )
                                         }
                                         onRemove={() =>
-                                          handleRemoveSamplePreparationIcpoesFood(selectedParam.id, samplePrep.id)
+                                          handleRemoveSamplePreparationIcpoes(selectedParam.id, samplePrep.id)
                                         }
                                       />
                                     </motion.div>
                                   ))}
                                 </AnimatePresence>
 
-                                {(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).length === 0 && (
+                                {(samplePreparationIcpoesPerParam[selectedParam.id] || []).length === 0 && (
                                   <motion.div
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
@@ -13981,7 +13981,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                     Standard Preparations for ICP-OES
                                   </h3>
                                   <button
-                                    onClick={() => handleAddStandardPreparationIcpoesFood(selectedParam.id)}
+                                    onClick={() => handleAddStandardPreparationIcpoes(selectedParam.id)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                   >
                                     <Plus className="w-4 h-4" />
@@ -14002,7 +14002,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                         onStepChange={(spId, stepName, field, val) =>
                                           handleStandardPreparationMetalStepChange(selectedParam.id, "icpoesFood", spId, stepName, field, val)
                                         }
-                                        onRemove={() => handleRemoveStandardPreparationIcpoesFood(selectedParam.id, standardPrep.id)}
+                                        onRemove={() => handleRemoveStandardPreparationIcpoes(selectedParam.id, standardPrep.id)}
                                       />
                                     </motion.div>
                                   ))}
@@ -14027,17 +14027,17 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                 )}
 
                                 {/* Weight Sheet attacher — only when at least one prep exists */}
-                                {(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).length > 0 && (
+                                {(samplePreparationIcpoesPerParam[selectedParam.id] || []).length > 0 && (
                                   <div className="pointer-events-auto mt-4">
                                     <WorksheetFileAttacher
-                                      files={getFilesForPrep(selectedParam.id, "icpoes_food", "Weight Sheet")}
+                                      files={getFilesForPrep(selectedParam.id, "icpoes", "Weight Sheet")}
                                       onAdd={(newFiles) =>
-                                        handleAddPrepFiles(selectedParam.id, "icpoes_food", "Weight Sheet", newFiles)
+                                        handleAddPrepFiles(selectedParam.id, "icpoes", "Weight Sheet", newFiles)
                                       }
                                       onRemove={(index) =>
-                                        handleRemovePrepFile(selectedParam.id, "icpoes_food", "Weight Sheet", index)
+                                        handleRemovePrepFile(selectedParam.id, "icpoes", "Weight Sheet", index)
                                       }
-                                      preparationType="icpoes_food"
+                                      preparationType="icpoes"
                                       sectionLabel="Weight Sheet"
                                       isLocked={shouldDisableContent}
                                     />
@@ -14048,12 +14048,12 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
                             {/* Complete Preparation block — gates Calculations */}
                             {canManagePrep &&
-                              (samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).length > 0 &&
+                              (samplePreparationIcpoesPerParam[selectedParam.id] || []).length > 0 &&
                               (() => {
                                 const isGroupCompleted =
                                   !!groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesFood"];
                                 const allPrepsValid = areAllMetalPrepsDilutionValid([
-                                  ...(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []),
+                                  ...(samplePreparationIcpoesPerParam[selectedParam.id] || []),
                                 ]);
                                 return (
                                   <div className="mt-4 pointer-events-auto opacity-100">
@@ -14112,7 +14112,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               })()}
 
                             {/* Locked-out warning */}
-                            {(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).length > 0 &&
+                            {(samplePreparationIcpoesPerParam[selectedParam.id] || []).length > 0 &&
                               !groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesFood"] &&
                               !canManagePrep && (
                                 <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
@@ -14126,7 +14126,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               )}
 
                             {/* Calculations Section — gated on group prep completion */}
-                            {(samplePreparationIcpoesFoodPerParam[selectedParam.id] || []).length > 0 &&
+                            {(samplePreparationIcpoesPerParam[selectedParam.id] || []).length > 0 &&
                               groupPrepCompletedAtPerParam[selectedParam.id]?.["icpoesFood"] && (
                                 <div className={isFullyLocked ? "pointer-events-none opacity-70" : ""}>
                                   <div className="mt-8">
@@ -14136,7 +14136,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                         Calculations for ICP-OES
                                       </h3>
                                       <button
-                                        onClick={() => handleAddCalculationIcpoesFood(selectedParam.id)}
+                                        onClick={() => handleAddCalculationIcpoes(selectedParam.id)}
                                         className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
                                       >
                                         <Plus className="w-4 h-4" />
@@ -14145,20 +14145,20 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                     </div>
 
                                     <AnimatePresence>
-                                      {(calculationsIcpoesFoodPerParam[selectedParam.id] || []).map((calc) => (
+                                      {(calculationsIcpoesPerParam[selectedParam.id] || []).map((calc) => (
                                         <div key={calc.id}>
-                                          <CalculationDetailIcpoesFood
+                                          <CalculationDetailIcpoes
                                             calculation={calc}
-                                            samplePreparations={samplePreparationIcpoesFoodPerParam[selectedParam.id] || []}
-                                            onUpdate={(updated) => handleUpdateCalculationIcpoesFood(selectedParam.id, updated)}
-                                            onRemove={() => handleRemoveCalculationIcpoesFood(selectedParam.id, calc.id)}
+                                            samplePreparations={samplePreparationIcpoesPerParam[selectedParam.id] || []}
+                                            onUpdate={(updated) => handleUpdateCalculationIcpoes(selectedParam.id, updated)}
+                                            onRemove={() => handleRemoveCalculationIcpoes(selectedParam.id, calc.id)}
                                             isLocked={isFullyLocked}
                                           />
                                         </div>
                                       ))}
                                     </AnimatePresence>
 
-                                    {(calculationsIcpoesFoodPerParam[selectedParam.id] || []).length === 0 && (
+                                    {(calculationsIcpoesPerParam[selectedParam.id] || []).length === 0 && (
                                       <motion.div
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}

@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Calculator, Trash, CheckCircle2, AlertTriangle } from "lucide-react";
-import type { CalculationIcpoesFood } from "../../../preparation_models/metal/CalculationIcpoesFood";
+import type { CalculationIcpoes } from "../../../preparation_models/metal/CalculationIcpoes";
 import type { SamplePreparationMetal } from "../../../preparation_models/metal/SamplePreparationMetal";
 import CustomDropdown from "../../shared/CustomDropdown";
 
 interface Props {
-  calculation: CalculationIcpoesFood;
+  calculation: CalculationIcpoes;
   samplePreparations: SamplePreparationMetal[];
-  onUpdate: (updated: CalculationIcpoesFood) => void;
+  onUpdate: (updated: CalculationIcpoes) => void;
   onRemove: () => void;
   isLocked?: boolean;
 }
@@ -105,7 +105,7 @@ const extractValues = (sp?: SamplePreparationMetal) => {
   };
 };
 
-const CalculationDetailIcpoesFood: React.FC<Props> = ({
+const CalculationDetailIcpoes: React.FC<Props> = ({
   calculation,
   samplePreparations,
   onUpdate,
@@ -224,7 +224,7 @@ const CalculationDetailIcpoesFood: React.FC<Props> = ({
     calculation.instrumentConcentrationBlank, calculation.instrumentConcentrationBlankUnit,
   ]);
 
-  const handleField = (field: keyof CalculationIcpoesFood, value: string | null) => {
+  const handleField = (field: keyof CalculationIcpoes, value: string | null) => {
     if (isLocked) return;
     onUpdate({ ...calculation, [field]: value });
   };
@@ -301,7 +301,7 @@ const CalculationDetailIcpoesFood: React.FC<Props> = ({
             </motion.div>
             <div>
               <h4 className="text-sm font-semibold text-white tracking-wide">{calculation.label}</h4>
-              <p className="text-xs text-emerald-100">ICP-OES (Food) — Content calculation</p>
+              <p className="text-xs text-emerald-100">ICP-OES — Content calculation</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -464,4 +464,4 @@ const CalculationDetailIcpoesFood: React.FC<Props> = ({
   );
 };
 
-export default CalculationDetailIcpoesFood;
+export default CalculationDetailIcpoes;

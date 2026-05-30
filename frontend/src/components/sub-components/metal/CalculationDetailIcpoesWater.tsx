@@ -22,11 +22,13 @@ const concUnitOptions = [
 
 const RESULT_UNIT = "mg/L";
 
-const toCanonicalPpb = (value: number, unit: string): number => {
-  if (!Number.isFinite(value)) return value;
+const toCanonicalPpm = (value: number, unit: string): number => {
+  if (!Number.isFinite(value)) return NaN;
   switch (unit) {
-    case "ppb": case "μg/L": return value;
-    case "ppm": case "mg/L": return value * 1000;
+    case "ppm":
+    case "mg/L": return value;
+    case "ppb":
+    case "μg/L": return value / 1000;
     default: return value;
   }
 };
@@ -139,9 +141,9 @@ const CalculationDetailIcpoesWater: React.FC<Props> = ({
     v7?: string | null, v7Unit?: string | null,
   ): string | null => {
     // Concentrations → ppb
-    const sample = toCanonicalPpb(parseFloat(instSample), instSampleUnit);
+    const sample = toCanonicalPpm(parseFloat(instSample), instSampleUnit);
     if (!Number.isFinite(sample)) return null;
-    const blank = toCanonicalPpb(parseFloat(instBlank), instBlankUnit);
+    const blank = toCanonicalPpm(parseFloat(instBlank), instBlankUnit);
     if (!Number.isFinite(blank)) return null;
     // V1 → mL (absent → ×1)
     const v1Ml = toCanonicalML(parseFloat(v1 ?? ""), v1Unit);
@@ -156,7 +158,7 @@ const CalculationDetailIcpoesWater: React.FC<Props> = ({
     const _v6 = toCanonicalML(parseFloat(v6 ?? ""), v6Unit);
     const _v7 = toCanonicalML(parseFloat(v7 ?? ""), v7Unit);
     const df3n = Number.isFinite(_v6) && Number.isFinite(_v7) && _v6 !== 0 ? _v7 / _v6 : 1;
-    const result = ((sample - blank) * v1n * df1n * df2n * df3n) / 1000;
+    const result = ((sample - blank) * v1n * df1n * df2n * df3n);
     if (!Number.isFinite(result)) return null;
     return result.toFixedNoRound(4).toFixed(3);
   };
@@ -202,8 +204,8 @@ const CalculationDetailIcpoesWater: React.FC<Props> = ({
 
   const rawSampleNum = parseFloat(calculation.instrumentConcentrationSample);
   const rawBlankNum = parseFloat(calculation.instrumentConcentrationBlank);
-  const samplePpb = toCanonicalPpb(rawSampleNum, calculation.instrumentConcentrationSampleUnit);
-  const blankPpb = toCanonicalPpb(rawBlankNum, calculation.instrumentConcentrationBlankUnit);
+  const samplePpm = toCanonicalPpm(rawSampleNum, calculation.instrumentConcentrationSampleUnit);
+  const blankPpm = toCanonicalPpm(rawBlankNum, calculation.instrumentConcentrationBlankUnit);
   // V1 in mL for display
   const v1Ml = hasVal(calculation.v1)
     ? toCanonicalML(parseFloat(calculation.v1!), c.v1Unit)
@@ -312,11 +314,8 @@ const CalculationDetailIcpoesWater: React.FC<Props> = ({
                 <div className="bg-gray-50 rounded p-3">
                   <div className="flex items-center gap-2">
                     <div className="flex-1 flex flex-col items-center">
-                      <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
-                        <p className="text-xs font-mono text-black break-words">{formulaNumerator}</p>
-                      </div>
                       <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">1000</p>
+                        <p className="text-xs font-mono text-black break-words">{formulaNumerator}</p>
                       </div>
                     </div>
                     <span className="text-sm font-bold text-black">mg/L</span>
@@ -394,17 +393,14 @@ const CalculationDetailIcpoesWater: React.FC<Props> = ({
                   </div>
                   <div className="bg-emerald-50/60 rounded-lg p-4 border border-emerald-200">
                     <div className="flex flex-col items-center">
-                      <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
+                      <div className="text-center px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
-                          ({fmtN4(samplePpb)} ppb − {fmtN4(blankPpb)} ppb)
+                          ({fmtN4(samplePpm)} ppm − {fmtN4(blankPpm)} ppm)
                           {v1Active && v1Ml !== null ? ` × ${fmtN4(v1Ml)} mL` : ""}
                           {df1Active && df1 !== null ? ` × ${fmtN4(df1)}` : ""}
                           {df2Active && df2 !== null ? ` × ${fmtN4(df2)}` : ""}
                           {df3Active && df3 !== null ? ` × ${fmtN4(df3)}` : ""}
                         </p>
-                      </div>
-                      <div className="text-center px-2 w-full">
-                        <p className="text-xs font-mono text-black">1000</p>
                       </div>
                     </div>
                   </div>

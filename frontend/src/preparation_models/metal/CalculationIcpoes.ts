@@ -1,8 +1,8 @@
-export interface CalculationIcpoesFood {
+export interface CalculationIcpoes {
   id: number;
   label: string;
 
-  /** Label of the SamplePreparationIcpoesFood whose SW1/V1/V2/V3 feed this calculation. */
+  /** Label of the SamplePreparationIcpoes whose SW1/V1/V2/V3 feed this calculation. */
   selectedSamplePreparationLabel: string | null;
 
   /** Auto-populated from the selected sample preparation. */

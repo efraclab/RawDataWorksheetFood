@@ -277,12 +277,12 @@ const CalculationDetailAnofer: React.FC<Props> = ({
     parseFloat(calculation.instrumentConcentrationBlank),
     calculation.instrumentConcentrationBlankUnit,
   );
-  const swEff = toCanonicalMg(parseFloat(calculation.sw ?? ""), c.swUnit);
+  const swEff = toCanonicalMg(parseFloat(calculation.sw ?? ""), c.swUnit || "g");
   const v1Ml = hasVal(calculation.v1)
-    ? toCanonicalML(parseFloat(calculation.v1!), c.v1Unit)
+    ? toCanonicalML(parseFloat(calculation.v1!), c.v1Unit || "mL")
     : null;
-  const avgNum = toCanonicalMg(parseFloat(calculation.avgWeight), calculation.avgWeightUnit);
-  const lcNum = toCanonicalMg(parseFloat(calculation.labelClaim), calculation.labelClaimUnit);
+  const avgNum = toCanonicalMg(parseFloat(calculation.avgWeight), calculation.avgWeightUnit || "mg");
+  const lcNum = toCanonicalMg(parseFloat(calculation.labelClaim), calculation.labelClaimUnit || "mg");
 
   // ─── Missing fields ───────────────────────────────────────────────────────
   const missingFields: string[] = [];

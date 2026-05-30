@@ -185,7 +185,7 @@ interface MetalPrintReportProps {
 // ── Calculation type label map ────────────────────────────────────────────────
 const CALC_TYPE_LABELS: Record<string, string> = {
     icpms: "ICP-MS",
-    icpoes_food: "ICP-OES (Food)",
+    icpoes: "ICP-OES",
     icpms_water: "ICP-MS (Water)",
     icpoes_water: "ICP-OES (Water)",
     aas_water: "AAS (Water)",
@@ -517,16 +517,17 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
 
         const t = calcType.toLowerCase();
 
-        // ── Determine if this type uses ppb or ppm for concentration ─────────────
-        // icpms, icpoes_food, icpms_water, icpoes_water, aas_water,
-        // icpms_ich_q3d  → ppb
-        // everything else → ppm
-        const usesPpb = ["icpms", "icpoes_food", "icpms_water", "icpoes_water",
+        // ── Determine canonical concentration unit for display ────────────────────
+        // All types (icpms, icpoes, icpms_water, icpoes_water, aas_water,
+        // icpms_ich_q3d, and all others) display concentration in ppm.
+        // Raw values stored as ppb are divided by 1000 to convert to ppm.
+        const usesPpb = ["icpms", "icpoes", "icpms_water", "icpoes_water",
             "aas_water", "icpms_ich_q3d"].includes(t);
 
-        const sCanon = usesPpb ? toPpb(sRaw, sU) : toPpm(sRaw, sU);
-        const bCanon = usesPpb ? toPpb(bRaw, bU) : toPpm(bRaw, bU);
-        const concUnit = usesPpb ? "ppb" : "ppm";
+        // Always display in ppm: if stored as ppb, convert ÷1000; otherwise keep as ppm
+        const sCanon = usesPpb ? toPpb(sRaw, sU) / 1000 : toPpm(sRaw, sU);
+        const bCanon = usesPpb ? toPpb(bRaw, bU) / 1000 : toPpm(bRaw, bU);
+        const concUnit = "ppm";
 
         // ── Volume conversions (all → mL) ────────────────────────────────────────
         const v1Ml = toMl(v1r, v1u);
@@ -584,7 +585,7 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
 
         // ── Type-specific numerator additions & denominator ──────────────────────
 
-        if (["icpms", "icpoes_food", "icpms_ich_q3d"].includes(t)) {
+        if (["icpms", "icpoes", "icpms_ich_q3d"].includes(t)) {
             // Result (mg/Kg) = (Sample_ppb − Blank_ppb) × V1_mL × DF1×DF2×DF3
             //                  ─────────────────────────────────────────────────
             //                                   SW_mg
@@ -596,11 +597,10 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
                 : "—";
 
         } else if (["icpms_water", "icpoes_water", "aas_water"].includes(t)) {
-            // Result (mg/L) = (Sample_ppb − Blank_ppb) × V1_mL × DF1×DF2×DF3
-            //                 ─────────────────────────────────────────────────
-            //                                    1000
-            denSym = "1000";
-            denVal = "1000";
+            // Result (mg/L) = (Sample_ppm − Blank_ppm) × V1_mL × DF1×DF2×DF3
+            // (no denominator — ppb→ppm conversion already applied to concentrations)
+            denSym = "";
+            denVal = "";
 
         } else if (t === "anofer") {
             // % of LC = (Sample_ppm − Blank_ppm) × V1_mL × DF1×DF2 × AvgWeight_mg × 100
@@ -720,7 +720,7 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
             denVal = "—";
         }
 
-        // Remove empty string entries pushed by icpms/icpoes_food/icpms_ich_q3d
+        // Remove empty string entries pushed by icpms/icpoes/icpms_ich_q3d
         const filteredNumSym = numSym.filter(s => s !== "");
         const filteredNumVal = numVal.filter(s => s !== "");
 
@@ -758,13 +758,24 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
                 <p className="font-bold text-sm mb-2">Formula:</p>
                 <div className="formula-display my-2" style={{ breakInside: "avoid" }}>
                     <div className="flex items-center justify-center gap-3">
-                        <div className="formula-fraction text-center">
-                            <div className="numerator px-4 py-1 border-b-2 border-black text-xs font-mono">
-                                {numSymStr}
+                        {denSym ? (
+                            /* Fraction layout — numerator over denominator */
+                            <>
+                                <div className="formula-fraction text-center">
+                                    <div className="numerator px-4 py-1 border-b-2 border-black text-xs font-mono">
+                                        {numSymStr}
+                                    </div>
+                                    <div className="denominator px-4 py-1 text-xs font-mono">{denSym}</div>
+                                </div>
+                                <span className="text-sm font-bold">{resultUnit}</span>
+                            </>
+                        ) : (
+                            /* Inline layout — expression = unit on one line */
+                            <div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                                <span className="text-xs font-mono">{numSymStr}</span>
+                                <span className="text-sm font-bold">&nbsp;{resultUnit}</span>
                             </div>
-                            <div className="denominator px-4 py-1 text-xs font-mono">{denSym}</div>
-                        </div>
-                        <span className="text-sm font-bold">{resultUnit}</span>
+                        )}
                     </div>
                 </div>
 
@@ -772,16 +783,31 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
                 <p className="font-bold text-sm mb-2 mt-3">Derivation:</p>
                 <div className="formula-display my-2" style={{ breakInside: "avoid" }}>
                     <div className="flex items-center justify-center gap-3">
-                        <div className="formula-fraction text-center">
-                            <div className="numerator px-4 py-1 border-b-2 border-black text-xs font-mono">
-                                {numValStr}
+                        {denVal ? (
+                            /* Fraction layout */
+                            <>
+                                <div className="formula-fraction text-center">
+                                    <div className="numerator px-4 py-1 border-b-2 border-black text-xs font-mono">
+                                        {numValStr}
+                                    </div>
+                                    <div className="denominator px-4 py-1 text-xs font-mono">{denVal}</div>
+                                </div>
+                                {result && (
+                                    <span className="text-sm font-bold">
+                                        = {trimZeros(result)} {resultUnit}
+                                    </span>
+                                )}
+                            </>
+                        ) : (
+                            /* Inline layout — derivation = result on one line */
+                            <div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                                <span className="text-xs font-mono">{numValStr}</span>
+                                {result && (
+                                    <span className="text-sm font-bold">
+                                        =&nbsp;{trimZeros(result)}&nbsp;{resultUnit}
+                                    </span>
+                                )}
                             </div>
-                            <div className="denominator px-4 py-1 text-xs font-mono">{denVal}</div>
-                        </div>
-                        {result && (
-                            <span className="text-sm font-bold">
-                                = {trimZeros(result)} {resultUnit}
-                            </span>
                         )}
                     </div>
                 </div>
@@ -1254,10 +1280,6 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
         // ── Build display rows for the parameter summary table ───────────────────
         const t = calcType.toLowerCase();
  
-        // Determine canonical SW unit per type
-        // icpms / icpoes_food / icpms_ich_q3d / talc / ors / zpto_shampoo → g
-        // sfgc / meropenam / anofer → mg
-
         return (
             <div key={idx} className="mb-4">
                 <p className="font-bold text-sm mb-2">{label}</p>
@@ -1287,8 +1309,35 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
                                 </td>
                             </tr>
                         )}
-                        {/* Sample Weight (SW) intentionally omitted from this table */}
-                        {/* Anofer extra: Avg Weight + Label Claim */}
+                        {/* SW intentionally omitted — comes from sample prep */}
+
+                        {/* ── ZPTO Shampoo extra fields ── */}
+                        {t === "zpto_shampoo" && _hasV(calcData.specificGravity) && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Specific Gravity</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.specificGravity)}</td>
+                            </tr>
+                        )}
+                        {t === "zpto_shampoo" && _hasV(calcData.molecularWeight1) && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Molecular Weight 1 (MW₁)</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.molecularWeight1)} {calcData.molecularWeight1Unit || "g/mol"}</td>
+                            </tr>
+                        )}
+                        {t === "zpto_shampoo" && _hasV(calcData.molecularWeight2) && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Molecular Weight 2 (MW₂)</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.molecularWeight2)} {calcData.molecularWeight2Unit || "g/mol"}</td>
+                            </tr>
+                        )}
+                        {t === "zpto_shampoo" && _hasV(calcData.labelClaim) && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.labelClaim)} {calcData.labelClaimUnit || ""}</td>
+                            </tr>
+                        )}
+
+                        {/* ── Anofer extra: Avg Weight + Label Claim ── */}
                         {t === "anofer" && _hasV(calcData.avgWeight) && (() => {
                             const avgU2 = calcData.avgWeightUnit || "mg";
                             const avgMg = _toMg(calcData.avgWeight, avgU2);
@@ -1299,32 +1348,6 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
                                 </tr>
                             ) : null;
                         })()}
-                        {/* ORS extra fields — inlined to avoid a separate table gap */}
-                        {t === "ors" && calcData.sachetWeightAvg && (
-                            <tr className="border-b border-black">
-                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Sachet Weight (Avg)</td>
-                                <td className="px-3 py-1.5">{trimZeros(calcData.sachetWeightAvg)} {calcData.sachetWeightAvgUnit || "g"}</td>
-                            </tr>
-                        )}
-                        {t === "ors" && calcData.molecularWeight && (
-                            <tr className="border-b border-black">
-                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Molecular Weight</td>
-                                <td className="px-3 py-1.5">{trimZeros(calcData.molecularWeight)} {calcData.molecularWeightUnit || "g/mol"}</td>
-                            </tr>
-                        )}
-                        {t === "ors" && calcData.labelClaim && (
-                            <tr className="border-b border-black">
-                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
-                                <td className="px-3 py-1.5">{trimZeros(calcData.labelClaim)} {calcData.labelClaimUnit || ""}</td>
-                            </tr>
-                        )}
-                        {/* Meropenam extra fields — inlined to avoid a separate table gap */}
-                        {t === "meropenam" && calcData.labelClaim && (
-                            <tr className="border-b border-black">
-                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
-                                <td className="px-3 py-1.5">{trimZeros(calcData.labelClaim)} {calcData.labelClaimUnit || "mg"}</td>
-                            </tr>
-                        )}
                         {["anofer", "lithosun300", "lithosun400"].includes(t) && _hasV(calcData.labelClaim) && (() => {
                             const lcU2 = calcData.labelClaimUnit || "mg";
                             const lcMg = _toMg(calcData.labelClaim, lcU2);
@@ -1335,6 +1358,36 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
                                 </tr>
                             ) : null;
                         })()}
+
+                        {/* ── ORS extra fields ── */}
+                        {t === "ors" && _hasV(calcData.sachetWeightAvg) && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Sachet Weight (Avg)</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.sachetWeightAvg)} {calcData.sachetWeightAvgUnit || "g"}</td>
+                            </tr>
+                        )}
+                        {t === "ors" && _hasV(calcData.molecularWeight) && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Molecular Weight</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.molecularWeight)} {calcData.molecularWeightUnit || "g/mol"}</td>
+                            </tr>
+                        )}
+                        {t === "ors" && _hasV(calcData.labelClaim) && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.labelClaim)} {calcData.labelClaimUnit || ""}</td>
+                            </tr>
+                        )}
+
+                        {/* ── Meropenam extra fields ── */}
+                        {t === "meropenam" && _hasV(calcData.labelClaim) && (
+                            <tr className="border-b border-black">
+                                <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-50 border-r border-black">Label Claim</td>
+                                <td className="px-3 py-1.5">{trimZeros(calcData.labelClaim)} {calcData.labelClaimUnit || "mg"}</td>
+                            </tr>
+                        )}
+
+
                     </tbody>
                 </table>
 

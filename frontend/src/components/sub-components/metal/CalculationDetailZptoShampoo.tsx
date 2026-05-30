@@ -775,17 +775,14 @@ const CalculationDetailZptoShampoo: React.FC<Props> = ({
                     <div className="flex flex-col items-center">
                       <div className="text-center border-b-2 border-black pb-2 mb-2 px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
-                          ({fmtN4(sampleNum)} − {fmtN4(blankEff)}) ×{" "}
+                          ({fmtN4(sampleNum)} ppm − {fmtN4(blankEff)} ppm) ×{" "}
                           {fmtN4(v1Eff)} × {fmtN4(dfEff)} × {fmtN4(sgNum)} ×{" "}
                           {fmtN4(mw1Num)} × 100
-                        </p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">
-                          (Sample/Blank in ppm; V1, V2, V3 in mL; SW in g; DF1=V3/V2={fmtN4(dfEff)})
                         </p>
                       </div>
                       <div className="text-center px-2 w-full">
                         <p className="text-xs font-mono text-black break-words">
-                          {fmtN4(swEff)} × 10000 × {fmtN4(mw2Num)} × {fmtN4(lcNum)}
+                          {fmtN4(swEff)} g × 10000 × {fmtN4(mw2Num)} × {fmtN4(lcNum)}
                         </p>
                       </div>
                     </div>

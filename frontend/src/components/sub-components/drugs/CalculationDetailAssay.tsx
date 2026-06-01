@@ -113,64 +113,20 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
     (prep) => prep.label === calculation.selectedSamplePreparationLabel,
   );
 
-  const preparationPairs = standardPreparations
-    .map((stdPrep) => {
-      const matchingSamplePrep = samplePreparations.find(
-        (samplePrep) =>
-          samplePrep.label.charAt(samplePrep.label.length - 1) ===
-          stdPrep.label.charAt(stdPrep.label.length - 1),
-      );
+  const handleStandardPreparationChange = (value: string) => {
+    onFieldChange(
+      calculation.id,
+      "selectedStandardPreparationLabel",
+      value || null,
+    );
+  };
 
-      if (matchingSamplePrep) {
-        return {
-          value: stdPrep.label,
-          label: `Preparation ${stdPrep.label.slice(-1)}`,
-          standardLabel: stdPrep.label,
-          sampleLabel: matchingSamplePrep.label,
-        };
-      }
-      return null;
-    })
-    .filter(Boolean);
-
-  const currentPrepLabel = selectedStandardPrep?.label || "";
-
-  useEffect(() => {
-    if (
-      calculation.selectedStandardPreparationLabel &&
-      calculation.selectedSamplePreparationLabel
-    ) {
-      preparationPairs.find(
-        (pair) =>
-          pair?.standardLabel ===
-            calculation.selectedStandardPreparationLabel &&
-          pair?.sampleLabel === calculation.selectedSamplePreparationLabel,
-      );
-    }
-  }, [
-    calculation.selectedStandardPreparationLabel,
-    calculation.selectedSamplePreparationLabel,
-    preparationPairs,
-  ]);
-
-  const handlePreparationChange = (value: string) => {
-    const selectedPair = preparationPairs.find((pair) => pair?.value === value);
-
-    if (selectedPair) {
-      onFieldChange(
-        calculation.id,
-        "selectedStandardPreparationLabel",
-        selectedPair.standardLabel,
-      );
-      onFieldChange(
-        calculation.id,
-        "selectedSamplePreparationLabel",
-        selectedPair.sampleLabel,
-      );
-    } else {
-      onFieldChange(calculation.id, "selectedStandardPreparationLabel", null);
-      onFieldChange(calculation.id, "selectedSamplePreparationLabel", null);
-    }
+  const handleSamplePreparationChange = (value: string) => {
+    onFieldChange(
+      calculation.id,
+      "selectedSamplePreparationLabel",
+      value || null,
+    );
   };
 
   const getStandardDilutions = () => {
@@ -1059,19 +1015,41 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
             >
               <div className="p-6 space-y-6">
                 <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Select Preparation Pair
-                  </label>
-                  <CustomDropdown
-                    options={preparationPairs.map((pair) => ({
-                      value: pair?.value || "",
-                      label: pair?.label || "",
-                    }))}
-                    value={currentPrepLabel}
-                    onChange={handlePreparationChange}
-                    placeholder="Select preparation pair..."
-                    colorScheme="emerald"
-                  />
+                  <h5 className="text-sm font-bold text-gray-700 mb-3">
+                    Select Preparations
+                  </h5>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        Standard Preparation
+                      </label>
+                      <CustomDropdown
+                        options={standardPreparations.map((prep) => ({
+                          value: prep.label,
+                          label: prep.label,
+                        }))}
+                        value={calculation.selectedStandardPreparationLabel || ""}
+                        onChange={handleStandardPreparationChange}
+                        placeholder="Select standard preparation..."
+                        colorScheme="emerald"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        Sample Preparation
+                      </label>
+                      <CustomDropdown
+                        options={samplePreparations.map((prep) => ({
+                          value: prep.label,
+                          label: prep.label,
+                        }))}
+                        value={calculation.selectedSamplePreparationLabel || ""}
+                        onChange={handleSamplePreparationChange}
+                        placeholder="Select sample preparation..."
+                        colorScheme="emerald"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {selectedStandardPrep && selectedSamplePrep && (
@@ -1749,7 +1727,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                 </div>
                                 <div className="p-4">
                                   <p className="text-xl font-bold text-green-700">
-                                    {calculation.lodWaterBasisResult} %
+                                    {parseFloat(calculation.lodWaterBasisResult).toFixedNoRound(3)} %
                                   </p>
                                   <p className="text-sm font-bold text-green-700">
                                     {calculation.lodWaterType === "lod"

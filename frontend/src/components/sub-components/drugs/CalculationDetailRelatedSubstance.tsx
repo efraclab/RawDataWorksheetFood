@@ -123,44 +123,20 @@ const CalculationDetailRelatedSubstance: React.FC<
     (prep) => prep.label === calculation.selectedSamplePreparationLabel,
   );
 
-  const preparationPairs = standardPreparations
-    .map((stdPrep) => {
-      const matchingSamplePrep = samplePreparations.find(
-        (samplePrep) =>
-          samplePrep.label.charAt(samplePrep.label.length - 1) ===
-          stdPrep.label.charAt(stdPrep.label.length - 1),
-      );
-      if (matchingSamplePrep) {
-        return {
-          value: stdPrep.label,
-          label: `Preparation ${stdPrep.label.slice(-1)}`,
-          standardLabel: stdPrep.label,
-          sampleLabel: matchingSamplePrep.label,
-        };
-      }
-      return null;
-    })
-    .filter(Boolean);
+  const handleStandardPreparationChange = (value: string) => {
+    onFieldChange(
+      calculation.id,
+      "selectedStandardPreparationLabel",
+      value || null,
+    );
+  };
 
-  const currentPrepLabel = selectedStandardPrep?.label || "";
-
-  const handlePreparationChange = (value: string) => {
-    const selectedPair = preparationPairs.find((pair) => pair?.value === value);
-    if (selectedPair) {
-      onFieldChange(
-        calculation.id,
-        "selectedStandardPreparationLabel",
-        selectedPair.standardLabel,
-      );
-      onFieldChange(
-        calculation.id,
-        "selectedSamplePreparationLabel",
-        selectedPair.sampleLabel,
-      );
-    } else {
-      onFieldChange(calculation.id, "selectedStandardPreparationLabel", null);
-      onFieldChange(calculation.id, "selectedSamplePreparationLabel", null);
-    }
+  const handleSamplePreparationChange = (value: string) => {
+    onFieldChange(
+      calculation.id,
+      "selectedSamplePreparationLabel",
+      value || null,
+    );
   };
 
   const getStandardDilutions = () => {
@@ -850,19 +826,41 @@ const CalculationDetailRelatedSubstance: React.FC<
               <div className="p-6 space-y-6">
                 {/* Preparation selector */}
                 <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Select Preparation Pair
-                  </label>
-                  <CustomDropdown
-                    options={preparationPairs.map((pair) => ({
-                      value: pair?.value || "",
-                      label: pair?.label || "",
-                    }))}
-                    value={currentPrepLabel}
-                    onChange={handlePreparationChange}
-                    placeholder="Select preparation pair..."
-                    colorScheme="emerald"
-                  />
+                  <h5 className="text-sm font-bold text-gray-700 mb-3">
+                    Select Preparations
+                  </h5>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        Standard Preparation
+                      </label>
+                      <CustomDropdown
+                        options={standardPreparations.map((prep) => ({
+                          value: prep.label,
+                          label: prep.label,
+                        }))}
+                        value={calculation.selectedStandardPreparationLabel || ""}
+                        onChange={handleStandardPreparationChange}
+                        placeholder="Select standard preparation..."
+                        colorScheme="emerald"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        Sample Preparation
+                      </label>
+                      <CustomDropdown
+                        options={samplePreparations.map((prep) => ({
+                          value: prep.label,
+                          label: prep.label,
+                        }))}
+                        value={calculation.selectedSamplePreparationLabel || ""}
+                        onChange={handleSamplePreparationChange}
+                        placeholder="Select sample preparation..."
+                        colorScheme="emerald"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Calculation type selector */}

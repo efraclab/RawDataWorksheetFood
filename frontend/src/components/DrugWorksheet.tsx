@@ -6146,16 +6146,27 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     setShowStandardSelectionDialog(true);
   };
 
+  const handleAddSamplePreparation = (parameterId: number) => {
+    setSamplePreparationPerParam((prev) => {
+      const currentSamples = prev[parameterId] || [];
+      const newIndex = currentSamples.length;
+      return {
+        ...prev,
+        [parameterId]: [
+          ...currentSamples,
+          createNewSamplePreparation(newIndex),
+        ],
+      };
+    });
+  };
+
   const handleRemoveStandardPreparation = (
     parameterId: number,
     standardPreparationId: number,
   ) => {
     setStandardPreparationAssayPerParam((prev) => {
       const standards = prev[parameterId] || [];
-      const indexToRemove = standards.findIndex(
-        (sp) => sp.id === standardPreparationId,
-      );
-      const removedPrep = standards[indexToRemove];
+      const removedPrep = standards.find((sp) => sp.id === standardPreparationId);
 
       const updatedStandards = standards
         .filter((dm) => dm.id !== standardPreparationId)
@@ -6164,27 +6175,13 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
           label: `Standard Preparation ${1 + index}`,
         }));
 
-      if (indexToRemove !== -1) {
-        setSamplePreparationPerParam((prevSample) => {
-          const samples = prevSample[parameterId] || [];
-          const updatedSamples = samples
-            .filter((_, idx) => idx !== indexToRemove)
-            .map((sp, index) => ({
-              ...sp,
-              label: `Sample Preparation ${1 + index}`,
-            }));
-          return { ...prevSample, [parameterId]: updatedSamples };
+      if (removedPrep) {
+        const fileKeyToRemove = prepFileKey("assay", removedPrep.label);
+        setFilesPerParam((prevFiles) => {
+          const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+          delete paramSlots[fileKeyToRemove];
+          return { ...prevFiles, [parameterId]: paramSlots };
         });
-
-        // Remove files tied to this preparation's label
-        if (removedPrep) {
-          const fileKeyToRemove = prepFileKey("assay", removedPrep.label);
-          setFilesPerParam((prevFiles) => {
-            const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
-            delete paramSlots[fileKeyToRemove];
-            return { ...prevFiles, [parameterId]: paramSlots };
-          });
-        }
       }
 
       return { ...prev, [parameterId]: updatedStandards };
@@ -6231,44 +6228,12 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
   ) => {
     setSamplePreparationPerParam((prev) => {
       const samples = prev[parameterId] || [];
-      const indexToRemove = samples.findIndex(
-        (sp) => sp.id === samplePreparationId,
-      );
-      const removedPrep = samples[indexToRemove];
-
       const updatedSamples = samples
         .filter((sp) => sp.id !== samplePreparationId)
         .map((sp, index) => ({
           ...sp,
           label: `Sample Preparation ${1 + index}`,
         }));
-
-      if (indexToRemove !== -1) {
-        setStandardPreparationAssayPerParam((prevStandard) => {
-          const standards = prevStandard[parameterId] || [];
-          const updatedStandards = standards
-            .filter((_, idx) => idx !== indexToRemove)
-            .map((sp, index) => ({
-              ...sp,
-              label: `Standard Preparation ${1 + index}`,
-            }));
-          return { ...prevStandard, [parameterId]: updatedStandards };
-        });
-      }
-
-      // Remove files tied to this sample preparation's label
-      if (removedPrep) {
-        const fileKeyToRemove = prepFileKey(
-          "assay",
-          `Preparation Files ${indexToRemove + 1}`,
-        );
-        setFilesPerParam((prevFiles) => {
-          const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
-          delete paramSlots[fileKeyToRemove];
-          return { ...prevFiles, [parameterId]: paramSlots };
-        });
-      }
-
       return { ...prev, [parameterId]: updatedSamples };
     });
   };
@@ -7127,18 +7092,6 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         [parameterId]: [
           ...currentStandards,
           { ...newStandardPrep, assignedStandardId: standard.serialNo },
-        ],
-      }));
-
-      const currentSamples = samplePreparationPerParam[parameterId] || [];
-      const newSampleIndex = currentSamples.length;
-      const newSamplePrep = createNewSamplePreparation(newSampleIndex);
-
-      setSamplePreparationPerParam((prev) => ({
-        ...prev,
-        [parameterId]: [
-          ...currentSamples,
-          { ...newSamplePrep, assignedStandardId: standard.serialNo },
         ],
       }));
     }
@@ -16204,117 +16157,171 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
 
                                 {/* Standard & Sample Preparations Section */}
                                 <div className="mb-8">
-                                  <div className="flex items-center justify-between mb-4 px-2">
-                                    <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
-                                      <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                      Standard & Sample Preparations
-                                    </h3>
-                                    <button
-                                      onClick={() =>
-                                        handleAddStandardPreparation(selectedParam.id)
-                                      }
-                                      className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
-                                    >
-                                      <Plus className="w-4 h-4" />
-                                      Add Preparation
-                                    </button>
-                                  </div>
+                                  {/* Standard Preparations Sub-section */}
+                                  <div className="mb-6">
+                                    <div className="flex items-center justify-between mb-4 px-2">
+                                      <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                        <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                        Standard Preparations
+                                      </h3>
+                                      <button
+                                        onClick={() =>
+                                          handleAddStandardPreparation(selectedParam.id)
+                                        }
+                                        className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm"
+                                      >
+                                        <Plus className="w-4 h-4" />
+                                        Add Standard Preparation
+                                      </button>
+                                    </div>
 
-                                  <AnimatePresence>
-                                    {(
-                                      standardPreparationAssayPerParam[
-                                      selectedParam.id
-                                      ] || []
-                                    ).map((standardPreparation: any, idx: number) => {
-                                      const assignedStandard = (
-                                        addedStandards[selectedParam.id] || []
-                                      ).find(
-                                        (std) =>
-                                          std.serialNo ===
-                                          standardPreparation.assignedStandardId,
-                                      );
-
-                                      const correspondingSample =
-                                        (samplePreparationPerParam[
-                                          selectedParam.id
-                                        ] || [])[idx];
-
-                                      return (
-                                        <div
-                                          key={standardPreparation.id}
-                                          className="mb-6"
-                                        >
-                                          <StandardPreparationDetail
-                                            standardPreparation={standardPreparation}
-                                            assignedStandard={
-                                              assignedStandard || null
-                                            }
-                                            onStepChange={(
-                                              standardPreparationId,
-                                              stepName,
-                                              field,
-                                              newValue,
-                                            ) =>
-                                              handleStandardPreparationStepChange(
-                                                selectedParam.id,
+                                    <AnimatePresence>
+                                      {(
+                                        standardPreparationAssayPerParam[selectedParam.id] || []
+                                      ).map((standardPreparation: any) => {
+                                        const assignedStandard = (
+                                          addedStandards[selectedParam.id] || []
+                                        ).find(
+                                          (std) =>
+                                            std.serialNo === standardPreparation.assignedStandardId,
+                                        );
+                                        return (
+                                          <div key={standardPreparation.id} className="mb-6">
+                                            <StandardPreparationDetail
+                                              standardPreparation={standardPreparation}
+                                              assignedStandard={assignedStandard || null}
+                                              onStepChange={(
                                                 standardPreparationId,
                                                 stepName,
                                                 field,
                                                 newValue,
-                                              )
-                                            }
-                                            onRemove={() =>
-                                              handleRemoveStandardPreparation(
-                                                selectedParam.id,
-                                                standardPreparation.id,
-                                              )
-                                            }
-                                            role={role}
-                                          />
+                                              ) =>
+                                                handleStandardPreparationStepChange(
+                                                  selectedParam.id,
+                                                  standardPreparationId,
+                                                  stepName,
+                                                  field,
+                                                  newValue,
+                                                )
+                                              }
+                                              onRemove={() =>
+                                                handleRemoveStandardPreparation(
+                                                  selectedParam.id,
+                                                  standardPreparation.id,
+                                                )
+                                              }
+                                              role={role}
+                                            />
+                                          </div>
+                                        );
+                                      })}
+                                    </AnimatePresence>
 
-                                          {correspondingSample && (
-                                            <div className="mt-4">
-                                              <SamplePreparationDetail
-                                                samplePreparation={
-                                                  correspondingSample
-                                                }
-                                                assignedStandard={
-                                                  assignedStandard || null
-                                                }
-                                                onStepChange={(
+                                    {(standardPreparationAssayPerParam[selectedParam.id] || []).length === 0 && (
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="relative overflow-hidden text-center py-10 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                      >
+                                        <div className="relative z-10">
+                                          <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                            <Target className="w-10 h-10 text-emerald-400" />
+                                          </div>
+                                          <p className="text-base font-bold text-emerald-800 mb-1">
+                                            No standard preparations added yet
+                                          </p>
+                                          <p className="text-sm text-emerald-600/80 max-w-md mx-auto">
+                                            Click "Add Standard Preparation" to get started
+                                          </p>
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </div>
+
+                                  {/* Sample Preparations Sub-section */}
+                                  <div className="mb-6">
+                                    <div className="flex items-center justify-between mb-4 px-2">
+                                      <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                        <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                        Sample Preparations
+                                      </h3>
+                                      <button
+                                        onClick={() =>
+                                          handleAddSamplePreparation(selectedParam.id)
+                                        }
+                                        className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm"
+                                      >
+                                        <Plus className="w-4 h-4" />
+                                        Add Sample Preparation
+                                      </button>
+                                    </div>
+
+                                    <AnimatePresence>
+                                      {(
+                                        samplePreparationPerParam[selectedParam.id] || []
+                                      ).map((samplePreparation: any) => {
+                                        const assignedStandard = (
+                                          addedStandards[selectedParam.id] || []
+                                        ).find(
+                                          (std) =>
+                                            std.serialNo === samplePreparation.assignedStandardId,
+                                        );
+                                        return (
+                                          <div key={samplePreparation.id} className="mb-6">
+                                            <SamplePreparationDetail
+                                              samplePreparation={samplePreparation}
+                                              assignedStandard={assignedStandard || null}
+                                              onStepChange={(
+                                                samplePreparationId,
+                                                stepName,
+                                                field,
+                                                newValue,
+                                              ) =>
+                                                handleSamplePreparationStepChange(
+                                                  selectedParam.id,
                                                   samplePreparationId,
                                                   stepName,
                                                   field,
                                                   newValue,
-                                                ) =>
-                                                  handleSamplePreparationStepChange(
-                                                    selectedParam.id,
-                                                    samplePreparationId,
-                                                    stepName,
-                                                    field,
-                                                    newValue,
-                                                  )
-                                                }
-                                                onRemove={() =>
-                                                  handleRemoveSamplePreparation(
-                                                    selectedParam.id,
-                                                    correspondingSample.id,
-                                                  )
-                                                }
-                                                role={role}
-                                              />
-                                            </div>
-                                          )}
+                                                )
+                                              }
+                                              onRemove={() =>
+                                                handleRemoveSamplePreparation(
+                                                  selectedParam.id,
+                                                  samplePreparation.id,
+                                                )
+                                              }
+                                              role={role}
+                                            />
+                                          </div>
+                                        );
+                                      })}
+                                    </AnimatePresence>
+
+                                    {(samplePreparationPerParam[selectedParam.id] || []).length === 0 && (
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="relative overflow-hidden text-center py-10 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                      >
+                                        <div className="relative z-10">
+                                          <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
+                                            <Target className="w-10 h-10 text-emerald-400" />
+                                          </div>
+                                          <p className="text-base font-bold text-emerald-800 mb-1">
+                                            No sample preparations added yet
+                                          </p>
+                                          <p className="text-sm text-emerald-600/80 max-w-md mx-auto">
+                                            Click "Add Sample Preparation" to get started
+                                          </p>
                                         </div>
-                                      );
-                                    })}
-                                  </AnimatePresence>
-                                </div>
-                                {(
-                                  standardPreparationAssayPerParam[
-                                  selectedParam.id
-                                  ] || []
-                                ).length > 0 && (
+                                      </motion.div>
+                                    )}
+                                  </div>
+
+                                  {(
+                                    standardPreparationAssayPerParam[selectedParam.id] || []
+                                  ).length > 0 && (
                                     <div className="pointer-events-auto">
                                       <WorksheetFileAttacher
                                         files={getFilesForPrep(
@@ -16344,42 +16351,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                       />
                                     </div>
                                   )}
-
-                                {(
-                                  standardPreparationAssayPerParam[
-                                  selectedParam.id
-                                  ] || []
-                                ).length === 0 && (
-                                    <motion.div
-                                      initial={{ opacity: 0, scale: 0.95 }}
-                                      animate={{ opacity: 1, scale: 1 }}
-                                      className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
-                                    >
-                                      <div className="absolute inset-0 opacity-5">
-                                        <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
-                                        <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
-                                      </div>
-
-                                      <div className="relative z-10">
-                                        <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
-                                          <Target className="w-14 h-14 text-emerald-400" />
-                                        </div>
-                                        <p className="text-lg font-bold text-emerald-800 mb-2">
-                                          No preparations added yet
-                                        </p>
-                                        <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
-                                          Click "Add Preparation" to create your first
-                                          standard and sample preparation
-                                        </p>
-                                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
-                                          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
-                                          <span className="text-xs font-semibold text-emerald-800">
-                                            Ready to start
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </motion.div>
-                                  )}
+                                </div>
                               </div>
 
                               {/* ── Complete Preparation Banner / Button ── */}
@@ -16387,11 +16359,8 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                 (() => {
                                   // Prep complete/unlock shown when canManagePrep is true (role-aware + status-aware).
                                   const hasPrepData =
-                                    (
-                                      standardPreparationAssayPerParam[
-                                      selectedParam.id
-                                      ] || []
-                                    ).length > 0;
+                                    (standardPreparationAssayPerParam[selectedParam.id] || []).length > 0 ||
+                                    (samplePreparationPerParam[selectedParam.id] || []).length > 0;
                                   const isPrepCompleted =
                                     !!preparationCompletedAtPerParam[
                                     selectedParam.id

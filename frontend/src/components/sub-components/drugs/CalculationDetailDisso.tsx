@@ -111,49 +111,21 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     (prep) => prep.label === calculation.selectedSamplePreparationLabel
   );
 
-  // Create preparation pair options
-  const preparationPairs = standardPreparations
-    .map((stdPrep, stdIdx) => {
-      const matchingSamplePrep = samplePreparationsDisso[stdIdx];
+  const handleStandardPreparationChange = (value: string) => {
+    onFieldChange(
+      calculation.id,
+      "selectedStandardPreparationLabel",
+      value || null,
+    );
+  };
 
-      if (matchingSamplePrep) {
-        return {
-          value: `${stdPrep.label}-${matchingSamplePrep.label}`,
-          label: `Preparation ${stdIdx + 1}`,
-          standardLabel: stdPrep.label,
-          sampleLabel: matchingSamplePrep.label,
-        };
-      }
-      return null;
-    })
-    .filter(Boolean) as {
-    value: string;
-    label: string;
-    standardLabel: string;
-    sampleLabel: string;
-  }[];
-
-  const currentPrepLabel =
-    calculation.selectedStandardPreparationLabel && calculation.selectedSamplePreparationLabel
-      ? `${calculation.selectedStandardPreparationLabel}-${calculation.selectedSamplePreparationLabel}`
-      : "";
-
-  useEffect(() => {
-    if (
-      calculation.selectedStandardPreparationLabel &&
-      calculation.selectedSamplePreparationLabel
-    ) {
-      preparationPairs.find(
-        (pair) =>
-          pair?.standardLabel === calculation.selectedStandardPreparationLabel &&
-          pair?.sampleLabel === calculation.selectedSamplePreparationLabel
-      );
-    }
-  }, [
-    calculation.selectedStandardPreparationLabel,
-    calculation.selectedSamplePreparationLabel,
-    preparationPairs,
-  ]);
+  const handleSamplePreparationChange = (value: string) => {
+    onFieldChange(
+      calculation.id,
+      "selectedSamplePreparationLabel",
+      value || null,
+    );
+  };
 
   // Load existing results when component mounts or calculation changes
   useEffect(() => {
@@ -207,25 +179,6 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
     }
   }, [calculation.id]);
 
-  const handlePreparationChange = (value: string) => {
-    const selectedPair = preparationPairs.find((pair) => pair.value === value);
-
-    if (selectedPair) {
-      onFieldChange(
-        calculation.id,
-        "selectedStandardPreparationLabel",
-        selectedPair.standardLabel
-      );
-      onFieldChange(
-        calculation.id,
-        "selectedSamplePreparationLabel",
-        selectedPair.sampleLabel
-      );
-    } else {
-      onFieldChange(calculation.id, "selectedStandardPreparationLabel", null);
-      onFieldChange(calculation.id, "selectedSamplePreparationLabel", null);
-    }
-  };
 
   const getStandardDilutions = () => {
     if (!selectedStandardPrep) return [];
@@ -1027,19 +980,41 @@ const CalculationDetailDisso: React.FC<CalculationDetailDissoProps> = ({
               >
                 <div className="p-6 bg-gradient-to-b from-gray-50 to-white space-y-6">
                   <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Select Preparation Pair
-                    </label>
-                    <CustomDropdown
-                      options={preparationPairs.map((pair) => ({
-                        value: pair.value,
-                        label: pair.label,
-                      }))}
-                      value={currentPrepLabel}
-                      onChange={handlePreparationChange}
-                      placeholder="Select preparation pair..."
-                      colorScheme="emerald"
-                    />
+                    <h5 className="text-sm font-bold text-gray-700 mb-3">
+                      Select Preparations
+                    </h5>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-1">
+                          Standard Preparation
+                        </label>
+                        <CustomDropdown
+                          options={standardPreparations.map((prep) => ({
+                            value: prep.label,
+                            label: prep.label,
+                          }))}
+                          value={calculation.selectedStandardPreparationLabel || ""}
+                          onChange={handleStandardPreparationChange}
+                          placeholder="Select standard preparation..."
+                          colorScheme="emerald"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-1">
+                          Sample Preparation
+                        </label>
+                        <CustomDropdown
+                          options={samplePreparationsDisso.map((prep) => ({
+                            value: prep.label,
+                            label: prep.label,
+                          }))}
+                          value={calculation.selectedSamplePreparationLabel || ""}
+                          onChange={handleSamplePreparationChange}
+                          placeholder="Select sample preparation..."
+                          colorScheme="emerald"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   {selectedStandardPrep && selectedSamplePrepDisso && (

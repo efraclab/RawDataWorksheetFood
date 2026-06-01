@@ -215,47 +215,20 @@ const CalculationDetailDissoProfile: React.FC<
     label: `${i + 2} time points`,
   }));
 
-  const preparationPairs = standardPreparations
-    .map((stdPrep, stdIdx) => {
-      const matchingSamplePrep = samplePreparationsDisso[stdIdx];
-      if (!matchingSamplePrep) return null;
-      return {
-        value: `${stdPrep.label}-${matchingSamplePrep.label}`,
-        label: `Preparation ${stdIdx + 1}`,
-        standardLabel: stdPrep.label,
-        sampleLabel: matchingSamplePrep.label,
-      };
-    })
-    .filter(Boolean) as {
-    value: string;
-    label: string;
-    standardLabel: string;
-    sampleLabel: string;
-  }[];
+  const handleStandardPreparationChange = (value: string) => {
+    onFieldChange(
+      calculation.id,
+      "selectedStandardPreparationLabel",
+      value || null,
+    );
+  };
 
-  const currentPrepLabel =
-    calculation.selectedStandardPreparationLabel &&
-    calculation.selectedSamplePreparationLabel
-      ? `${calculation.selectedStandardPreparationLabel}-${calculation.selectedSamplePreparationLabel}`
-      : "";
-
-  const handlePreparationChange = (value: string) => {
-    const pair = preparationPairs.find((p) => p.value === value);
-    if (pair) {
-      onFieldChange(
-        calculation.id,
-        "selectedStandardPreparationLabel",
-        pair.standardLabel,
-      );
-      onFieldChange(
-        calculation.id,
-        "selectedSamplePreparationLabel",
-        pair.sampleLabel,
-      );
-    } else {
-      onFieldChange(calculation.id, "selectedStandardPreparationLabel", null);
-      onFieldChange(calculation.id, "selectedSamplePreparationLabel", null);
-    }
+  const handleSamplePreparationChange = (value: string) => {
+    onFieldChange(
+      calculation.id,
+      "selectedSamplePreparationLabel",
+      value || null,
+    );
   };
 
   // ── Preparation data helpers ─────────────────────────────────────────────────
@@ -749,16 +722,41 @@ const CalculationDetailDissoProfile: React.FC<
 
                 {/* ── Preparation selection ── */}
                 <div className="bg-white rounded-lg p-4 border-2 border-emerald-200 shadow-sm">
-                  <label className="text-xs font-semibold text-gray-700 mb-2 block">
-                    Select Preparation Pair
-                  </label>
-                  <CustomDropdown
-                    options={preparationPairs}
-                    value={currentPrepLabel}
-                    onChange={handlePreparationChange}
-                    placeholder="Choose Standard & Sample Preparation"
-                    colorScheme="emerald"
-                  />
+                  <h5 className="text-xs font-semibold text-gray-700 mb-3 block">
+                    Select Preparations
+                  </h5>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-gray-600 mb-1 block">
+                        Standard Preparation
+                      </label>
+                      <CustomDropdown
+                        options={standardPreparations.map((prep) => ({
+                          value: prep.label,
+                          label: prep.label,
+                        }))}
+                        value={calculation.selectedStandardPreparationLabel || ""}
+                        onChange={handleStandardPreparationChange}
+                        placeholder="Select standard preparation..."
+                        colorScheme="emerald"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-600 mb-1 block">
+                        Sample Preparation
+                      </label>
+                      <CustomDropdown
+                        options={samplePreparationsDisso.map((prep) => ({
+                          value: prep.label,
+                          label: prep.label,
+                        }))}
+                        value={calculation.selectedSamplePreparationLabel || ""}
+                        onChange={handleSamplePreparationChange}
+                        placeholder="Select sample preparation..."
+                        colorScheme="emerald"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* ── Profile configuration ── */}

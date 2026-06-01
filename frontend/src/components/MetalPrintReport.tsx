@@ -1642,18 +1642,109 @@ const MetalPrintReport: React.FC<MetalPrintReportProps> = ({
                                 {blankPreps.length > 0 && (
                                     <div className="mb-6">
                                         <h4 className="text-md uppercase font-bold mb-2">Blank Preparations</h4>
-                                        {blankPreps.map((prep: any, idx: number) => (
-                                            <div key={idx} className="section-container mb-3">
-                                                <p className="font-bold text-sm mb-1">{prep.label}</p>
-                                                {prep.content && (
-                                                    <div
-                                                        className="text-sm"
-                                                        style={{ fontFamily: "inherit", fontSize: "0.875rem", lineHeight: "1.6" }}
-                                                        dangerouslySetInnerHTML={{ __html: prep.content }}
-                                                    />
-                                                )}
-                                            </div>
-                                        ))}
+                                        {blankPreps.map((prep: any, idx: number) => {
+                                            // Parse content: supports new array format + legacy
+                                            let methodHtml = "";
+                                            let results: { id: string; label: string; value: string; unit: string }[] = [];
+                                            let limits:  { id: string; label: string; min: string; max: string; unit: string }[] = [];
+
+                                            if (prep.content) {
+                                                try {
+                                                    const parsed = JSON.parse(prep.content);
+                                                    if (parsed && typeof parsed === "object") {
+                                                        if (Array.isArray(parsed.results) && Array.isArray(parsed.limits)) {
+                                                            methodHtml = parsed.method || "";
+                                                            results    = parsed.results;
+                                                            limits     = parsed.limits;
+                                                        } else if ("method" in parsed) {
+                                                            methodHtml = parsed.method || "";
+                                                            if (parsed.calculationResult || parsed.calculationResultUnit)
+                                                                results = [{ id: "r", label: "Result", value: parsed.calculationResult || "", unit: parsed.calculationResultUnit || "" }];
+                                                            if (parsed.acceptanceLimitMin || parsed.acceptanceLimitMax)
+                                                                limits = [{ id: "l", label: "Limit", min: parsed.acceptanceLimitMin || "", max: parsed.acceptanceLimitMax || "", unit: parsed.calculationResultUnit || "" }];
+                                                        } else { methodHtml = prep.content; }
+                                                    }
+                                                } catch { methodHtml = prep.content || ""; }
+                                            }
+
+                                            const hasMethod  = !!methodHtml?.replace(/<[^>]*>/g, "").trim();
+                                            const hasResults = results.some(r => r.value.trim() || r.unit);
+                                            const hasLimits  = limits.some(l => l.min.trim() || l.max.trim());
+                                            if (!hasMethod && !hasResults && !hasLimits) return null;
+
+                                            return (
+                                                <div key={idx} className="section-container mb-4">
+                                                    <p className="font-bold text-sm mb-2">{prep.label}</p>
+
+                                                    <style dangerouslySetInnerHTML={{ __html: `
+                                                        .blank-method-content table { display: table !important; width: 100% !important; border-collapse: collapse !important; }
+                                                        .blank-method-content tr    { display: table-row !important; }
+                                                        .blank-method-content td, .blank-method-content th { display: table-cell !important; border: 1px solid black !important; padding: 4px 8px !important; }
+                                                    `}} />
+
+                                                    <table className="w-full border-collapse border border-black text-sm">
+                                                        <tbody>
+
+                                                            {/* Method */}
+                                                            {hasMethod && (
+                                                                <tr>
+                                                                    <td colSpan={3} className="border border-black px-3 py-2">
+                                                                        <span className="font-bold">Method / Preparation :&nbsp;</span>
+                                                                        <div className="blank-method-content text-sm mt-2"
+                                                                            dangerouslySetInnerHTML={{ __html: methodHtml }}
+                                                                            style={{ lineHeight: "1.6", fontFamily: "inherit", fontSize: "0.875rem" }} />
+                                                                    </td>
+                                                                </tr>
+                                                            )}
+
+                                                            {/* Results */}
+                                                            {hasResults && (
+                                                                <>
+                                                                    <tr className="bg-gray-50">
+                                                                        <td className="border border-black px-3 py-1.5 font-bold text-xs" style={{ width: "30%" }}>Result / Reported Value</td>
+                                                                        <td className="border border-black px-3 py-1.5 font-bold text-xs" style={{ width: "40%" }}>Value</td>
+                                                                        <td className="border border-black px-3 py-1.5 font-bold text-xs" style={{ width: "30%" }}>Unit</td>
+                                                                    </tr>
+                                                                    {results.map((r, ri) => (r.value.trim() || r.unit) && (
+                                                                        <tr key={ri}>
+                                                                            <td className="border border-black px-3 py-1.5 text-xs font-semibold text-gray-600">{r.label}</td>
+                                                                            <td className="border border-black px-3 py-1.5 font-mono font-bold">{r.value || "—"}</td>
+                                                                            <td className="border border-black px-3 py-1.5 text-xs">{r.unit || "—"}</td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </>
+                                                            )}
+
+                                                            {/* Acceptance Limits */}
+                                                            {hasLimits && (
+                                                                <>
+                                                                    <tr className="bg-gray-50">
+                                                                        <td className="border border-black px-3 py-1.5 font-bold text-xs">Acceptance Limit</td>
+                                                                        <td className="border border-black px-3 py-1.5 font-bold text-xs">Criterion</td>
+                                                                        <td className="border border-black px-3 py-1.5 font-bold text-xs">Unit</td>
+                                                                    </tr>
+                                                                    {limits.map((l, li) => {
+                                                                        const hasMin = !!l.min.trim(), hasMax = !!l.max.trim();
+                                                                        if (!hasMin && !hasMax) return null;
+                                                                        const criterion = hasMin && hasMax
+                                                                            ? `${l.min} ≤ Result ≤ ${l.max}`
+                                                                            : hasMin ? `Result ≥ ${l.min}` : `Result ≤ ${l.max}`;
+                                                                        return (
+                                                                            <tr key={li}>
+                                                                                <td className="border border-black px-3 py-1.5 text-xs font-semibold text-gray-600">{l.label}</td>
+                                                                                <td className="border border-black px-3 py-1.5 font-mono font-bold">{criterion}</td>
+                                                                                <td className="border border-black px-3 py-1.5 text-xs">{l.unit || "—"}</td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </>
+                                                            )}
+
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 )}
 

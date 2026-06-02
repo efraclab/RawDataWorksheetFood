@@ -989,6 +989,62 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   const [isStartingAnalysis, setIsStartingAnalysis] = useState(false);
   const [isCompletingAnalysis, setIsCompletingAnalysis] = useState(false);
 
+  // Tracks which parameters the analyst has explicitly started revision on (optimistic).
+  const [revisionStartedParams, setRevisionStartedParams] = useState<Set<number>>(new Set());
+
+  const handleStartRevision = async (param: ParameterDetail) => {
+    const parameterId = param.id;
+    const revisionStartDate = new Date().toISOString();
+
+    setRevisionStartedParams(prev => new Set([...prev, parameterId]));
+
+    try {
+      const updatedParam = {
+        ...param,
+        status: "Analysis Revision Started",
+        revisionStartDate,
+      };
+
+      const response = await updateParameter(parameterId, updatedParam);
+
+      if (response && response.parameterId) {
+        setParameterStatusPerParam(prev => ({
+          ...prev,
+          [parameterId]: "Analysis Revision Started",
+        }));
+        setRevisionStartDatePerParam(prev => ({
+          ...prev,
+          [parameterId]: revisionStartDate,
+        }));
+        await insertWorksheetLog({
+          worksheetId,
+          parameterId,
+          action: "Revision Started",
+          remarks: "Analyst started revision — parameter unlocked for editing",
+          employeeId,
+          role,
+        });
+        setToastMessage("Revision started. Parameter is now unlocked for editing.");
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 4000);
+      } else {
+        setRevisionStartedParams(prev => {
+          const next = new Set(prev); next.delete(parameterId); return next;
+        });
+        setToastMessage("Failed to start revision. Please try again.");
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 4000);
+      }
+    } catch (error) {
+      setRevisionStartedParams(prev => {
+        const next = new Set(prev); next.delete(parameterId); return next;
+      });
+      setToastMessage(`Error starting revision: ${error}`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 4000);
+    }
+  };
+
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [showDisapproveDialog, setShowDisapproveDialog] = useState(false);
   const [showRevisionDialog, setShowRevisionDialog] = useState(false);
@@ -1028,6 +1084,12 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   >({});
   const [analysisCompletionDatePerParam, setAnalysisCompletionDatePerParam] =
     useState<Record<number, string>>({});
+  const [revisionStartDatePerParam, setRevisionStartDatePerParam] = useState<
+    Record<number, string>
+  >({});
+  const [revisionCompletedDatePerParam, setRevisionCompletedDatePerParam] = useState<
+    Record<number, string>
+  >({});
   const [analyzedByPerParam, setAnalyzedByPerParam] = useState<
     Record<number, string>
   >({});
@@ -1320,6 +1382,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         "analysis started",
         "analysis completed",
         "analysis revision",
+        "analysis revision started",
         "approved",
       ].includes(status);
     },
@@ -1480,6 +1543,24 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           ...prev,
           [paramId]: param.analysisCompletionDate!,
         }));
+      }
+
+      if ((param as any).revisionStartDate) {
+        setRevisionStartDatePerParam((prev) => ({
+          ...prev,
+          [paramId]: (param as any).revisionStartDate,
+        }));
+      }
+
+      if ((param as any).revisionCompletedDate) {
+        setRevisionCompletedDatePerParam((prev) => ({
+          ...prev,
+          [paramId]: (param as any).revisionCompletedDate,
+        }));
+      }
+
+      if ((param.status || "").toLowerCase() === "analysis revision started") {
+        setRevisionStartedParams(prev => new Set([...prev, paramId]));
       }
 
       if (param.status) {
@@ -3218,6 +3299,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           analysisStartDate: analysisStartDatePerParam[param.id] || null,
           analysisCompletionDate:
             analysisCompletionDatePerParam[param.id] || null,
+          revisionStartDate: revisionStartDatePerParam[param.id] || null,
+          revisionCompletedDate: revisionCompletedDatePerParam[param.id] || null,
           analyzedBy: analyzedByPerParam[param.id] || null,
           approvedByReviewer: approvedByReviewerPerParam[param.id] || null,
           approvedAtReviewer: approvedAtReviewerPerParam[param.id] || null,
@@ -4161,6 +4244,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
               analysisStartDate: analysisStartDatePerParam[paramId] || null,
               analysisCompletionDate:
                 analysisCompletionDatePerParam[paramId] || null,
+              revisionStartDate: revisionStartDatePerParam[paramId] || null,
+              revisionCompletedDate: revisionCompletedDatePerParam[paramId] || null,
               approvedAtReviewer: approvedAtReviewerPerParam[paramId] || null,
               preparationCompletedBy:
                 preparationCompletedByPerParam[paramId] || null,
@@ -4764,6 +4849,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
       additional_info: additionalInfoPerParam[paramId] || null,
       analysisStartDate: analysisStartDatePerParam[paramId] || null,
       analysisCompletionDate: analysisCompletionDatePerParam[paramId] || null,
+      revisionStartDate: revisionStartDatePerParam[paramId] || null,
+      revisionCompletedDate: revisionCompletedDatePerParam[paramId] || null,
       analyzedBy: analyzedByPerParam[paramId] || null,
       approvedByReviewer: approvedByReviewerPerParam[paramId] || null,
       approvedAtReviewer: approvedAtReviewerPerParam[paramId] || null,
@@ -5097,11 +5184,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
       const status = (
         parameterStatusPerParam[parameterId] || "created"
       ).toLowerCase();
-      return ["created", "analysis started", "analysis revision"].includes(
+      return ["created", "analysis started", "analysis revision started"].includes(
         status,
-      );
+      ) || revisionStartedParams.has(parameterId);
     },
-    [role, parameterStatusPerParam],
+    [role, parameterStatusPerParam, revisionStartedParams],
   );
 
   const handleApprove = (param: ParameterDetail) => {
@@ -5469,10 +5556,21 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
     setIsCompletingAnalysis(true);
     try {
+      const prevStatus = (
+        parameterStatusPerParam[parameterForAnalysis.id] || ""
+      ).toLowerCase();
+      const wasRevision =
+        prevStatus === "analysis revision started" ||
+        prevStatus === "analysis revision" ||
+        revisionStartedParams.has(parameterForAnalysis.id);
+
+      const completionDate = new Date().toISOString();
+
       const updatedParam = {
         ...parameterForAnalysis,
         status: "Analysis Completed",
-        analysisCompletionDate: new Date().toISOString(),
+        analysisCompletionDate: completionDate,
+        ...(wasRevision && { revisionCompletedDate: completionDate }),
         remarksByAnalyst: comment || null,
       };
 
@@ -5482,7 +5580,6 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
       );
 
       if (response && response.parameterId) {
-        // Update local state
         setParameterStatusPerParam((prev) => ({
           ...prev,
           [parameterForAnalysis.id]: "Analysis Completed",
@@ -5490,8 +5587,20 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
 
         setAnalysisCompletionDatePerParam((prev) => ({
           ...prev,
-          [parameterForAnalysis.id]: updatedParam.analysisCompletionDate,
+          [parameterForAnalysis.id]: completionDate,
         }));
+
+        if (wasRevision) {
+          setRevisionCompletedDatePerParam((prev) => ({
+            ...prev,
+            [parameterForAnalysis.id]: completionDate,
+          }));
+          setRevisionStartedParams(prev => {
+            const next = new Set(prev);
+            next.delete(parameterForAnalysis.id);
+            return next;
+          });
+        }
 
         if (comment) {
           setRemarksByAnalystPerParam((prev) => ({
@@ -5501,17 +5610,15 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         }
 
         setToastMessage(
-          "Analysis completed successfully! Submitted for Reviewer approval.",
+          wasRevision
+            ? "Revision completed successfully! Resubmitted to Reviewer."
+            : "Analysis completed successfully! Submitted for Reviewer approval.",
         );
         setShowToast(true);
         setTimeout(() => {
           setShowToast(false);
         }, 4000);
 
-        const prevStatus = (
-          parameterStatusPerParam[parameterForAnalysis.id] || ""
-        ).toLowerCase();
-        const wasRevision = prevStatus === "analysis revision";
         await insertWorksheetLog({
           worksheetId,
           parameterId: parameterForAnalysis.id,
@@ -8152,7 +8259,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
       const isAnalysisStarted = status === "analysis started";
       const isAnalysisPending = status === "analysis pending";
       const isAnalysisCompleted = status === "analysis completed";
-      const isAnalysisRevision = status === "analysis revision";
+      const isAnalysisRevision = status === "analysis revision" || status === "analysis revision started";
       const isApproved = status === "approved";
       const isCreated = status === "created";
       const param = addedParameters.find((p) => p.id === parameterId);
@@ -8555,6 +8662,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         const isFromQA = !!qaRemarks;
         const activeRemarks = isFromQA ? qaRemarks : reviewerRemarks;
         const senderLabel = isFromQA ? "QA" : "Reviewer";
+        const isRevisionStarted = status === "analysis revision started" || revisionStartedParams.has(parameterId);
 
         return (
           <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
@@ -8585,33 +8693,38 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                       Revision Requested by {senderLabel}
                     </h3>
                     <p className="text-sm text-slate-600 mt-0.5">
-                      {senderLabel} has requested revisions. Review the feedback
-                      below and update your work
+                      {isRevisionStarted
+                        ? `Revision in progress — make your changes and click "Complete Revision" when done`
+                        : `${senderLabel} has requested revisions. Click "Start Revision" to unlock editing`}
                     </p>
                   </div>
                 </div>
 
-                <motion.button
-                  onClick={() => handleCompleteAnalysis(param)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`px-5 py-2.5 bg-white/60 backdrop-blur-sm border ${isFromQA ? "border-amber-200 text-amber-700 hover:border-amber-300" : "border-orange-200 text-orange-700 hover:border-orange-300"} text-sm font-semibold rounded-lg hover:bg-white/80 transition-all flex items-center gap-2 shadow-sm`}
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                {isRevisionStarted ? (
+                  <motion.button
+                    onClick={() => handleCompleteAnalysis(param)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`px-5 py-2.5 bg-white/60 backdrop-blur-sm border ${isFromQA ? "border-amber-200 text-amber-700 hover:border-amber-300" : "border-orange-200 text-orange-700 hover:border-orange-300"} text-sm font-semibold rounded-lg hover:bg-white/80 transition-all flex items-center gap-2 shadow-sm`}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  Complete Revision
-                </motion.button>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Complete Revision
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    onClick={() => handleStartRevision(param)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`px-5 py-2.5 bg-gradient-to-r ${isFromQA ? "from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700" : "from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"} text-white text-sm font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md`}
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Start Revision
+                  </motion.button>
+                )}
               </div>
             </div>
 
@@ -8706,37 +8819,40 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-sm text-slate-800 mb-2">
-                        Revision Mode Active
+                        {isRevisionStarted ? "Revision Mode Active" : "Revision Pending — Action Required"}
                       </h4>
                       <ul className="text-sm text-slate-600 space-y-2">
-                        <li className="flex items-start gap-2">
-                          <span className="text-emerald-500 mt-1">•</span>
-                          <span>
-                            Review {senderLabel}&apos;s feedback above and make
-                            necessary corrections
-                          </span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-emerald-500 mt-1">•</span>
-                          <span>
-                            You have full editing access to all preparations and
-                            calculations
-                          </span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-emerald-500 mt-1">•</span>
-                          <span>
-                            Click <strong>&quot;Save Draft&quot;</strong> to
-                            save your changes
-                          </span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-emerald-500 mt-1">•</span>
-                          <span>
-                            Click <strong>&quot;Complete Revision&quot;</strong>{" "}
-                            when all changes are done
-                          </span>
-                        </li>
+                        {!isRevisionStarted ? (
+                          <>
+                            <li className="flex items-start gap-2">
+                              <span className="text-orange-500 mt-1">•</span>
+                              <span>Review {senderLabel}&apos;s feedback above carefully</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-orange-500 mt-1">•</span>
+                              <span>Click <strong>&quot;Start Revision&quot;</strong> to unlock the parameter for editing</span>
+                            </li>
+                          </>
+                        ) : (
+                          <>
+                            <li className="flex items-start gap-2">
+                              <span className="text-emerald-500 mt-1">•</span>
+                              <span>Review {senderLabel}&apos;s feedback above and make necessary corrections</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-emerald-500 mt-1">•</span>
+                              <span>You have full editing access to all preparations and calculations</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-emerald-500 mt-1">•</span>
+                              <span>Click <strong>&quot;Save Draft&quot;</strong> to save your changes</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-emerald-500 mt-1">•</span>
+                              <span>Click <strong>&quot;Complete Revision&quot;</strong>{" "}when all changes are done</span>
+                            </li>
+                          </>
+                        )}
                       </ul>
                     </div>
                   </div>
@@ -10097,7 +10213,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         const isAnalysisStarted = status === "analysis started";
         const isAnalysisPending = status === "analysis pending";
         const isAnalysisCompleted = status === "analysis completed";
-        const isAnalysisRevision = status === "analysis revision";
+        const isAnalysisRevision = status === "analysis revision" || status === "analysis revision started";
         const isApproved = status === "approved";
         const isCreated = status === "created";
         const param = addedParameters.find((p) => p.id === parameterId);
@@ -10262,6 +10378,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
           const qaRemarks = remarksQAPerParam[parameterId];
           const reviewerRemarks = remarksByReviewerPerParam[parameterId];
           const isFromQA = !!qaRemarks;
+          const isRevisionStarted = status === "analysis revision started" || revisionStartedParams.has(parameterId);
           return (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -10289,34 +10406,40 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                         Revision Requested {isFromQA ? "by QA" : "by Reviewer"}
                       </h4>
                       <p className="text-xs text-slate-600">
-                        {isFromQA
-                          ? "QA has requested revisions. Review feedback and update your work"
-                          : "Reviewer has requested revisions. Review feedback and update your work"}
+                        {isRevisionStarted
+                          ? "Revision in progress — make your changes and complete when done"
+                          : isFromQA
+                          ? "QA has requested revisions. Click \"Start Revision\" to begin editing"
+                          : "Reviewer has requested revisions. Click \"Start Revision\" to begin editing"}
                       </p>
                     </div>
                   </div>
 
-                  <motion.button
-                    onClick={() => handleCompleteAnalysis(param)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-800 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                  {isRevisionStarted ? (
+                    <motion.button
+                      onClick={() => handleCompleteAnalysis(param)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-800 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    Complete Revision
-                  </motion.button>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Complete Revision
+                    </motion.button>
+                  ) : (
+                    <motion.button
+                      onClick={() => handleStartRevision(param)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`px-5 py-2.5 bg-gradient-to-r ${isFromQA ? "from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700" : "from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"} text-white text-sm font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md`}
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Start Revision
+                    </motion.button>
+                  )}
                 </div>
               </div>
 
@@ -11567,10 +11690,16 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               label: "APPROVED",
                             },
                             "analysis revision": {
-                              bg: "bg-emerald-100",
-                              border: "border-emerald-300",
-                              text: "text-emerald-800",
+                              bg: "bg-orange-100",
+                              border: "border-orange-300",
+                              text: "text-orange-800",
                               label: "REVISION REQUESTED",
+                            },
+                            "analysis revision started": {
+                              bg: "bg-orange-100",
+                              border: "border-orange-300",
+                              text: "text-orange-800",
+                              label: "REVISION IN PROGRESS",
                             },
                             disapproved: {
                               bg: "bg-red-100",
@@ -12134,6 +12263,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                             {/* Analysis Timeline Section */}
                             {(analysisStartDatePerParam[selectedParam.id] ||
                               analysisCompletionDatePerParam[selectedParam.id] ||
+                              revisionStartDatePerParam[selectedParam.id] ||
+                              revisionCompletedDatePerParam[selectedParam.id] ||
                               approvedByReviewerPerParam[selectedParam.id]) && (
                                 <motion.div
                                   initial={{ opacity: 0, y: 20 }}
@@ -12234,6 +12365,38 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                                 ])
                                               }
                                             </p>
+                                          </div>
+                                        )}
+
+                                      {revisionStartDatePerParam[
+                                        selectedParam.id
+                                      ] && (
+                                          <div className="bg-orange-50 rounded-lg p-4 border border-orange-200 hover:border-orange-300 transition-all">
+                                            <div className="flex items-center gap-2 mb-2">
+                                              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                              </div>
+                                              <span className="text-xs font-semibold text-orange-700 uppercase tracking-wide">Revision Started</span>
+                                            </div>
+                                            <p className="text-sm font-semibold text-slate-900">{formatDate(revisionStartDatePerParam[selectedParam.id])}</p>
+                                          </div>
+                                        )}
+
+                                      {revisionCompletedDatePerParam[
+                                        selectedParam.id
+                                      ] && (
+                                          <div className="bg-orange-50 rounded-lg p-4 border border-orange-200 hover:border-orange-300 transition-all">
+                                            <div className="flex items-center gap-2 mb-2">
+                                              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                              </div>
+                                              <span className="text-xs font-semibold text-orange-700 uppercase tracking-wide">Revision Completed</span>
+                                            </div>
+                                            <p className="text-sm font-semibold text-slate-900">{formatDate(revisionCompletedDatePerParam[selectedParam.id])}</p>
                                           </div>
                                         )}
 

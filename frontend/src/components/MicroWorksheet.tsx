@@ -8782,7 +8782,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                                 onClick={() =>
                                                                                                     handleRemoveMedia(
                                                                                                         selectedParam.id,
-                                                                                                        m.id,
+                                                                                                        m.mediaId!,
                                                                                                     )
                                                                                                 }
                                                                                                 whileHover={{ scale: 1.1, rotate: 10 }}

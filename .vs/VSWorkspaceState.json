@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\backend",
+    "\\backend\\RawDataWorkSheet",
+    "\\backend\\RawDataWorkSheet\\RawDataWorkSheet",
+    "\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Models"
+  ],
+  "SelectedNode": "\\backend\\RawDataWorkSheet\\RawDataWorkSheet\\Program.cs",
+  "PreviewInSolutionExplorer": false
+}

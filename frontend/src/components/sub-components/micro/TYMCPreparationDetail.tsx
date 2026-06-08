@@ -25,19 +25,33 @@ const formatExponent = (exp: number | null): string => {
 // ─── Calculation helper ───────────────────────────────────────────────────────
 
 const TNTC_VALUES = ["TNTC", "> 300"] as const;
+const LESS_THAN_ONE = "< 1";
+const ALL_SPECIAL_VALUES = [...TNTC_VALUES, LESS_THAN_ONE] as const;
+
+const getDilutionNumericValue = (dilutionCount: string): number => {
+    if (dilutionCount === LESS_THAN_ONE) return 0;
+    return parseFloat(dilutionCount);
+};
+
+const trimZeros = (n: number): string =>
+  Number.isFinite(n) ? parseFloat(n.toFixed(4)).toString() : "—";
 
 const calculateResult = (rows: TYMCObservationRow[]): string => {
     if (rows.length < 2) return "";
     if (TNTC_VALUES.includes(rows[0].dilutionCount as typeof TNTC_VALUES[number]) || TNTC_VALUES.includes(rows[1].dilutionCount as typeof TNTC_VALUES[number])) return "TNTC";
-    const v1 = parseFloat(rows[0].dilutionCount);
-    const v2 = parseFloat(rows[1].dilutionCount);
     if (rows[0].dilutionCount === "" || rows[1].dilutionCount === "") return "";
+    const v1 = getDilutionNumericValue(rows[0].dilutionCount);
+    const v2 = getDilutionNumericValue(rows[1].dilutionCount);
     if (isNaN(v1) || isNaN(v2)) return "";
-    if (v1 < 1 || v2 < 1) return "<10";
+    // If both are < 1 (value 0), result is < 10 cfu/g
+    if (v1 < 1 && v2 < 1) return "<10 cfu/g";
     const exp = rows[0].dilutionExponent;
     if (exp === null || exp === undefined) return "";
     const dilutionValue = Math.pow(10, exp);
-    return ((v1 + v2) / (2 * dilutionValue)).toFixed(0);
+    // One or both may be 0 (< 1 selected) — use 0 in formula for that cell
+    const result = (v1 + v2) / (2 * dilutionValue);
+    if (result < 1) return "<10 cfu/g";
+    return trimZeros(parseFloat(result.toFixed(2)));
 };
 
 // ─── Default factories ────────────────────────────────────────────────────────
@@ -167,7 +181,7 @@ const DilutionComboInput: React.FC<{
     const [dropOpen, setDropOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
-    const isSpecial = TNTC_VALUES.includes(value as typeof TNTC_VALUES[number]);
+    const isSpecial = ALL_SPECIAL_VALUES.includes(value as typeof ALL_SPECIAL_VALUES[number]);
 
     useEffect(() => {
         if (!dropOpen) return;
@@ -244,6 +258,28 @@ const DilutionComboInput: React.FC<{
                                         <span className="text-[10px]">✕</span> Clear
                                     </button>
                                 )}
+                                {/* < 1 option */}
+                                {(() => {
+                                    const isSel = value === LESS_THAN_ONE;
+                                    return (
+                                        <button
+                                            key={LESS_THAN_ONE}
+                                            type="button"
+                                            onClick={() => { onChange(LESS_THAN_ONE); setDropOpen(false); }}
+                                            className={[
+                                                "w-full text-left px-3 py-1.5 text-xs font-semibold tracking-wide",
+                                                "flex items-center justify-between transition-colors duration-100",
+                                                isSel
+                                                    ? "bg-emerald-500 text-white"
+                                                    : "text-emerald-900 hover:bg-emerald-50",
+                                            ].join(" ")}
+                                        >
+                                            <span>{LESS_THAN_ONE}</span>
+                                            {isSel && <span className="text-emerald-200 text-[10px]">✓</span>}
+                                        </button>
+                                    );
+                                })()}
+                                {/* TNTC / > 300 options */}
                                 {TNTC_VALUES.map(opt => {
                                     const isSel = value === opt;
                                     return (
@@ -411,7 +447,7 @@ const TYMCPreparationDetail: React.FC<TYMCPreparationDetailProps> = ({
         onChange({ ...preparation, observationRows: updated, calculatedResult: calculateResult(updated) });
     };
 
-    const isLessThan10 = preparation.calculatedResult === "<10";
+    const isLessThan10 = preparation.calculatedResult === "<10 cfu/g";
     const sharedDilutionExponent: number | null =
         (rows[0]?.dilutionExponent !== null && rows[0]?.dilutionExponent !== undefined)
             ? rows[0].dilutionExponent
@@ -645,14 +681,14 @@ const TYMCPreparationDetail: React.FC<TYMCPreparationDetailProps> = ({
                             preparation.calculatedResult === "TNTC"
                                 ? "bg-red-50 border-red-300 text-red-700"
                                 : isLessThan10
-                                ? "bg-amber-50 border-amber-300 text-amber-700"
+                                ? "bg-emerald-50 border-emerald-300 text-emerald-900"
                                 : preparation.calculatedResult
                                     ? "bg-white border-emerald-300 text-emerald-800"
                                     : "bg-white border-emerald-200 text-gray-400"
                         }`}>
                             <span className="text-[10px] font-semibold text-emerald-400 mr-1">=</span>
                             {preparation.calculatedResult
-                                ? <>{preparation.calculatedResult}{!isLessThan10 && preparation.calculatedResult !== "TNTC" && <span className="ml-1 text-xs font-medium opacity-60">cfu/g</span>}</>
+                                ? <>{preparation.calculatedResult}{!isLessThan10 && preparation.calculatedResult !== "TNTC" && !preparation.calculatedResult.includes("cfu/g") && <span className="ml-1 text-xs font-medium opacity-60">cfu/g</span>}</>
                                 : <span className="italic text-xs font-normal">—</span>
                             }
                         </div>

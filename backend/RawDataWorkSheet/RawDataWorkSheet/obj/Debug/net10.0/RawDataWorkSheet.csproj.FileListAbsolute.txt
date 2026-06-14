@@ -153,7 +153,6 @@ C:\bikash\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawData
 C:\bikash\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net10.0\staticwebassets.development.json
 C:\bikash\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net10.0\staticwebassets.build.endpoints.json
 C:\bikash\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net10.0\swae.build.ex.cache
-C:\bikash\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
 C:\bikash\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net10.0\RawDataW.9BAA147C.Up2Date
 C:\bikash\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net10.0\RawDataWorkSheet.dll
 C:\bikash\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net10.0\refint\RawDataWorkSheet.dll

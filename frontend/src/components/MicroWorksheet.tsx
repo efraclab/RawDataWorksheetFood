@@ -8350,16 +8350,12 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                         </td>
                                                                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
                                                                                             {instrument.calibrationDoneDate
-                                                                                                ? new Date(
-                                                                                                    instrument.calibrationDoneDate,
-                                                                                                ).toLocaleDateString("en-GB")
+                                                                                                ? instrument.calibrationDoneDate.replace(/-/g, "/")
                                                                                                 : "---"}
                                                                                         </td>
                                                                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
                                                                                             {instrument.calibrationDueDate
-                                                                                                ? new Date(
-                                                                                                    instrument.calibrationDueDate,
-                                                                                                ).toLocaleDateString("en-GB")
+                                                                                                ? instrument.calibrationDueDate.replace(/-/g, "/")
                                                                                                 : "---"}
                                                                                         </td>
                                                                                         <td className="px-3 py-2 text-center">
@@ -8568,9 +8564,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                         </td>
                                                                                         <td className="px-3 py-2 border-r-2 border-emerald-500">
                                                                                             {chemical.expDate
-                                                                                                ? new Date(
-                                                                                                    chemical.expDate,
-                                                                                                ).toLocaleDateString("en-GB")
+                                                                                                ? chemical.expDate.replace(/-/g, "/")
                                                                                                 : "---"}
                                                                                         </td>
                                                                                         <td className="px-3 py-2 text-center">
@@ -8773,7 +8767,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                     </td>
                                                                                     <td className="px-3 py-2 border-r-2 border-emerald-500">
                                                                                         {m.expDate
-                                                                                            ? new Date(m.expDate).toLocaleDateString("en-GB")
+                                                                                            ? m.expDate.replace(/-/g, "/")
                                                                                             : "---"}
                                                                                     </td>
                                                                                     <td className="px-3 py-2 text-center">

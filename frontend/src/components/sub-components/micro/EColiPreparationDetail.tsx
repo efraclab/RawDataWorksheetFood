@@ -397,7 +397,7 @@ const EcoliPreparationDetail: React.FC<EcoliPreparationDetailProps> = ({
                                             </td>
                                             <td className="px-2 py-2.5 border-r border-emerald-100 text-center">
                                                 <input
-                                                    type="datetime-local"
+                                                    type="date"
                                                     value={row.analysisStarted}
                                                     onChange={(e) => updateObsRow(row.id, "analysisStarted", e.target.value)}
                                                     className={`${cellInputCls} text-[10px]`}
@@ -405,7 +405,7 @@ const EcoliPreparationDetail: React.FC<EcoliPreparationDetailProps> = ({
                                             </td>
                                             <td className="px-2 py-2.5 border-r border-emerald-100 text-center">
                                                 <input
-                                                    type="datetime-local"
+                                                    type="date"
                                                     value={row.analysisCompleted}
                                                     onChange={(e) => updateObsRow(row.id, "analysisCompleted", e.target.value)}
                                                     className={`${cellInputCls} text-[10px]`}
@@ -543,7 +543,7 @@ const EcoliPreparationDetail: React.FC<EcoliPreparationDetailProps> = ({
                                             </td>
                                             <td className="px-2 py-2.5 border-r border-emerald-100 text-center">
                                                 <input
-                                                    type="datetime-local"
+                                                    type="date"
                                                     value={row.analysisStarted}
                                                     onChange={(e) => updateBiocRow(row.id, "analysisStarted", e.target.value)}
                                                     className={`${cellInputCls} text-[10px]`}
@@ -551,7 +551,7 @@ const EcoliPreparationDetail: React.FC<EcoliPreparationDetailProps> = ({
                                             </td>
                                             <td className="px-2 py-2.5 border-r border-emerald-100 text-center">
                                                 <input
-                                                    type="datetime-local"
+                                                    type="date"
                                                     value={row.analysisCompleted}
                                                     onChange={(e) => updateBiocRow(row.id, "analysisCompleted", e.target.value)}
                                                     className={`${cellInputCls} text-[10px]`}

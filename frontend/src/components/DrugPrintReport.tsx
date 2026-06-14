@@ -2530,15 +2530,20 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
 
       <div className="print-container">
         {worksheetInfo.parameters.map((param: any, paramIdx: number) => {
-          const filteredInstruments = instruments.filter((inst) =>
-            param.instrumentIds?.includes(inst.id),
-          );
-          const filteredChemicals = chemicals.filter((chem) =>
-            param.chemicalIds?.includes(chem.slno),
-          );
-          const filteredStandards = standards.filter((std) =>
-            param.standardIds?.includes(std.serialNo),
-          );
+          // Use embedded instruments/chemicals/standards saved on the parameter,
+          // falling back to global-list filtering only if the embedded arrays are absent.
+          const filteredInstruments: any[] =
+            Array.isArray(param.instruments) && param.instruments.length > 0
+              ? param.instruments
+              : instruments.filter((inst) => param.instrumentIds?.includes(inst.id));
+          const filteredChemicals: any[] =
+            Array.isArray(param.chemicals) && param.chemicals.length > 0
+              ? param.chemicals
+              : chemicals.filter((chem) => param.chemicalIds?.includes(chem.slno));
+          const filteredStandards: any[] =
+            Array.isArray(param.standards) && param.standards.length > 0
+              ? param.standards
+              : standards.filter((std) => param.standardIds?.includes(std.serialNo));
 
           return (
             <div
@@ -2583,7 +2588,7 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                       </thead>
                       <tbody>
                         {filteredInstruments.map((inst, idx) => (
-                          <tr key={idx}>
+                          <tr key={inst.instrumentId || inst.id || idx}>
                             <td className="border border-black px-3 py-2">
                               {inst.instrumentTag}
                             </td>
@@ -2592,16 +2597,12 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                             </td>
                             <td className="border border-black px-3 py-2">
                               {inst.calibrationDoneDate
-                                ? new Date(
-                                  inst.calibrationDoneDate,
-                                ).toLocaleDateString("en-GB")
+                                ? String(inst.calibrationDoneDate).replace(/-/g, "/")
                                 : "N/A"}
                             </td>
                             <td className="border border-black px-3 py-2">
                               {inst.calibrationDueDate
-                                ? new Date(
-                                  inst.calibrationDueDate,
-                                ).toLocaleDateString("en-GB")
+                                ? String(inst.calibrationDueDate).replace(/-/g, "/")
                                 : "N/A"}
                             </td>
                           </tr>
@@ -2639,7 +2640,7 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                       </thead>
                       <tbody>
                         {filteredChemicals.map((chem, idx) => (
-                          <tr key={idx}>
+                          <tr key={chem.slno || idx}>
                             <td className="border border-black px-3 py-2">
                               {chem.name}
                             </td>
@@ -2654,9 +2655,7 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                             </td>
                             <td className="border border-black px-3 py-2">
                               {chem.exp_Date
-                                ? new Date(chem.exp_Date).toLocaleDateString(
-                                  "en-GB",
-                                )
+                                ? String(chem.exp_Date).replace(/-/g, "/")
                                 : "N/A"}
                             </td>
                           </tr>
@@ -2694,7 +2693,7 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                       </thead>
                       <tbody>
                         {filteredStandards.map((std, idx) => (
-                          <tr key={idx}>
+                          <tr key={std.serialNo || idx}>
                             <td className="border border-black px-3 py-2">
                               {std.name}
                             </td>
@@ -2709,9 +2708,7 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                             </td>
                             <td className="border border-black px-3 py-2">
                               {std.validity
-                                ? new Date(std.validity).toLocaleDateString(
-                                  "en-GB",
-                                )
+                                ? String(std.validity).replace(/-/g, "/")
                                 : "N/A"}
                             </td>
                           </tr>

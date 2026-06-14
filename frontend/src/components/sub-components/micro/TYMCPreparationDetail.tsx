@@ -43,14 +43,14 @@ const calculateResult = (rows: TYMCObservationRow[]): string => {
     const v1 = getDilutionNumericValue(rows[0].dilutionCount);
     const v2 = getDilutionNumericValue(rows[1].dilutionCount);
     if (isNaN(v1) || isNaN(v2)) return "";
-    // If both are < 1 (value 0), result is < 10 cfu/g
-    if (v1 < 1 && v2 < 1) return "<10 cfu/g";
+    // If both are < 1 (value 0), result is < 10
+    if (v1 < 1 && v2 < 1) return "<10";
     const exp = rows[0].dilutionExponent;
     if (exp === null || exp === undefined) return "";
     const dilutionValue = Math.pow(10, exp);
     // One or both may be 0 (< 1 selected) — use 0 in formula for that cell
     const result = (v1 + v2) / (2 * dilutionValue);
-    if (result < 1) return "<10 cfu/g";
+    if (result < 1) return "<10";
     return trimZeros(parseFloat(result.toFixed(2)));
 };
 
@@ -74,9 +74,8 @@ export const createDefaultTYMCPreparation = (index: number): TYMCPreparation => 
     observationRows: makeDefaultObservationRows(),
     calculatedResult: "",
     result: "",
+    calculatedResultUnit: "cfu/g",
 });
-
-// ─── Icons ────────────────────────────────────────────────────────────────────
 
 const MicroscopeIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -405,6 +404,97 @@ const CustomDilutionDropdown: React.FC<{
     );
 };
 
+// ─── Unit Dropdown ───────────────────────────────────────────────────────────
+
+const UNIT_OPTIONS = ["cfu/g", "cfu/ml"];
+
+const UnitDropdown: React.FC<{
+    value: string;
+    onChange: (v: string) => void;
+    disabled?: boolean;
+}> = ({ value, onChange, disabled }) => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [open]);
+
+    return (
+        <div ref={ref} className="relative ml-1">
+            <button
+                type="button"
+                disabled={disabled}
+                onClick={() => !disabled && setOpen(v => !v)}
+                className={[
+                    "flex items-center justify-between gap-1.5 px-2.5 py-1 rounded-md border text-xs font-semibold min-w-[72px]",
+                    "transition-all select-none",
+                    open
+                        ? "bg-white border-white text-emerald-800 shadow"
+                        : "bg-emerald-600 border-emerald-400 text-white hover:bg-emerald-500",
+                    disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
+                ].join(" ")}
+            >
+                <span className="tracking-wide">{value}</span>
+                <ChevronDownIcon
+                    className={`w-3 h-3 flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180 text-emerald-700" : "text-current"}`}
+                />
+            </button>
+
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                        transition={{ duration: 0.12 }}
+                        style={{ position: "fixed", zIndex: 9999 }}
+                        className="min-w-[80px] bg-white border border-emerald-200 rounded-xl shadow-2xl overflow-hidden"
+                        ref={(el) => {
+                            if (el && ref.current) {
+                                const btn = ref.current.querySelector("button");
+                                if (btn) {
+                                    const r = btn.getBoundingClientRect();
+                                    el.style.top = `${r.bottom + 4}px`;
+                                    el.style.left = `${r.left}px`;
+                                }
+                            }
+                        }}
+                    >
+                        <div className="py-1">
+                            {UNIT_OPTIONS.map(opt => {
+                                const isSelected = opt === value;
+                                return (
+                                    <button
+                                        key={opt}
+                                        type="button"
+                                        onClick={() => { onChange(opt); setOpen(false); }}
+                                        className={[
+                                            "w-full text-left px-3 py-1.5 text-xs font-semibold tracking-wide",
+                                            "flex items-center justify-between transition-colors duration-100",
+                                            isSelected
+                                                ? "bg-emerald-700 text-white"
+                                                : "text-emerald-900 hover:bg-emerald-50",
+                                        ].join(" ")}
+                                    >
+                                        <span>{opt}</span>
+                                        {isSelected && <span className="text-emerald-200 text-[10px]">✓</span>}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface TYMCPreparationDetailProps {
@@ -447,7 +537,7 @@ const TYMCPreparationDetail: React.FC<TYMCPreparationDetailProps> = ({
         onChange({ ...preparation, observationRows: updated, calculatedResult: calculateResult(updated) });
     };
 
-    const isLessThan10 = preparation.calculatedResult === "<10 cfu/g";
+    const isLessThan10 = preparation.calculatedResult === "<10 cfu/g" || preparation.calculatedResult === "<10";
     const sharedDilutionExponent: number | null =
         (rows[0]?.dilutionExponent !== null && rows[0]?.dilutionExponent !== undefined)
             ? rows[0].dilutionExponent
@@ -688,10 +778,18 @@ const TYMCPreparationDetail: React.FC<TYMCPreparationDetailProps> = ({
                         }`}>
                             <span className="text-[10px] font-semibold text-emerald-400 mr-1">=</span>
                             {preparation.calculatedResult
-                                ? <>{preparation.calculatedResult}{!isLessThan10 && preparation.calculatedResult !== "TNTC" && !preparation.calculatedResult.includes("cfu/g") && <span className="ml-1 text-xs font-medium opacity-60">cfu/g</span>}</>
+                                ? <>{preparation.calculatedResult}</>
                                 : <span className="italic text-xs font-normal">—</span>
                             }
                         </div>
+                        {/* Unit dropdown — hidden when TNTC */}
+                        {preparation.calculatedResult !== "TNTC" && (
+                            <UnitDropdown
+                                value={(preparation as any).calculatedResultUnit || "cfu/g"}
+                                onChange={(v) => onChange({ ...preparation, calculatedResultUnit: v } as any)}
+                                disabled={isLocked}
+                            />
+                        )}
                     </div>
                 </div>
             </SectionCard>

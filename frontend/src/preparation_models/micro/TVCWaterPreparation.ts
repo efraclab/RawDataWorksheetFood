@@ -11,5 +11,6 @@ export interface TVCWaterPreparation {
     observationRows: TVCWaterObservationRow[];
     calculatedResult: string;
     result: string;
+    calculatedResultUnit: string;
 }
 

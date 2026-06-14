@@ -7494,7 +7494,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   };
 
 
-    const handleAddSamplePreparationMeropenam = (parameterId: number) => {
+  const handleAddSamplePreparationMeropenam = (parameterId: number) => {
     setSamplePreparationMeropenamPerParam((prev) => {
       const current = prev[parameterId] || [];
       const newIndex = current.length;
@@ -7682,11 +7682,11 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         [parameterId]: current.map((p) =>
           p.id === prepId
             ? {
-                ...p,
-                steps: p.steps.map((s: SamplePreparationMetalStep) =>
-                  s.name === stepName ? { ...s, [field]: value } : s,
-                ),
-              }
+              ...p,
+              steps: p.steps.map((s: SamplePreparationMetalStep) =>
+                s.name === stepName ? { ...s, [field]: value } : s,
+              ),
+            }
             : p,
         ),
       };
@@ -10409,8 +10409,8 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                         {isRevisionStarted
                           ? "Revision in progress — make your changes and complete when done"
                           : isFromQA
-                          ? "QA has requested revisions. Click \"Start Revision\" to begin editing"
-                          : "Reviewer has requested revisions. Click \"Start Revision\" to begin editing"}
+                            ? "QA has requested revisions. Click \"Start Revision\" to begin editing"
+                            : "Reviewer has requested revisions. Click \"Start Revision\" to begin editing"}
                       </p>
                     </div>
                   </div>
@@ -12606,16 +12606,12 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                             </td>
                                             <td className="px-3 py-2 border-r-2 border-emerald-500">
                                               {instrument.calibrationDoneDate
-                                                ? new Date(
-                                                  instrument.calibrationDoneDate,
-                                                ).toLocaleDateString("en-GB")
+                                                ? instrument.calibrationDoneDate.replace(/-/g, "/")
                                                 : "---"}
                                             </td>
                                             <td className="px-3 py-2 border-r-2 border-emerald-500">
                                               {instrument.calibrationDueDate
-                                                ? new Date(
-                                                  instrument.calibrationDueDate,
-                                                ).toLocaleDateString("en-GB")
+                                                ? instrument.calibrationDueDate.replace(/-/g, "/")
                                                 : "---"}
                                             </td>
                                             <td className="px-3 py-2 text-center">
@@ -13468,199 +13464,199 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                         {(activePreparationGroups[selectedParam.id] || []).includes(
                           "blankPreparation",
                         ) && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-sm hover:shadow-emerald-200/50 transition-all duration-500"
-                          >
-                            <div
-                              className={
-                                isPreparationLocked
-                                  ? "pointer-events-none opacity-70"
-                                  : ""
-                              }
+                            <motion.div
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-sm hover:shadow-emerald-200/50 transition-all duration-500"
                             >
-                              {/* Decorative elements */}
-                              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
-                              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+                              <div
+                                className={
+                                  isPreparationLocked
+                                    ? "pointer-events-none opacity-70"
+                                    : ""
+                                }
+                              >
+                                {/* Decorative elements */}
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                                <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
 
-                              {/* Card Header */}
-                              <div className="flex items-center justify-between mb-8">
-                                <div className="flex items-center gap-4">
-                                  <div className="relative">
-                                    <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
-                                    <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
-                                      <BiTestTube className="w-6 h-6 text-white" />
+                                {/* Card Header */}
+                                <div className="flex items-center justify-between mb-8">
+                                  <div className="flex items-center gap-4">
+                                    <div className="relative">
+                                      <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                      <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                        <BiTestTube className="w-6 h-6 text-white" />
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
+                                        Blank Preparation
+                                      </h2>
+                                      <p className="text-sm text-emerald-600/80 font-medium">
+                                        Custom Document Preparation
+                                      </p>
                                     </div>
                                   </div>
-                                  <div>
-                                    <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                      Blank Preparation
-                                    </h2>
-                                    <p className="text-sm text-emerald-600/80 font-medium">
-                                      Custom Document Preparation
-                                    </p>
+
+                                  <div className="px-4 py-1 bg-gradient-to-r from-emerald-50 to-emerald-50 border border-emerald-200 rounded-full shadow-sm">
+                                    <span className="text-xs font-bold text-emerald-800">
+                                      {(blankPreparationPerParam[selectedParam.id] || []).length}{" "}
+                                      Items
+                                    </span>
                                   </div>
                                 </div>
 
-                                <div className="px-4 py-1 bg-gradient-to-r from-emerald-50 to-emerald-50 border border-emerald-200 rounded-full shadow-sm">
-                                  <span className="text-xs font-bold text-emerald-800">
-                                    {(blankPreparationPerParam[selectedParam.id] || []).length}{" "}
-                                    Items
-                                  </span>
-                                </div>
-                              </div>
+                                {/* Blank Preparation Documents */}
+                                <div>
+                                  <div className="flex items-center justify-between mb-4 px-2">
+                                    <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                      <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                      Preparation Documents
+                                    </h3>
+                                    <button
+                                      onClick={() => handleAddBlankPreparation(selectedParam.id)}
+                                      className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                      Add Preparation
+                                    </button>
+                                  </div>
 
-                              {/* Blank Preparation Documents */}
-                              <div>
-                                <div className="flex items-center justify-between mb-4 px-2">
-                                  <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
-                                    <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                                    Preparation Documents
-                                  </h3>
-                                  <button
-                                    onClick={() => handleAddBlankPreparation(selectedParam.id)}
-                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
-                                  >
-                                    <Plus className="w-4 h-4" />
-                                    Add Preparation
-                                  </button>
-                                </div>
+                                  <AnimatePresence>
+                                    {(blankPreparationPerParam[selectedParam.id] || []).map((blankPrep) => (
+                                      <div key={blankPrep.id}>
+                                        <BlankPreparationDetail
+                                          blankPreparation={blankPrep}
+                                          onEdit={(id) =>
+                                            handleEditBlankPreparation(selectedParam.id, id)
+                                          }
+                                          onRemove={(id) =>
+                                            handleRemoveBlankPreparation(selectedParam.id, id)
+                                          }
+                                        />
+                                      </div>
+                                    ))}
+                                  </AnimatePresence>
 
-                                <AnimatePresence>
-                                  {(blankPreparationPerParam[selectedParam.id] || []).map((blankPrep) => (
-                                    <div key={blankPrep.id}>
-                                      <BlankPreparationDetail
-                                        blankPreparation={blankPrep}
-                                        onEdit={(id) =>
-                                          handleEditBlankPreparation(selectedParam.id, id)
+                                  {(blankPreparationPerParam[selectedParam.id] || []).length > 0 && (
+                                    <div className="pointer-events-auto">
+                                      <WorksheetFileAttacher
+                                        files={getFilesForPrep(selectedParam.id, "blank", "Preparation Files")}
+                                        onAdd={(newFiles) =>
+                                          handleAddPrepFiles(selectedParam.id, "blank", "Preparation Files", newFiles)
                                         }
-                                        onRemove={(id) =>
-                                          handleRemoveBlankPreparation(selectedParam.id, id)
+                                        onRemove={(index) =>
+                                          handleRemovePrepFile(selectedParam.id, "blank", "Preparation Files", index)
                                         }
+                                        preparationType="blank"
+                                        sectionLabel="Preparation Files"
+                                        isLocked={shouldDisableContent}
                                       />
                                     </div>
-                                  ))}
-                                </AnimatePresence>
+                                  )}
 
-                                {(blankPreparationPerParam[selectedParam.id] || []).length > 0 && (
-                                  <div className="pointer-events-auto">
-                                    <WorksheetFileAttacher
-                                      files={getFilesForPrep(selectedParam.id, "blank", "Preparation Files")}
-                                      onAdd={(newFiles) =>
-                                        handleAddPrepFiles(selectedParam.id, "blank", "Preparation Files", newFiles)
-                                      }
-                                      onRemove={(index) =>
-                                        handleRemovePrepFile(selectedParam.id, "blank", "Preparation Files", index)
-                                      }
-                                      preparationType="blank"
-                                      sectionLabel="Preparation Files"
-                                      isLocked={shouldDisableContent}
-                                    />
-                                  </div>
-                                )}
-
-                                {(blankPreparationPerParam[selectedParam.id] || []).length === 0 && (
-                                  <motion.div
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
-                                  >
-                                    <div className="absolute inset-0 opacity-5">
-                                      <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
-                                      <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
-                                    </div>
-                                    <div className="relative z-10">
-                                      <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
-                                        <Target className="w-14 h-14 text-emerald-400" />
+                                  {(blankPreparationPerParam[selectedParam.id] || []).length === 0 && (
+                                    <motion.div
+                                      initial={{ opacity: 0, scale: 0.95 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                    >
+                                      <div className="absolute inset-0 opacity-5">
+                                        <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+                                        <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
                                       </div>
-                                      <p className="text-lg font-bold text-emerald-800 mb-2">
-                                        No documents added yet
-                                      </p>
-                                      <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
-                                        Click "Add Preparation" to create a blank preparation document
-                                      </p>
-                                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
-                                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
-                                        <span className="text-xs font-semibold text-emerald-800">
-                                          Ready to start
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </motion.div>
-                                )}
-                              </div>
-
-                              {/* ── Blank Preparation Complete / Unlock Banner ── */}
-                              {(blankPreparationPerParam[selectedParam.id] || []).length > 0 &&
-                                (() => {
-                                  const isGroupCompleted =
-                                    !!groupPrepCompletedAtPerParam[selectedParam.id]?.["blankPreparation"];
-
-                                  if (isPreparationLocked || isGroupCompleted) {
-                                    return (
-                                      <div className="mt-4 pointer-events-auto">
-                                        <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                          </div>
-                                          <div className="flex-1">
-                                            <p className="text-sm font-semibold text-emerald-800">
-                                              Blank Preparation Completed
-                                            </p>
-                                            {isGroupCompleted && (
-                                              <p className="text-xs text-emerald-600">
-                                                Completed at{" "}
-                                                {new Date(
-                                                  groupPrepCompletedAtPerParam[selectedParam.id]["blankPreparation"],
-                                                ).toLocaleString()}
-                                              </p>
-                                            )}
-                                          </div>
-                                          {canManagePrep && (
-                                            <button
-                                              onClick={() =>
-                                                handleInitiateUnlockGroupPrep(selectedParam, "blankPreparation")
-                                              }
-                                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
-                                            >
-                                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                              </svg>
-                                              Unlock Preparation
-                                            </button>
-                                          )}
+                                      <div className="relative z-10">
+                                        <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                                          <Target className="w-14 h-14 text-emerald-400" />
+                                        </div>
+                                        <p className="text-lg font-bold text-emerald-800 mb-2">
+                                          No documents added yet
+                                        </p>
+                                        <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
+                                          Click "Add Preparation" to create a blank preparation document
+                                        </p>
+                                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-lg border border-emerald-200">
+                                          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                                          <span className="text-xs font-semibold text-emerald-800">
+                                            Ready to start
+                                          </span>
                                         </div>
                                       </div>
-                                    );
-                                  }
+                                    </motion.div>
+                                  )}
+                                </div>
 
-                                  if (canManagePrep) {
-                                    return (
-                                      <div className="mt-4 pointer-events-auto">
-                                        <button
-                                          onClick={() =>
-                                            handleInitiateCompleteGroupPrep(selectedParam, "blankPreparation")
-                                          }
-                                          className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm"
-                                        >
-                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                          </svg>
-                                          Mark Blank Preparation Complete
-                                        </button>
-                                      </div>
-                                    );
-                                  }
+                                {/* ── Blank Preparation Complete / Unlock Banner ── */}
+                                {(blankPreparationPerParam[selectedParam.id] || []).length > 0 &&
+                                  (() => {
+                                    const isGroupCompleted =
+                                      !!groupPrepCompletedAtPerParam[selectedParam.id]?.["blankPreparation"];
 
-                                  return null;
-                                })()
-                              }
-                            </div>
-                          </motion.div>
-                        )}
+                                    if (isPreparationLocked || isGroupCompleted) {
+                                      return (
+                                        <div className="mt-4 pointer-events-auto">
+                                          <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                            <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                              </svg>
+                                            </div>
+                                            <div className="flex-1">
+                                              <p className="text-sm font-semibold text-emerald-800">
+                                                Blank Preparation Completed
+                                              </p>
+                                              {isGroupCompleted && (
+                                                <p className="text-xs text-emerald-600">
+                                                  Completed at{" "}
+                                                  {new Date(
+                                                    groupPrepCompletedAtPerParam[selectedParam.id]["blankPreparation"],
+                                                  ).toLocaleString()}
+                                                </p>
+                                              )}
+                                            </div>
+                                            {canManagePrep && (
+                                              <button
+                                                onClick={() =>
+                                                  handleInitiateUnlockGroupPrep(selectedParam, "blankPreparation")
+                                                }
+                                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                              >
+                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                                </svg>
+                                                Unlock Preparation
+                                              </button>
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    }
+
+                                    if (canManagePrep) {
+                                      return (
+                                        <div className="mt-4 pointer-events-auto">
+                                          <button
+                                            onClick={() =>
+                                              handleInitiateCompleteGroupPrep(selectedParam, "blankPreparation")
+                                            }
+                                            className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm"
+                                          >
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Mark Blank Preparation Complete
+                                          </button>
+                                        </div>
+                                      );
+                                    }
+
+                                    return null;
+                                  })()
+                                }
+                              </div>
+                            </motion.div>
+                          )}
 
                         {/* ============= BLANK PREPARATION DIALOG (full-screen) ============= */}
                         <AnimatePresence>
@@ -13702,15 +13698,15 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                     existingContent={
                                       editingBlankPrepId
                                         ? (blankPreparationPerParam[selectedParam.id] || []).find(
-                                            (prep) => prep.id === editingBlankPrepId,
-                                          )?.content || ""
+                                          (prep) => prep.id === editingBlankPrepId,
+                                        )?.content || ""
                                         : ""
                                     }
                                     existingLabel={
                                       editingBlankPrepId
                                         ? (blankPreparationPerParam[selectedParam.id] || []).find(
-                                            (prep) => prep.id === editingBlankPrepId,
-                                          )?.label || ""
+                                          (prep) => prep.id === editingBlankPrepId,
+                                        )?.label || ""
                                         : ""
                                     }
                                     isEditing={editingBlankPrepId !== null}
@@ -16330,7 +16326,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                     animate={{ opacity: 1, scale: 1 }}
                                     className="relative overflow-hidden text-center py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
                                   >
-                                       <div className="relative z-10">
+                                    <div className="relative z-10">
                                       <div className="inline-block p-4 bg-white rounded-full shadow-lg mb-3">
                                         <IoFlask className="w-10 h-10 text-emerald-400" />
                                       </div>

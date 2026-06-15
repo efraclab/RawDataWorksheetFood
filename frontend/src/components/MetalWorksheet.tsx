@@ -5854,9 +5854,14 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   );
 
   const handleAddInstrument = (instrument: WorksheetInstrument) => {
+    const normalized: WorksheetInstrument = {
+      ...instrument,
+      calibrationDoneDate: instrument.calibrationDoneDate ? formatDate(instrument.calibrationDoneDate) : instrument.calibrationDoneDate,
+      calibrationDueDate: instrument.calibrationDueDate ? formatDate(instrument.calibrationDueDate) : instrument.calibrationDueDate,
+    };
     setAddedInstruments((prev) => ({
       ...prev,
-      [instrument.parameterId]: [...(prev[instrument.parameterId] || []), instrument],
+      [instrument.parameterId]: [...(prev[instrument.parameterId] || []), normalized],
     }));
     setShowInstrumentDropdown(false);
     setInstrumentSearch("");
@@ -5875,9 +5880,13 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   };
 
   const handleAddChemical = (chemical: WorksheetChemical) => {
+    const normalized: WorksheetChemical = {
+      ...chemical,
+      expDate: chemical.expDate ? formatDate(chemical.expDate) : chemical.expDate,
+    };
     setAddedChemicals((prev) => ({
       ...prev,
-      [chemical.parameterId]: [...(prev[chemical.parameterId] || []), chemical],
+      [chemical.parameterId]: [...(prev[chemical.parameterId] || []), normalized],
     }));
     setShowChemicalDropdown(false);
     setChemicalSearch("");

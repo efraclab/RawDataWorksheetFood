@@ -858,11 +858,15 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
             // 2.5: Media
             // ------------------------------------------------------------------------
             if (param.media && Array.isArray(param.media)) {
-                const worksheetMedia = param.media as WorksheetMedia[];
+                const worksheetMedia = (param.media as any[]).map((m) => ({
+                    ...m,
+                    // Normalize: API may return either `mediaId` or `id`; always expose as `mediaId`
+                    mediaId: m.mediaId ?? m.id,
+                })) as WorksheetMedia[];
                 if (worksheetMedia.length > 0) {
                     setAddedMedia((prev) => ({
-                    ...prev,
-                    [paramId]: worksheetMedia,
+                        ...prev,
+                        [paramId]: worksheetMedia,
                     }));
                 }
             }
@@ -1540,7 +1544,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                         expDate: chem.expDate,
                     })),
                     media: (addedMedia[param.id] || []).map((m) => ({
-                        mediaId: m.id,
+                        mediaId: m.mediaId,
                         name: m.name,
                         code: m.code,
                         expDate: m.expDate,
@@ -2037,7 +2041,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                 expDate: chem.expDate,
                             })),
                             media: (addedMedia[param.id] || []).map((m) => ({
-                                mediaId: m.id,
+                                mediaId: m.mediaId,
                                 name: m.name,
                                 code: m.code,
                                 expDate: m.expDate,
@@ -3401,9 +3405,14 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
     );
 
     const handleAddInstrument = (instrument: WorksheetInstrument) => {
+        const normalized: WorksheetInstrument = {
+            ...instrument,
+            calibrationDoneDate: instrument.calibrationDoneDate ? formatDate(instrument.calibrationDoneDate) : instrument.calibrationDoneDate,
+            calibrationDueDate: instrument.calibrationDueDate ? formatDate(instrument.calibrationDueDate) : instrument.calibrationDueDate,
+        };
         setAddedInstruments((prev) => ({
             ...prev,
-            [instrument.parameterId]: [...(prev[instrument.parameterId] || []), instrument],
+            [instrument.parameterId]: [...(prev[instrument.parameterId] || []), normalized],
         }));
         setShowInstrumentDropdown(false);
         setInstrumentSearch("");
@@ -3422,9 +3431,13 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
     };
 
     const handleAddChemical = (chemical: WorksheetChemical) => {
+        const normalized: WorksheetChemical = {
+            ...chemical,
+            expDate: chemical.expDate ? formatDate(chemical.expDate) : chemical.expDate,
+        };
         setAddedChemicals((prev) => ({
             ...prev,
-            [chemical.parameterId]: [...(prev[chemical.parameterId] || []), chemical],
+            [chemical.parameterId]: [...(prev[chemical.parameterId] || []), normalized],
         }));
         setShowChemicalDropdown(false);
         setChemicalSearch("");
@@ -3446,9 +3459,13 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
     );
 
     const handleAddMedia = (media: WorksheetMedia) => {
+        const normalized: WorksheetMedia = {
+            ...media,
+            expDate: media.expDate ? formatDate(media.expDate) : media.expDate,
+        };
         setAddedMedia((prev) => ({
             ...prev,
-            [media.parameterId]: [...(prev[media.parameterId] || []), media],
+            [media.parameterId]: [...(prev[media.parameterId] || []), normalized],
         }));
         setShowMediaDropdown(false);
         setMediaSearch("");

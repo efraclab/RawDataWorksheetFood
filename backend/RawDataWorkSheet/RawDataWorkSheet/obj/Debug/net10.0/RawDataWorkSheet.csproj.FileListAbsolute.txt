@@ -159,3 +159,4 @@ C:\bikash\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawData
 C:\bikash\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net10.0\RawDataWorkSheet.pdb
 C:\bikash\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net10.0\RawDataWorkSheet.genruntimeconfig.cache
 C:\bikash\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net10.0\ref\RawDataWorkSheet.dll
+C:\bikash\react-projects\raw-data-worksheet-app\backend\RawDataWorkSheet\RawDataWorkSheet\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

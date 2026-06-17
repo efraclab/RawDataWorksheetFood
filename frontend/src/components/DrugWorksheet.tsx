@@ -15116,7 +15116,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                     </div>
                                     <div>
                                       <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                        Blank Preparation
+                                        Preparation Details
                                       </h2>
                                       <p className="text-sm text-emerald-600/80 font-medium">
                                         Custom Document Preparation
@@ -15243,7 +15243,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                             </div>
                                             <div className="flex-1">
                                               <p className="text-sm font-semibold text-emerald-800">
-                                                Blank Preparation Completed
+                                                Preparation Details Completed
                                               </p>
                                               {isGroupCompleted && (
                                                 <p className="text-xs text-emerald-600">

@@ -904,16 +904,15 @@ const METAL_GROUP_TO_TYPE: Record<string, string> = {
 
 function parseDateSafe(raw: string): Date | null {
   const s = raw.trim();
-  // If it starts with YYYY (ISO format: YYYY-MM-DD...) parse directly
   if (/^\d{4}[-/]/.test(s)) {
     const d = new Date(s.replace(" ", "T"));
     return isNaN(d.getTime()) ? null : d;
   }
-  // Otherwise treat as DD-MM-YYYY or DD/MM/YYYY (with optional HH:MM:SS)
-  const m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})(?:[T ](\d{2}:\d{2}(?::\d{2})?))?/);
+  // DD-MM-YYYY or DD/MM/YYYY
+  const m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
   if (m) {
     const iso = `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
-    const d = new Date(m[4] ? `${iso}T${m[4]}` : `${iso}T00:00:00`);
+    const d = new Date(`${iso}T00:00:00`);
     return isNaN(d.getTime()) ? null : d;
   }
   const d = new Date(s);
@@ -5882,7 +5881,9 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   const handleAddChemical = (chemical: WorksheetChemical) => {
     const normalized: WorksheetChemical = {
       ...chemical,
-      expDate: chemical.expDate ? formatDate(chemical.expDate) : chemical.expDate,
+      expDate: chemical.expDate
+        ? formatDate(chemical.expDate)
+        : chemical.expDate,
     };
     setAddedChemicals((prev) => ({
       ...prev,
@@ -12826,11 +12827,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                               {chemical.batchNo || "---"}
                                             </td>
                                             <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                              {chemical.expDate
-                                                ? new Date(
-                                                  chemical.expDate,
-                                                ).toLocaleDateString("en-GB")
-                                                : "---"}
+                                              {chemical.expDate ? formatDate(chemical.expDate) : "---"}
                                             </td>
                                             <td className="px-3 py-2 text-center">
                                               <motion.button
@@ -13037,11 +13034,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                               {standard.batchNo || "---"}
                                             </td>
                                             <td className="px-3 py-2 border-r-2 border-emerald-500">
-                                              {standard.validity
-                                                ? new Date(
-                                                  standard.validity,
-                                                ).toLocaleDateString("en-GB")
-                                                : "---"}
+                                              {standard.validity ? formatDate(standard.validity) : "---"}
                                             </td>
                                             <td className="px-3 py-2 text-center">
                                               <motion.button
@@ -13500,7 +13493,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                                     </div>
                                     <div>
                                       <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                         Preparation Details
+                                        Preparation Details
                                       </h2>
                                       <p className="text-sm text-emerald-600/80 font-medium">
                                         Custom Document Preparation
@@ -18485,7 +18478,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <span className="text-base font-bold text-emerald-800 group-hover:text-emerald-800 transition-colors duration-200">
-                                    Parameter Files
+                                    Attachment Files
                                   </span>
 
                                   <motion.span

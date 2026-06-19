@@ -897,9 +897,8 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
       className="bg-white rounded-xl shadow-lg border-2 border-emerald-200 overflow-hidden mb-6"
     >
       <div
-        className={`relative bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 ${
-          isExpanded ? "rounded-t-lg" : "rounded-lg"
-        }`}
+        className={`relative bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 ${isExpanded ? "rounded-t-lg" : "rounded-lg"
+          }`}
       >
         <div className="relative flex items-center justify-between px-4 py-3">
           <div
@@ -1237,65 +1236,65 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                     {(calculation.calculationFor === "Tablets" ||
                       calculation.calculationFor === "Capsule" ||
                       calculation.calculationFor === "Injection Vial") && (
-                      <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
-                        <h5 className="text-sm font-bold text-gray-700 mb-3">
-                          Product Details
-                        </h5>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1">
-                              Average Weight
-                            </label>
-                            <input
-                              type="number"
-                              value={calculation.avgWeight || ""}
-                              onChange={(e) =>
-                                onFieldChange(
-                                  calculation.id,
-                                  "avgWeight",
-                                  e.target.value,
-                                )
-                              }
-                              step="any"
-                              onKeyDown={(e) => {
-                                if (
-                                  e.key === "ArrowUp" ||
-                                  e.key === "ArrowDown"
-                                ) {
-                                  e.preventDefault();
+                        <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
+                          <h5 className="text-sm font-bold text-gray-700 mb-3">
+                            Product Details
+                          </h5>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-600 mb-1">
+                                Average Weight
+                              </label>
+                              <input
+                                type="number"
+                                value={calculation.avgWeight || ""}
+                                onChange={(e) =>
+                                  onFieldChange(
+                                    calculation.id,
+                                    "avgWeight",
+                                    e.target.value,
+                                  )
                                 }
-                              }}
-                              onWheel={(e) => e.currentTarget.blur()}
-                              placeholder="Enter average weight"
-                              className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1">
-                              Unit
-                            </label>
-                            <CustomDropdown
-                              options={[
-                                { value: "mg", label: "mg" },
-                                { value: "g", label: "g" },
-                                { value: "kg", label: "kg" },
-                                { value: "mcg", label: "mcg" },
-                              ]}
-                              value={calculation.avgWeightUnit || "mg"}
-                              onChange={(value) =>
-                                onFieldChange(
-                                  calculation.id,
-                                  "avgWeightUnit",
-                                  value,
-                                )
-                              }
-                              placeholder="Unit"
-                              colorScheme="emerald"
-                            />
+                                step="any"
+                                onKeyDown={(e) => {
+                                  if (
+                                    e.key === "ArrowUp" ||
+                                    e.key === "ArrowDown"
+                                  ) {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                onWheel={(e) => e.currentTarget.blur()}
+                                placeholder="Enter average weight"
+                                className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-600 mb-1">
+                                Unit
+                              </label>
+                              <CustomDropdown
+                                options={[
+                                  { value: "mg", label: "mg" },
+                                  { value: "g", label: "g" },
+                                  { value: "kg", label: "kg" },
+                                  { value: "mcg", label: "mcg" },
+                                ]}
+                                value={calculation.avgWeightUnit || "mg"}
+                                onChange={(value) =>
+                                  onFieldChange(
+                                    calculation.id,
+                                    "avgWeightUnit",
+                                    value,
+                                  )
+                                }
+                                placeholder="Unit"
+                                colorScheme="emerald"
+                              />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {calculation.calculationFor === "Oral Suspension" && (
                       <div className="bg-gradient-to-r from-emerald-50 to-slate-50 rounded-lg p-4 border-2 border-emerald-200">
@@ -1440,6 +1439,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                               options={[
                                 { value: "water", label: "Water" },
                                 { value: "lod", label: "LOD" },
+                                { value: "loi", label: "LOI" },
                               ]}
                               value={calculation.lodWaterType || "water"}
                               onChange={(value) =>
@@ -1457,7 +1457,9 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                             <label className="block text-xs font-semibold text-emerald-900 mb-1">
                               {calculation.lodWaterType === "lod"
                                 ? "LOD"
-                                : "Water"}{" "}
+                                : calculation.lodWaterType === "loi"
+                                  ? "LOI"
+                                  : "Water"}{" "}
                               Value (%)
                             </label>
                             <input
@@ -1479,11 +1481,12 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                 }
                               }}
                               onWheel={(e) => e.currentTarget.blur()}
-                              placeholder={`Enter ${
-                                calculation.lodWaterType === "lod"
-                                  ? "LOD"
+                              placeholder={`Enter ${calculation.lodWaterType === "lod"
+                                ? "LOD"
+                                : calculation.lodWaterType === "loi"
+                                  ? "LOI"
                                   : "Water"
-                              } %`}
+                                } %`}
                               className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
                             />
                           </div>
@@ -1610,28 +1613,25 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                   className="border-t-4 border-emerald-200"
                 >
                   <div
-                    className={`p-6 ${
-                      calculation.calculationResult.startsWith("Error")
-                        ? "bg-gradient-to-br from-emerald-50 via-slate-100/50 to-slate-50"
-                        : "bg-gradient-to-br from-emerald-50 via-slate-100/30 to-slate-50"
-                    }`}
+                    className={`p-6 ${calculation.calculationResult.startsWith("Error")
+                      ? "bg-gradient-to-br from-emerald-50 via-slate-100/50 to-slate-50"
+                      : "bg-gradient-to-br from-emerald-50 via-slate-100/30 to-slate-50"
+                      }`}
                   >
                     <div className="max-w-4xl mx-auto space-y-4">
                       <div className="flex items-center gap-3 pb-3">
                         <CheckCircle2
-                          className={`w-6 h-6 ${
-                            calculation.calculationResult.startsWith("Error")
-                              ? "text-green-700"
-                              : "text-green-700"
-                          }`}
+                          className={`w-6 h-6 ${calculation.calculationResult.startsWith("Error")
+                            ? "text-green-700"
+                            : "text-green-700"
+                            }`}
                         />
                         <div>
                           <h6
-                            className={`text-lg font-bold ${
-                              calculation.calculationResult.startsWith("Error")
-                                ? "text-green-700"
-                                : "text-green-700"
-                            }`}
+                            className={`text-lg font-bold ${calculation.calculationResult.startsWith("Error")
+                              ? "text-green-700"
+                              : "text-green-700"
+                              }`}
                           >
                             Calculation Results
                           </h6>
@@ -1640,12 +1640,11 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
 
                       <div className="grid gap-4">
                         <div
-                          className={`grid gap-4 ${
-                            calculation.labelClaimPercent ||
+                          className={`grid gap-4 ${calculation.labelClaimPercent ||
                             calculation.lodWaterBasisResult
-                              ? "md:grid-cols-2"
-                              : "md:grid-cols-1"
-                          }`}
+                            ? "md:grid-cols-2"
+                            : "md:grid-cols-1"
+                            }`}
                         >
                           <div className="bg-white rounded-lg shadow-lg border-2 border-emerald-300 overflow-hidden">
                             <div className="bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 px-4 py-2">
@@ -1665,17 +1664,17 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                               {(() => {
                                 const limitMin =
                                   calculation.acceptanceLimitMin != null &&
-                                  calculation.acceptanceLimitMin !== ""
+                                    calculation.acceptanceLimitMin !== ""
                                     ? parseFloat(
-                                        calculation.acceptanceLimitMin as string,
-                                      )
+                                      calculation.acceptanceLimitMin as string,
+                                    )
                                     : null;
                                 const limitMax =
                                   calculation.acceptanceLimitMax != null &&
-                                  calculation.acceptanceLimitMax !== ""
+                                    calculation.acceptanceLimitMax !== ""
                                     ? parseFloat(
-                                        calculation.acceptanceLimitMax as string,
-                                      )
+                                      calculation.acceptanceLimitMax as string,
+                                    )
                                     : null;
                                 const hasMin =
                                   limitMin !== null && !isNaN(limitMin);
@@ -1684,7 +1683,7 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                 if (!hasMin && !hasMax) return null;
                                 const val =
                                   typeof calculation.calculationResult ===
-                                  "string"
+                                    "string"
                                     ? parseFloat(calculation.calculationResult)
                                     : null;
                                 const pass =
@@ -1731,10 +1730,10 @@ const CalculationDetailAssay: React.FC<CalculationDetailAssayProps> = ({
                                   </p>
                                   <p className="text-sm font-bold text-green-700">
                                     {calculation.lodWaterType === "lod"
-                                      ? "Anhydrous basis"
-                                      : "Water basis"}{" "}
-                                    adjusted for {calculation.lodWaterValue} % 
-                                    of {calculation.lodWaterType}
+                                      ? `Dried basis adjusted for ${calculation.lodWaterValue} % of LOD`
+                                      : calculation.lodWaterType === "loi"
+                                        ? `Ignited basis adjusted for ${calculation.lodWaterValue} % of LOI`
+                                        : `Anhydrous basis adjusted for ${calculation.lodWaterValue} % of Water`}
                                   </p>
                                 </div>
                               </div>

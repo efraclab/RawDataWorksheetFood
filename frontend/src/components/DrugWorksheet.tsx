@@ -21047,7 +21047,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <span className="text-base font-bold text-emerald-800 group-hover:text-emerald-800 transition-colors duration-200">
-                                    Parameter Files
+                                    Attachment Files
                                   </span>
 
                                   <motion.span

@@ -5775,6 +5775,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
       const updatedParam = {
         ...parameterForApproval,
         status: "Analysis Revision",
+        analysisCompletionDate: new Date().toISOString(),
         revisionComments: comments,
         remarksByReviewer: comments,
       };

@@ -14,6 +14,7 @@
         public string AdditionalInfo { get; set; }
         public DateTime? AnalysisStartDate { get; set; }
         public DateTime? AnalysisCompletionDate { get; set; }
+        public DateTime? AnalysisObservationDate { get; set; }
         public string AnalyzedBy { get; set; }
         public string ApprovedByReviewer { get; set; }
         public DateTime? ApprovedAtReviewer { get; set; }

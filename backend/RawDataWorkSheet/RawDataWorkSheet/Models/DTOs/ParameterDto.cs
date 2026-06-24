@@ -18,6 +18,7 @@ namespace RawDataWorkSheet.Models.DTOs
         public string? ApprovedByReviewerName { get; set; }
         public string? AnalysisStartDate { get; set; }
         public string? AnalysisCompletionDate { get; set; }
+        public string? AnalysisObservationDate { get; set; }
         public string? ApprovedAtReviewer { get; set; }
         public string? Status { get; set; }
 

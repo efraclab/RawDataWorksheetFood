@@ -21,6 +21,7 @@ export interface ParameterDetail {
     approvedByReviewerName: string | null;
     analysisStartDate: string | null;
     analysisCompletionDate: string | null;
+    analysisObservationDate: string | null;
     approvedAtReviewer: string | null;
     approvedByQAName: string | null;
     approvedByQA: string | null;

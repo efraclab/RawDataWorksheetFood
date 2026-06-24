@@ -283,6 +283,12 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
         useState<ParameterDetail | null>(null);
     const [parameterToDelete, setParameterToDelete] =
         useState<ParameterDetail | null>(null);
+    const [isSavingObservationDate, setIsSavingObservationDate] =
+        useState<Record<number, boolean>>({});
+
+    const [analysisObservationDatePerParam, setAnalysisObservationDatePerParam] =
+        useState<Record<number, string>>({});
+
     const [isUnlocking, setIsUnlocking] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -338,6 +344,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
     >({});
     const [analysisCompletionDatePerParam, setAnalysisCompletionDatePerParam] =
         useState<Record<number, string>>({});
+
     const [analyzedByPerParam, setAnalyzedByPerParam] = useState<
         Record<number, string>
     >({});
@@ -419,7 +426,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
         Record<number, SterilityPreparation[]>
     >({});
     const [ecoliPreparationsPerParam, setEcoliPreparationsPerParam] = useState<
-        Record<string, EcoliPreparation[]>
+        Record<number, EcoliPreparation[]>
     >({});
 
     const [clostridiumPreparationsPerParam, setClostridiumPreparationsPerParam] = useState<
@@ -473,6 +480,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
     const [showParamFiles, setShowParamFiles] = useState<Record<number, boolean>>(
         {},
     );
+
 
 
     // Dropdown control states
@@ -609,54 +617,55 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
     }, [role]);
 
     // Load worksheet data on mount
-    useEffect(() => {
-        const loadWorksheetData = async () => {
-            if (!worksheetId) {
-                setError("No worksheet ID provided");
-                setIsLoading(false);
-                return;
-            }
+    // useEffect(() => {
+    //     const loadWorksheetData = async () => {
+    //         if (!worksheetId) {
+    //             setError("No worksheet ID provided");
+    //             setIsLoading(false);
+    //             return;
+    //         }
 
-            setIsLoading(true);
-            setError(null);
+    //         setIsLoading(true);
+    //         setError(null);
 
-            try {
-                const requestData: FetchWorksheetRequest = { employeeId, role };
-                const worksheetData = await fetchWorksheetById(
-                    worksheetId,
-                    requestData,
-                );
+    //         try {
+    //             const requestData: FetchWorksheetRequest = { employeeId, role };
+    //             const worksheetData = await fetchWorksheetById(
+    //                 worksheetId,
+    //                 requestData,
+    //             );
 
-                if (!worksheetData) {
-                    setError("Worksheet not found");
-                    setIsLoading(false);
-                    return;
-                }
+    //             if (!worksheetData) {
+    //                 setError("Worksheet not found");
+    //                 setIsLoading(false);
+    //                 return;
+    //             }
 
-                setWorksheetInfo(worksheetData);
-                setRegistrationNo(worksheetData.sample.registrationNo);
+    //             setWorksheetInfo(worksheetData);
+    //             setRegistrationNo(worksheetData.sample.registrationNo);
 
 
-                const request: SmapleDetailsRequest = {
-                    regNo: worksheetData.sample.registrationNo,
-                    lab: department,
-                };
-                const samples = await fetchSample(request);
-                setSamplesData(samples);
+    //             const request: SmapleDetailsRequest = {
+    //                 regNo: worksheetData.sample.registrationNo,
+    //                 lab: department,
+    //             };
+    //             const samples = await fetchSample(request);
+    //             setSamplesData(samples);
 
-                restoreWorksheetToState(worksheetData);
-            } catch (err: any) {
-                console.error("Error loading worksheet:", err);
-                setError(err.message || "Failed to load worksheet");
-            } finally {
-                setIsLoading(false);
-            }
-        };
+    //             restoreWorksheetToState(worksheetData);
+    //         } catch (err: any) {
+    //             console.error("Error loading worksheet:", err);
+    //             setError(err.message || "Failed to load worksheet");
+    //         } finally {
+    //             setIsLoading(false);
+    //         }
+    //     };
 
-        loadWorksheetData();
-    }, [worksheetId]);
+    //     loadWorksheetData();
+    // }, [worksheetId]);
 
     const restoreWorksheetToState = (worksheetData: WorksheetDetail) => {
+        console.log("RESTORE CALLED");
         // Restore sample-level editable fields
         setSampleQuantity((worksheetData.sample as any).sampleQuantity ?? null);
         setNatureOfSample((worksheetData.sample as any).natureOfSample ?? "");
@@ -669,7 +678,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
             );
 
             return {
-                id: Date.now() + index,
+                id: param.id,
                 paraCode: param.paraCode,
                 parameterName: param.parameterName,
                 methodCode: param.methodCode,
@@ -727,6 +736,13 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                 setAnalysisCompletionDatePerParam((prev) => ({
                     ...prev,
                     [paramId]: param.analysisCompletionDate!,
+                }));
+            }
+
+            if (param.analysisObservationDate) {
+                setAnalysisObservationDatePerParam((prev) => ({
+                    ...prev,
+                    [paramId]: param.analysisObservationDate!,
                 }));
             }
 
@@ -832,15 +848,15 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
             // 2.3: Instruments
             // ------------------------------------------------------------------------
             if (param.instruments && Array.isArray(param.instruments)) {
-            const worksheetInstruments = param.instruments as WorksheetInstrument[];
-            if (worksheetInstruments.length > 0) {
-                setAddedInstruments((prev) => ({
-                ...prev,
-                [paramId]: worksheetInstruments,
-                }));
+                const worksheetInstruments = param.instruments as WorksheetInstrument[];
+                if (worksheetInstruments.length > 0) {
+                    setAddedInstruments((prev) => ({
+                        ...prev,
+                        [paramId]: worksheetInstruments,
+                    }));
+                }
             }
-            }
-    
+
             // ------------------------------------------------------------------------
             // 2.4: Chemicals
             // ------------------------------------------------------------------------
@@ -848,8 +864,8 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                 const worksheetChemicals = param.chemicals as WorksheetChemical[];
                 if (worksheetChemicals.length > 0) {
                     setAddedChemicals((prev) => ({
-                    ...prev,
-                    [paramId]: worksheetChemicals,
+                        ...prev,
+                        [paramId]: worksheetChemicals,
                     }));
                 }
             }
@@ -915,10 +931,6 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                         } catch (e) {
                             console.warn(`  [WARNING]  Failed to parse BET prep content for: "${prep.label}"`, e);
                         }
-                    } else {
-                        console.warn(
-                            `  [WARNING]  Unrecognized preparationCategory: "${prepCategory}" for prep: "${prep.label}"`,
-                        );
                     }
 
                     if (prepType === "sterility") {
@@ -1071,7 +1083,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                         }
                     }
 
-                     if (prepType === "tvcw") {
+                    if (prepType === "tvcw") {
                         try {
                             const tvcData = typeof prep.content === "string"
                                 ? JSON.parse(prep.content)
@@ -1298,13 +1310,13 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                 });
             }
 
-            const activeGroups: string[] = [];
+            // const activeGroups: string[] = [];
 
-            if (param.preparations && Array.isArray(param.preparations)) {
-                if (param.preparations.some((p: any) => p.preparationType === "bet")) {
-                    activeGroups.push("bet");
-                }
-            }
+            // if (param.preparations && Array.isArray(param.preparations)) {
+            //     if (param.preparations.some((p: any) => p.preparationType === "bet")) {
+            //         activeGroups.push("bet");
+            //     }
+            // }
 
             if (param.files && Array.isArray(param.files) && param.files.length > 0) {
                 const slotMap: Record<string, AttachedFile[]> = {};
@@ -1338,12 +1350,12 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                 }
             }
 
-            if (activeGroups.length > 0) {
-                setActivePreparationGroups((prev) => ({
-                    ...prev,
-                    [paramId]: activeGroups,
-                }));
-            }
+            // if (activeGroups.length > 0) {
+            //     setActivePreparationGroups((prev) => ({
+            //         ...prev,
+            //         [paramId]: activeGroups,
+            //     }));
+            // }
         });
 
         // Set file state once cleanly — no stale merging with old paramIds
@@ -1512,8 +1524,8 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                     diluentPreparation: null,
                     otherInfo: null,
                     analysisStartDate: analysisStartDatePerParam[param.id] || null,
-                    analysisCompletionDate:
-                        analysisCompletionDatePerParam[param.id] || null,
+                    analysisCompletionDate: analysisCompletionDatePerParam[param.id] || null,
+                    analysisObservationDate: analysisObservationDatePerParam[param.id] || null,
                     analyzedBy: analyzedByPerParam[param.id] || null,
                     approvedByReviewer: approvedByReviewerPerParam[param.id] || null,
                     approvedAtReviewer: approvedAtReviewerPerParam[param.id] || null,
@@ -1589,6 +1601,23 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
             setFilesPerParam({});
             setShowParamFiles({});
             setIsEditingSampleDetails(false);
+
+            setActivePreparationGroups({});
+            setBetPreparationsPerParam({});
+            setSterilityPreparationsPerParam({});
+            setEcoliPreparationsPerParam({});
+            setShigellaPreparationsPerParam({});
+            setClostridiumPreparationsPerParam({});
+            setSalmonellaPreparationsPerParam({});
+            setStaphylococcusPreparationsPerParam({});
+            setPseudomonasPreparationsPerParam({});
+            setBileTolerantPreparationsPerParam({});
+            setBcepaciaPreparationsPerParam({});
+            setCalbicansPreparationsPerParam({});
+            setTvcWaterPreparationsPerParam({});
+            setTymcPreparationsPerParam({});
+            setTamcPreparationsPerParam({});
+
 
             restoreWorksheetToState(worksheetData);
         } catch (err: any) {
@@ -2158,6 +2187,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
         cleanupState(setRemarksByAnalystPerParam);
         cleanupState(setPreparationCompletedByPerParam);
         cleanupState(setPreparationCompletedAtPerParam);
+        cleanupState(setAnalysisObservationDatePerParam);
     };
 
     const toggleParameterDetail = (id: number) => {
@@ -2464,6 +2494,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
             additional_info: additionalInfoPerParam[paramId] || null,
             analysisStartDate: analysisStartDatePerParam[paramId] || null,
             analysisCompletionDate: analysisCompletionDatePerParam[paramId] || null,
+            analysisObservationDate: analysisObservationDatePerParam[paramId] || null,
             analyzedBy: analyzedByPerParam[paramId] || null,
             approvedByReviewer: approvedByReviewerPerParam[paramId] || null,
             approvedAtReviewer: approvedAtReviewerPerParam[paramId] || null,
@@ -3579,308 +3610,308 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
     };
 
     const handleTogglePreparationGroup = (
-    parameterId: number,
-    groupId: string,
-) => {
-    setActivePreparationGroups((prev) => {
-        const currentGroups = prev[parameterId] || [];
+        parameterId: number,
+        groupId: string,
+    ) => {
+        setActivePreparationGroups((prev) => {
+            const currentGroups = prev[parameterId] || [];
 
-        if (currentGroups.includes(groupId)) {
-            // Deselect: clear the specific group being deselected
-            const group = PREPARATION_GROUPS[groupId as keyof typeof PREPARATION_GROUPS];
+            if (currentGroups.includes(groupId)) {
+                // Deselect: clear the specific group being deselected
+                const group = PREPARATION_GROUPS[groupId as keyof typeof PREPARATION_GROUPS];
 
-            if (group.id === "bet") {
-                setBetPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
-            } else if (group.id === "sterility") {
-                setSterilityPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
-            } else if (group.id === "ecoli") {
-                setEcoliPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
-            } else if (group.id === "salmonella") {
-                setSalmonellaPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
-            } else if (group.id === "shigella") {
-                setShigellaPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
-            } else if (group.id === "clostridium") {
-                setClostridiumPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
-            } else if (group.id === "staphylococcus") {
-                setStaphylococcusPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
-            } else if (group.id === "pseudomonas") {
-                setPseudomonasPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
-            } else if (group.id === "bileTolerant") {
-                setBileTolerantPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
-            } else if (group.id === "calbicans") {
-                setCalbicansPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
-            } else if (group.id === "bcepacia") {
-                setBcepaciaPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
-            } else if (group.id === "tvcw") {
-                setTvcWaterPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
-            } else if (group.id === "tymc") {
-                setTymcPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
-            } else if (group.id === "tamc") {
-                setTamcPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...rest } = p;
-                    return rest;
-                });
+                if (group.id === "bet") {
+                    setBetPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                } else if (group.id === "sterility") {
+                    setSterilityPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                } else if (group.id === "ecoli") {
+                    setEcoliPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                } else if (group.id === "salmonella") {
+                    setSalmonellaPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                } else if (group.id === "shigella") {
+                    setShigellaPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                } else if (group.id === "clostridium") {
+                    setClostridiumPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                } else if (group.id === "staphylococcus") {
+                    setStaphylococcusPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                } else if (group.id === "pseudomonas") {
+                    setPseudomonasPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                } else if (group.id === "bileTolerant") {
+                    setBileTolerantPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                } else if (group.id === "calbicans") {
+                    setCalbicansPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                } else if (group.id === "bcepacia") {
+                    setBcepaciaPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                } else if (group.id === "tvcw") {
+                    setTvcWaterPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                } else if (group.id === "tymc") {
+                    setTymcPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                } else if (group.id === "tamc") {
+                    setTamcPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...rest } = p;
+                        return rest;
+                    });
+                }
+
+                return {
+                    ...prev,
+                    [parameterId]: currentGroups.filter((g) => g !== groupId),
+                };
             }
+
+            // ── Single-select: if there's already a group, clear it first ──────
+            const clearGroup = (oldGroupId: string) => {
+                const oldGroup = PREPARATION_GROUPS[oldGroupId as keyof typeof PREPARATION_GROUPS];
+                if (!oldGroup) return;
+
+                if (oldGroupId === "bet") {
+                    setBetPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                } else if (oldGroupId === "sterility") {
+                    setSterilityPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                } else if (oldGroupId === "ecoli") {
+                    setEcoliPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                } else if (oldGroupId === "salmonella") {
+                    setSalmonellaPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                } else if (oldGroupId === "shigella") {
+                    setShigellaPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                } else if (oldGroupId === "clostridium") {
+                    setClostridiumPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                } else if (oldGroupId === "staphylococcus") {
+                    setStaphylococcusPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                } else if (oldGroupId === "pseudomonas") {
+                    setPseudomonasPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                } else if (oldGroupId === "bileTolerant") {
+                    setBileTolerantPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                } else if (oldGroupId === "calbicans") {
+                    setCalbicansPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                } else if (oldGroupId === "bcepacia") {
+                    setBcepaciaPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                } else if (oldGroupId === "tvcw") {
+                    setTvcWaterPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                } else if (oldGroupId === "tymc") {
+                    setTymcPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                } else if (oldGroupId === "tamc") {
+                    setTamcPreparationsPerParam((p) => {
+                        const { [parameterId]: _, ...r } = p;
+                        return r;
+                    });
+                }
+
+                // Also clear preparationCompleted when changing group
+                setPreparationCompletedByPerParam((p) => {
+                    const { [parameterId]: _, ...r } = p;
+                    return r;
+                });
+                setPreparationCompletedAtPerParam((p) => {
+                    const { [parameterId]: _, ...r } = p;
+                    return r;
+                });
+            };
+
+            // Clear all existing groups for this parameter (single-select)
+            currentGroups.forEach(clearGroup);
 
             return {
                 ...prev,
-                [parameterId]: currentGroups.filter((g) => g !== groupId),
+                [parameterId]: [groupId],
             };
+        });
+
+        // Auto-initialize the selected preparation type with default data
+        if (groupId === "bet") {
+            setBetPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultBETPreparation(0)] };
+                }
+                return prev;
+            });
+        } else if (groupId === "sterility") {
+            setSterilityPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultSterilityPreparation(0)] };
+                }
+                return prev;
+            });
+        } else if (groupId === "ecoli") {
+            setEcoliPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultEcoliPreparation(0)] };
+                }
+                return prev;
+            });
+        } else if (groupId === "salmonella") {
+            setSalmonellaPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultSalmonellaPreparation(0)] };
+                }
+                return prev;
+            });
+        } else if (groupId === "shigella") {
+            setShigellaPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultShigellaPreparation(0)] };
+                }
+                return prev;
+            });
+        } else if (groupId === "clostridium") {
+            setClostridiumPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultClostridiumPreparation(0)] };
+                }
+                return prev;
+            });
+        } else if (groupId === "staphylococcus") {
+            setStaphylococcusPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultStaphylococcusPreparation(0)] };
+                }
+                return prev;
+            });
+        } else if (groupId === "pseudomonas") {
+            setPseudomonasPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultPseudomonasPreparation(0)] };
+                }
+                return prev;
+            });
+        } else if (groupId === "bileTolerant") {
+            setBileTolerantPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultBileTolerantPreparation(0)] };
+                }
+                return prev;
+            });
+        } else if (groupId === "calbicans") {
+            setCalbicansPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultCandidaAlbicansPreparation(0)] };
+                }
+                return prev;
+            });
+        } else if (groupId === "bcepacia") {
+            setBcepaciaPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultBCepaciaPreparation(0)] };
+                }
+                return prev;
+            });
+        } else if (groupId === "tvcw") {
+            setTvcWaterPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultTVCWaterPreparation(0)] };
+                }
+                return prev;
+            });
+        } else if (groupId === "tymc") {
+            setTymcPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultTYMCPreparation(0)] };
+                }
+                return prev;
+            });
+        } else if (groupId === "tamc") {
+            setTamcPreparationsPerParam((prev) => {
+                const existing = prev[parameterId] || [];
+                if (existing.length === 0) {
+                    return { ...prev, [parameterId]: [createDefaultTAMCPreparation(0)] };
+                }
+                return prev;
+            });
         }
 
-        // ── Single-select: if there's already a group, clear it first ──────
-        const clearGroup = (oldGroupId: string) => {
-            const oldGroup = PREPARATION_GROUPS[oldGroupId as keyof typeof PREPARATION_GROUPS];
-            if (!oldGroup) return;
-            
-            if (oldGroupId === "bet") {
-                setBetPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            } else if (oldGroupId === "sterility") {
-                setSterilityPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            } else if (oldGroupId === "ecoli") {
-                setEcoliPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            } else if (oldGroupId === "salmonella") {
-                setSalmonellaPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            } else if (oldGroupId === "shigella") {
-                setShigellaPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            } else if (oldGroupId === "clostridium") {
-                setClostridiumPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            } else if (oldGroupId === "staphylococcus") {
-                setStaphylococcusPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            } else if (oldGroupId === "pseudomonas") {
-                setPseudomonasPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            } else if (oldGroupId === "bileTolerant") {
-                setBileTolerantPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            } else if (oldGroupId === "calbicans") {
-                setCalbicansPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            } else if (oldGroupId === "bcepacia") {
-                setBcepaciaPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            } else if (oldGroupId === "tvcw") {
-                setTvcWaterPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            } else if (oldGroupId === "tymc") {
-                setTymcPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            } else if (oldGroupId === "tamc") {
-                setTamcPreparationsPerParam((p) => {
-                    const { [parameterId]: _, ...r } = p;
-                    return r;
-                });
-            }
-            
-            // Also clear preparationCompleted when changing group
-            setPreparationCompletedByPerParam((p) => {
-                const { [parameterId]: _, ...r } = p;
-                return r;
-            });
-            setPreparationCompletedAtPerParam((p) => {
-                const { [parameterId]: _, ...r } = p;
-                return r;
-            });
-        };
-
-        // Clear all existing groups for this parameter (single-select)
-        currentGroups.forEach(clearGroup);
-
-        return {
-            ...prev,
-            [parameterId]: [groupId],
-        };
-    });
-
-    // Auto-initialize the selected preparation type with default data
-    if (groupId === "bet") {
-        setBetPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultBETPreparation(0)] };
-            }
-            return prev;
-        });
-    } else if (groupId === "sterility") {
-        setSterilityPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultSterilityPreparation(0)] };
-            }
-            return prev;
-        });
-    } else if (groupId === "ecoli") {
-        setEcoliPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultEcoliPreparation(0)] };
-            }
-            return prev;
-        });
-    } else if (groupId === "salmonella") {
-        setSalmonellaPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultSalmonellaPreparation(0)] };
-            }
-            return prev;
-        });
-    } else if (groupId === "shigella") {
-        setShigellaPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultShigellaPreparation(0)] };
-            }
-            return prev;
-        });
-    } else if (groupId === "clostridium") {
-        setClostridiumPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultClostridiumPreparation(0)] };
-            }
-            return prev;
-        });
-    } else if (groupId === "staphylococcus") {
-        setStaphylococcusPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultStaphylococcusPreparation(0)] };
-            }
-            return prev;
-        });
-    } else if (groupId === "pseudomonas") {
-        setPseudomonasPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultPseudomonasPreparation(0)] };
-            }
-            return prev;
-        });
-    } else if (groupId === "bileTolerant") {
-        setBileTolerantPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultBileTolerantPreparation(0)] };
-            }
-            return prev;
-        });
-    } else if (groupId === "calbicans") {
-        setCalbicansPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultCandidaAlbicansPreparation(0)] };
-            }
-            return prev;
-        });
-    } else if (groupId === "bcepacia") {
-        setBcepaciaPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultBCepaciaPreparation(0)] };
-            }
-            return prev;
-        });
-    } else if (groupId === "tvcw") {
-        setTvcWaterPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultTVCWaterPreparation(0)] };
-            }
-            return prev;
-        });
-    } else if (groupId === "tymc") {
-        setTymcPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultTYMCPreparation(0)] };
-            }
-            return prev;
-        });
-    } else if (groupId === "tamc") {
-        setTamcPreparationsPerParam((prev) => {
-            const existing = prev[parameterId] || [];
-            if (existing.length === 0) {
-                return { ...prev, [parameterId]: [createDefaultTAMCPreparation(0)] };
-            }
-            return prev;
-        });
-    }
-
-    setShowPreparationDropdown({});
-};
+        setShowPreparationDropdown({});
+    };
 
     const getAvailablePreparationGroups = () => {
         return [
@@ -7175,7 +7206,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                         {(worksheetInfo!.sample as any).sampleCode || "---"}
                                     </span>
                                 </div>
-                                
+
                             </div>
 
                             {/* Third row: Parameters count */}
@@ -8196,6 +8227,24 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                                         </p>
                                                                                     </div>
                                                                                 )}
+                                                                            {analysisObservationDatePerParam[selectedParam.id] && (
+                                                                                <div className="bg-emerald-50 rounded-lg p-4 border border-slate-200 hover:border-emerald-300 transition-all">
+                                                                                    <div className="flex items-center gap-2 mb-2">
+                                                                                        <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                                                                            <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                                            </svg>
+                                                                                        </div>
+                                                                                        <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                                                                                            Observed
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    <p className="text-sm font-semibold text-slate-900">
+                                                                                        {formatDate(analysisObservationDatePerParam[selectedParam.id])}
+                                                                                    </p>
+                                                                                </div>
+                                                                            )}
                                                                         </div>
                                                                     </div>
                                                                 </motion.div>
@@ -9730,7 +9779,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                 </div>
                                                                 <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-emerald-600 to-transparent" />
                                                             </div>
-                                                    
+
                                                             {(tvcWaterPreparationsPerParam[selectedParam.id] || []).map((tw) => (
                                                                 <TVCWaterPreparationDetail
                                                                     key={tw.id}
@@ -9754,7 +9803,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                                     }
                                                                 />
                                                             ))}
-                                                    
+
                                                             {!isPreparationLocked && (
                                                                 <button
                                                                     onClick={() =>
@@ -9903,7 +9952,159 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
 
                                                     {/* ============= END OF MICRO WORKSHEET CONTENT ============= */}
                                                 </div>
+                                                {/* ============= ANALYSIS OBSERVATION DATE ============= */}
+                                                {(() => {
+                                                    const paramId = selectedParam.id;
+                                                    const currentDate = analysisObservationDatePerParam[paramId] || "";
+                                                    const canEdit = !shouldDisableContent;
+                                                    const isSaving = isSavingObservationDate[paramId] || false;
 
+                                                    const handleSaveObservationDate = async () => {
+                                                        if (!currentDate) return;
+
+                                                        setIsSavingObservationDate((prev) => ({
+                                                            ...prev,
+                                                            [paramId]: true,
+                                                        }));
+
+                                                        try {
+                                                            // First update local state
+                                                            setAnalysisObservationDatePerParam((prev) => ({
+                                                                ...prev,
+                                                                [paramId]: currentDate,
+                                                            }));
+
+                                                            const paramData = buildFullParamPayload(paramId);
+
+                                                            if (!paramData) {
+                                                                throw new Error("Parameter data not found");
+                                                            }
+
+                                                            const payload = {
+                                                                ...paramData,
+                                                                analysisObservationDate: currentDate,
+                                                            };
+
+                                                            console.log("Saving observation date payload:", payload);
+
+                                                            const response = await updateParameter(paramId, payload);
+
+                                                            if (response?.parameterId) {
+                                                                setToastMessage("Analysis observation date saved successfully!");
+                                                                setShowToast(true);
+
+                                                                await insertWorksheetLog({
+                                                                    worksheetId,
+                                                                    parameterId: paramId,
+                                                                    action: "Observation Date Set",
+                                                                    remarks: `Analysis observation date set to ${formatDate(currentDate)}`,
+                                                                    employeeId,
+                                                                    role,
+                                                                });
+
+                                                                setTimeout(() => setShowToast(false), 3000);
+                                                            } else {
+                                                                throw new Error("API did not return a valid response");
+                                                            }
+                                                        } catch (err: any) {
+                                                            console.error("Error saving observation date:", err);
+
+                                                            setToastMessage(
+                                                                `Error saving observation date: ${err.message}`
+                                                            );
+                                                            setShowToast(true);
+
+                                                            setTimeout(() => setShowToast(false), 4000);
+                                                        } finally {
+                                                            setIsSavingObservationDate((prev) => ({
+                                                                ...prev,
+                                                                [paramId]: false,
+                                                            }));
+                                                        }
+                                                    };
+
+                                                    return (
+                                                        <div className="mb-6 mt-6">
+                                                            <div className="bg-white border border-emerald-200 rounded-xl p-5 shadow-sm">
+                                                                <div className="flex items-center gap-2 mb-4">
+                                                                    <div className="w-1 h-5 bg-emerald-500 rounded-full" />
+                                                                    <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                        </svg>
+                                                                        Analysis Observation Date
+                                                                    </h3>
+                                                                </div>
+
+                                                                <div className="flex items-end gap-3">
+                                                                    <div className="flex-1">
+                                                                        <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                                                                            Date of Observation
+                                                                        </label>
+                                                                        {canEdit ? (
+                                                                            <input
+                                                                                type="date"
+                                                                                value={
+                                                                                    currentDate
+                                                                                        ? (() => {
+                                                                                            const d = parseDateSafe(currentDate);
+                                                                                            if (!d) return "";
+                                                                                            const yyyy = d.getFullYear();
+                                                                                            const mm = String(d.getMonth() + 1).padStart(2, "0");
+                                                                                            const dd = String(d.getDate()).padStart(2, "0");
+                                                                                            return `${yyyy}-${mm}-${dd}`;
+                                                                                        })()
+                                                                                        : ""
+                                                                                }
+                                                                                onChange={(e) => {
+                                                                                    const val = e.target.value; // YYYY-MM-DD
+                                                                                    setAnalysisObservationDatePerParam((prev) => ({
+                                                                                        ...prev,
+                                                                                        [paramId]: val ? new Date(val + "T00:00:00").toISOString() : "",
+                                                                                    }));
+                                                                                }}
+                                                                                className="w-full border border-emerald-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-white"
+                                                                            />
+                                                                        ) : (
+                                                                            <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 font-medium">
+                                                                                {currentDate ? formatDate(currentDate) : "---"}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {canEdit && (
+                                                                        <button
+                                                                            onClick={handleSaveObservationDate}
+                                                                            disabled={!currentDate || isSaving}
+                                                                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white text-sm font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                        >
+                                                                            {isSaving ? (
+                                                                                <LoaderCircle className="w-4 h-4" />
+                                                                            ) : (
+                                                                                <MdDone className="w-4 h-4" />
+                                                                            )}
+                                                                            Save
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Show in timeline if already saved */}
+                                                                {currentDate && (
+                                                                    <div className="mt-3 flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                                                                        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                                            <path fillRule="evenodd"
+                                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                                                clipRule="evenodd" />
+                                                                        </svg>
+                                                                        <span>Saved: <strong>{formatDate(currentDate)}</strong></span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
+                                                {/* ============= END ANALYSIS OBSERVATION DATE ============= */}
                                                 {/* ===== Parameter Files Toggle ===== */}
                                                 {(() => {
                                                     const paramFiles = getParamLevelFiles(selectedParam.id);
@@ -9912,124 +10113,124 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                         !!showParamFiles[selectedParam.id] ||
                                                         (isLocked && hasParamFiles);
                                                     return (
-                                                <>
-                                                <div className={`mb-6 mt-4 ${isLocked ? "opacity-70" : ""}`}>
-                                                    <label className={`flex items-center gap-4 group relative ${isLocked ? "cursor-not-allowed" : "cursor-pointer"}`}>
-                                                        <div className="relative flex items-center justify-center">
-                                                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-900 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={showParamFiles[selectedParam.id] || false}
-                                                                disabled={isLocked}
-                                                                onChange={(e) => {
-                                                                    setShowParamFiles((prev) => ({
-                                                                        ...prev,
-                                                                        [selectedParam.id]: e.target.checked,
-                                                                    }));
-                                                                    if (!e.target.checked) {
-                                                                        updateFilesForSlot(
-                                                                            selectedParam.id,
-                                                                            PARAM_LEVEL_KEY,
-                                                                            () => [],
-                                                                        );
-                                                                    }
-                                                                }}
-                                                                className="peer sr-only"
-                                                            />
-                                                            <div className="relative w-14 h-7 rounded-full border-2 border-emerald-200 bg-gray-200 peer-checked:bg-gradient-to-r peer-checked:from-emerald-700 peer-checked:to-emerald-900 peer-checked:border-emerald-600 transition-all duration-300 shadow-inner group-hover:border-emerald-300">
-                                                                <motion.div
-                                                                    className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
-                                                                    animate={{
-                                                                        x: showParamFiles[selectedParam.id] ? 28 : 0,
-                                                                    }}
-                                                                    transition={{
-                                                                        type: "spring",
-                                                                        stiffness: 500,
-                                                                        damping: 30,
-                                                                    }}
-                                                                >
-                                                                    {showParamFiles[selectedParam.id] ? (
-                                                                        <svg
-                                                                            className="w-3 h-3 text-emerald-600"
-                                                                            fill="none"
-                                                                            viewBox="0 0 24 24"
-                                                                            stroke="currentColor"
-                                                                            strokeWidth="3"
-                                                                        >
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                                                        </svg>
-                                                                    ) : (
-                                                                        <svg
-                                                                            className="w-3 h-3 text-gray-400"
-                                                                            fill="none"
-                                                                            viewBox="0 0 24 24"
-                                                                            stroke="currentColor"
-                                                                            strokeWidth="3"
-                                                                        >
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                                        </svg>
-                                                                    )}
-                                                                </motion.div>
-                                                            </div>
-                                                        </div>
+                                                        <>
+                                                            <div className={`mb-6 mt-4 ${isLocked ? "opacity-70" : ""}`}>
+                                                                <label className={`flex items-center gap-4 group relative ${isLocked ? "cursor-not-allowed" : "cursor-pointer"}`}>
+                                                                    <div className="relative flex items-center justify-center">
+                                                                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-900 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={showParamFiles[selectedParam.id] || false}
+                                                                            disabled={isLocked}
+                                                                            onChange={(e) => {
+                                                                                setShowParamFiles((prev) => ({
+                                                                                    ...prev,
+                                                                                    [selectedParam.id]: e.target.checked,
+                                                                                }));
+                                                                                if (!e.target.checked) {
+                                                                                    updateFilesForSlot(
+                                                                                        selectedParam.id,
+                                                                                        PARAM_LEVEL_KEY,
+                                                                                        () => [],
+                                                                                    );
+                                                                                }
+                                                                            }}
+                                                                            className="peer sr-only"
+                                                                        />
+                                                                        <div className="relative w-14 h-7 rounded-full border-2 border-emerald-200 bg-gray-200 peer-checked:bg-gradient-to-r peer-checked:from-emerald-700 peer-checked:to-emerald-900 peer-checked:border-emerald-600 transition-all duration-300 shadow-inner group-hover:border-emerald-300">
+                                                                            <motion.div
+                                                                                className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
+                                                                                animate={{
+                                                                                    x: showParamFiles[selectedParam.id] ? 28 : 0,
+                                                                                }}
+                                                                                transition={{
+                                                                                    type: "spring",
+                                                                                    stiffness: 500,
+                                                                                    damping: 30,
+                                                                                }}
+                                                                            >
+                                                                                {showParamFiles[selectedParam.id] ? (
+                                                                                    <svg
+                                                                                        className="w-3 h-3 text-emerald-600"
+                                                                                        fill="none"
+                                                                                        viewBox="0 0 24 24"
+                                                                                        stroke="currentColor"
+                                                                                        strokeWidth="3"
+                                                                                    >
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                                                    </svg>
+                                                                                ) : (
+                                                                                    <svg
+                                                                                        className="w-3 h-3 text-gray-400"
+                                                                                        fill="none"
+                                                                                        viewBox="0 0 24 24"
+                                                                                        stroke="currentColor"
+                                                                                        strokeWidth="3"
+                                                                                    >
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                                                    </svg>
+                                                                                )}
+                                                                            </motion.div>
+                                                                        </div>
+                                                                    </div>
 
-                                                        <div className="flex-1">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-base font-bold text-emerald-800 group-hover:text-emerald-800 transition-colors duration-200">
-                                                                    Attachment Files
-                                                                </span>
-                                                                <motion.span
-                                                                    initial={{ scale: 0 }}
-                                                                    animate={{ scale: 1 }}
-                                                                    className={`px-2 py-0.5 text-[10px] font-medium rounded-full transition-all duration-200 ${showParamFiles[selectedParam.id]
-                                                                        ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                                                                        : "bg-gray-100 text-gray-500 border border-gray-200"
-                                                                        }`}
-                                                                >
-                                                                    {showParamFiles[selectedParam.id] ? "Active" : "Inactive"}
-                                                                </motion.span>
+                                                                    <div className="flex-1">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-base font-bold text-emerald-800 group-hover:text-emerald-800 transition-colors duration-200">
+                                                                                Attachment Files
+                                                                            </span>
+                                                                            <motion.span
+                                                                                initial={{ scale: 0 }}
+                                                                                animate={{ scale: 1 }}
+                                                                                className={`px-2 py-0.5 text-[10px] font-medium rounded-full transition-all duration-200 ${showParamFiles[selectedParam.id]
+                                                                                    ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                                                                    : "bg-gray-100 text-gray-500 border border-gray-200"
+                                                                                    }`}
+                                                                            >
+                                                                                {showParamFiles[selectedParam.id] ? "Active" : "Inactive"}
+                                                                            </motion.span>
+                                                                        </div>
+                                                                        <p className="text-xs text-emerald-600/70">
+                                                                            Attach additional PDF files for this parameter
+                                                                        </p>
+                                                                    </div>
+                                                                </label>
                                                             </div>
-                                                            <p className="text-xs text-emerald-600/70">
-                                                                Attach additional PDF files for this parameter
-                                                            </p>
-                                                        </div>
-                                                    </label>
-                                                </div>
 
-                                                {/* Parameter Files Section (Conditional) */}
-                                                <AnimatePresence>
-                                                    {sectionVisible && (
-                                                        <motion.div
-                                                            initial={{ opacity: 0, y: 20 }}
-                                                            animate={{ opacity: 1, y: 0 }}
-                                                            exit={{ opacity: 0, y: 0 }}
-                                                            className="mb-6 p-6 bg-white rounded-xl border-2 border-emerald-200 shadow-lg"
-                                                        >
-                                                            <div className="flex items-center gap-3 mb-4">
-                                                                <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full" />
-                                                                <h3 className="text-lg font-bold text-emerald-800 tracking-tight">
-                                                                    Parameter Files
-                                                                </h3>
-                                                            </div>
-                                                            <div className="pointer-events-auto">
-                                                                <WorksheetFileAttacher
-                                                                    files={paramFiles}
-                                                                    onAdd={(newFiles) =>
-                                                                        handleAddParamFiles(selectedParam.id, newFiles)
-                                                                    }
-                                                                    onRemove={(index) =>
-                                                                        handleRemoveParamFile(selectedParam.id, index)
-                                                                    }
-                                                                    preparationType={null}
-                                                                    sectionLabel="Other Files"
-                                                                    isForPrep={false}
-                                                                    isLocked={isLocked || shouldDisableContent}
-                                                                />
-                                                            </div>
-                                                        </motion.div>
-                                                    )}
-                                                </AnimatePresence>
-                                                </>
+                                                            {/* Parameter Files Section (Conditional) */}
+                                                            <AnimatePresence>
+                                                                {sectionVisible && (
+                                                                    <motion.div
+                                                                        initial={{ opacity: 0, y: 20 }}
+                                                                        animate={{ opacity: 1, y: 0 }}
+                                                                        exit={{ opacity: 0, y: 0 }}
+                                                                        className="mb-6 p-6 bg-white rounded-xl border-2 border-emerald-200 shadow-lg"
+                                                                    >
+                                                                        <div className="flex items-center gap-3 mb-4">
+                                                                            <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full" />
+                                                                            <h3 className="text-lg font-bold text-emerald-800 tracking-tight">
+                                                                                Parameter Files
+                                                                            </h3>
+                                                                        </div>
+                                                                        <div className="pointer-events-auto">
+                                                                            <WorksheetFileAttacher
+                                                                                files={paramFiles}
+                                                                                onAdd={(newFiles) =>
+                                                                                    handleAddParamFiles(selectedParam.id, newFiles)
+                                                                                }
+                                                                                onRemove={(index) =>
+                                                                                    handleRemoveParamFile(selectedParam.id, index)
+                                                                                }
+                                                                                preparationType={null}
+                                                                                sectionLabel="Other Files"
+                                                                                isForPrep={false}
+                                                                                isLocked={isLocked || shouldDisableContent}
+                                                                            />
+                                                                        </div>
+                                                                    </motion.div>
+                                                                )}
+                                                            </AnimatePresence>
+                                                        </>
                                                     );
                                                 })()}
                                                 {/* ===== END Parameter Files Toggle ===== */}
@@ -10042,7 +10243,9 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                             </motion.div>
                                         </AnimatePresence>
                                     );
-                                })}
+                                })
+
+                            }
 
                         </div>
                     </div>
@@ -10113,6 +10316,9 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                             />
                         )}
                     </AnimatePresence>
+
+
+
                     {/* Start Analysis Dialog */}
                     <AnimatePresence>
                         {showStartAnalysisDialog && parameterForAnalysis && (
@@ -10240,6 +10446,8 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                             />
                         )}
                     </AnimatePresence>
+
+
 
                     {/* Complete Preparation Dialog */}
                     <AnimatePresence>

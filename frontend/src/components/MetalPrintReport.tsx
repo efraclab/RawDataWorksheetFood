@@ -37,10 +37,7 @@ function formatFileDt(raw: string | null | undefined): string {
   if (!d) return String(raw).trim() || "N/A";
   const DD = String(d.getDate()).padStart(2, "0");
   const MM = String(d.getMonth() + 1).padStart(2, "0");
-  const HH = String(d.getHours()).padStart(2, "0");
-  const mi = String(d.getMinutes()).padStart(2, "0");
-  const SS = String(d.getSeconds()).padStart(2, "0");
-  return `${DD}/${MM}/${d.getFullYear()} ${HH}:${mi}:${SS}`;
+  return `${DD}/${MM}/${d.getFullYear()}`;
 }
 
 // ── Reusable signature footer ─────────────────────────────────────────────────

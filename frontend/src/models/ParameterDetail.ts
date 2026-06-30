@@ -1,3 +1,4 @@
+// file: frontend/src/models/ParameterDetail.ts
 import type { CalculationData } from "./CalculationData";
 import type { PreparationData } from "./PreparationData";
 import type { WorksheetChemical } from "./WorksheetChemical";

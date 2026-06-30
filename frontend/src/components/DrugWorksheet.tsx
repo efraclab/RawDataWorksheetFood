@@ -5623,7 +5623,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     setShowRevisionDialog(true);
   };
 
-  const handleConfirmApprove = async (remarks: string) => {
+  const handleConfirmApprove = async (remarks: string, manualApprovedAt?: string) => {
     if (!parameterForApproval) return;
 
     setIsApproving(true);
@@ -5632,7 +5632,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         ...parameterForApproval,
         status: "Approved",
         approvedByReviewer: employeeId,
-        approvedAtReviewer: new Date().toISOString(),
+        approvedAtReviewer: manualApprovedAt || new Date().toISOString(),
         remarksByQA: null, // Clear QA remarks when Reviewer re-approves
         remarksByReviewer: remarks || null,
       };
@@ -6077,7 +6077,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     }
   };
 
-  const handleApproveWorksheet = async () => {
+  const handleApproveWorksheet = async (manualApprovedAt?: string) => {
     setIsApprovingWorksheet(true);
 
     try {
@@ -6085,8 +6085,9 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         throw new Error("Worksheet information is not available");
       }
 
-      // Capture timestamp once — used for every write below
-      const now = new Date().toISOString();
+      // Capture timestamp once — used for every write below.
+      // Uses the QA-supplied manual date if provided, otherwise current time.
+      const now = manualApprovedAt || new Date().toISOString();
 
       // ── 1. Build the full payload with QA approval stamped on every parameter ──
       // collectFormDataForAPI reads the current per-param state arrays, giving us

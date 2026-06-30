@@ -649,24 +649,22 @@ namespace RawDataWorkSheet.Repositories
             ParameterDto param)
         {
             var sql = @"
-    INSERT INTO worksheet_parameters 
-    (worksheet_id, para_code, parameter_name, method_code, method_name, 
-     column_id, additional_info, 
-     analyzed_by, approved_by_reviewer, analysis_start_date, analysis_completion_date,
-     analysis_observation_date,  -- ADD THIS
-     approved_at_reviewer, status,
-     approved_by_qa, approved_at_qa, remarks_by_qa, remarks_by_reviewer, preparation_completed_by,
-     preparation_completed_at, remarks_by_analyst)
-    VALUES 
-    (@WorksheetId, @ParaCode, @ParameterName, @MethodCode, @MethodName, 
-     @ColumnId, @AdditionalInfo, @AnalyzedBy, @ApprovedByReviewer,
-     @AnalysisStartDate, @AnalysisCompletionDate,
-     @AnalysisObservationDate,  -- ADD THIS
-     @ApprovedAtReviewer, @Status,
-     @ApprovedByQA, @ApprovedAtQA, @RemarksByQA, @RemarksByReviewer, @PreparationCompletedBy,
-     @PreparationCompletedAt, @RemarksByAnalyst);
-    
-    SELECT CAST(SCOPE_IDENTITY() as int);";
+                INSERT INTO worksheet_parameters 
+                (worksheet_id, para_code, parameter_name, method_code, method_name, 
+                 column_id, additional_info, 
+                 analyzed_by, approved_by_reviewer, analysis_start_date, analysis_completion_date,
+                 approved_at_reviewer, status,
+                 approved_by_qa, approved_at_qa, remarks_by_qa, remarks_by_reviewer, preparation_completed_by,
+                 preparation_completed_at, remarks_by_analyst)
+                VALUES 
+                (@WorksheetId, @ParaCode, @ParameterName, @MethodCode, @MethodName, 
+                 @ColumnId, @AdditionalInfo, @AnalyzedBy, @ApprovedByReviewer,
+                 @AnalysisStartDate, @AnalysisCompletionDate, @ApprovedAtReviewer, @Status,
+                 @ApprovedByQA, @ApprovedAtQA, @RemarksByQA, @RemarksByReviewer, @PreparationCompletedBy,
+                 @PreparationCompletedAt, @RemarksByAnalyst);
+                
+                SELECT CAST(SCOPE_IDENTITY() as int);";
+
             return await connection.ExecuteScalarAsync<int>(
                 sql,
                 new
@@ -682,11 +680,10 @@ namespace RawDataWorkSheet.Repositories
                     param.ApprovedByReviewer,
                     AnalysisStartDate = ParseDateTime(param.AnalysisStartDate!),
                     AnalysisCompletionDate = ParseDateTime(param.AnalysisCompletionDate!),
-                    AnalysisObservationDate = ParseDateTime(param.AnalysisObservationDate!),
-                    ApprovedAtReviewer = ParseDateTime(param.ApprovedAtReviewer!),
+                    ApprovedAtReviewer = ParseDateTime(param.ApprovedAtReviewer!) ?? (param.ApprovedByReviewer != null ? DateTime.Now : (DateTime?)null),
                     param.Status,
                     param.ApprovedByQA,
-                    ApprovedAtQA = ParseDateTime(param.ApprovedAtQA!),
+                    ApprovedAtQA = ParseDateTime(param.ApprovedAtQA!) ?? (param.ApprovedByQA != null ? DateTime.Now : (DateTime?)null),
                     param.RemarksByQA,
                     param.RemarksByReviewer,
                     param.PreparationCompletedBy,
@@ -716,12 +713,19 @@ namespace RawDataWorkSheet.Repositories
                     analyzed_by = @AnalyzedBy,
                     analysis_start_date = COALESCE(analysis_start_date, @AnalysisStartDate),
                     analysis_completion_date = COALESCE(analysis_completion_date, @AnalysisCompletionDate),
-                    analysis_observation_date = COALESCE(analysis_observation_date, @AnalysisObservationDate),
-                    approved_by_reviewer = COALESCE(approved_by_reviewer, @ApprovedByReviewer),
-                    approved_at_reviewer = COALESCE(approved_at_reviewer, @ApprovedAtReviewer),
+                    approved_by_reviewer = COALESCE(@ApprovedByReviewer, approved_by_reviewer),
+                    approved_at_reviewer = COALESCE(
+                        @ApprovedAtReviewer,
+                        approved_at_reviewer,
+                        CASE WHEN @ApprovedByReviewer IS NOT NULL THEN SYSDATETIME() END
+                    ),
                     status = @Status,
-                    approved_by_qa = @ApprovedByQA,
-                    approved_at_qa = @ApprovedAtQA,
+                    approved_by_qa = COALESCE(@ApprovedByQA, approved_by_qa),
+                    approved_at_qa = COALESCE(
+                        @ApprovedAtQA,
+                        approved_at_qa,
+                        CASE WHEN @ApprovedByQA IS NOT NULL THEN SYSDATETIME() END
+                    ),
                     remarks_by_qa = @RemarksByQA,
                     remarks_by_reviewer = @RemarksByReviewer,
                     preparation_completed_by = @PreparationCompletedBy,
@@ -745,7 +749,6 @@ namespace RawDataWorkSheet.Repositories
                     param.ApprovedByReviewer,
                     AnalysisStartDate = ParseDateTime(param.AnalysisStartDate!),
                     AnalysisCompletionDate = ParseDateTime(param.AnalysisCompletionDate!),
-                    AnalysisObservationDate = ParseDateTime(param.AnalysisObservationDate!),
                     ApprovedAtReviewer = ParseDateTime(param.ApprovedAtReviewer!),
                     param.Status,
                     param.ApprovedByQA,
@@ -1398,7 +1401,6 @@ namespace RawDataWorkSheet.Repositories
                     AdditionalInfo = param.AdditionalInfo,
                     AnalysisStartDate = FormatDateTime(param.AnalysisStartDate),
                     AnalysisCompletionDate = FormatDateTime(param.AnalysisCompletionDate),
-                    AnalysisObservationDate = FormatDateTime(param.AnalysisObservationDate),
                     AnalyzedBy = param.AnalyzedBy,
                     ApprovedByReviewer = param.ApprovedByReviewer,
                     ApprovedAtReviewer = FormatDateTime(param.ApprovedAtReviewer),

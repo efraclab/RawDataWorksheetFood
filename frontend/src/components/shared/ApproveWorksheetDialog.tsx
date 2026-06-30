@@ -8,7 +8,7 @@ interface ApproveWorksheetDialogProps {
   worksheetId: string;
   totalParameters: number;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (approvedAt?: string) => void;
 }
 
 const ApproveWorksheetDialog: React.FC<ApproveWorksheetDialogProps> = ({
@@ -19,6 +19,12 @@ const ApproveWorksheetDialog: React.FC<ApproveWorksheetDialogProps> = ({
   onClose,
   onConfirm,
 }) => {
+  const [approvedAt, setApprovedAt] = React.useState("");
+
+  React.useEffect(() => {
+    if (!isOpen) setApprovedAt("");
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -94,6 +100,23 @@ const ApproveWorksheetDialog: React.FC<ApproveWorksheetDialogProps> = ({
                 </div>
               </div>
 
+              {/* Approval Date */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  QA Approval Date &amp; Time{" "}
+                  <span className="text-slate-400 font-normal">
+                    (optional — leave blank to use current date/time)
+                  </span>
+                </label>
+                <input
+                  type="datetime-local"
+                  value={approvedAt}
+                  onChange={(e) => setApprovedAt(e.target.value)}
+                  max={new Date().toISOString().slice(0, 16)}
+                  className="w-full text-sm text-slate-700 bg-white border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
+
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <div className="flex items-start gap-3">
                   <div className="w-7 h-7 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -116,7 +139,9 @@ const ApproveWorksheetDialog: React.FC<ApproveWorksheetDialogProps> = ({
                 Cancel
               </button>
               <button
-                onClick={onConfirm}
+                onClick={() =>
+                  onConfirm(approvedAt ? new Date(approvedAt).toISOString() : undefined)
+                }
                 disabled={isApproving}
                 className="flex-1 px-6 py-2.5 bg-gradient-to-r from-emerald-700 to-slate-800 text-white font-medium rounded-lg hover:from-emerald-800 hover:to-slate-900 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >

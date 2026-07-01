@@ -5,7 +5,7 @@ import type { Analyst } from "../models/Analyst";
 import type { Instrument } from "../preparation_models/Instrument";
 import type { Chemical } from "../preparation_models/Chemical";
 import type { Media } from "../preparation_models/Media";
-
+import companyLogo from "../assets/EFRAC-QIMA-logo.png";
 // ── Signature footer types ────────────────────────────────────────────────────
 
 interface FileSignatureData {
@@ -54,49 +54,55 @@ function formatDateOnly(raw: string | null | undefined): string {
 // ── Reusable signature footer ─────────────────────────────────────────────────
 
 const FileSignatureFooter: React.FC<{ sig: FileSignatureData }> = ({ sig }) => (
-  <table
-    className="file-signature-footer"
-    style={{
-      width: "100%",
-      borderCollapse: "collapse",
-      fontSize: "10px",
-      marginTop: "4px",
-      border: "1px solid black",
-      breakInside: "avoid",
-      pageBreakInside: "avoid",
-    }}
-  >
-    <tbody>
-      <tr>
-        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>
-          Analyzed By
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
-          {sig.analyzedByName || "---"}
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>
-          Analyzed On
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
-          {formatDt(sig.analysisCompletionDate)}
-        </td>
-      </tr>
-      <tr>
-        <td style={{ padding: "4px 8px", border: "1px solid black" }}>
-          Reviewed By
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
-          {sig.approvedByReviewerName || "---"}
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black" }}>
-          Reviewed On
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
-          {formatDt(sig.approvedAtReviewer)}
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div className="signature-footer-block" style={{
+    display: "block",
+    width: "100%",
+    pageBreakInside: "avoid",
+    breakInside: "avoid",
+  }}>
+    <table
+      className="file-signature-footer"
+      style={{
+        width: "100%", borderCollapse: "collapse", fontSize: "10px",
+        marginTop: "4px", border: "1px solid black",
+        breakInside: "avoid", pageBreakInside: "avoid",
+      }}
+    >
+      <tbody>
+        <tr>
+          <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>Analyzed By</td>
+          <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
+            {sig.analyzedByName || "---"}
+          </td>
+          <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>Analyzed On</td>
+          <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
+            {formatFileDt(sig.analysisCompletionDate)}
+          </td>
+        </tr>
+        <tr>
+          <td style={{ padding: "4px 8px", border: "1px solid black" }}>Reviewed By</td>
+          <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+            {sig.approvedByReviewerName || "---"}
+          </td>
+          <td style={{ padding: "4px 8px", border: "1px solid black" }}>Reviewed On</td>
+          <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+            {formatFileDt(sig.approvedAtReviewer)}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div
+      style={{
+        marginTop: "3px",
+        fontSize: "10px",
+        fontStyle: "italic",
+        pageBreakInside: "avoid",
+        breakInside: "avoid",
+      }}
+    >
+      This document has been digitally signed; no further signature is required.
+    </div>
+  </div>
 );
 
 // ── PdfPageRenderer ───────────────────────────────────────────────────────────
@@ -188,16 +194,28 @@ const PdfPageRenderer: React.FC<{
   return (
     <>
       {pages.map((dataUrl, idx) => (
+        // Each page + its footer must print together on the same page
         <div
           key={idx}
           className="pdf-page-with-sig"
-          style={{ breakInside: "avoid", pageBreakInside: "avoid", marginBottom: "4px" }}
+          style={{
+            breakInside: "avoid",
+            pageBreakInside: "avoid",
+            marginBottom: "4px",
+            display: "flex",
+            flexDirection: "column",
+            height: "100vh",
+          }}
         >
-          <img
-            src={dataUrl}
-            alt={`${fileName} page ${idx + 1}`}
-            style={{ width: "100%", display: "block", maxHeight: "87vh", objectFit: "contain" }}
-          />
+          {/* Image area flex-grows to fill whatever space is left; footer sits right after it */}
+          <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            <img
+              src={dataUrl}
+              alt={`${fileName} page ${idx + 1}`}
+              style={{ maxWidth: "100%", maxHeight: "100%", display: "block", objectFit: "contain" }}
+            />
+          </div>
+
           <FileSignatureFooter sig={signature} />
         </div>
       ))}
@@ -1379,7 +1397,8 @@ const TVCStylePrepPrint: React.FC<{
 // ── renderSignatureSection ────────────────────────────────────────────────────
 
 const renderSignatureSection = (param: any) => (
-  <div className="mb-2">
+  <div className="mb-2"
+    style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
     <table
       className="file-signature-footer"
       style={{
@@ -1425,6 +1444,9 @@ const renderSignatureSection = (param: any) => (
         </tr>
       </tbody>
     </table>
+    <p style={{ fontSize: "10px", fontStyle: "italic", margin: "2px 0 0 0" }}>
+      This document has been digitally signed; no further signature is required.
+    </p>
   </div>
 );
 
@@ -1442,8 +1464,26 @@ const renderHeaderAndSampleSection = (
       <table className="w-full table-fixed border border-black">
         <tbody>
           <tr className="bg-gray-200">
-            <td className="border border-black px-3 py-2 text-sm font-bold text-center" colSpan={4}>
-              EDWARD FOOD RESEARCH &amp; ANALYSIS CENTRE LTD
+            <td
+              className="border border-black px-3 py-2 text-sm font-bold text-center"
+              colSpan={3}
+            >
+              EDWARD FOOD RESEARCH & ANALYSIS CENTRE LTD
+            </td>
+            <td
+              className="border border-black px-2 py-1 text-center"
+              style={{ width: "100px", borderLeft: "none" }}
+            >
+              <img
+                src={companyLogo}
+                alt="Company Logo"
+                style={{
+                  height: "44px",
+                  width: "90px",
+                  objectFit: "contain",
+                  display: "inline-block",
+                }}
+              />
             </td>
           </tr>
           <tr>
@@ -1631,6 +1671,12 @@ const MicroPrintReport: React.FC<MicroPrintReportProps> = ({
               break-inside: avoid !important;
               page-break-inside: avoid !important;
             }
+            /* Wrapper around signature table + italic note — keep as one unit */
+            .signature-footer-block {
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
+              display: block !important;
+            }
 
             /* Signature + preceding content grouped so sig never orphans at page bottom */
             .signature-group {
@@ -1639,15 +1685,17 @@ const MicroPrintReport: React.FC<MicroPrintReportProps> = ({
             }
 
             .pdf-page-with-sig {
-              break-inside: avoid !important;
-              page-break-inside: avoid !important;
+              display: flex !important;
+              flex-direction: column !important;
+              height: 100vh !important;
             }
 
-            .pdf-page-with-sig img {
-              max-height: calc(100vh - 60px) !important;
-              width: 100% !important;
+           .pdf-page-with-sig img {
+              max-width: 100% !important;
+              max-height: 100% !important;
               object-fit: contain !important;
             }
+              
           }
 
           @media screen {
@@ -2156,22 +2204,24 @@ const MicroPrintReport: React.FC<MicroPrintReportProps> = ({
                                       signature={fileSig}
                                     />
                                   ) : isImage ? (
+                                    /* Image: show image then JSX footer below */
                                     <div
                                       className="pdf-page-with-sig"
                                       style={{
                                         breakInside: "avoid",
                                         pageBreakInside: "avoid",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        height: "100vh",
                                       }}
                                     >
-                                      <img
-                                        src={`data:image/${f.fileName
-                                          ?.split(".")
-                                          .pop()
-                                          ?.toLowerCase() || "jpeg"};base64,${f.fileDataBase64}`}
-                                        alt={f.fileName}
-                                        className="max-w-full block"
-                                        style={{ objectFit: "contain" }}
-                                      />
+                                      <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                                        <img
+                                          src={`data:image/${f.fileName?.split(".").pop()?.toLowerCase() || "jpeg"};base64,${f.fileDataBase64}`}
+                                          alt={f.fileName}
+                                          style={{ maxWidth: "100%", maxHeight: "100%", display: "block", objectFit: "contain" }}
+                                        />
+                                      </div>
                                       <FileSignatureFooter sig={fileSig} />
                                     </div>
                                   ) : (

@@ -7,6 +7,8 @@ import type { Instrument } from "../preparation_models/Instrument";
 import type { Chemical } from "../preparation_models/Chemical";
 import type { Standard } from "../preparation_models/Standard";
 import type { ParameterDetail } from "../models/ParameterDetail";
+import companyLogo from "../assets/EFRAC-QIMA-logo.png";
+
 
 // ── PDF page-by-page renderer using PDF.js ───────────────────────────────────
 // Loads PDF.js from CDN, renders every page as a canvas, so the pages appear
@@ -49,47 +51,56 @@ function formatFileDt(raw: string | null | undefined): string {
 // ── Reusable signature footer rendered as pure JSX ────────────────────────────
 // Used after every PDF page and every image so it shows in both preview and print
 const FileSignatureFooter: React.FC<{ sig: FileSignatureData }> = ({ sig }) => (
-  <table
-    className="file-signature-footer"
-    style={{
-      width: "100%", borderCollapse: "collapse", fontSize: "10px",
-      marginTop: "4px", border: "1px solid black",
-      breakInside: "avoid", pageBreakInside: "avoid",
-    }}
-  >
-    <tbody>
-      <tr>
-        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>
-          Analyzed By
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
-          {sig.analyzedByName || "---"}
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>
-          Analyzed On
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
-          {formatFileDt(sig.analysisCompletionDate)}
-        </td>
-      </tr>
-      <tr>
-        <td style={{ padding: "4px 8px", border: "1px solid black" }}>
-          Reviewed By
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
-          {sig.approvedByReviewerName || "---"}
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black" }}>
-          Reviewed On
-        </td>
-        <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
-          {formatFileDt(sig.approvedAtReviewer)}
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div className="signature-footer-block" style={{
+    display: "block",
+    width: "100%",
+    pageBreakInside: "avoid",
+    breakInside: "avoid",
+  }}>
+    <table
+      className="file-signature-footer"
+      style={{
+        width: "100%", borderCollapse: "collapse", fontSize: "10px",
+        marginTop: "4px", border: "1px solid black",
+        breakInside: "avoid", pageBreakInside: "avoid",
+      }}
+    >
+      <tbody>
+        <tr>
+          <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>Analyzed By</td>
+          <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
+            {sig.analyzedByName || "---"}
+          </td>
+          <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%" }}>Analyzed On</td>
+          <td style={{ padding: "4px 8px", border: "1px solid black", width: "25%", fontWeight: "bold" }}>
+            {formatFileDt(sig.analysisCompletionDate)}
+          </td>
+        </tr>
+        <tr>
+          <td style={{ padding: "4px 8px", border: "1px solid black" }}>Reviewed By</td>
+          <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+            {sig.approvedByReviewerName || "---"}
+          </td>
+          <td style={{ padding: "4px 8px", border: "1px solid black" }}>Reviewed On</td>
+          <td style={{ padding: "4px 8px", border: "1px solid black", fontWeight: "bold" }}>
+            {formatFileDt(sig.approvedAtReviewer)}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div
+      style={{
+        marginTop: "3px",
+        fontSize: "10px",
+        fontStyle: "italic",
+        pageBreakInside: "avoid",
+        breakInside: "avoid",
+      }}
+    >
+      This document has been digitally signed; no further signature is required.
+    </div>
+  </div>
 );
-
 // ── PdfPageRenderer ───────────────────────────────────────────────────────────
 // Renders each PDF page as a data-URL <img> in React state so the signature
 // footer JSX renders as a true React sibling — visible in preview AND print.
@@ -188,14 +199,24 @@ const PdfPageRenderer: React.FC<{
         <div
           key={idx}
           className="pdf-page-with-sig"
-          style={{ breakInside: "avoid", pageBreakInside: "avoid", marginBottom: "4px" }}
+          style={{
+            breakInside: "avoid",
+            pageBreakInside: "avoid",
+            marginBottom: "4px",
+            display: "flex",
+            flexDirection: "column",
+            height: "100vh",
+          }}
         >
-          {/* Constrain image to ~87% of page height, leaving room for the signature footer */}
-          <img
-            src={dataUrl}
-            alt={`${fileName} page ${idx + 1}`}
-            style={{ width: "100%", display: "block", maxHeight: "87vh", objectFit: "contain" }}
-          />
+          {/* Image area flex-grows to fill whatever space is left; footer sits right after it */}
+          <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            <img
+              src={dataUrl}
+              alt={`${fileName} page ${idx + 1}`}
+              style={{ maxWidth: "100%", maxHeight: "100%", display: "block", objectFit: "contain" }}
+            />
+          </div>
+
           <FileSignatureFooter sig={signature} />
         </div>
       ))}
@@ -540,12 +561,30 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
         <div className="mb-2">
           <table className="w-full table-fixed border border-black">
             <tbody>
-              <tr className="bg-gray-200">
+              <tr className="bg-gray-200" style={{ position: "relative" }}>
                 <td
                   className="border border-black px-3 py-2 text-sm font-bold text-center"
                   colSpan={4}
+                  style={{ position: "relative" }}
                 >
-                  EDWARD FOOD RESEARCH & ANALYSIS CENTRE LTD
+                  <div style={{ lineHeight: "1.3" }}>
+                    <div>EDWARD FOOD RESEARCH</div>
+                    <div>&amp;</div>
+                    <div>ANALYSIS CENTRE LTD</div>
+                  </div>
+                  <img
+                    src={companyLogo}
+                    alt="Company Logo"
+                    style={{
+                      position: "absolute",
+                     right: "8px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      height: "56px",
+                      width: "130px",
+                      objectFit: "contain",
+                    }}
+                  />
                 </td>
               </tr>
 
@@ -667,7 +706,8 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
     };
 
     return (
-      <div className="mb-2">
+      <div className="mb-2"
+        style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
         <table
           className="file-signature-footer"
           style={{
@@ -714,6 +754,9 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
             </tr>
           </tbody>
         </table>
+        <p style={{ fontSize: "10px", fontStyle: "italic", margin: "2px 0 0 0" }}>
+          This document has been digitally signed; no further signature is required.
+        </p>
       </div>
     );
   };
@@ -2481,8 +2524,9 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
 
             /* PDF page image: scale to fit leaving room for signature */
             .pdf-page-with-sig {
-              break-inside: avoid !important;
-              page-break-inside: avoid !important;
+              display: flex !important;
+              flex-direction: column !important;
+              height: 100vh !important;
             }
 
             /* Signature footer: both rows always on same page, never split */
@@ -2491,10 +2535,17 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
               page-break-inside: avoid !important;
             }
 
+            /* Wrapper around signature table + italic note — keep as one unit */
+            .signature-footer-block {
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
+              display: block !important;
+            }
+
             /* Ensure the PDF img inside doesn't overflow — leave ~40px for footer */
             .pdf-page-with-sig img {
-              max-height: calc(100vh - 60px) !important;
-              width: 100% !important;
+              max-width: 100% !important;
+              max-height: 100% !important;
               object-fit: contain !important;
             }
           }
@@ -3138,7 +3189,7 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                                         );
                                       },
                                     )}
-                                    
+
                                     {/* Combined Acceptance Limit row */}
                                     {(() => {
                                       const rawMin = calcData.acceptanceLimitMin;
@@ -3198,14 +3249,14 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                     (p: any) => p.preparationCategory === "blank",
                   ).length > 0 && (
                     <div className="mb-6">
-                      <h4 className="text-md uppercase font-bold mb-2">Blank Preparations</h4>
+                      <h4 className="text-md uppercase font-bold mb-2">Preparation Details</h4>
                       {safeJSONParse(param.preparations, [])
                         .filter((p: any) => p.preparationCategory === "blank")
                         .map((prep: any, idx: number) => {
                           // ── Parse content: supports new array format + legacy single-value ──
                           let methodHtml = "";
                           let results: { id: string; label: string; value: string; unit: string }[] = [];
-                          let limits:  { id: string; label: string; min: string; max: string; unit: string }[] = [];
+                          let limits: { id: string; label: string; min: string; max: string; unit: string }[] = [];
 
                           if (prep.content) {
                             try {
@@ -3214,8 +3265,8 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                                 if (Array.isArray(parsed.results) && Array.isArray(parsed.limits)) {
                                   // New multi-entry format
                                   methodHtml = parsed.method || "";
-                                  results    = parsed.results;
-                                  limits     = parsed.limits;
+                                  results = parsed.results;
+                                  limits = parsed.limits;
                                 } else if ("method" in parsed) {
                                   // Legacy single-value format
                                   methodHtml = parsed.method || "";
@@ -3228,16 +3279,17 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                             } catch { methodHtml = prep.content || ""; }
                           }
 
-                          const hasMethod  = !!methodHtml?.replace(/<[^>]*>/g, "").trim();
+                          const hasMethod = !!methodHtml?.replace(/<[^>]*>/g, "").trim();
                           const hasResults = results.some(r => r.value.trim() || r.unit);
-                          const hasLimits  = limits.some(l => l.min.trim() || l.max.trim());
+                          const hasLimits = limits.some(l => l.min.trim() || l.max.trim());
                           if (!hasMethod && !hasResults && !hasLimits) return null;
 
                           return (
                             <div key={idx} className="section-container mb-4">
                               <p className="font-bold text-sm mb-2">{prep.label}</p>
 
-                              <style dangerouslySetInnerHTML={{ __html: `
+                              <style dangerouslySetInnerHTML={{
+                                __html: `
                                 .blank-method-content table { display: table !important; width: 100% !important; border-collapse: collapse !important; }
                                 .blank-method-content tr    { display: table-row !important; }
                                 .blank-method-content td, .blank-method-content th { display: table-cell !important; border: 1px solid black !important; padding: 4px 8px !important; }
@@ -3532,13 +3584,23 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                                     />
                                   ) : isImage ? (
                                     /* Image: show image then JSX footer below */
-                                    <div className="pdf-page-with-sig" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-                                      <img
-                                        src={`data:image/${f.fileName?.split(".").pop()?.toLowerCase() || "jpeg"};base64,${f.fileDataBase64}`}
-                                        alt={f.fileName}
-                                        className="max-w-full block"
-                                        style={{ objectFit: "contain" }}
-                                      />
+                                    <div
+                                      className="pdf-page-with-sig"
+                                      style={{
+                                        breakInside: "avoid",
+                                        pageBreakInside: "avoid",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        height: "100vh",
+                                      }}
+                                    >
+                                      <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                                        <img
+                                          src={`data:image/${f.fileName?.split(".").pop()?.toLowerCase() || "jpeg"};base64,${f.fileDataBase64}`}
+                                          alt={f.fileName}
+                                          style={{ maxWidth: "100%", maxHeight: "100%", display: "block", objectFit: "contain" }}
+                                        />
+                                      </div>
                                       <FileSignatureFooter sig={fileSig} />
                                     </div>
                                   ) : (

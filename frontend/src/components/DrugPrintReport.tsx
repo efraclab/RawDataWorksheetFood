@@ -577,7 +577,7 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                     alt="Company Logo"
                     style={{
                       position: "absolute",
-                     right: "8px",
+                      right: "8px",
                       top: "50%",
                       transform: "translateY(-50%)",
                       height: "56px",
@@ -2445,7 +2445,8 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
 
             /* New parameter starts on a new page */
             .page-break-before {
-              break-before: page;
+              break-before: page !important;
+              page-break-before: always !important;
             }
 
             /* Everything flows freely by default */
@@ -3243,160 +3244,37 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                   </div>
                 )}
 
-                {/* Blank Preparation */}
-                {param.preparations &&
-                  safeJSONParse(param.preparations, []).filter(
-                    (p: any) => p.preparationCategory === "blank",
-                  ).length > 0 && (
-                    <div className="mb-6">
-                      <h4 className="text-md uppercase font-bold mb-2">Preparation Details</h4>
-                      {safeJSONParse(param.preparations, [])
-                        .filter((p: any) => p.preparationCategory === "blank")
-                        .map((prep: any, idx: number) => {
-                          // ── Parse content: supports new array format + legacy single-value ──
-                          let methodHtml = "";
-                          let results: { id: string; label: string; value: string; unit: string }[] = [];
-                          let limits: { id: string; label: string; min: string; max: string; unit: string }[] = [];
+                {/* ── Preparation Details (blank prep) + System Suitability + Signature ──────
+                    Merged into one flex-column block so that when a "blank" preparation
+                    exists, this entire group starts on its OWN page (heading, table,
+                    system suitability, and signature never split across page 1/2), and
+                    the signature footer is pinned to the bottom of that page — any
+                    leftover space collapses above the signature rather than splitting
+                    the table away from its heading. */}
+                {(() => {
+                  const blankPreps = param.preparations
+                    ? safeJSONParse(param.preparations, []).filter(
+                        (p: any) => p.preparationCategory === "blank",
+                      )
+                    : [];
+                  const hasBlankPrep = blankPreps.length > 0;
 
-                          if (prep.content) {
-                            try {
-                              const parsed = JSON.parse(prep.content);
-                              if (parsed && typeof parsed === "object") {
-                                if (Array.isArray(parsed.results) && Array.isArray(parsed.limits)) {
-                                  // New multi-entry format
-                                  methodHtml = parsed.method || "";
-                                  results = parsed.results;
-                                  limits = parsed.limits;
-                                } else if ("method" in parsed) {
-                                  // Legacy single-value format
-                                  methodHtml = parsed.method || "";
-                                  if (parsed.calculationResult || parsed.calculationResultUnit)
-                                    results = [{ id: "r", label: "Result", value: parsed.calculationResult || "", unit: parsed.calculationResultUnit || "" }];
-                                  if (parsed.acceptanceLimitMin || parsed.acceptanceLimitMax)
-                                    limits = [{ id: "l", label: "Limit", min: parsed.acceptanceLimitMin || "", max: parsed.acceptanceLimitMax || "", unit: parsed.calculationResultUnit || "" }];
-                                } else { methodHtml = prep.content; }
-                              }
-                            } catch { methodHtml = prep.content || ""; }
-                          }
-
-                          const hasMethod = !!methodHtml?.replace(/<[^>]*>/g, "").trim();
-                          const hasResults = results.some(r => r.value.trim() || r.unit);
-                          const hasLimits = limits.some(l => l.min.trim() || l.max.trim());
-                          if (!hasMethod && !hasResults && !hasLimits) return null;
-
-                          return (
-                            <div key={idx} className="section-container mb-4">
-                              <p className="font-bold text-sm mb-2">{prep.label}</p>
-
-                              <style dangerouslySetInnerHTML={{
-                                __html: `
-                                .blank-method-content table { display: table !important; width: 100% !important; border-collapse: collapse !important; }
-                                .blank-method-content tr    { display: table-row !important; }
-                                .blank-method-content td, .blank-method-content th { display: table-cell !important; border: 1px solid black !important; padding: 4px 8px !important; }
-                              `}} />
-
-                              <table className="w-full border-collapse border border-black text-sm">
-                                <tbody>
-
-                                  {/* Method */}
-                                  {hasMethod && (
-                                    <tr>
-                                      <td colSpan={3} className="border border-black px-3 py-2">
-                                        <span className="font-bold">Method / Preparation :&nbsp;</span>
-                                        <div className="blank-method-content text-sm mt-2"
-                                          dangerouslySetInnerHTML={{ __html: methodHtml }}
-                                          style={{ lineHeight: "1.6", fontFamily: "inherit", fontSize: "0.875rem" }} />
-                                      </td>
-                                    </tr>
-                                  )}
-
-                                  {/* Results — header + one row per result */}
-                                  {hasResults && (
-                                    <>
-                                      <tr className="bg-gray-50">
-                                        <td className="border border-black px-3 py-1.5 font-bold text-xs" style={{ width: "30%" }}>Result / Reported Value</td>
-                                        <td className="border border-black px-3 py-1.5 font-bold text-xs" style={{ width: "40%" }}>Value</td>
-                                        <td className="border border-black px-3 py-1.5 font-bold text-xs" style={{ width: "30%" }}>Unit</td>
-                                      </tr>
-                                      {results.map((r, ri) => (
-                                        (r.value.trim() || r.unit) && (
-                                          <tr key={ri}>
-                                            <td className="border border-black px-3 py-1.5 text-xs font-semibold text-gray-600">{r.label}</td>
-                                            <td className="border border-black px-3 py-1.5 font-mono font-bold">{r.value || "—"}</td>
-                                            <td className="border border-black px-3 py-1.5 text-xs">{r.unit || "—"}</td>
-                                          </tr>
-                                        )
-                                      ))}
-                                    </>
-                                  )}
-
-                                  {/* Acceptance Limits — header + one row per limit */}
-                                  {hasLimits && (
-                                    <>
-                                      <tr className="bg-gray-50">
-                                        <td className="border border-black px-3 py-1.5 font-bold text-xs">Acceptance Limit</td>
-                                        <td className="border border-black px-3 py-1.5 font-bold text-xs">Criterion</td>
-                                        <td className="border border-black px-3 py-1.5 font-bold text-xs">Unit</td>
-                                      </tr>
-                                      {limits.map((l, li) => {
-                                        const hasMin = !!l.min.trim(), hasMax = !!l.max.trim();
-                                        if (!hasMin && !hasMax) return null;
-                                        const criterion = hasMin && hasMax
-                                          ? `${l.min} ≤ Result ≤ ${l.max}`
-                                          : hasMin ? `Result ≥ ${l.min}` : `Result ≤ ${l.max}`;
-                                        return (
-                                          <tr key={li}>
-                                            <td className="border border-black px-3 py-1.5 text-xs font-semibold text-gray-600">{l.label}</td>
-                                            <td className="border border-black px-3 py-1.5 font-mono font-bold">{criterion}</td>
-                                            <td className="border border-black px-3 py-1.5 text-xs">{l.unit || "—"}</td>
-                                          </tr>
-                                        );
-                                      })}
-                                    </>
-                                  )}
-
-                                </tbody>
-                              </table>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  )}
-
-                {/* System Suitabilities + Other Info + Signature — grouped so they never orphan */}
-                <div className="signature-table">
-
-                  {/* System Suitability */}
-                  {param.preparations &&
+                  const systemSuitabilityBlock = param.preparations &&
                     safeJSONParse(param.preparations, []).filter(
-                      (p: any) =>
-                        p.preparationCategory === "system_suitability",
+                      (p: any) => p.preparationCategory === "system_suitability",
                     ).length > 0 && (
                       <div className="mb-2">
                         <h4 className="text-md uppercase font-bold mb-2">
                           System Suitabilities
                         </h4>
                         {safeJSONParse(param.preparations, [])
-                          .filter(
-                            (p: any) =>
-                              p.preparationCategory === "system_suitability",
-                          )
+                          .filter((p: any) => p.preparationCategory === "system_suitability")
                           .map((suitability: any, idx: number) => {
                             const steps = safeJSONParse(suitability.steps, []);
-
                             if (!steps || steps.length === 0) return null;
 
-                            // Helper function to get limit prefix
-                            const getLimitPrefix = (
-                              stepName: string,
-                              limitType?: string,
-                            ) => {
-                              // For custom steps with limitType, use that
-                              if (limitType) {
-                                return limitType;
-                              }
-
-                              // For default steps, use hardcoded values
+                            const getLimitPrefix = (stepName: string, limitType?: string) => {
+                              if (limitType) return limitType;
                               switch (stepName) {
                                 case "RSD Area":
                                 case "RSD Retention time":
@@ -3407,34 +3285,15 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                                 case "Peak to Valley ratio":
                                   return "NLT";
                                 default:
-                                  return "NLT"; // Default for unknown steps
+                                  return "NLT";
                               }
                             };
-
-                            // Helper function to check if step uses two values (Peak A and Peak B)
-                            const isTwoValueStep = (stepName: string) => {
-                              return (
-                                stepName === "Resolution" ||
-                                stepName === "Peak to Valley ratio"
-                              );
-                            };
-
-                            // Helper function to check if step has any values
-                            const stepHasAnyValue = (step: any) => {
-                              return !!(
-                                step.value1 ||
-                                step.value2 ||
-                                step.value3
-                              );
-                            };
-
-                            // Filter steps with at least one value
+                            const isTwoValueStep = (stepName: string) =>
+                              stepName === "Resolution" || stepName === "Peak to Valley ratio";
+                            const stepHasAnyValue = (step: any) =>
+                              !!(step.value1 || step.value2 || step.value3);
                             const validSteps = steps.filter(stepHasAnyValue);
-
-                            // If no valid steps after filtering, don't render this suitability
                             if (validSteps.length === 0) return null;
-
-                            // Helper function to get step description
                             const getStepDescription = (stepName: string) => {
                               switch (stepName) {
                                 case "RSD Area":
@@ -3450,73 +3309,47 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                                 case "Theorital Plate count":
                                   return "The Theoretical Plate count of";
                                 default:
-                                  return stepName; // For custom steps, use the step name as is
+                                  return stepName;
                               }
                             };
 
                             return (
                               <div key={idx} className="section-container mb-3">
                                 <div className="mb-1">
-                                  <p className="font-bold text-sm">
-                                    {suitability.label}
-                                  </p>
+                                  <p className="font-bold text-sm">{suitability.label}</p>
                                 </div>
                                 <div className="overflow-x-auto">
                                   <table className="w-full border-collapse border border-black text-sm">
                                     <tbody>
-                                      {validSteps.map(
-                                        (step: any, stepIdx: number) => {
-                                          const limitPrefix = getLimitPrefix(
-                                            step.name,
-                                            step.limitType,
-                                          );
-                                          const stepDesc = getStepDescription(
-                                            step.name,
-                                          );
-                                          const needsTwoValues = isTwoValueStep(
-                                            step.name,
-                                          );
-
-                                          // Build the specification text
-                                          let specification = stepDesc;
-
-                                          // Add Peak A
-                                          if (step.value1) {
-                                            specification += ` <strong>${step.value1}</strong>`;
-                                          } else {
-                                            specification += ` ___________`;
-                                          }
-
-                                          // Add Peak B if needed
-                                          if (needsTwoValues) {
-                                            specification += " and";
-                                            if (step.value2) {
-                                              specification += ` <strong>${step.value2}</strong>`;
-                                            } else {
-                                              specification += ` ___________`;
-                                            }
-                                          }
-
-                                          // Add limit only if value3 exists
-                                          if (step.value3) {
-                                            specification += ` should ${limitPrefix} <strong>${step.value3}</strong>`;
-                                          }
-
-                                          return (
-                                            <tr key={stepIdx}>
-                                              <td className="bg-gray-100 border border-black px-4 py-2 font-medium">
-                                                {step.name}
-                                              </td>
-                                              <td
-                                                className="border border-black px-4 py-2"
-                                                dangerouslySetInnerHTML={{
-                                                  __html: specification,
-                                                }}
-                                              />
-                                            </tr>
-                                          );
-                                        },
-                                      )}
+                                      {validSteps.map((step: any, stepIdx: number) => {
+                                        const limitPrefix = getLimitPrefix(step.name, step.limitType);
+                                        const stepDesc = getStepDescription(step.name);
+                                        const needsTwoValues = isTwoValueStep(step.name);
+                                        let specification = stepDesc;
+                                        specification += step.value1
+                                          ? ` <strong>${step.value1}</strong>`
+                                          : ` ___________`;
+                                        if (needsTwoValues) {
+                                          specification += " and";
+                                          specification += step.value2
+                                            ? ` <strong>${step.value2}</strong>`
+                                            : ` ___________`;
+                                        }
+                                        if (step.value3) {
+                                          specification += ` should ${limitPrefix} <strong>${step.value3}</strong>`;
+                                        }
+                                        return (
+                                          <tr key={stepIdx}>
+                                            <td className="bg-gray-100 border border-black px-4 py-2 font-medium">
+                                              {step.name}
+                                            </td>
+                                            <td
+                                              className="border border-black px-4 py-2"
+                                              dangerouslySetInnerHTML={{ __html: specification }}
+                                            />
+                                          </tr>
+                                        );
+                                      })}
                                     </tbody>
                                   </table>
                                 </div>
@@ -3524,12 +3357,134 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                             );
                           })}
                       </div>
-                    )}
+                    );
 
-                  {/* Digital Signature */}
-                  {renderSignatureSection(param)}
+                  const blankPrepBlock = hasBlankPrep && (
+                    <div className="mb-6">
+                      <h4 className="text-md uppercase font-bold mb-2">Preparation Details</h4>
+                      {blankPreps.map((prep: any, idx: number) => {
+                        let methodHtml = "";
+                        let results: { id: string; label: string; value: string; unit: string }[] = [];
+                        let limits: { id: string; label: string; min: string; max: string; unit: string }[] = [];
 
-                </div>{/* end: suitability+signature group */}
+                        if (prep.content) {
+                          try {
+                            const parsed = JSON.parse(prep.content);
+                            if (parsed && typeof parsed === "object") {
+                              if (Array.isArray(parsed.results) && Array.isArray(parsed.limits)) {
+                                methodHtml = parsed.method || "";
+                                results = parsed.results;
+                                limits = parsed.limits;
+                              } else if ("method" in parsed) {
+                                methodHtml = parsed.method || "";
+                                if (parsed.calculationResult || parsed.calculationResultUnit)
+                                  results = [{ id: "r", label: "Result", value: parsed.calculationResult || "", unit: parsed.calculationResultUnit || "" }];
+                                if (parsed.acceptanceLimitMin || parsed.acceptanceLimitMax)
+                                  limits = [{ id: "l", label: "Limit", min: parsed.acceptanceLimitMin || "", max: parsed.acceptanceLimitMax || "", unit: parsed.calculationResultUnit || "" }];
+                              } else { methodHtml = prep.content; }
+                            }
+                          } catch { methodHtml = prep.content || ""; }
+                        }
+
+                        const hasMethod = !!methodHtml?.replace(/<[^>]*>/g, "").trim();
+                        const hasResults = results.some(r => r.value.trim() || r.unit);
+                        const hasLimits = limits.some(l => l.min.trim() || l.max.trim());
+                        if (!hasMethod && !hasResults && !hasLimits) return null;
+
+                        return (
+                          <div key={idx} className="section-container mb-4">
+                            <p className="font-bold text-sm mb-2">{prep.label}</p>
+
+                            <style dangerouslySetInnerHTML={{
+                              __html: `
+                              .blank-method-content table { display: table !important; width: 100% !important; border-collapse: collapse !important; }
+                              .blank-method-content tr    { display: table-row !important; }
+                              .blank-method-content td, .blank-method-content th { display: table-cell !important; border: 1px solid black !important; padding: 4px 8px !important; }
+                            `}} />
+
+                            <table className="w-full border-collapse border border-black text-sm">
+                              <tbody>
+                                {hasMethod && (
+                                  <tr>
+                                    <td colSpan={3} className="border border-black px-3 py-2">
+                                      <span className="font-bold">Method / Preparation :&nbsp;</span>
+                                      <div className="blank-method-content text-sm mt-2"
+                                        dangerouslySetInnerHTML={{ __html: methodHtml }}
+                                        style={{ lineHeight: "1.6", fontFamily: "inherit", fontSize: "0.875rem" }} />
+                                    </td>
+                                  </tr>
+                                )}
+                                {hasResults && (
+                                  <>
+                                    <tr className="bg-gray-50">
+                                      <td className="border border-black px-3 py-1.5 font-bold text-xs" style={{ width: "30%" }}>Result / Reported Value</td>
+                                      <td className="border border-black px-3 py-1.5 font-bold text-xs" style={{ width: "40%" }}>Value</td>
+                                      <td className="border border-black px-3 py-1.5 font-bold text-xs" style={{ width: "30%" }}>Unit</td>
+                                    </tr>
+                                    {results.map((r, ri) => (
+                                      (r.value.trim() || r.unit) && (
+                                        <tr key={ri}>
+                                          <td className="border border-black px-3 py-1.5 text-xs font-semibold text-gray-600">{r.label}</td>
+                                          <td className="border border-black px-3 py-1.5 font-mono font-bold">{r.value || "—"}</td>
+                                          <td className="border border-black px-3 py-1.5 text-xs">{r.unit || "—"}</td>
+                                        </tr>
+                                      )
+                                    ))}
+                                  </>
+                                )}
+                                {hasLimits && (
+                                  <>
+                                    <tr className="bg-gray-50">
+                                      <td className="border border-black px-3 py-1.5 font-bold text-xs">Acceptance Limit</td>
+                                      <td className="border border-black px-3 py-1.5 font-bold text-xs">Criterion</td>
+                                      <td className="border border-black px-3 py-1.5 font-bold text-xs">Unit</td>
+                                    </tr>
+                                    {limits.map((l, li) => {
+                                      const hasMinV = !!l.min.trim(), hasMaxV = !!l.max.trim();
+                                      if (!hasMinV && !hasMaxV) return null;
+                                      const criterion = hasMinV && hasMaxV
+                                        ? `${l.min} ≤ Result ≤ ${l.max}`
+                                        : hasMinV ? `Result ≥ ${l.min}` : `Result ≤ ${l.max}`;
+                                      return (
+                                        <tr key={li}>
+                                          <td className="border border-black px-3 py-1.5 text-xs font-semibold text-gray-600">{l.label}</td>
+                                          <td className="border border-black px-3 py-1.5 font-mono font-bold">{criterion}</td>
+                                          <td className="border border-black px-3 py-1.5 text-xs">{l.unit || "—"}</td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+
+                  if (hasBlankPrep) {
+                    return (
+                      <div
+                        className="page-break-before"
+                        style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          {blankPrepBlock}
+                          {systemSuitabilityBlock}
+                        </div>
+                        {renderSignatureSection(param)}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="signature-table">
+                      {systemSuitabilityBlock}
+                      {renderSignatureSection(param)}
+                    </div>
+                  );
+                })()}
 
                 {/* Attached Files — PDF pages rendered inline via PDF.js, no filename/border chrome */}
                 {param.files && Array.isArray(param.files) && param.files.filter((f: any) => f.fileDataBase64).length > 0 && (
@@ -3583,7 +3538,7 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                                       signature={fileSig}
                                     />
                                   ) : isImage ? (
-                                    /* Image: show image then JSX footer below */
+                                    /* Image: show image then JSX footer below, footer pinned to page bottom */
                                     <div
                                       className="pdf-page-with-sig"
                                       style={{

@@ -8,6 +8,15 @@ interface StandardSelectionDialogProps {
   onClose: () => void;
   availableStandards: Standard[];
   onSelectStandard: (standard: Standard) => void;
+  /** When true, allows selecting more than one standard (e.g. Hypromellose needs both
+   *  Methyl Iodide and 2-Iodopropane assigned to the same preparation). Defaults to false
+   *  so every other caller keeps the original single-select behavior unchanged. */
+  multiSelect?: boolean;
+  /** Standard names (case-insensitive) that should be pre-checked when the dialog opens,
+   *  only relevant when multiSelect is true. */
+  defaultSelectedNames?: string[];
+  /** Required when multiSelect is true - fires with all checked standards on confirm. */
+  onSelectStandards?: (standards: Standard[]) => void;
 }
 
 const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
@@ -15,10 +24,45 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
   onClose,
   availableStandards,
   onSelectStandard,
+  multiSelect = false,
+  defaultSelectedNames = [],
+  onSelectStandards,
 }) => {
   const [selectedStandard, setSelectedStandard] = useState<Standard | null>(null);
+  const [selectedStandards, setSelectedStandards] = useState<Standard[]>([]);
+
+  // Pre-check the default-named standards whenever the dialog opens in multi-select mode
+  React.useEffect(() => {
+    if (isOpen && multiSelect) {
+      const defaults = availableStandards.filter((std) =>
+        defaultSelectedNames.some(
+          (name) => name.trim().toLowerCase() === (std.name || "").trim().toLowerCase(),
+        ),
+      );
+      setSelectedStandards(defaults);
+    } else if (isOpen && !multiSelect) {
+      setSelectedStandard(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, multiSelect]);
+
+  const toggleStandard = (standard: Standard) => {
+    setSelectedStandards((prev) =>
+      prev.some((s) => s.serialNo === standard.serialNo)
+        ? prev.filter((s) => s.serialNo !== standard.serialNo)
+        : [...prev, standard],
+    );
+  };
 
   const handleConfirm = () => {
+    if (multiSelect) {
+      if (selectedStandards.length > 0) {
+        onSelectStandards?.(selectedStandards);
+        setSelectedStandards([]);
+        onClose();
+      }
+      return;
+    }
     if (selectedStandard) {
       onSelectStandard(selectedStandard);
       setSelectedStandard(null);
@@ -28,6 +72,7 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
 
   const handleClose = () => {
     setSelectedStandard(null);
+    setSelectedStandards([]);
     onClose();
   };
 
@@ -95,17 +140,25 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {availableStandards.map((standard, index) => (
+                    {availableStandards.map((standard, index) => {
+                      const isChecked = multiSelect
+                        ? selectedStandards.some((s) => s.serialNo === standard.serialNo)
+                        : selectedStandard?.serialNo === standard.serialNo;
+                      return (
                       <motion.button
                         key={standard.serialNo}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        onClick={() => setSelectedStandard(standard)}
+                        onClick={() =>
+                          multiSelect
+                            ? toggleStandard(standard)
+                            : setSelectedStandard(standard)
+                        }
                         className={`
                           w-full text-left p-4 rounded-xl border-2 transition-all duration-200
                           ${
-                            selectedStandard?.serialNo === standard.serialNo
+                            isChecked
                               ? "border-emerald-500 bg-emerald-50 shadow-md"
                               : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50"
                           }
@@ -114,16 +167,22 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
                         <div className="flex items-start gap-3">
                           {/* Radio/Check indicator */}
                           <div className="flex-shrink-0 mt-0.5">
-                            {selectedStandard?.serialNo === standard.serialNo ? (
+                            {isChecked ? (
                               <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-500 flex items-center justify-center shadow-md"
+                                className={`w-6 h-6 ${
+                                  multiSelect ? "rounded-md" : "rounded-full"
+                                } bg-gradient-to-br from-emerald-500 to-emerald-500 flex items-center justify-center shadow-md`}
                               >
                                 <Check className="w-4 h-4 text-white" />
                               </motion.div>
                             ) : (
-                              <div className="w-6 h-6 rounded-full border-2 border-gray-300" />
+                              <div
+                                className={`w-6 h-6 ${
+                                  multiSelect ? "rounded-md" : "rounded-full"
+                                } border-2 border-gray-300`}
+                              />
                             )}
                           </div>
 
@@ -153,7 +212,8 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
                           </div>
                         </div>
                       </motion.button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -176,17 +236,19 @@ const StandardSelectionDialog: React.FC<StandardSelectionDialogProps> = ({
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleConfirm}
-                    disabled={!selectedStandard}
+                    disabled={multiSelect ? selectedStandards.length === 0 : !selectedStandard}
                     className={`
                       px-6 py-2 text-sm font-medium text-white rounded-lg transition-all
                       ${
-                        selectedStandard
+                        (multiSelect ? selectedStandards.length > 0 : !!selectedStandard)
                           ? "bg-gradient-to-r from-emerald-600 to-emerald-600 hover:from-emerald-700 hover:to-emerald-700 shadow-md hover:shadow-lg"
                           : "bg-gray-300 cursor-not-allowed"
                       }
                     `}
                   >
-                    Create Preparation
+                    {multiSelect && selectedStandards.length > 0
+                      ? `Create Preparation (${selectedStandards.length} selected)`
+                      : "Create Preparation"}
                   </motion.button>
                 </div>
               </div>

@@ -24,6 +24,7 @@ import SamplePreparationLodDetail from "./sub-components/drugs/SamplePreparation
 import SamplePreparationSulphatedAshDetail from "./sub-components/drugs/SamplePreparationSulphatedAshDetail";
 import SamplePreparationROIDetail from "./sub-components/drugs/SamplePreparationROIDetail";
 import StandardSelectionDialog from "./shared/StandardSelectionDialog";
+import CopyFromWorksheetDialog from "./shared/CopyFromWorksheetDialog";
 import type { CalculationAssay } from "../preparation_models/drugs/CalculationAssay";
 import CalculationDetailAssay from "./sub-components/drugs/CalculationDetailAssay";
 import { BiTestTube } from "react-icons/bi";
@@ -111,6 +112,14 @@ import type { WorksheetSidebarState, WorksheetSidebarActions } from "./shared/Wo
 import type { WorksheetStandard } from "../models/WorksheetStandard";
 import type { WorksheetInstrument } from "../models/WorksheetInstrument";
 import type { WorksheetChemical } from "../models/WorksheetChemical";
+import type { StandardPreparationHypromellose } from "../preparation_models/drugs/Standardpreparationhypromellose.ts";
+import type { StandardPreparationHypromelloseStep } from "../preparation_models/drugs/Standardpreparationhypromellosestep.ts";
+import type { SamplePreparationHypromellose } from "../preparation_models/drugs/Samplepreparationhypromellose.ts";
+import type { SamplePreparationHypromelloseStep } from "../preparation_models/drugs/Samplepreparationhypromellosestep.ts";
+import type { CalculationAssayHypromellose } from "../preparation_models/drugs/Calculationassayhypromellose.ts";
+import StandardPreparationHypromelloseDetail from "./sub-components/drugs/StandardPreparationHypromelloseDetail";
+import SamplePreparationHypromelloseDetail from "./sub-components/drugs/SamplePreparationHypromelloseDetail";
+import CalculationDetailAssayHypromellose from "./sub-components/drugs/CalculationDetailAssayHypromellose";
 
 // SVG Icons
 const Target: React.FC<{ className: string }> = ({ className }) => (
@@ -965,16 +974,156 @@ const createNewCalculationUC = (index: number): CalculationUC => ({
   acceptanceLimitMax: "",
 });
 
+const hypromelloseWeightToMg = (value: string | null | undefined, unit: string | null | undefined): number => {
+  const num = parseFloat(value ?? "");
+  if (isNaN(num)) return NaN;
+  return (unit || "").toLowerCase() === "g" ? num * 1000 : num;
+};
+
+// Step naming has changed over time; match on any historical variant so
+// existing saved preparations keep auto-fetching correctly.
+const isMethylIodideStep = (name: string) =>
+  name === "Weight of Methyl Iodide" ||
+  name === "Methyl Iodide - in Weight" ||
+  name === "Methyl Iodide - By Difference";
+
+const isIsopropylIodideStep = (name: string) =>
+  name === "Weight of Isopropyl Iodide" ||
+  name === "Isopropyl Iodide - in Weight" ||
+  name === "Isopropyl Iodide - By Difference";
+
+const createNewStandardPreparationHypromellose = (
+  index: number,
+): StandardPreparationHypromellose => ({
+  id: Date.now() + index,
+  label: `Standard Preparation ${index + 1}`,
+  assignedStandardId: null,
+  steps: [
+    { name: "Weighing (Adipic Acid)", value1: "", unit1: "mg" },
+    { name: "Hydriodic Acid", value1: "", unit1: "ml" },
+    { name: "Internal Standard Solution", value1: "", unit1: "ml" },
+    {
+      name: "Weight of Isopropyl Iodide",
+      value1: "",
+      unit1: "mg",
+    },
+    {
+      name: "Weight of Methyl Iodide",
+      value1: "",
+      unit1: "mg",
+    },
+  ],
+});
+
+const createNewSamplePreparationHypromellose = (
+  index: number,
+): SamplePreparationHypromellose => ({
+  id: Date.now() + index,
+  label: `Sample Preparation ${index + 1}`,
+  steps: [
+    { name: "Weighing (Sample)", value1: "", unit1: "g" },
+    { name: "Weighing (Adipic Acid)", value1: "", unit1: "mg" },
+    { name: "Internal Standard Solution", value1: "", unit1: "ml" },
+    { name: "Hydriodic Acid", value1: "", unit1: "ml" },
+    { name: "Heating", value1: "130", unit1: "°C", value2: "60", unit2: "min" },
+  ],
+});
+
+const createNewCalculationAssayHypromellose = (
+  index: number,
+): CalculationAssayHypromellose => ({
+  id: Date.now() + index,
+  label: `Calculation ${index + 1}`,
+  selectedStandardPreparationLabel: null,
+  selectedSamplePreparationLabel: null,
+  methylIodideBatchNo: "",
+  isopropylIodideBatchNo: "",
+  methylIodidePurity: "",
+  isopropylIodidePurity: "",
+  methylIodideStdWt: "",
+  isopropylIodideStdWt: "",
+  sampleWeight: "",
+  lodPercent: "",
+  areaOfMI1: "",
+  areaOfMI2: "",
+  areaOfMI3: "",
+  areaOfMI4: "",
+  areaOfMI5: "",
+  areaOfMI6: "",
+  areaOfIPI1: "",
+  areaOfIPI2: "",
+  areaOfIPI3: "",
+  areaOfIPI4: "",
+  areaOfIPI5: "",
+  areaOfIPI6: "",
+  internalStandardArea1: "",
+  internalStandardArea2: "",
+  internalStandardArea3: "",
+  internalStandardArea4: "",
+  internalStandardArea5: "",
+  internalStandardArea6: "",
+  areaRatioMIMean: null,
+  areaRatioMISD: null,
+  areaRatioMIRSD: null,
+  areaRatioIPIMean: null,
+  areaRatioIPISD: null,
+  areaRatioIPIRSD: null,
+  sampleAreaOfMI1: "",
+  sampleAreaOfMI2: "",
+  sampleAreaOfMI3: "",
+  sampleAreaOfMI4: "",
+  sampleAreaOfMI5: "",
+  sampleAreaOfMI6: "",
+  sampleAreaOfIPI1: "",
+  sampleAreaOfIPI2: "",
+  sampleAreaOfIPI3: "",
+  sampleAreaOfIPI4: "",
+  sampleAreaOfIPI5: "",
+  sampleAreaOfIPI6: "",
+  sampleInternalStandardArea1: "",
+  sampleInternalStandardArea2: "",
+  sampleInternalStandardArea3: "",
+  sampleInternalStandardArea4: "",
+  sampleInternalStandardArea5: "",
+  sampleInternalStandardArea6: "",
+  areaRatioSampleMIMean: null,
+  areaRatioSampleMISD: null,
+  areaRatioSampleMIRSD: null,
+  areaRatioSampleIPIMean: null,
+  areaRatioSampleIPISD: null,
+  areaRatioSampleIPIRSD: null,
+  stdAreaOfMI: "",
+  stdAreaOfIPI: "",
+  stdInternalStandardArea: "",
+  areaRatioQSa: null,
+  areaRatioQSb: null,
+  sampleAreaOfMI: "",
+  sampleAreaOfIPI: "",
+  sampleInternalStandardArea: "",
+  areaRatioQTa: null,
+  areaRatioQTb: null,
+  methoxyResultAsIs: null,
+  methoxyResultDried: null,
+  methoxyResultUnit: null,
+  methoxyLimitMin: "",
+  methoxyLimitMax: "",
+  hydroxypropoxyResultAsIs: null,
+  hydroxypropoxyResultDried: null,
+  hydroxypropoxyResultUnit: null,
+  hydroxypropoxyLimitMin: "",
+  hydroxypropoxyLimitMax: "",
+});
+
 const createNewSystemSuitability = (index: number): SystemSuitability => ({
   id: Date.now() + index,
   label: `System Suitability ${index + 1}`,
   steps: [
-    { name: "RSD Area", value1: "", value2: "", value3: "" },
-    { name: "RSD Retention time", value1: "", value2: "", value3: "" },
-    { name: "Tailing factor", value1: "", value2: "", value3: "" },
-    { name: "Resolution", value1: "", value2: "", value3: "" },
-    { name: "Theorital Plate count", value1: "", value2: "", value3: "" },
-    { name: "Peak to Valley ratio", value1: "", value2: "", value3: "" },
+    { name: "RSD Area", value1: "", value2: "", value3: "", value4: "" },
+    { name: "RSD Retention time", value1: "", value2: "", value3: "", value4: "" },
+    { name: "Tailing factor", value1: "", value2: "", value3: "", value4: "" },
+    { name: "Resolution", value1: "", value2: "", value3: "", value4: "" },
+    { name: "Theorital Plate count", value1: "", value2: "", value3: "", value4: "" },
+    { name: "Peak to Valley ratio", value1: "", value2: "", value3: "", value4: "" },
   ],
 });
 
@@ -1020,6 +1169,11 @@ const PREPARATION_GROUPS = {
   dissolutionFerrousFumarate: {
     id: "dissolutionFerrousFumarate",
     label: "Preparation for Dissolution (Ferrous Fumarate)",
+    color: "emerald",
+  },
+  hypromellose: {
+    id: "hypromellose",
+    label: "Preparations for Assay (Hypromellose)",
     color: "emerald",
   },
   mobilePhase: {
@@ -1238,6 +1392,20 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
   >({});
   const [standardPreparationUCPerParam, setStandardPreparationUCPerParam] =
     useState<Record<number, StandardPreparation[]>>({});
+  const [
+    standardPreparationHypromellosePerParam,
+    setStandardPreparationHypromellosePerParam,
+  ] = useState<Record<number, StandardPreparationHypromellose[]>>({});
+  const [
+    samplePreparationHypromellosePerParam,
+    setSamplePreparationHypromellosePerParam,
+  ] = useState<Record<number, SamplePreparationHypromellose[]>>({});
+  const [
+    calculationsAssayHypromellosePerParam,
+    setCalculationsAssayHypromellosePerParam,
+  ] = useState<Record<number, CalculationAssayHypromellose[]>>({});
+  const [isAddingHypromelloseStandard, setIsAddingHypromelloseStandard] =
+    useState(false);
 
   // Per-parameter state
   const [columnsPerParam, setColumnsPerParam] = useState<
@@ -1272,6 +1440,12 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
   const [addedStandards, setAddedStandards] = useState<
     Record<number, WorksheetStandard[]>
   >({});
+  // Internal Standard Preparation - Hypromellose only, independent pool from addedStandards
+  const [addedInternalStandards, setAddedInternalStandards] = useState<
+    Record<number, WorksheetStandard[]>
+  >({});
+  const [showInternalStandardPreparation, setShowInternalStandardPreparation] =
+    useState<Record<number, boolean>>({});
   const [otherInfoPerParam, setOtherInfoPerParam] = useState<
     Record<number, string>
   >({});
@@ -1489,11 +1663,15 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
   const [showInstrumentDropdown, setShowInstrumentDropdown] = useState(false);
   const [showChemicalDropdown, setShowChemicalDropdown] = useState(false);
   const [showStandardDropdown, setShowStandardDropdown] = useState(false);
+  const [showInternalStandardDropdown, setShowInternalStandardDropdown] =
+    useState(false);
+  const [showCopyWorksheetDialog, setShowCopyWorksheetDialog] = useState(false);
 
   // Search states
   const [instrumentSearch, setInstrumentSearch] = useState("");
   const [chemicalSearch, setChemicalSearch] = useState("");
   const [standardSearch, setStandardSearch] = useState("");
+  const [internalStandardSearch, setInternalStandardSearch] = useState("");
 
   // Dialog state
   const [showStandardSelectionDialog, setShowStandardSelectionDialog] =
@@ -1505,6 +1683,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
   const instrumentRef = useRef<HTMLDivElement>(null);
   const chemicalRef = useRef<HTMLDivElement>(null);
   const standardRef = useRef<HTMLDivElement>(null);
+  const internalStandardRef = useRef<HTMLDivElement>(null);
   const preparationDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -1572,6 +1751,12 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
       !standardRef.current.contains(event.target as Node)
     ) {
       setShowStandardDropdown(false);
+    }
+    if (
+      internalStandardRef.current &&
+      !internalStandardRef.current.contains(event.target as Node)
+    ) {
+      setShowInternalStandardDropdown(false);
     }
     if (
       preparationDropdownRef.current &&
@@ -1915,6 +2100,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
           if (prepTypes.includes("dissolution_profile"))
             groupKeys["dissoProfile"] = at;
           if (prepTypes.includes("uniformity_of_content")) groupKeys["uc"] = at;
+          if (prepTypes.includes("hypromellose")) groupKeys["hypromellose"] = at;
           if (prepTypes.includes("assay_ferrous_fumarate"))
             groupKeys["assayFerrousFumarate"] = at;
           if (prepTypes.includes("dissolution_ferrous_fumarate"))
@@ -1968,6 +2154,27 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
       }
 
       // ------------------------------------------------------------------------
+      // 2.5b: Internal Standards (Hypromellose only, independent pool)
+      // ------------------------------------------------------------------------
+      if (
+        (param as any).internalStandards &&
+        Array.isArray((param as any).internalStandards)
+      ) {
+        const worksheetInternalStandards = (param as any)
+          .internalStandards as WorksheetStandard[];
+        if (worksheetInternalStandards.length > 0) {
+          setAddedInternalStandards((prev) => ({
+            ...prev,
+            [paramId]: worksheetInternalStandards,
+          }));
+          setShowInternalStandardPreparation((prev) => ({
+            ...prev,
+            [paramId]: true,
+          }));
+        }
+      }
+
+      // ------------------------------------------------------------------------
       // 2.6: PREPARATIONS (Main Logic - FIXED)
       // ------------------------------------------------------------------------
       if (
@@ -1983,6 +2190,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
           dissoStd: [] as any[],
           ucStd: [] as any[],
           relatedSubstanceStd: [] as any[],
+          hypromelloseStd: [] as any[],
 
           // Sample preparations by type
           assaySpl: [] as any[],
@@ -1995,6 +2203,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
           dissolutionFerrousFumarateSpl: [] as any[],
           ucSpl: [] as any[],
           relatedSubstanceSpl: [] as any[],
+          hypromelloseSpl: [] as any[],
 
           // Special category preparations
           dissoMedia: [] as any[],
@@ -2048,6 +2257,9 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
               case "dissolution_profile":
                 preparationCollections.dissoProfileStd.push(newPrep);
                 break;
+              case "hypromellose":
+                preparationCollections.hypromelloseStd.push(newPrep);
+                break;
               default:
                 // [WARNING] CRITICAL FIX: Log unrecognized types but DON'T add them
                 if (prepType) {
@@ -2099,6 +2311,9 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                 break;
               case "dissolution_profile":
                 preparationCollections.dissoProfileSpl.push(newPrep);
+                break;
+              case "hypromellose":
+                preparationCollections.hypromelloseSpl.push(newPrep);
                 break;
               default:
                 // [WARNING] CRITICAL FIX: Log unrecognized types but DON'T add them
@@ -2178,6 +2393,13 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
           }));
         }
 
+        if (preparationCollections.hypromelloseStd.length > 0) {
+          setStandardPreparationHypromellosePerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.hypromelloseStd,
+          }));
+        }
+
         // Sample preparations
         if (preparationCollections.assaySpl.length > 0) {
           setSamplePreparationPerParam((prev) => ({
@@ -2253,6 +2475,13 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
           setSamplePreparationUCPerParam((prev) => ({
             ...prev,
             [paramId]: preparationCollections.ucSpl,
+          }));
+        }
+
+        if (preparationCollections.hypromelloseSpl.length > 0) {
+          setSamplePreparationHypromellosePerParam((prev) => ({
+            ...prev,
+            [paramId]: preparationCollections.hypromelloseSpl,
           }));
         }
 
@@ -2357,6 +2586,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
           dissolutionProfile: [] as any[],
           ferrousFumarate: [] as CalculationAssayFerrousFumarate[],
           dissoFerrousFumarate: [] as CalculationDissoFerrousFumarate[],
+          hypromellose: [] as CalculationAssayHypromellose[],
         };
 
         param.calculations.forEach((calc: any, i: number) => {
@@ -3075,6 +3305,121 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                 break;
               }
 
+              case "assay_hypromellose": {
+                const hypCalc: CalculationAssayHypromellose = {
+                  id: baseId + 8900,
+                  label: parsedData.label || calc.label,
+                  selectedStandardPreparationLabel: stdLabel,
+                  selectedSamplePreparationLabel: splLabel,
+                  methylIodideBatchNo: parsedData.methylIodideBatchNo || "",
+                  isopropylIodideBatchNo:
+                    parsedData.isopropylIodideBatchNo || "",
+                  methylIodidePurity: parsedData.methylIodidePurity || "",
+                  isopropylIodidePurity:
+                    parsedData.isopropylIodidePurity || "",
+                  methylIodideStdWt: parsedData.methylIodideStdWt || "",
+                  isopropylIodideStdWt:
+                    parsedData.isopropylIodideStdWt || "",
+                  sampleWeight: parsedData.sampleWeight || "",
+                  lodPercent: parsedData.lodPercent || "",
+                  areaOfMI1: parsedData.areaOfMI1 || "",
+                  areaOfMI2: parsedData.areaOfMI2 || "",
+                  areaOfMI3: parsedData.areaOfMI3 || "",
+                  areaOfMI4: parsedData.areaOfMI4 || "",
+                  areaOfMI5: parsedData.areaOfMI5 || "",
+                  areaOfMI6: parsedData.areaOfMI6 || "",
+                  areaOfIPI1: parsedData.areaOfIPI1 || "",
+                  areaOfIPI2: parsedData.areaOfIPI2 || "",
+                  areaOfIPI3: parsedData.areaOfIPI3 || "",
+                  areaOfIPI4: parsedData.areaOfIPI4 || "",
+                  areaOfIPI5: parsedData.areaOfIPI5 || "",
+                  areaOfIPI6: parsedData.areaOfIPI6 || "",
+                  internalStandardArea1:
+                    parsedData.internalStandardArea1 || "",
+                  internalStandardArea2:
+                    parsedData.internalStandardArea2 || "",
+                  internalStandardArea3:
+                    parsedData.internalStandardArea3 || "",
+                  internalStandardArea4:
+                    parsedData.internalStandardArea4 || "",
+                  internalStandardArea5:
+                    parsedData.internalStandardArea5 || "",
+                  internalStandardArea6:
+                    parsedData.internalStandardArea6 || "",
+                  areaRatioMIMean: parsedData.areaRatioMIMean ?? null,
+                  areaRatioMISD: parsedData.areaRatioMISD ?? null,
+                  areaRatioMIRSD: parsedData.areaRatioMIRSD ?? null,
+                  areaRatioIPIMean: parsedData.areaRatioIPIMean ?? null,
+                  areaRatioIPISD: parsedData.areaRatioIPISD ?? null,
+                  areaRatioIPIRSD: parsedData.areaRatioIPIRSD ?? null,
+                  sampleAreaOfMI1: parsedData.sampleAreaOfMI1 || "",
+                  sampleAreaOfMI2: parsedData.sampleAreaOfMI2 || "",
+                  sampleAreaOfMI3: parsedData.sampleAreaOfMI3 || "",
+                  sampleAreaOfMI4: parsedData.sampleAreaOfMI4 || "",
+                  sampleAreaOfMI5: parsedData.sampleAreaOfMI5 || "",
+                  sampleAreaOfMI6: parsedData.sampleAreaOfMI6 || "",
+                  sampleAreaOfIPI1: parsedData.sampleAreaOfIPI1 || "",
+                  sampleAreaOfIPI2: parsedData.sampleAreaOfIPI2 || "",
+                  sampleAreaOfIPI3: parsedData.sampleAreaOfIPI3 || "",
+                  sampleAreaOfIPI4: parsedData.sampleAreaOfIPI4 || "",
+                  sampleAreaOfIPI5: parsedData.sampleAreaOfIPI5 || "",
+                  sampleAreaOfIPI6: parsedData.sampleAreaOfIPI6 || "",
+                  sampleInternalStandardArea1:
+                    parsedData.sampleInternalStandardArea1 || "",
+                  sampleInternalStandardArea2:
+                    parsedData.sampleInternalStandardArea2 || "",
+                  sampleInternalStandardArea3:
+                    parsedData.sampleInternalStandardArea3 || "",
+                  sampleInternalStandardArea4:
+                    parsedData.sampleInternalStandardArea4 || "",
+                  sampleInternalStandardArea5:
+                    parsedData.sampleInternalStandardArea5 || "",
+                  sampleInternalStandardArea6:
+                    parsedData.sampleInternalStandardArea6 || "",
+                  areaRatioSampleMIMean:
+                    parsedData.areaRatioSampleMIMean ?? null,
+                  areaRatioSampleMISD:
+                    parsedData.areaRatioSampleMISD ?? null,
+                  areaRatioSampleMIRSD:
+                    parsedData.areaRatioSampleMIRSD ?? null,
+                  areaRatioSampleIPIMean:
+                    parsedData.areaRatioSampleIPIMean ?? null,
+                  areaRatioSampleIPISD:
+                    parsedData.areaRatioSampleIPISD ?? null,
+                  areaRatioSampleIPIRSD:
+                    parsedData.areaRatioSampleIPIRSD ?? null,
+                  stdAreaOfMI: parsedData.stdAreaOfMI || "",
+                  stdAreaOfIPI: parsedData.stdAreaOfIPI || "",
+                  stdInternalStandardArea:
+                    parsedData.stdInternalStandardArea || "",
+                  areaRatioQSa: parsedData.areaRatioQSa ?? null,
+                  areaRatioQSb: parsedData.areaRatioQSb ?? null,
+                  sampleAreaOfMI: parsedData.sampleAreaOfMI || "",
+                  sampleAreaOfIPI: parsedData.sampleAreaOfIPI || "",
+                  sampleInternalStandardArea:
+                    parsedData.sampleInternalStandardArea || "",
+                  areaRatioQTa: parsedData.areaRatioQTa ?? null,
+                  areaRatioQTb: parsedData.areaRatioQTb ?? null,
+                  methoxyResultAsIs: parsedData.methoxyResultAsIs ?? null,
+                  methoxyResultDried: parsedData.methoxyResultDried ?? null,
+                  methoxyResultUnit: parsedData.methoxyResultUnit ?? null,
+                  methoxyLimitMin: parsedData.methoxyLimitMin || "",
+                  methoxyLimitMax: parsedData.methoxyLimitMax || "",
+                  hydroxypropoxyResultAsIs:
+                    parsedData.hydroxypropoxyResultAsIs ?? null,
+                  hydroxypropoxyResultDried:
+                    parsedData.hydroxypropoxyResultDried ?? null,
+                  hydroxypropoxyResultUnit:
+                    parsedData.hydroxypropoxyResultUnit ?? null,
+                  hydroxypropoxyLimitMin:
+                    parsedData.hydroxypropoxyLimitMin || "",
+                  hydroxypropoxyLimitMax:
+                    parsedData.hydroxypropoxyLimitMax || "",
+                };
+                restoredCalculations.hypromellose.push(hypCalc);
+                break;
+              }
+
               default:
                 console.warn(`Unrecognized calculationType: "${calcType}"`);
                 break;
@@ -3159,6 +3504,13 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
           setCalculationsDissoFerrousFumaratePerParam((prev) => ({
             ...prev,
             [paramId]: restoredCalculations.dissoFerrousFumarate,
+          }));
+        }
+
+        if (restoredCalculations.hypromellose.length > 0) {
+          setCalculationsAssayHypromellosePerParam((prev) => ({
+            ...prev,
+            [paramId]: restoredCalculations.hypromellose,
           }));
         }
       }
@@ -3289,6 +3641,15 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         ) {
           activeGroups.push("uniformityOfContent");
         }
+
+        // Check for Hypromellose preparations
+        if (
+          param.preparations.some(
+            (p: any) => p.preparationType === "hypromellose",
+          )
+        ) {
+          activeGroups.push("hypromellose");
+        }
       }
 
       if (param.files && Array.isArray(param.files) && param.files.length > 0) {
@@ -3383,6 +3744,22 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
             preparationCategory: "sample",
             preparationType: "uniformity_of_content",
             assignedStandardId: (sp as any).assignedStandardId || null,
+            steps: JSON.stringify(sp.steps),
+          })),
+          // Standard Preparations for HYPROMELLOSE
+          ...(standardPreparationHypromellosePerParam[param.id] || []).map((sp) => ({
+            label: sp.label,
+            preparationCategory: "standard",
+            preparationType: "hypromellose",
+            assignedStandardId: (sp as any).assignedStandardId || "",
+            steps: JSON.stringify(sp.steps),
+          })),
+          // Sample Preparations for HYPROMELLOSE
+          ...(samplePreparationHypromellosePerParam[param.id] || []).map((sp) => ({
+            label: sp.label,
+            preparationCategory: "sample",
+            preparationType: "hypromellose",
+            assignedStandardId: null,
             steps: JSON.stringify(sp.steps),
           })),
           // Standard Preparations for ASSAY
@@ -3594,6 +3971,16 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
               data: JSON.stringify(dataObj),
             };
           }),
+          ...(calculationsAssayHypromellosePerParam[param.id] || []).map((calc) => {
+            const dataObj = { ...calc } as any;
+            delete dataObj.selectedStandardPrepId;
+            delete dataObj.selectedSamplePrepId;
+            return {
+              label: calc.label,
+              calculationType: "assay_hypromellose",
+              data: JSON.stringify(dataObj),
+            };
+          }),
           ...(calculationsAssayPerParam[param.id] || []).map((calc) => {
             const dataObj = { ...calc } as any;
             delete dataObj.selectedStandardPrepId;
@@ -3733,6 +4120,14 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
             expDate: chem.expDate,
           })),
           standards: (addedStandards[param.id] || []).map((std) => ({
+            serialNo: std.serialNo,
+            name: std.name,
+            batchNo: std.batchNo,
+            make: std.make,
+            purity: std.purity,
+            validity: std.validity,
+          })),
+          internalStandards: (addedInternalStandards[param.id] || []).map((std) => ({
             serialNo: std.serialNo,
             name: std.name,
             batchNo: std.batchNo,
@@ -4077,6 +4472,14 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
             expDate: chem.expDate,
           })),
           standards: (addedStandards[newId] || []).map((std) => ({
+            serialNo: std.serialNo,
+            name: std.name,
+            batchNo: std.batchNo,
+            make: std.make,
+            purity: std.purity,
+            validity: std.validity,
+          })),
+          internalStandards: (addedInternalStandards[newId] || []).map((std) => ({
             serialNo: std.serialNo,
             name: std.name,
             batchNo: std.batchNo,
@@ -4640,6 +5043,14 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                 purity: std.purity,
                 validity: std.validity,
               })),
+              internalStandards: (addedInternalStandards[param.id] || []).map((std) => ({
+                serialNo: std.serialNo,
+                name: std.name,
+                batchNo: std.batchNo,
+                make: std.make,
+                purity: std.purity,
+                validity: std.validity,
+              })),
               standardPreparations: [],
               samplePreparations: [],
               calculations: [],
@@ -4778,6 +5189,9 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     cleanupState(setSamplePreparationUCPerParam);
     cleanupState(setStandardPreparationUCPerParam);
     cleanupState(setCalculationsUCPerParam);
+    cleanupState(setSamplePreparationHypromellosePerParam);
+    cleanupState(setStandardPreparationHypromellosePerParam);
+    cleanupState(setCalculationsAssayHypromellosePerParam);
     cleanupState(setShowDiluentPreparation);
     cleanupState(setShowSystemSuitability);
     cleanupState(setSystemSuitabilityPerParam);
@@ -4976,6 +5390,20 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         assignedStandardId: (sp as any).assignedStandardId || null,
         steps: JSON.stringify(sp.steps),
       })),
+      ...(standardPreparationHypromellosePerParam[paramId] || []).map((sp) => ({
+        label: sp.label,
+        preparationCategory: "standard",
+        preparationType: "hypromellose",
+        assignedStandardId: (sp as any).assignedStandardId || "",
+        steps: JSON.stringify(sp.steps),
+      })),
+      ...(samplePreparationHypromellosePerParam[paramId] || []).map((sp) => ({
+        label: sp.label,
+        preparationCategory: "sample",
+        preparationType: "hypromellose",
+        assignedStandardId: null,
+        steps: JSON.stringify(sp.steps),
+      })),
       ...(standardPreparationAssayPerParam[paramId] || []).map((sp) => ({
         label: sp.label,
         preparationCategory: "standard",
@@ -5153,6 +5581,16 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
           data: JSON.stringify(d),
         };
       }),
+      ...(calculationsAssayHypromellosePerParam[paramId] || []).map((calc) => {
+        const d = { ...calc } as any;
+        delete d.selectedStandardPrepId;
+        delete d.selectedSamplePrepId;
+        return {
+          label: calc.label,
+          calculationType: "assay_hypromellose",
+          data: JSON.stringify(d),
+        };
+      }),
       ...(calculationsAssayPerParam[paramId] || []).map((calc) => {
         const d = { ...calc } as any;
         delete d.selectedStandardPrepId;
@@ -5296,6 +5734,14 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         expDate: chem.expDate,
       })),
       standards: (addedStandards[paramId] || []).map((std) => ({
+        serialNo: std.serialNo,
+        name: std.name,
+        batchNo: std.batchNo,
+        make: std.make,
+        purity: std.purity,
+        validity: std.validity,
+      })),
+      internalStandards: (addedInternalStandards[paramId] || []).map((std) => ({
         serialNo: std.serialNo,
         name: std.name,
         batchNo: std.batchNo,
@@ -5623,7 +6069,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     setShowRevisionDialog(true);
   };
 
-  const handleConfirmApprove = async (remarks: string, manualApprovedAt?: string) => {
+  const handleConfirmApprove = async (remarks: string) => {
     if (!parameterForApproval) return;
 
     setIsApproving(true);
@@ -5632,7 +6078,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         ...parameterForApproval,
         status: "Approved",
         approvedByReviewer: employeeId,
-        approvedAtReviewer: manualApprovedAt || new Date().toISOString(),
+        approvedAtReviewer: new Date().toISOString(),
         remarksByQA: null, // Clear QA remarks when Reviewer re-approves
         remarksByReviewer: remarks || null,
       };
@@ -6077,7 +6523,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     }
   };
 
-  const handleApproveWorksheet = async (manualApprovedAt?: string) => {
+  const handleApproveWorksheet = async () => {
     setIsApprovingWorksheet(true);
 
     try {
@@ -6085,9 +6531,8 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         throw new Error("Worksheet information is not available");
       }
 
-      // Capture timestamp once — used for every write below.
-      // Uses the QA-supplied manual date if provided, otherwise current time.
-      const now = manualApprovedAt || new Date().toISOString();
+      // Capture timestamp once — used for every write below
+      const now = new Date().toISOString();
 
       // ── 1. Build the full payload with QA approval stamped on every parameter ──
       // collectFormDataForAPI reads the current per-param state arrays, giving us
@@ -6729,6 +7174,13 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         std.make.toLowerCase().includes(standardSearch.toLowerCase())),
   );
 
+  const searchFilteredInternalStandards = standards.filter(
+    (std) =>
+      std.name.toLowerCase().includes(internalStandardSearch.toLowerCase()) ||
+      (std.make &&
+        std.make.toLowerCase().includes(internalStandardSearch.toLowerCase())),
+  );
+
   const handleAddInstrument = (instrument: WorksheetInstrument) => {
     const normalized: WorksheetInstrument = {
       ...instrument,
@@ -6793,6 +7245,74 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         (std) => std.serialNo !== standardId,
       ),
     }));
+  };
+
+  // Internal Standard Preparation (Hypromellose only) - independent pool, same source data
+  const handleAddInternalStandard = (standard: WorksheetStandard) => {
+    setAddedInternalStandards((prev) => ({
+      ...prev,
+      [standard.parameterId]: [...(prev[standard.parameterId] || []), standard],
+    }));
+    setShowInternalStandardDropdown(false);
+    setInternalStandardSearch("");
+  };
+
+  const handleRemoveInternalStandard = (
+    parameterId: number,
+    standardId: string,
+  ) => {
+    setAddedInternalStandards((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).filter(
+        (std) => std.serialNo !== standardId,
+      ),
+    }));
+  };
+
+  // Copy Instruments / Reagents & Chemicals / Standards from another worksheet
+  const handleImportFromWorksheet = (
+    paramId: number,
+    data: {
+      instruments: WorksheetInstrument[];
+      chemicals: WorksheetChemical[];
+      standards: WorksheetStandard[];
+    },
+  ) => {
+    if (!paramId) return;
+
+    if (data.instruments.length > 0) {
+      setAddedInstruments((prev) => {
+        const existingIds = new Set(
+          (prev[paramId] || []).map((i) => i.instrumentId),
+        );
+        const toAdd = data.instruments.filter(
+          (i) => !existingIds.has(i.instrumentId),
+        );
+        return { ...prev, [paramId]: [...(prev[paramId] || []), ...toAdd] };
+      });
+    }
+
+    if (data.chemicals.length > 0) {
+      setAddedChemicals((prev) => {
+        const existingIds = new Set((prev[paramId] || []).map((c) => c.slno));
+        const toAdd = data.chemicals.filter((c) => !existingIds.has(c.slno));
+        return { ...prev, [paramId]: [...(prev[paramId] || []), ...toAdd] };
+      });
+    }
+
+    if (data.standards.length > 0) {
+      setAddedStandards((prev) => {
+        const existingIds = new Set(
+          (prev[paramId] || []).map((s) => s.serialNo),
+        );
+        const toAdd = data.standards.filter(
+          (s) => !existingIds.has(s.serialNo),
+        );
+        return { ...prev, [paramId]: [...(prev[paramId] || []), ...toAdd] };
+      });
+    }
+
+    setToastMessage("Details copied from worksheet successfully");
   };
 
   // Calculation Handlers - Assay
@@ -7008,6 +7528,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     isUC: boolean = false,
     isDissoProfile: boolean = false,
     isRelatedSubstance: boolean = false,
+    isHypromellose: boolean = false,
   ) => {
     if (currentParameterForStandardPrep === null) return;
 
@@ -7201,6 +7722,32 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         ...prev,
         [parameterId]: [...currentDissoMediaProfile, newDissoMediaProfile],
       }));
+    } else if (isHypromellose) {
+      const currentStandards =
+        standardPreparationHypromellosePerParam[parameterId] || [];
+      const newIndex = currentStandards.length;
+      const newStandardPrep = createNewStandardPreparationHypromellose(newIndex);
+
+      setStandardPreparationHypromellosePerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentStandards,
+          { ...newStandardPrep, assignedStandardId: standard.serialNo },
+        ],
+      }));
+
+      const currentSamples =
+        samplePreparationHypromellosePerParam[parameterId] || [];
+      const newSampleIndex = currentSamples.length;
+      const newSamplePrep = createNewSamplePreparationHypromellose(newSampleIndex);
+
+      setSamplePreparationHypromellosePerParam((prev) => ({
+        ...prev,
+        [parameterId]: [
+          ...currentSamples,
+          { ...newSamplePrep, assignedStandardId: standard.serialNo },
+        ],
+      }));
     } else {
       const currentStandards =
         standardPreparationAssayPerParam[parameterId] || [];
@@ -7229,6 +7776,57 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     setIsAddingDissoStandard(false);
     setIsAddingUCStandard(false);
     setIsAddingDissoProfileStandard(false);
+    setIsAddingHypromelloseStandard(false);
+  };
+
+  // Hypromellose needs BOTH standards (Methyl Iodide + 2-Iodopropane) attached to the
+  // SAME Standard Preparation and Sample Preparation - unlike every other template
+  // here, which only ever assigns a single standard.
+  const handleStandardsSelectedForHypromellosePreparation = (
+    standards: Standard[],
+  ) => {
+    if (currentParameterForStandardPrep === null || standards.length === 0) return;
+
+    const parameterId = currentParameterForStandardPrep;
+    const serialNos = standards.map((s) => s.serialNo);
+
+    const currentStandards =
+      standardPreparationHypromellosePerParam[parameterId] || [];
+    const newIndex = currentStandards.length;
+    const newStandardPrep = createNewStandardPreparationHypromellose(newIndex);
+
+    setStandardPreparationHypromellosePerParam((prev) => ({
+      ...prev,
+      [parameterId]: [
+        ...currentStandards,
+        {
+          ...newStandardPrep,
+          assignedStandardId: serialNos[0],
+          assignedStandardIds: serialNos,
+        },
+      ],
+    }));
+
+    const currentSamples =
+      samplePreparationHypromellosePerParam[parameterId] || [];
+    const newSampleIndex = currentSamples.length;
+    const newSamplePrep = createNewSamplePreparationHypromellose(newSampleIndex);
+
+    setSamplePreparationHypromellosePerParam((prev) => ({
+      ...prev,
+      [parameterId]: [
+        ...currentSamples,
+        {
+          ...newSamplePrep,
+          assignedStandardId: serialNos[0],
+          assignedStandardIds: serialNos,
+        },
+      ],
+    }));
+
+    setShowStandardSelectionDialog(false);
+    setCurrentParameterForStandardPrep(null);
+    setIsAddingHypromelloseStandard(false);
   };
 
   const handleRemoveStandardPreparationRS = (
@@ -8529,6 +9127,17 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     setShowStandardSelectionDialog(true);
   };
 
+  const handleAddStandardPreparationHypromellose = (parameterId: number) => {
+    setCurrentParameterForStandardPrep(parameterId);
+    setIsAddingRSStandard(false);
+    setIsAddingDissoStandard(false);
+    setIsAddingUCStandard(false);
+    setIsAddingDissoProfileStandard(false);
+    setIsAddingRelatedSubstanceStandard(false);
+    setIsAddingHypromelloseStandard(true);
+    setShowStandardSelectionDialog(true);
+  };
+
   const handleRemoveStandardPreparationUC = (
     parameterId: number,
     standardPreparationId: number,
@@ -8676,6 +9285,301 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
       }),
     }));
   };
+
+  // Hypromellose Standard Preparation Handlers
+  const handleRemoveStandardPreparationHypromellose = (
+    parameterId: number,
+    standardPreparationId: number,
+  ) => {
+    setStandardPreparationHypromellosePerParam((prev) => {
+      const standards = prev[parameterId] || [];
+      const indexToRemove = standards.findIndex(
+        (sp) => sp.id === standardPreparationId,
+      );
+      const removedPrep = standards[indexToRemove];
+
+      const updatedStandards = standards
+        .filter((dm) => dm.id !== standardPreparationId)
+        .map((dm, index) => ({
+          ...dm,
+          label: `Standard Preparation ${1 + index}`,
+        }));
+
+      if (indexToRemove !== -1) {
+        setSamplePreparationHypromellosePerParam((prevSample) => {
+          const samples = prevSample[parameterId] || [];
+          const updatedSamples = samples
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Sample Preparation ${1 + index}`,
+            }));
+          return { ...prevSample, [parameterId]: updatedSamples };
+        });
+
+        if (removedPrep) {
+          const fileKeyToRemove = prepFileKey("hypromellose", removedPrep.label);
+          setFilesPerParam((prevFiles) => {
+            const paramSlots = { ...(prevFiles[parameterId] ?? {}) };
+            delete paramSlots[fileKeyToRemove];
+            return { ...prevFiles, [parameterId]: paramSlots };
+          });
+        }
+      }
+
+      return { ...prev, [parameterId]: updatedStandards };
+    });
+  };
+
+  const handleStandardPreparationHypromelloseStepChange = (
+    parameterId: number,
+    standardPreparationId: number,
+    stepName: StandardPreparationHypromelloseStep["name"],
+    field:
+      | "value1"
+      | "unit1"
+      | "value2"
+      | "unit2"
+      | "logBookID"
+      | "solventChemical",
+    newValue: string,
+  ) => {
+    setStandardPreparationHypromellosePerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((sp) => {
+        if (sp.id === standardPreparationId) {
+          return {
+            ...sp,
+            steps: sp.steps.map((step) => {
+              if (step.name === stepName) {
+                return { ...step, [field]: newValue };
+              }
+              return step;
+            }),
+          };
+        }
+        return sp;
+      }),
+    }));
+  };
+
+  // Hypromellose Sample Preparation Handlers
+  const handleRemoveSamplePreparationHypromellose = (
+    parameterId: number,
+    samplePreparationId: number,
+  ) => {
+    setSamplePreparationHypromellosePerParam((prev) => {
+      const samples = prev[parameterId] || [];
+      const indexToRemove = samples.findIndex(
+        (sp) => sp.id === samplePreparationId,
+      );
+
+      const updatedSamples = samples
+        .filter((sp) => sp.id !== samplePreparationId)
+        .map((sp, index) => ({
+          ...sp,
+          label: `Sample Preparation ${1 + index}`,
+        }));
+
+      if (indexToRemove !== -1) {
+        setStandardPreparationHypromellosePerParam((prevStandard) => {
+          const standards = prevStandard[parameterId] || [];
+          const updatedStandards = standards
+            .filter((_, idx) => idx !== indexToRemove)
+            .map((sp, index) => ({
+              ...sp,
+              label: `Standard Preparation ${1 + index}`,
+            }));
+          return { ...prevStandard, [parameterId]: updatedStandards };
+        });
+      }
+
+      return { ...prev, [parameterId]: updatedSamples };
+    });
+  };
+
+  const handleSamplePreparationHypromelloseStepChange = (
+    parameterId: number,
+    samplePreparationId: number,
+    stepName: SamplePreparationHypromelloseStep["name"],
+    field:
+      | "value1"
+      | "unit1"
+      | "value2"
+      | "unit2"
+      | "logBookID"
+      | "solventChemical",
+    newValue: string,
+  ) => {
+    setSamplePreparationHypromellosePerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((spl) => {
+        if (spl.id === samplePreparationId) {
+          return {
+            ...spl,
+            steps: spl.steps.map((step) => {
+              if (step.name === stepName) {
+                return { ...step, [field]: newValue };
+              }
+              return step;
+            }),
+          };
+        }
+        return spl;
+      }),
+    }));
+  };
+
+  // Hypromellose Calculation Handlers
+  const handleAddCalculationAssayHypromellose = (parameterId: number) => {
+    setCalculationsAssayHypromellosePerParam((prev) => {
+      const current = prev[parameterId] || [];
+      return {
+        ...prev,
+        [parameterId]: [
+          ...current,
+          createNewCalculationAssayHypromellose(current.length),
+        ],
+      };
+    });
+  };
+
+  const handleRemoveCalculationAssayHypromellose = (
+    parameterId: number,
+    calculationId: number,
+  ) => {
+    setCalculationsAssayHypromellosePerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || [])
+        .filter((c) => c.id !== calculationId)
+        .map((c, i) => ({ ...c, label: `Calculation ${i + 1}` })),
+    }));
+  };
+
+  const handleCalculationAssayHypromelloseFieldChange = (
+    parameterId: number,
+    calculationId: number,
+    field: keyof CalculationAssayHypromellose,
+    value: string | number | null,
+  ) => {
+    setCalculationsAssayHypromellosePerParam((prev) => ({
+      ...prev,
+      [parameterId]: (prev[parameterId] || []).map((calc) => {
+        if (calc.id !== calculationId) return calc;
+
+        // Selecting a Sample Preparation -> auto-fetch Wu (Sample Weight)
+        if (field === "selectedSamplePreparationLabel") {
+          const samplePreps = samplePreparationHypromellosePerParam[parameterId] || [];
+          const matchedSample = samplePreps.find((sp) => sp.label === value);
+          const weighingStep = matchedSample?.steps.find(
+            (s) => s.name === "Weighing (Sample)",
+          );
+          const fetchedWu = weighingStep
+            ? hypromelloseWeightToMg(weighingStep.value1, weighingStep.unit1)
+            : NaN;
+          return {
+            ...calc,
+            selectedSamplePreparationLabel: value as string | null,
+            sampleWeight: !isNaN(fetchedWu) ? fetchedWu.toFixed(2) : calc.sampleWeight,
+          };
+        }
+
+        // Selecting a Standard Preparation -> auto-fetch WSa / WSb
+        if (field === "selectedStandardPreparationLabel") {
+          const standardPreps = standardPreparationHypromellosePerParam[parameterId] || [];
+          const matchedStandard = standardPreps.find((sp) => sp.label === value);
+          const miStep = matchedStandard?.steps.find((s) =>
+            isMethylIodideStep(s.name),
+          );
+          const ipiStep = matchedStandard?.steps.find((s) =>
+            isIsopropylIodideStep(s.name),
+          );
+          const fetchedWSa = miStep
+            ? hypromelloseWeightToMg(miStep.value1, miStep.unit1)
+            : NaN;
+          const fetchedWSb = ipiStep
+            ? hypromelloseWeightToMg(ipiStep.value1, ipiStep.unit1)
+            : NaN;
+          return {
+            ...calc,
+            selectedStandardPreparationLabel: value as string | null,
+            methylIodideStdWt: !isNaN(fetchedWSa)
+              ? fetchedWSa.toFixed(2)
+              : calc.methylIodideStdWt,
+            isopropylIodideStdWt: !isNaN(fetchedWSb)
+              ? fetchedWSb.toFixed(2)
+              : calc.isopropylIodideStdWt,
+          };
+        }
+
+        return { ...calc, [field]: value };
+      }),
+    }));
+  };
+
+  // Keep Wu / WSa / WSb live-synced if the underlying preparation values are edited
+  // AFTER a preparation has already been selected on a calculation.
+  useEffect(() => {
+    setCalculationsAssayHypromellosePerParam((prevCalcs) => {
+      let changed = false;
+      const updated: Record<number, CalculationAssayHypromellose[]> = {};
+
+      Object.keys(prevCalcs).forEach((key) => {
+        const parameterId = Number(key);
+        const standardPreps = standardPreparationHypromellosePerParam[parameterId] || [];
+        const samplePreps = samplePreparationHypromellosePerParam[parameterId] || [];
+
+        updated[parameterId] = prevCalcs[parameterId].map((calc) => {
+          let next = calc;
+
+          if (calc.selectedStandardPreparationLabel) {
+            const matchedStandard = standardPreps.find(
+              (sp) => sp.label === calc.selectedStandardPreparationLabel,
+            );
+            const miStep = matchedStandard?.steps.find((s) =>
+              isMethylIodideStep(s.name),
+            );
+            const ipiStep = matchedStandard?.steps.find((s) =>
+              isIsopropylIodideStep(s.name),
+            );
+            const fetchedWSa = miStep
+              ? hypromelloseWeightToMg(miStep.value1, miStep.unit1)
+              : NaN;
+            const fetchedWSb = ipiStep
+              ? hypromelloseWeightToMg(ipiStep.value1, ipiStep.unit1)
+              : NaN;
+            const newWSa = !isNaN(fetchedWSa) ? fetchedWSa.toFixed(2) : next.methylIodideStdWt;
+            const newWSb = !isNaN(fetchedWSb) ? fetchedWSb.toFixed(2) : next.isopropylIodideStdWt;
+            if (newWSa !== next.methylIodideStdWt || newWSb !== next.isopropylIodideStdWt) {
+              changed = true;
+              next = { ...next, methylIodideStdWt: newWSa, isopropylIodideStdWt: newWSb };
+            }
+          }
+
+          if (calc.selectedSamplePreparationLabel) {
+            const matchedSample = samplePreps.find(
+              (sp) => sp.label === calc.selectedSamplePreparationLabel,
+            );
+            const weighingStep = matchedSample?.steps.find(
+              (s) => s.name === "Weighing (Sample)",
+            );
+            const fetchedWu = weighingStep
+              ? hypromelloseWeightToMg(weighingStep.value1, weighingStep.unit1)
+              : NaN;
+            const newWu = !isNaN(fetchedWu) ? fetchedWu.toFixed(2) : next.sampleWeight;
+            if (newWu !== next.sampleWeight) {
+              changed = true;
+              next = { ...next, sampleWeight: newWu };
+            }
+          }
+
+          return next;
+        });
+      });
+
+      return changed ? updated : prevCalcs;
+    });
+  }, [standardPreparationHypromellosePerParam, samplePreparationHypromellosePerParam]);
 
   // UC Calculation Handlers
   const handleAddCalculationUC = (parameterId: number) => {
@@ -8830,9 +9734,12 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     isForUC: boolean = false,
     isForDissoProfile: boolean = false,
     isForRelatedSubstance: boolean = false,
+    isForHypromellose: boolean = false,
   ): Standard[] => {
     const paramStandards = addedStandards[parameterId] || [];
-    const preparations = isForRelatedSubstance
+    const preparations = isForHypromellose
+      ? standardPreparationHypromellosePerParam[parameterId] || []
+      : isForRelatedSubstance
       ? standardPreparationRelatedSubstancePerParam[parameterId] || []
       : isForRS
         ? standardPreparationResidualSolventPerParam[parameterId] || []
@@ -8845,7 +9752,11 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
               : standardPreparationAssayPerParam[parameterId] || [];
 
     const assignedStandardIds = preparations
-      .map((prep: any) => prep.assignedStandardId)
+      .flatMap((prep: any) =>
+        Array.isArray(prep.assignedStandardIds) && prep.assignedStandardIds.length > 0
+          ? prep.assignedStandardIds
+          : [prep.assignedStandardId],
+      )
       .filter(Boolean);
 
     return paramStandards.filter(
@@ -8903,6 +9814,21 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
             return rest;
           });
           setCalculationsUCPerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+        }
+
+        if (group.id === "hypromellose") {
+          setStandardPreparationHypromellosePerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+          setSamplePreparationHypromellosePerParam((p) => {
+            const { [parameterId]: _, ...rest } = p;
+            return rest;
+          });
+          setCalculationsAssayHypromellosePerParam((p) => {
             const { [parameterId]: _, ...rest } = p;
             return rest;
           });
@@ -9149,6 +10075,19 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
             const { [parameterId]: _, ...r } = p;
             return r;
           });
+        } else if (oldGroupId === "hypromellose") {
+          setStandardPreparationHypromellosePerParam((p) => {
+            const { [parameterId]: _, ...r } = p;
+            return r;
+          });
+          setSamplePreparationHypromellosePerParam((p) => {
+            const { [parameterId]: _, ...r } = p;
+            return r;
+          });
+          setCalculationsAssayHypromellosePerParam((p) => {
+            const { [parameterId]: _, ...r } = p;
+            return r;
+          });
         } else if (oldGroupId === "assayFerrousFumarate") {
           setSamplePrepAssayFerrousFumaratePerParam((p) => {
             const { [parameterId]: _, ...r } = p;
@@ -9238,6 +10177,11 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
       {
         id: "dissolutionFerrousFumarate",
         label: "Preparation for Dissolution (Ferrous Fumarate)",
+        color: "emerald",
+      },
+      {
+        id: "hypromellose",
+        label: "Preparations for Assay (Hypromellose)",
         color: "emerald",
       },
       {
@@ -13472,6 +14416,16 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                               : ""
                           }
                         >
+                          {/* Copy from another worksheet */}
+                          <div className="mb-4 flex justify-end">
+                            <button
+                              onClick={() => setShowCopyWorksheetDialog(true)}
+                              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-emerald-400 text-emerald-700 font-semibold rounded-lg hover:bg-emerald-50 transition-colors shadow-sm text-xs"
+                            >
+                              Copy from Worksheet
+                            </button>
+                          </div>
+
                           {/* Instruments Details */}
                           <div className="mb-4">
                             <div className="flex items-center justify-between mb-2">
@@ -14086,6 +15040,319 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                               </table>
                             )}
                           </div>
+
+                          <CopyFromWorksheetDialog
+                            isOpen={showCopyWorksheetDialog}
+                            onClose={() => setShowCopyWorksheetDialog(false)}
+                            currentWorksheetId={worksheetId}
+                            sampleName={worksheetInfo?.sample?.sampleName}
+                            targetParameterId={selectedParam.id}
+                            fetchRequest={{ employeeId, role }}
+                            includeStandards={true}
+                            existingInstrumentIds={(addedInstruments[selectedParam.id] || []).map((i) => i.instrumentId)}
+                            existingChemicalIds={(addedChemicals[selectedParam.id] || []).map((c) => c.slno)}
+                            existingStandardIds={(addedStandards[selectedParam.id] || []).map((s) => s.serialNo)}
+                            onImport={(data) => handleImportFromWorksheet(selectedParam.id, data)}
+                          />
+
+                          {/* ============= INTERNAL STANDARD PREPARATION TOGGLE (Hypromellose only) ============= */}
+                          {(activePreparationGroups[selectedParam.id] || []).includes(
+                            "hypromellose",
+                          ) && (
+                            <div className="mb-6 mt-8">
+                              <label className="flex items-center gap-4 cursor-pointer group relative">
+                                <div className="relative flex items-center justify-center">
+                                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-900 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
+                                  <input
+                                    type="checkbox"
+                                    checked={
+                                      showInternalStandardPreparation[
+                                        selectedParam.id
+                                      ] || false
+                                    }
+                                    onChange={(e) => {
+                                      setShowInternalStandardPreparation((prev) => ({
+                                        ...prev,
+                                        [selectedParam.id]: e.target.checked,
+                                      }));
+                                    }}
+                                    className="peer sr-only"
+                                  />
+                                  <div className="relative w-14 h-7 rounded-full border-2 border-emerald-200 bg-gray-200 peer-checked:bg-gradient-to-r peer-checked:from-emerald-700 peer-checked:to-emerald-900 peer-checked:border-emerald-600 transition-all duration-300 shadow-inner group-hover:border-emerald-300">
+                                    <motion.div
+                                      className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
+                                      animate={{
+                                        x: showInternalStandardPreparation[
+                                          selectedParam.id
+                                        ]
+                                          ? 28
+                                          : 0,
+                                      }}
+                                      transition={{
+                                        type: "spring",
+                                        stiffness: 500,
+                                        damping: 30,
+                                      }}
+                                    >
+                                      {showInternalStandardPreparation[
+                                        selectedParam.id
+                                      ] ? (
+                                        <svg
+                                          className="w-3 h-3 text-emerald-600"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                          strokeWidth="3"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M5 13l4 4L19 7"
+                                          />
+                                        </svg>
+                                      ) : (
+                                        <svg
+                                          className="w-3 h-3 text-gray-400"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                          strokeWidth="3"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M6 18L18 6M6 6l12 12"
+                                          />
+                                        </svg>
+                                      )}
+                                    </motion.div>
+                                  </div>
+                                </div>
+                                <span className="text-sm font-bold text-emerald-900 tracking-tight">
+                                  Internal Standard Preparation
+                                </span>
+                              </label>
+
+                              {showInternalStandardPreparation[selectedParam.id] && (
+                                <div className="mt-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight mb-3">
+                                      <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                                      Internal Standard Details:
+                                    </h3>
+
+                                    <div className="relative" ref={internalStandardRef}>
+                                      <button
+                                        onClick={() =>
+                                          setShowInternalStandardDropdown(
+                                            !showInternalStandardDropdown,
+                                          )
+                                        }
+                                        disabled={
+                                          isReferenceDataLoading ||
+                                          !!referenceDataError ||
+                                          standards.length === 0
+                                        }
+                                        className="flex items-center gap-2 p-1.5 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                                      >
+                                        <Plus className="w-4 h-4" />
+                                      </button>
+
+                                      <AnimatePresence>
+                                        {showInternalStandardDropdown && (
+                                          <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            onMouseDown={(e) => e.stopPropagation()}
+                                            className="absolute right-0 mt-2 w-80 bg-white border border-emerald-300 rounded-lg shadow-xl z-50"
+                                          >
+                                            <div className="p-2 border-b border-emerald-200">
+                                              <div className="relative">
+                                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                <input
+                                                  type="text"
+                                                  placeholder="Search standards..."
+                                                  value={internalStandardSearch}
+                                                  onChange={(e) =>
+                                                    setInternalStandardSearch(
+                                                      e.target.value,
+                                                    )
+                                                  }
+                                                  className="w-full pl-10 pr-3 py-2 border border-emerald-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                                />
+                                              </div>
+                                            </div>
+                                            <div className="max-h-64 overflow-y-auto">
+                                              {searchFilteredInternalStandards
+                                                .filter(
+                                                  (std) =>
+                                                    !addedInternalStandards[
+                                                      selectedParam.id
+                                                    ]?.find(
+                                                      (added) =>
+                                                        added.serialNo ===
+                                                        std.serialNo,
+                                                    ),
+                                                )
+                                                .map((std) => (
+                                                  <button
+                                                    key={std.serialNo}
+                                                    onClick={() =>
+                                                      handleAddInternalStandard({
+                                                        id: null,
+                                                        parameterId:
+                                                          selectedParam.id,
+                                                        serialNo: std.serialNo,
+                                                        name: std.name,
+                                                        batchNo:
+                                                          std.batchNo ?? null,
+                                                        make: std.make ?? null,
+                                                        purity:
+                                                          std.purity ?? null,
+                                                        validity:
+                                                          std.validity ?? null,
+                                                      })
+                                                    }
+                                                    className="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-emerald-200 last:border-b-0 transition-colors text-sm"
+                                                  >
+                                                    <div className="font-semibold text-gray-900">
+                                                      {std.name}
+                                                    </div>
+                                                    <div className="text-xs text-gray-600">
+                                                      {std.make} • Purity:{" "}
+                                                      {std.purity}
+                                                    </div>
+                                                  </button>
+                                                ))}
+                                              {searchFilteredInternalStandards.filter(
+                                                (std) =>
+                                                  !addedInternalStandards[
+                                                    selectedParam.id
+                                                  ]?.find(
+                                                    (added) =>
+                                                      added.serialNo ===
+                                                      std.serialNo,
+                                                  ),
+                                              ).length === 0 && (
+                                                <div className="px-3 py-4 text-center text-gray-500 text-sm">
+                                                  {internalStandardSearch
+                                                    ? "No matching standards"
+                                                    : "All available standards added"}
+                                                </div>
+                                              )}
+                                            </div>
+                                          </motion.div>
+                                        )}
+                                      </AnimatePresence>
+                                    </div>
+                                  </div>
+
+                                  {isReferenceDataLoading && <ReferenceLoading />}
+                                  {referenceDataError && (
+                                    <ReferenceError error={referenceDataError} />
+                                  )}
+
+                                  {!isReferenceDataLoading && !referenceDataError && (
+                                    <table className="w-full border-collapse text-sm shadow-md">
+                                      <thead>
+                                        <tr className="bg-emerald-100 border-2 border-emerald-500">
+                                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                                            Name of Standard
+                                          </th>
+                                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                                            Purity
+                                          </th>
+                                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                                            Make
+                                          </th>
+                                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                                            Lot No./Batch No.
+                                          </th>
+                                          <th className="px-3 py-2 border-r-2 border-emerald-500 text-left font-bold">
+                                            Validity
+                                          </th>
+                                          {role === "Reviewer" && (
+                                            <th className="px-3 py-2 text-center font-bold w-20">
+                                              Action
+                                            </th>
+                                          )}
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        <AnimatePresence>
+                                          {addedInternalStandards[selectedParam.id]
+                                            ?.length > 0 ? (
+                                            addedInternalStandards[
+                                              selectedParam.id
+                                            ].map((standard) => (
+                                              <motion.tr
+                                                key={standard.serialNo}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: 20 }}
+                                                className="border-2 border-emerald-500 hover:bg-emerald-50 transition-colors"
+                                              >
+                                                <td className="px-3 py-2 border-r-2 border-emerald-500">
+                                                  {standard.name || "---"}
+                                                </td>
+                                                <td className="px-3 py-2 border-r-2 border-emerald-500">
+                                                  {standard.purity || "---"}
+                                                </td>
+                                                <td className="px-3 py-2 border-r-2 border-emerald-500">
+                                                  {standard.make || "---"}
+                                                </td>
+                                                <td className="px-3 py-2 border-r-2 border-emerald-500">
+                                                  {standard.batchNo || "---"}
+                                                </td>
+                                                <td className="px-3 py-2 border-r-2 border-emerald-500">
+                                                  {formatDate(standard.validity)}
+                                                </td>
+                                                <td className="px-3 py-2 text-center">
+                                                  <motion.button
+                                                    onClick={() =>
+                                                      handleRemoveInternalStandard(
+                                                        selectedParam.id,
+                                                        standard.serialNo,
+                                                      )
+                                                    }
+                                                    whileHover={{
+                                                      scale: 1.1,
+                                                      rotate: 10,
+                                                    }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    className="mx-2"
+                                                  >
+                                                    <CgTrash className="w-5 h-5 text-red-500" />
+                                                  </motion.button>
+                                                </td>
+                                              </motion.tr>
+                                            ))
+                                          ) : (
+                                            <tr className="border-2 border-emerald-500">
+                                              <td
+                                                colSpan={role === "Reviewer" ? 6 : 5}
+                                                className="px-3 py-4 text-center text-gray-500"
+                                              >
+                                                <div className="flex flex-col items-center gap-2">
+                                                  <Target className="w-8 h-8 opacity-30" />
+                                                  <span>
+                                                    {role === "Reviewer"
+                                                      ? 'No internal standards added. Click "+" to add.'
+                                                      : "No internal standards added yet."}
+                                                  </span>
+                                                </div>
+                                              </td>
+                                            </tr>
+                                          )}
+                                        </AnimatePresence>
+                                      </tbody>
+                                    </table>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
 
                           {/* ============= ADDITIONAL INFO TOGGLE ============= */}
                           <div className="mb-6 mt-8">
@@ -15118,7 +16385,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                     </div>
                                     <div>
                                       <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
-                                        Preparation Details
+                                        Blank Preparation
                                       </h2>
                                       <p className="text-sm text-emerald-600/80 font-medium">
                                         Custom Document Preparation
@@ -15245,7 +16512,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                             </div>
                                             <div className="flex-1">
                                               <p className="text-sm font-semibold text-emerald-800">
-                                                Preparation Details Completed
+                                                Blank Preparation Completed
                                               </p>
                                               {isGroupCompleted && (
                                                 <p className="text-xs text-emerald-600">
@@ -20674,6 +21941,479 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                             </motion.div>
                           )}
 
+                        {/* ============= Hypromellose GROUP CARD ============= */}
+                        {(activePreparationGroups[selectedParam.id] || []).includes(
+                          "hypromellose",
+                        ) && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="relative mb-10 p-8 rounded-2xl border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 via-white/60 to-emerald-50/40 backdrop-blur-sm shadow-sm hover:shadow-emerald-200/50 transition-all duration-500"
+                            >
+                              <div
+                                className={
+                                  isPreparationLocked
+                                    ? "pointer-events-none opacity-70"
+                                    : ""
+                                }
+                              >
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-bl-full -z-10" />
+                                <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-tr-full -z-10" />
+
+                                <div className="flex items-center justify-between mb-8">
+                                  <div className="flex items-center gap-4">
+                                    <div className="relative">
+                                      <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />
+                                      <div className="relative w-12 h-12 bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform duration-300">
+                                        <BiTestTube className="w-6 h-6 text-white" />
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <h2 className="text-xl font-bold text-emerald-900 tracking-tight">
+                                        Assay of Hypromellose
+                                      </h2>
+                                      <p className="text-sm text-emerald-600/80 font-medium">
+                                        Standard, Sample & Calculations
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="px-4 py-1 bg-gradient-to-r from-emerald-50 to-emerald-50 border border-emerald-200 rounded-full shadow-sm">
+                                    <span className="text-xs font-bold text-emerald-800">
+                                      {(
+                                        standardPreparationHypromellosePerParam[
+                                        selectedParam.id
+                                        ] || []
+                                      ).length +
+                                        (
+                                          samplePreparationHypromellosePerParam[
+                                          selectedParam.id
+                                          ] || []
+                                        ).length +
+                                        (
+                                          calculationsAssayHypromellosePerParam[
+                                          selectedParam.id
+                                          ] || []
+                                        ).length}{" "}
+                                      Items
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="mb-8">
+                                  <div className="flex items-center justify-between mb-4 px-2">
+                                    <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                                      <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                                      Standard & Sample Preparations for Hypromellose
+                                    </h3>
+                                    <button
+                                      onClick={() =>
+                                        handleAddStandardPreparationHypromellose(
+                                          selectedParam.id,
+                                        )
+                                      }
+                                      className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm transform"
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                      Add Preparation
+                                    </button>
+                                  </div>
+
+                                  <AnimatePresence>
+                                    {(
+                                      standardPreparationHypromellosePerParam[
+                                      selectedParam.id
+                                      ] || []
+                                    ).map((standardPreparation, idx: number) => {
+                                      const prepAny = standardPreparation as any;
+                                      const idsToMatch: string[] =
+                                        Array.isArray(prepAny.assignedStandardIds) &&
+                                        prepAny.assignedStandardIds.length > 0
+                                          ? prepAny.assignedStandardIds
+                                          : [prepAny.assignedStandardId].filter(Boolean);
+                                      const assignedStandards = (
+                                        addedStandards[selectedParam.id] || []
+                                      ).filter((std) => idsToMatch.includes(std.serialNo));
+
+                                      const correspondingSample =
+                                        (samplePreparationHypromellosePerParam[
+                                          selectedParam.id
+                                        ] || [])[idx];
+
+                                      return (
+                                        <div
+                                          key={standardPreparation.id}
+                                          className="mb-6"
+                                        >
+                                          <StandardPreparationHypromelloseDetail
+                                            standardPreparation={standardPreparation}
+                                            assignedStandards={assignedStandards}
+                                            onStepChange={(
+                                              standardPreparationId,
+                                              stepName,
+                                              field,
+                                              newValue,
+                                            ) =>
+                                              handleStandardPreparationHypromelloseStepChange(
+                                                selectedParam.id,
+                                                standardPreparationId,
+                                                stepName,
+                                                field,
+                                                newValue,
+                                              )
+                                            }
+                                            onRemove={() =>
+                                              handleRemoveStandardPreparationHypromellose(
+                                                selectedParam.id,
+                                                standardPreparation.id,
+                                              )
+                                            }
+                                            role={role}
+                                          />
+
+                                          {correspondingSample && (
+                                            <div className="mt-4">
+                                              <SamplePreparationHypromelloseDetail
+                                                samplePreparation={correspondingSample}
+                                                assignedStandards={assignedStandards}
+                                                onStepChange={(
+                                                  samplePreparationId,
+                                                  stepName,
+                                                  field,
+                                                  newValue,
+                                                ) =>
+                                                  handleSamplePreparationHypromelloseStepChange(
+                                                    selectedParam.id,
+                                                    samplePreparationId,
+                                                    stepName,
+                                                    field,
+                                                    newValue,
+                                                  )
+                                                }
+                                                onRemove={() =>
+                                                  handleRemoveSamplePreparationHypromellose(
+                                                    selectedParam.id,
+                                                    correspondingSample.id,
+                                                  )
+                                                }
+                                                role={role}
+                                              />
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </AnimatePresence>
+                                </div>
+                                {(
+                                  standardPreparationHypromellosePerParam[
+                                  selectedParam.id
+                                  ] || []
+                                ).length > 0 && (
+                                    <div className="pointer-events-auto">
+                                      <WorksheetFileAttacher
+                                        files={getFilesForPrep(
+                                          selectedParam.id,
+                                          "hypromellose",
+                                          "Preparation Files",
+                                        )}
+                                        onAdd={(newFiles) =>
+                                          handleAddPrepFiles(
+                                            selectedParam.id,
+                                            "hypromellose",
+                                            "Preparation Files",
+                                            newFiles,
+                                          )
+                                        }
+                                        onRemove={(index) =>
+                                          handleRemovePrepFile(
+                                            selectedParam.id,
+                                            "hypromellose",
+                                            "Preparation Files",
+                                            index,
+                                          )
+                                        }
+                                        preparationType="hypromellose"
+                                        sectionLabel="Preparation Files"
+                                        isLocked={shouldDisableContent}
+                                      />
+                                    </div>
+                                  )}
+
+                                {(
+                                  standardPreparationHypromellosePerParam[
+                                  selectedParam.id
+                                  ] || []
+                                ).length === 0 && (
+                                    <motion.div
+                                      initial={{ opacity: 0, scale: 0.95 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      className="relative overflow-hidden text-center py-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                    >
+                                      <div className="relative z-10">
+                                        <div className="inline-block p-5 bg-white rounded-full shadow-lg mb-4">
+                                          <Target className="w-14 h-14 text-emerald-400" />
+                                        </div>
+                                        <p className="text-lg font-bold text-emerald-800 mb-2">
+                                          No preparations added yet
+                                        </p>
+                                        <p className="text-sm text-emerald-600/80 max-w-md mx-auto mb-4">
+                                          Click "Add Preparation" to create your first
+                                          Standard and Sample preparation for
+                                          Hypromellose
+                                        </p>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                              </div>
+
+                              {/* ── Hypromellose Complete Preparation Banner ── */}
+                              {canManagePrep &&
+                                (
+                                  standardPreparationHypromellosePerParam[
+                                  selectedParam.id
+                                  ] || []
+                                ).length > 0 &&
+                                (() => {
+                                  const isGroupCompleted =
+                                    !!groupPrepCompletedAtPerParam[
+                                    selectedParam.id
+                                    ]?.["hypromellose"];
+                                  return (
+                                    <div className="mt-4 pointer-events-auto opacity-100">
+                                      {isGroupCompleted ? (
+                                        <div className="flex items-center gap-3 px-5 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <svg
+                                              className="w-4 h-4 text-white"
+                                              fill="none"
+                                              viewBox="0 0 24 24"
+                                              stroke="currentColor"
+                                            >
+                                              <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M5 13l4 4L19 7"
+                                              />
+                                            </svg>
+                                          </div>
+                                          <div className="flex-1">
+                                            <p className="text-sm font-semibold text-emerald-800">
+                                              Hypromellose Preparation Completed
+                                            </p>
+                                            <p className="text-xs text-emerald-600">
+                                              Completed at{" "}
+                                              {new Date(
+                                                groupPrepCompletedAtPerParam[
+                                                selectedParam.id
+                                                ]["hypromellose"],
+                                              ).toLocaleString()}
+                                            </p>
+                                          </div>
+                                          <button
+                                            onClick={() =>
+                                              handleInitiateUnlockGroupPrep(
+                                                selectedParam,
+                                                "hypromellose",
+                                              )
+                                            }
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                                          >
+                                            <svg
+                                              className="w-3.5 h-3.5"
+                                              fill="none"
+                                              viewBox="0 0 24 24"
+                                              stroke="currentColor"
+                                            >
+                                              <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                                              />
+                                            </svg>
+                                            Unlock Preparation
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <button
+                                          onClick={() =>
+                                            handleInitiateCompleteGroupPrep(
+                                              selectedParam,
+                                              "hypromellose",
+                                            )
+                                          }
+                                          className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm"
+                                        >
+                                          <svg
+                                            className="w-4 h-4"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                            />
+                                          </svg>
+                                          Mark Hypromellose Preparation as Complete
+                                        </button>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
+
+                              {(
+                                standardPreparationHypromellosePerParam[
+                                selectedParam.id
+                                ] || []
+                              ).length > 0 &&
+                                !groupPrepCompletedAtPerParam[selectedParam.id]?.[
+                                "hypromellose"
+                                ] && (
+                                  <div className="flex items-center gap-3 px-5 py-3 mt-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                    <svg
+                                      className="w-5 h-5 text-amber-500 flex-shrink-0"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                      />
+                                    </svg>
+                                    <p className="text-sm text-amber-800">
+                                      <strong>Complete Preparation</strong> above to
+                                      unlock the Calculations section.
+                                    </p>
+                                  </div>
+                                )}
+
+                              {standardPreparationHypromellosePerParam[
+                                selectedParam.id
+                              ]?.length > 0 &&
+                                groupPrepCompletedAtPerParam[selectedParam.id]?.[
+                                "hypromellose"
+                                ] && (
+                                  <div
+                                    className={
+                                      isFullyLocked
+                                        ? "pointer-events-none opacity-70"
+                                        : ""
+                                    }
+                                  >
+                                    <>
+                                      <div className="flex items-center gap-4 my-8">
+                                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                        <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-100 rounded-lg border border-emerald-300/50 shadow-sm">
+                                          <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-2">
+                                            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                                            Calculations
+                                          </span>
+                                        </div>
+                                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+                                      </div>
+
+                                      <div className="relative p-6 rounded-xl border border-emerald-200/30 bg-white/50 backdrop-blur-sm shadow-lg">
+                                        <div className="flex items-center justify-between mb-6 px-2">
+                                          <h3 className="text-lg font-bold flex items-center gap-3 tracking-tight">
+                                            <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-600 to-emerald-900 rounded-full"></span>
+                                            <span className="text-emerald-900">
+                                              Calculations for Hypromellose
+                                            </span>
+                                          </h3>
+                                          <motion.button
+                                            onClick={() =>
+                                              handleAddCalculationAssayHypromellose(
+                                                selectedParam.id,
+                                              )
+                                            }
+                                            whileHover={{ scale: 1 }}
+                                            whileTap={{ scale: 1 }}
+                                            className="flex items-center gap-1.5 p-2.5 bg-gradient-to-r from-emerald-900 to-emerald-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl text-xs"
+                                          >
+                                            <Plus className="w-4 h-4" />
+                                            Add Calculation
+                                          </motion.button>
+                                        </div>
+                                        <AnimatePresence>
+                                          {(
+                                            calculationsAssayHypromellosePerParam[
+                                            selectedParam.id
+                                            ] || []
+                                          ).map((calculation) => (
+                                            <CalculationDetailAssayHypromellose
+                                              key={calculation.id}
+                                              calculation={calculation}
+                                              standardPreparations={
+                                                standardPreparationHypromellosePerParam[
+                                                selectedParam.id
+                                                ] || []
+                                              }
+                                              samplePreparations={
+                                                samplePreparationHypromellosePerParam[
+                                                selectedParam.id
+                                                ] || []
+                                              }
+                                              onFieldChange={(
+                                                calculationId,
+                                                field,
+                                                value,
+                                              ) =>
+                                                handleCalculationAssayHypromelloseFieldChange(
+                                                  selectedParam.id,
+                                                  calculationId,
+                                                  field,
+                                                  value,
+                                                )
+                                              }
+                                              onRemove={() =>
+                                                handleRemoveCalculationAssayHypromellose(
+                                                  selectedParam.id,
+                                                  calculation.id,
+                                                )
+                                              }
+                                              role={role}
+                                            />
+                                          ))}
+                                        </AnimatePresence>
+                                        {(
+                                          calculationsAssayHypromellosePerParam[
+                                          selectedParam.id
+                                          ] || []
+                                        ).length === 0 && (
+                                            <motion.div
+                                              initial={{ opacity: 0, scale: 0.95 }}
+                                              animate={{ opacity: 1, scale: 1 }}
+                                              className="relative overflow-hidden text-center py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-xl shadow-inner"
+                                            >
+                                              <div className="relative z-10">
+                                                <div className="inline-block p-4 bg-white rounded-full shadow-md mb-3">
+                                                  <Target className="w-10 h-10 text-emerald-400" />
+                                                </div>
+                                                <p className="font-semibold text-base text-emerald-800 mb-1">
+                                                  No Hypromellose calculations added
+                                                  yet
+                                                </p>
+                                                <p className="text-xs text-emerald-600/80 max-w-sm mx-auto">
+                                                  Click "Add Calculation" to begin
+                                                </p>
+                                              </div>
+                                            </motion.div>
+                                          )}
+                                      </div>
+                                    </>
+                                  </div>
+                                )}
+                            </motion.div>
+                          )}
+
                         <div
                           className={
                             isFullyLocked ? "pointer-events-none opacity-70" : ""
@@ -20873,6 +22613,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                       onAddStep={(
                                         systemSuitabilityId,
                                         stepName,
+                                        limitType,
                                       ) => {
                                         setSystemSuitabilityPerParam((prev) => ({
                                           ...prev,
@@ -20893,9 +22634,11 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                                   ...ss.steps,
                                                   {
                                                     name: stepName,
+                                                    limitType,
                                                     value1: "",
                                                     value2: "",
                                                     value3: "",
+                                                    value4: "",
                                                   },
                                                 ],
                                               };
@@ -21049,7 +22792,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <span className="text-base font-bold text-emerald-800 group-hover:text-emerald-800 transition-colors duration-200">
-                                    Attachment Files
+                                    Parameter Files
                                   </span>
 
                                   <motion.span
@@ -21134,6 +22877,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
               setIsAddingUCStandard(false);
               setIsAddingDissoProfileStandard(false);
               setIsAddingRelatedSubstanceStandard(false);
+              setIsAddingHypromelloseStandard(false);
             }}
             availableStandards={
               currentParameterForStandardPrep !== null
@@ -21144,6 +22888,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                   isAddingUCStandard,
                   isAddingDissoProfileStandard,
                   isAddingRelatedSubstanceStandard,
+                  isAddingHypromelloseStandard,
                 )
                 : []
             }
@@ -21155,7 +22900,17 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                 isAddingUCStandard,
                 isAddingDissoProfileStandard,
                 isAddingRelatedSubstanceStandard,
+                isAddingHypromelloseStandard,
               );
+            }}
+            multiSelect={isAddingHypromelloseStandard}
+            defaultSelectedNames={
+              isAddingHypromelloseStandard
+                ? ["METHYL IODIDE", "2-IODOPROPANE"]
+                : []
+            }
+            onSelectStandards={(standards) => {
+              handleStandardsSelectedForHypromellosePreparation(standards);
             }}
           />
 

@@ -36,6 +36,7 @@ import CalculationDetailZptoShampoo from "./sub-components/metal/CalculationDeta
 import CalculationDetailSodiumLactate from "./sub-components/metal/CalculationDetailSodiumLactate";
 import CalculationDetailLithosun300 from "./sub-components/metal/CalculationDetailLithosun300";
 import AnalystSelectionDialog from "./shared/AnalystSelectionDialog";
+import CopyFromWorksheetDialog from "./shared/CopyFromWorksheetDialog";
 import {
   fetchWorksheetById,
   updateWorksheet,
@@ -1279,6 +1280,7 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
   const [showInstrumentDropdown, setShowInstrumentDropdown] = useState(false);
   const [showChemicalDropdown, setShowChemicalDropdown] = useState(false);
   const [showStandardDropdown, setShowStandardDropdown] = useState(false);
+  const [showCopyWorksheetDialog, setShowCopyWorksheetDialog] = useState(false);
 
   // Search states
   const [instrumentSearch, setInstrumentSearch] = useState("");
@@ -5920,6 +5922,52 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
         (std) => std.serialNo !== standardId,
       ),
     }));
+  };
+
+  // Copy Instruments / Reagents & Chemicals / Standards from another worksheet
+  const handleImportFromWorksheet = (
+    paramId: number,
+    data: {
+      instruments: WorksheetInstrument[];
+      chemicals: WorksheetChemical[];
+      standards: WorksheetStandard[];
+    },
+  ) => {
+    if (!paramId) return;
+
+    if (data.instruments.length > 0) {
+      setAddedInstruments((prev) => {
+        const existingIds = new Set(
+          (prev[paramId] || []).map((i) => i.instrumentId),
+        );
+        const toAdd = data.instruments.filter(
+          (i) => !existingIds.has(i.instrumentId),
+        );
+        return { ...prev, [paramId]: [...(prev[paramId] || []), ...toAdd] };
+      });
+    }
+
+    if (data.chemicals.length > 0) {
+      setAddedChemicals((prev) => {
+        const existingIds = new Set((prev[paramId] || []).map((c) => c.slno));
+        const toAdd = data.chemicals.filter((c) => !existingIds.has(c.slno));
+        return { ...prev, [paramId]: [...(prev[paramId] || []), ...toAdd] };
+      });
+    }
+
+    if (data.standards.length > 0) {
+      setAddedStandards((prev) => {
+        const existingIds = new Set(
+          (prev[paramId] || []).map((s) => s.serialNo),
+        );
+        const toAdd = data.standards.filter(
+          (s) => !existingIds.has(s.serialNo),
+        );
+        return { ...prev, [paramId]: [...(prev[paramId] || []), ...toAdd] };
+      });
+    }
+
+    setToastMessage("Details copied from worksheet successfully");
   };
 
   const prepFileKey = (type: string | null, label: string | null) =>
@@ -12463,6 +12511,16 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               : ""
                           }
                         >
+                          {/* Copy from another worksheet */}
+                          <div className="mb-4 flex justify-end">
+                            <button
+                              onClick={() => setShowCopyWorksheetDialog(true)}
+                              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-emerald-400 text-emerald-700 font-semibold rounded-lg hover:bg-emerald-50 transition-colors shadow-sm text-xs"
+                            >
+                              Copy from Worksheet
+                            </button>
+                          </div>
+
                           {/* Instruments Details */}
                           <div className="mb-4">
                             <div className="flex items-center justify-between mb-2">
@@ -13081,6 +13139,20 @@ const MetalWorksheet: React.FC<WorksheetProps> = ({
                               </table>
                             )}
                           </div>
+
+                          <CopyFromWorksheetDialog
+                            isOpen={showCopyWorksheetDialog}
+                            onClose={() => setShowCopyWorksheetDialog(false)}
+                            currentWorksheetId={worksheetId}
+                            sampleName={worksheetInfo?.sample?.sampleName}
+                            targetParameterId={selectedParam.id}
+                            fetchRequest={{ employeeId, role }}
+                            includeStandards={true}
+                            existingInstrumentIds={(addedInstruments[selectedParam.id] || []).map((i) => i.instrumentId)}
+                            existingChemicalIds={(addedChemicals[selectedParam.id] || []).map((c) => c.slno)}
+                            existingStandardIds={(addedStandards[selectedParam.id] || []).map((s) => s.serialNo)}
+                            onImport={(data) => handleImportFromWorksheet(selectedParam.id, data)}
+                          />
 
                           {/* ============= ADDITIONAL INFO TOGGLE ============= */}
                           <div className="mb-6 mt-8">

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RawDataWorkSheet")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9ce99109a3f86bed3d12d218623bc7eac5463acf")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c79746b841fec2344f0b176cdef2627adf9cc5ef")]
 [assembly: System.Reflection.AssemblyProductAttribute("RawDataWorkSheet")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RawDataWorkSheet")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

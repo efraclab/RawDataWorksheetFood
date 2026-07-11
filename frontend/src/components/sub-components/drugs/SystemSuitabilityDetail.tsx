@@ -9,10 +9,10 @@ interface SystemSuitabilityDetailProps {
   onStepChange: (
     systemSuitabilityId: number,
     stepName: SystemSuitabilityStep["name"],
-    field: "value1" | "value2" | "value3",
+    field: "value1" | "value2" | "value3" | "value4",
     newValue: string
   ) => void;
-  onAddStep: (systemSuitabilityId: number, stepName: string, limitType: "NLT" | "NMT") => void;
+  onAddStep: (systemSuitabilityId: number, stepName: string, limitType: "NLT" | "NMT" | "BOTH") => void;
   onRemoveStep: (systemSuitabilityId: number, stepName: string) => void;
   onRemove: () => void;
 }
@@ -27,7 +27,10 @@ const SystemSuitabilityDetail: React.FC<SystemSuitabilityDetailProps> = ({
   const [isExpanded, setIsExpanded] = useState(true);
   const [showAddStepDialog, setShowAddStepDialog] = useState(false);
   const [newStepName, setNewStepName] = useState("");
-  const [newStepLimitType, setNewStepLimitType] = useState<"NLT" | "NMT" | "">("");
+  const [newStepLimitSelection, setNewStepLimitSelection] = useState<{
+    NLT: boolean;
+    NMT: boolean;
+  }>({ NLT: false, NMT: false });
 
   const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
 
@@ -42,10 +45,14 @@ const SystemSuitabilityDetail: React.FC<SystemSuitabilityDetailProps> = ({
       case "Peak to Valley ratio":
         return "NLT";
       default:
-        // For custom steps, check if it has a stored limit type
+        // For custom steps, check if it has a stored limit type (NLT, NMT, or BOTH for a range)
         const step = systemSuitability.steps.find(s => s.name === stepName);
         return step?.limitType || "NLT"; // Default to NLT if not found
     }
+  };
+
+  const isRangeLimitStep = (stepName: SystemSuitabilityStep["name"]) => {
+    return getLimitPrefix(stepName) === "BOTH";
   };
 
   const getStepTemplate = (stepName: SystemSuitabilityStep["name"]) => {
@@ -71,11 +78,19 @@ const SystemSuitabilityDetail: React.FC<SystemSuitabilityDetailProps> = ({
     return stepName === "Resolution" || stepName === "Peak to Valley ratio";
   };
 
+  const hasLimitSelection = newStepLimitSelection.NLT || newStepLimitSelection.NMT;
+
   const handleAddStep = () => {
-    if (newStepName.trim() && newStepLimitType) {
-      onAddStep(systemSuitability.id, newStepName.trim(), newStepLimitType);
+    if (newStepName.trim() && hasLimitSelection) {
+      const limitType: "NLT" | "NMT" | "BOTH" =
+        newStepLimitSelection.NLT && newStepLimitSelection.NMT
+          ? "BOTH"
+          : newStepLimitSelection.NLT
+          ? "NLT"
+          : "NMT";
+      onAddStep(systemSuitability.id, newStepName.trim(), limitType);
       setNewStepName("");
-      setNewStepLimitType("");
+      setNewStepLimitSelection({ NLT: false, NMT: false });
       setShowAddStepDialog(false);
     }
   };
@@ -165,6 +180,7 @@ const SystemSuitabilityDetail: React.FC<SystemSuitabilityDetailProps> = ({
                     const limitPrefix = getLimitPrefix(step.name);
                     const stepTemplate = getStepTemplate(step.name);
                     const needsTwoValues = isTwoValueStep(step.name);
+                    const isRangeLimit = limitPrefix === "BOTH";
 
                     return (
                       <motion.div
@@ -241,23 +257,64 @@ const SystemSuitabilityDetail: React.FC<SystemSuitabilityDetailProps> = ({
                                     </>
                                   )}
 
-                                  <span className="text-gray-700 font-medium">
-                                    should {limitPrefix}
-                                  </span>
-                                  <input
-                                    type="text"
-                                    value={step.value3}
-                                    onChange={(e) =>
-                                      onStepChange(
-                                        systemSuitability.id,
-                                        step.name,
-                                        "value3",
-                                        e.target.value
-                                      )
-                                    }
-                                    placeholder="Enter value"
-                                    className="w-32 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all bg-white"
-                                  />
+                                  {isRangeLimit ? (
+                                    <>
+                                      <span className="text-gray-700 font-medium">
+                                        should NLT
+                                      </span>
+                                      <input
+                                        type="text"
+                                        value={step.value3}
+                                        onChange={(e) =>
+                                          onStepChange(
+                                            systemSuitability.id,
+                                            step.name,
+                                            "value3",
+                                            e.target.value
+                                          )
+                                        }
+                                        placeholder="e.g., 0.95"
+                                        className="w-32 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all bg-white"
+                                      />
+                                      <span className="text-gray-700 font-medium">
+                                        and NMT
+                                      </span>
+                                      <input
+                                        type="text"
+                                        value={step.value4}
+                                        onChange={(e) =>
+                                          onStepChange(
+                                            systemSuitability.id,
+                                            step.name,
+                                            "value4",
+                                            e.target.value
+                                          )
+                                        }
+                                        placeholder="e.g., 1.05"
+                                        className="w-32 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all bg-white"
+                                      />
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="text-gray-700 font-medium">
+                                        should {limitPrefix}
+                                      </span>
+                                      <input
+                                        type="text"
+                                        value={step.value3}
+                                        onChange={(e) =>
+                                          onStepChange(
+                                            systemSuitability.id,
+                                            step.name,
+                                            "value3",
+                                            e.target.value
+                                          )
+                                        }
+                                        placeholder="Enter value"
+                                        className="w-32 px-2.5 py-1.5 border border-emerald-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all bg-white"
+                                      />
+                                    </>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -295,7 +352,7 @@ const SystemSuitabilityDetail: React.FC<SystemSuitabilityDetailProps> = ({
             onClick={() => {
               setShowAddStepDialog(false);
               setNewStepName("");
-              setNewStepLimitType("");
+              setNewStepLimitSelection({ NLT: false, NMT: false });
             }}
           >
             <motion.div
@@ -319,7 +376,7 @@ const SystemSuitabilityDetail: React.FC<SystemSuitabilityDetailProps> = ({
                   onClick={() => {
                     setShowAddStepDialog(false);
                     setNewStepName("");
-                    setNewStepLimitType("");
+                    setNewStepLimitSelection({ NLT: false, NMT: false });
                   }}
                   className="p-1 hover:bg-white/20 rounded-lg transition-colors"
                 >
@@ -341,7 +398,7 @@ const SystemSuitabilityDetail: React.FC<SystemSuitabilityDetailProps> = ({
                     placeholder="e.g., Peak to valley ratio"
                     className="w-full px-4 py-3 border border-emerald-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && newStepName.trim() && newStepLimitType) {
+                      if (e.key === "Enter" && newStepName.trim() && hasLimitSelection) {
                         handleAddStep();
                       }
                     }}
@@ -351,24 +408,31 @@ const SystemSuitabilityDetail: React.FC<SystemSuitabilityDetailProps> = ({
 
                 {/* Limit Type Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Limit Type <span className="text-red-500">*</span>
                   </label>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Select NLT, NMT, or both to define a range limit (e.g., NLT 0.95 and NMT 1.05).
+                  </p>
                   <div className="space-y-3">
                     {/* NLT Option */}
                     <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all hover:bg-emerald-50 hover:border-emerald-300"
                       style={{
-                        borderColor: newStepLimitType === "NLT" ? "#10b981" : "#d1d5db",
-                        backgroundColor: newStepLimitType === "NLT" ? "#f0fdf4" : "transparent"
+                        borderColor: newStepLimitSelection.NLT ? "#10b981" : "#d1d5db",
+                        backgroundColor: newStepLimitSelection.NLT ? "#f0fdf4" : "transparent"
                       }}
                     >
                       <input
-                        type="radio"
-                        name="limitType"
-                        value="NLT"
-                        checked={newStepLimitType === "NLT"}
-                        onChange={(e) => setNewStepLimitType(e.target.value as "NLT")}
-                        className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                        type="checkbox"
+                        name="limitTypeNLT"
+                        checked={newStepLimitSelection.NLT}
+                        onChange={(e) =>
+                          setNewStepLimitSelection((prev) => ({
+                            ...prev,
+                            NLT: e.target.checked,
+                          }))
+                        }
+                        className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 rounded"
                       />
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900">NLT</div>
@@ -379,23 +443,35 @@ const SystemSuitabilityDetail: React.FC<SystemSuitabilityDetailProps> = ({
                     {/* NMT Option */}
                     <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all hover:bg-emerald-50 hover:border-emerald-300"
                       style={{
-                        borderColor: newStepLimitType === "NMT" ? "#10b981" : "#d1d5db",
-                        backgroundColor: newStepLimitType === "NMT" ? "#f0fdf4" : "transparent"
+                        borderColor: newStepLimitSelection.NMT ? "#10b981" : "#d1d5db",
+                        backgroundColor: newStepLimitSelection.NMT ? "#f0fdf4" : "transparent"
                       }}
                     >
                       <input
-                        type="radio"
-                        name="limitType"
-                        value="NMT"
-                        checked={newStepLimitType === "NMT"}
-                        onChange={(e) => setNewStepLimitType(e.target.value as "NMT")}
-                        className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                        type="checkbox"
+                        name="limitTypeNMT"
+                        checked={newStepLimitSelection.NMT}
+                        onChange={(e) =>
+                          setNewStepLimitSelection((prev) => ({
+                            ...prev,
+                            NMT: e.target.checked,
+                          }))
+                        }
+                        className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 rounded"
                       />
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900">NMT</div>
                         <div className="text-xs text-gray-600">Not More Than (maximum value)</div>
                       </div>
                     </label>
+
+                    {newStepLimitSelection.NLT && newStepLimitSelection.NMT && (
+                      <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800">
+                        <span>
+                          Range limit selected — you'll enter both an NLT and an NMT value for this step (e.g., NLT 0.95 and NMT 1.05).
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -406,7 +482,7 @@ const SystemSuitabilityDetail: React.FC<SystemSuitabilityDetailProps> = ({
                   onClick={() => {
                     setShowAddStepDialog(false);
                     setNewStepName("");
-                    setNewStepLimitType("");
+                    setNewStepLimitSelection({ NLT: false, NMT: false });
                   }}
                   className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
                 >
@@ -414,7 +490,7 @@ const SystemSuitabilityDetail: React.FC<SystemSuitabilityDetailProps> = ({
                 </button>
                 <button
                   onClick={handleAddStep}
-                  disabled={!newStepName.trim() || !newStepLimitType}
+                  disabled={!newStepName.trim() || !hasLimitSelection}
                   className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 hover:from-emerald-700 hover:to-emerald-600 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Add Step

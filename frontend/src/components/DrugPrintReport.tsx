@@ -293,6 +293,72 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
     return `<strong>${val}${u ? " " + u : ""}</strong>`;
   };
 
+  const renderHypromellosePreparation = (
+    standardPrep: any,
+    samplePrep: any,
+    idx: number = 0
+  ) => {
+    const stdSteps = safeJSONParse(standardPrep?.steps, []);
+    const smpSteps = safeJSONParse(samplePrep?.steps, []);
+
+    const getValue = (steps: any[], name: string | string[], field = "value1") => {
+      const names = Array.isArray(name) ? name : [name];
+      return steps.find((s) => names.includes(s.name))?.[field] || "_____";
+    };
+
+    return (
+      <div className="space-y-4 text-sm leading-relaxed mb-6">
+        <p>
+          <strong>Column ID:</strong> __________
+        </p>
+
+        <p>
+          <strong>Internal standard solution:</strong>{" "}
+          {getValue(stdSteps, "Weighing (Adipic Acid)")} mg of n-octane in{" "}
+          {getValue(stdSteps, "Internal Standard Solution")} ml of o-xylene.
+        </p>
+
+        <p>
+          <strong>Standard Solution {idx + 1}:</strong> Into a suitable serum vial, weigh
+          between {getValue(stdSteps, "Weighing (Adipic Acid)")} mg of adipic
+          acid, and add {getValue(stdSteps, "Hydriodic Acid")} mL of Hydriodic
+          acid and {getValue(stdSteps, "Internal Standard Solution")} mL of
+          Internal standard solution. Close the vial securely with a suitable
+          septum stopper. Weigh the vial and contents, add between{" "}
+          {getValue(stdSteps, [
+            "Weight of Isopropyl Iodide",
+            "Isopropyl Iodide - in Weight",
+            "Isopropyl Iodide - By Difference",
+          ])}{" "}
+          µl(mg) of isopropyl iodide through the septum with a syringe. Add{" "}
+          {getValue(stdSteps, [
+            "Weight of Methyl Iodide",
+            "Methyl Iodide - in Weight",
+            "Methyl Iodide - By Difference",
+          ])}{" "}
+          µl(mg) of methyl
+          iodide similarly. Shake the reaction vial well, and allow the layers to
+          separate. Use the upper layer as the Standard solution.
+        </p>
+
+        <p>
+          <strong>Sample Solution {idx + 1}:</strong> Transfer{" "}
+          {getValue(smpSteps, "Weighing (Sample)")} g of hypromellose to a
+          _______ mL thick-walled reaction vial equipped with a pressure-tight
+          septum-type closure, add between{" "}
+          {getValue(smpSteps, "Weighing (Adipic Acid)")} mg of adipic acid, and
+          pipet {getValue(smpSteps, "Internal Standard Solution")} mL of Internal
+          standard solution into the vial. Cautiously pipet{" "}
+          {getValue(smpSteps, "Hydriodic Acid")} mL of Hydriodic acid into the
+          mixture, immediately cap the vial tightly, and weigh. Using the
+          magnetic stirrer equipped in the heating module, mix the contents of
+          the vial continuously, heating and maintaining the temperature at{" "}
+          {getValue(smpSteps, "Heating")} for 60 min.
+        </p>
+      </div>
+    );
+  };
+
   const formatPreparationSteps = (
     steps: any[],
     type: string,
@@ -519,6 +585,20 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
     });
   };
 
+  const getStepValue = (preparations: any, stepName: string) => {
+    const allPreps = safeJSONParse(preparations, []);
+
+    for (const prep of allPreps) {
+      const steps = safeJSONParse(prep.steps, []);
+      const step = steps.find((s: any) => s.name === stepName);
+
+      if (step) {
+        return step.value1 || step.value2 || "_____";
+      }
+    }
+
+    return "_____";
+  };
   const renderPreparationStepsTable = (
     steps: any[],
     type: string,
@@ -2590,6 +2670,16 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
             Array.isArray(param.standards) && param.standards.length > 0
               ? param.standards
               : standards.filter((std) => param.standardIds?.includes(std.serialNo));
+          const filteredInternalStandards: any[] = Array.isArray(
+            (param as any).internalStandards,
+          )
+            ? (param as any).internalStandards
+            : [];
+          const isHypromelloseParam =
+            !!param.preparations &&
+            safeJSONParse(param.preparations, []).some((p: any) =>
+              p?.preparationType?.toLowerCase?.().includes("hypromellose"),
+            );
 
           return (
             <div
@@ -2739,6 +2829,59 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                       </thead>
                       <tbody>
                         {filteredStandards.map((std, idx) => (
+                          <tr key={std.serialNo || idx}>
+                            <td className="border border-black px-3 py-2">
+                              {std.name}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {std.purity || "N/A"}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {std.make || "N/A"}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {std.batchNo || "N/A"}
+                            </td>
+                            <td className="border border-black px-3 py-2">
+                              {std.validity
+                                ? String(std.validity).replace(/-/g, "/")
+                                : "N/A"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Internal Standard Preparation - Hypromellose only */}
+                {isHypromelloseParam && filteredInternalStandards.length > 0 && (
+                  <div className="section-container mb-4">
+                    <h4 className="text-md uppercase font-bold mb-2">
+                      Internal Standard Details
+                    </h4>
+                    <table className="w-full border border-black text-sm">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Standard Name
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Purity
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Make
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Batch No.
+                          </th>
+                          <th className="border border-black px-3 py-2 text-left font-bold">
+                            Validity
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredInternalStandards.map((std, idx) => (
                           <tr key={std.serialNo || idx}>
                             <td className="border border-black px-3 py-2">
                               {std.name}
@@ -2975,13 +3118,53 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                     </div>
                   )}
 
+                  {/* dynamically collect new template */}
+
+                {param.preparations &&
+                  safeJSONParse(param.preparations, []).some(
+                    (p: any) =>
+                      p?.preparationType?.toLowerCase?.().includes("hypromellose")
+                  ) && (() => {
+                    const allPreps = safeJSONParse(param.preparations, []);
+                    if (!Array.isArray(allPreps)) return null;
+
+                    const standardPreps = allPreps.filter(
+                      (p: any) => p.preparationCategory === "standard"
+                    );
+                    const samplePreps = allPreps.filter(
+                      (p: any) => p.preparationCategory === "sample"
+                    );
+
+                    const maxLen = Math.max(standardPreps.length, samplePreps.length);
+                    const blocks = [];
+                    for (let i = 0; i < maxLen; i++) {
+                      blocks.push(
+                        <div key={i}>
+                          {renderHypromellosePreparation(
+                            standardPreps[i] || null,
+                            samplePreps[i] || null,
+                            i
+                          )}
+                        </div>
+                      );
+                    }
+                    return blocks;
+                  })()}
+
                 {/* Standard Preparations */}
-                {((param.standardPreparations &&
-                  param.standardPreparations.length > 0) ||
-                  (param.preparations &&
-                    safeJSONParse(param.preparations, []).filter(
-                      (p: any) => p.preparationCategory === "standard",
-                    ).length > 0)) && (
+                {!(
+                  param.preparations &&
+                  safeJSONParse(param.preparations, []).some(
+                    (p: any) =>
+                      p.preparationType?.toLowerCase().includes("hypromellose")
+                  )
+                ) &&
+                  ((param.standardPreparations &&
+                    param.standardPreparations.length > 0) ||
+                    (param.preparations &&
+                      safeJSONParse(param.preparations, []).filter(
+                        (p: any) => p.preparationCategory === "standard",
+                      ).length > 0)) && (
                     <div className="mb-6">
                       <h4 className="text-md uppercase font-bold mb-2">
                         Standard Preparations
@@ -2989,17 +3172,18 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                       {/* New structure - preparations array filtered by category */}
                       {param.preparations &&
                         safeJSONParse(param.preparations, [])
-                          .filter(
-                            (p: any) => p.preparationCategory === "standard",
-                          )
+                          .filter((p: any) => p.preparationCategory === "standard")
                           .map((prep: any, idx: number) => {
+
                             const steps = safeJSONParse(prep.steps, []);
                             const stepsTable = renderPreparationStepsTable(
                               steps,
                               "standard",
                               prep.preparationType,
                               prep.assignedStandardId,
+
                             );
+
 
                             if (!stepsTable) return null;
 
@@ -3016,17 +3200,26 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                                 <div className="p-0">{stepsTable}</div>
                               </div>
                             );
-                          })}
+
+                          })
+                      }
                     </div>
                   )}
 
                 {/* Sample Preparations */}
-                {((param.samplePreparations &&
-                  param.samplePreparations.length > 0) ||
-                  (param.preparations &&
-                    safeJSONParse(param.preparations, []).filter(
-                      (p: any) => p.preparationCategory === "sample",
-                    ).length > 0)) && (
+                {!(
+                  param.preparations &&
+                  safeJSONParse(param.preparations, []).some(
+                    (p: any) =>
+                      p.preparationType?.toLowerCase().includes("hypromellose")
+                  )
+                ) &&
+                  ((param.samplePreparations &&
+                    param.samplePreparations.length > 0) ||
+                    (param.preparations &&
+                      safeJSONParse(param.preparations, []).filter(
+                        (p: any) => p.preparationCategory === "sample",
+                      ).length > 0)) && (
                     <div className="mb-6">
                       <h4 className="text-md uppercase font-bold mb-2">
                         Sample Preparations
@@ -3254,8 +3447,8 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                 {(() => {
                   const blankPreps = param.preparations
                     ? safeJSONParse(param.preparations, []).filter(
-                        (p: any) => p.preparationCategory === "blank",
-                      )
+                      (p: any) => p.preparationCategory === "blank",
+                    )
                     : [];
                   const hasBlankPrep = blankPreps.length > 0;
 
@@ -3291,7 +3484,7 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                             const isTwoValueStep = (stepName: string) =>
                               stepName === "Resolution" || stepName === "Peak to Valley ratio";
                             const stepHasAnyValue = (step: any) =>
-                              !!(step.value1 || step.value2 || step.value3);
+                              !!(step.value1 || step.value2 || step.value3 || step.value4);
                             const validSteps = steps.filter(stepHasAnyValue);
                             if (validSteps.length === 0) return null;
                             const getStepDescription = (stepName: string) => {
@@ -3323,6 +3516,7 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                                     <tbody>
                                       {validSteps.map((step: any, stepIdx: number) => {
                                         const limitPrefix = getLimitPrefix(step.name, step.limitType);
+                                        const isRangeLimit = limitPrefix === "BOTH";
                                         const stepDesc = getStepDescription(step.name);
                                         const needsTwoValues = isTwoValueStep(step.name);
                                         let specification = stepDesc;
@@ -3335,7 +3529,11 @@ const DrugPrintReport: React.FC<PrintReportProps> = ({
                                             ? ` <strong>${step.value2}</strong>`
                                             : ` ___________`;
                                         }
-                                        if (step.value3) {
+                                        if (isRangeLimit) {
+                                          if (step.value3 || step.value4) {
+                                            specification += ` should NLT <strong>${step.value3 || "___________"}</strong> and NMT <strong>${step.value4 || "___________"}</strong>`;
+                                          }
+                                        } else if (step.value3) {
                                           specification += ` should ${limitPrefix} <strong>${step.value3}</strong>`;
                                         }
                                         return (

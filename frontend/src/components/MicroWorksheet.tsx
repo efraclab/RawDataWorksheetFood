@@ -7,6 +7,7 @@ import { CgTrash } from "react-icons/cg";
 import { BiTestTube } from "react-icons/bi";
 import { IoFlask } from "react-icons/io5";
 import AnalystSelectionDialog from "./shared/AnalystSelectionDialog";
+import CopyFromWorksheetDialog from "./shared/CopyFromWorksheetDialog";
 import {
     fetchWorksheetById,
     updateWorksheet,
@@ -70,6 +71,7 @@ import CandidaAlbicansPreparationDetail, { createDefaultCandidaAlbicansPreparati
 import BCepaciaPreparationDetail, { createDefaultBCepaciaPreparation } from "./sub-components/micro/BCepaciaPreparationDetail";
 import type { WorksheetChemical } from "../models/WorksheetChemical";
 import type { WorksheetInstrument } from "../models/WorksheetInstrument";
+import type { WorksheetStandard } from "../models/WorksheetStandard";
 import type { WorksheetMedia } from "../models/WorksheetMedia";
 import type { TVCWaterPreparation } from "../preparation_models/micro/TVCWaterPreparation";
 import TVCWaterPreparationDetail, { createDefaultTVCWaterPreparation } from "./sub-components/micro/TVCWaterPreparationDetail";
@@ -486,6 +488,7 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
     // Dropdown control states
     const [showInstrumentDropdown, setShowInstrumentDropdown] = useState(false);
     const [showChemicalDropdown, setShowChemicalDropdown] = useState(false);
+    const [showCopyWorksheetDialog, setShowCopyWorksheetDialog] = useState(false);
     const [showMediaDropdown, setShowMediaDropdown] = useState(false);
 
     // Search states
@@ -3483,6 +3486,40 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                 (chem) => chem.slno !== chemicalId,
             ),
         }));
+    };
+
+    // Copy Instruments / Reagents & Chemicals from another worksheet
+    const handleImportFromWorksheet = (
+        paramId: number,
+        data: {
+            instruments: WorksheetInstrument[];
+            chemicals: WorksheetChemical[];
+            standards: WorksheetStandard[];
+        },
+    ) => {
+        if (!paramId) return;
+
+        if (data.instruments.length > 0) {
+            setAddedInstruments((prev) => {
+                const existingIds = new Set(
+                    (prev[paramId] || []).map((i) => i.instrumentId),
+                );
+                const toAdd = data.instruments.filter(
+                    (i) => !existingIds.has(i.instrumentId),
+                );
+                return { ...prev, [paramId]: [...(prev[paramId] || []), ...toAdd] };
+            });
+        }
+
+        if (data.chemicals.length > 0) {
+            setAddedChemicals((prev) => {
+                const existingIds = new Set((prev[paramId] || []).map((c) => c.slno));
+                const toAdd = data.chemicals.filter((c) => !existingIds.has(c.slno));
+                return { ...prev, [paramId]: [...(prev[paramId] || []), ...toAdd] };
+            });
+        }
+
+        setToastMessage("Details copied from worksheet successfully");
     };
 
     const searchFilteredMedia = media.filter(
@@ -8265,6 +8302,16 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                             : ""
                                                     }
                                                 >
+                                                    {/* Copy from another worksheet */}
+                                                    <div className="mb-4 flex justify-end">
+                                                        <button
+                                                            onClick={() => setShowCopyWorksheetDialog(true)}
+                                                            className="flex items-center gap-2 px-3 py-1.5 bg-white border border-emerald-400 text-emerald-700 font-semibold rounded-lg hover:bg-emerald-50 transition-colors shadow-sm text-xs"
+                                                        >
+                                                            Copy from Worksheet
+                                                        </button>
+                                                    </div>
+
                                                     {/* Instruments Details */}
                                                     <div className="mb-4">
                                                         <div className="flex items-center justify-between mb-2">
@@ -8682,6 +8729,19 @@ const MicroWorksheet: React.FC<WorksheetProps> = ({
                                                         )}
 
                                                     </div>
+
+                                                    <CopyFromWorksheetDialog
+                                                        isOpen={showCopyWorksheetDialog}
+                                                        onClose={() => setShowCopyWorksheetDialog(false)}
+                                                        currentWorksheetId={worksheetId}
+                                                        sampleName={worksheetInfo?.sample?.sampleName}
+                                                        targetParameterId={selectedParam.id}
+                                                        fetchRequest={{ employeeId, role }}
+                                                        includeStandards={false}
+                                                        existingInstrumentIds={(addedInstruments[selectedParam.id] || []).map((i) => i.instrumentId)}
+                                                        existingChemicalIds={(addedChemicals[selectedParam.id] || []).map((c) => c.slno)}
+                                                        onImport={(data) => handleImportFromWorksheet(selectedParam.id, data)}
+                                                    />
 
 
                                                     {/* Media Details - Dynamic with Add/Remove */}

@@ -232,6 +232,65 @@ export const fetchAllWorksheets = async (
   }
 };
 
+// Suggestion shape used by the "Copy from Worksheet" dialog
+export interface RelatedWorksheetSuggestion {
+  worksheetId: string;
+  sampleName?: string;
+  parameterName?: string;
+  createdAt?: string;
+}
+
+/**
+ * Finds other worksheets that share the same sample name, so an analyst can
+ * copy Instruments/Reagents/Standards details across worksheets for the
+ * same sample. Built on top of fetchAllWorksheets since there's no
+ * dedicated "search by sample" endpoint yet — if worksheet volume grows
+ * large, consider adding a server-side filtered endpoint instead
+ * (e.g. GET /worksheets/by-sample?sampleName=...).
+ */
+export const fetchRelatedWorksheetsBySample = async (
+  sampleName: string,
+  excludeWorksheetId: string,
+  request: FetchWorksheetRequest
+): Promise<RelatedWorksheetSuggestion[]> => {
+  if (!sampleName) return [];
+
+  try {
+    const all = await fetchAllWorksheets(request);
+    const normalizedTarget = sampleName.trim().toLowerCase();
+
+    return (all || [])
+      .filter((w: any) => {
+        const wsId = w.worksheetId ?? w.id;
+        const wsSampleName = w.sampleName ?? w.sample?.sampleName ?? "";
+        return (
+          wsId &&
+          wsId !== excludeWorksheetId &&
+          wsSampleName.trim().toLowerCase() === normalizedTarget
+        );
+      })
+      .sort((a: any, b: any) => {
+        const dateA = new Date(a.createdAt ?? 0).getTime();
+        const dateB = new Date(b.createdAt ?? 0).getTime();
+        return dateB - dateA;
+      })
+      .map((w: any) => ({
+        worksheetId: w.worksheetId ?? w.id,
+        sampleName: w.sampleName ?? w.sample?.sampleName,
+        parameterName: w.parameterName ?? w.testName ?? w.testCode,
+        createdAt: w.createdAt,
+      }));
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+        `Failed to fetch related worksheets: ${error.message}`
+      );
+    }
+    throw new Error(`Unexpected error: ${error.message}`);
+  }
+};
+
 export const deleteWorksheet = async (worksheetId: string): Promise<void> => {
   if (!worksheetId) {
     throw new Error("Worksheet ID is required.");

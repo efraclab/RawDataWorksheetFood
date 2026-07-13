@@ -33,14 +33,19 @@ export interface ParameterDetail {
     submittedQaBy: string | null;
     status: string | null;
     additional_info: string | null;
+    other_info?: string | null;
+    showAdditionalInfo?: boolean;
+    showInternalStandardPreparation?: boolean;
 
     instruments?: WorksheetInstrument[];
     chemicals?: WorksheetChemical[];
     standards?: WorksheetStandard[];
+    /** Hypromellose-only: independent standard pool for the Internal Standard
+     *  Preparation table, separate from `standards`. */
+    internalStandards?: WorksheetStandard[];
     media?: WorksheetMedia[];
 
     preparations?: PreparationData[];
     calculations?: CalculationData[];
     files?: WorksheetFileData[];
 }
-

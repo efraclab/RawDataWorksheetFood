@@ -197,7 +197,8 @@ namespace RawDataWorkSheet.Repositories
                         await UpdateParameter(connection, transaction, parameterId, request.WorksheetId, param);
                         await UpsertInstruments(connection, transaction, parameterId, param.Instruments);
                         await UpsertChemicals(connection, transaction, parameterId, param.Chemicals);
-                        await UpsertStandards(connection, transaction, parameterId, param.Standards);
+                        await UpsertStandards(connection, transaction, parameterId, param.Standards, isInternalStandard: false);
+                        await UpsertStandards(connection, transaction, parameterId, param.InternalStandards, isInternalStandard: true);
                         await UpsertMedia(connection, transaction, parameterId, param.Media);
                         var prepLabelToId1 = await UpsertPreparations(connection, transaction, parameterId, param.Preparations);
                         await UpsertCalculations(connection, transaction, parameterId, param.Calculations);
@@ -209,7 +210,8 @@ namespace RawDataWorkSheet.Repositories
 
                         await UpsertInstruments(connection, transaction, parameterId, param.Instruments);
                         await UpsertChemicals(connection, transaction, parameterId, param.Chemicals);
-                        await UpsertStandards(connection, transaction, parameterId, param.Standards);
+                        await UpsertStandards(connection, transaction, parameterId, param.Standards, isInternalStandard: false);
+                        await UpsertStandards(connection, transaction, parameterId, param.InternalStandards, isInternalStandard: true);
                         await UpsertMedia(connection, transaction, parameterId, param.Media);
                         var prepLabelToId2 = await UpsertPreparations(connection, transaction, parameterId, param.Preparations);
                         await UpsertCalculations(connection, transaction, parameterId, param.Calculations);
@@ -257,7 +259,8 @@ namespace RawDataWorkSheet.Repositories
                 await UpdateParameter(connection, transaction, parameterId, worksheetId, request);
                 await UpsertInstruments(connection, transaction, parameterId, request.Instruments);
                 await UpsertChemicals(connection, transaction, parameterId, request.Chemicals);
-                await UpsertStandards(connection, transaction, parameterId, request.Standards);
+                await UpsertStandards(connection, transaction, parameterId, request.Standards, isInternalStandard: false);
+                await UpsertStandards(connection, transaction, parameterId, request.InternalStandards, isInternalStandard: true);
                 await UpsertMedia(connection, transaction, parameterId, request.Media);
                 var prepLabelToId = await UpsertPreparations(connection, transaction, parameterId, request.Preparations);
                 await UpsertCalculations(connection, transaction, parameterId, request.Calculations);
@@ -344,7 +347,8 @@ namespace RawDataWorkSheet.Repositories
 
                 await UpsertInstruments(connection, transaction, parameterId, parameter.Instruments);
                 await UpsertChemicals(connection, transaction, parameterId, parameter.Chemicals);
-                await UpsertStandards(connection, transaction, parameterId, parameter.Standards);
+                await UpsertStandards(connection, transaction, parameterId, parameter.Standards, isInternalStandard: false);
+                await UpsertStandards(connection, transaction, parameterId, parameter.InternalStandards, isInternalStandard: true);
                 await UpsertMedia(connection, transaction, parameterId, parameter.Media);
                 var prepLabelToId = await UpsertPreparations(connection, transaction, parameterId, parameter.Preparations);
                 await UpsertCalculations(connection, transaction, parameterId, parameter.Calculations);
@@ -651,14 +655,15 @@ namespace RawDataWorkSheet.Repositories
             var sql = @"
                 INSERT INTO worksheet_parameters 
                 (worksheet_id, para_code, parameter_name, method_code, method_name, 
-                 column_id, additional_info, 
+                 column_id, additional_info, show_additional_info, other_info, show_internal_standard_preparation,
                  analyzed_by, approved_by_reviewer, analysis_start_date, analysis_completion_date,
                  approved_at_reviewer, status,
                  approved_by_qa, approved_at_qa, remarks_by_qa, remarks_by_reviewer, preparation_completed_by,
                  preparation_completed_at, remarks_by_analyst)
                 VALUES 
                 (@WorksheetId, @ParaCode, @ParameterName, @MethodCode, @MethodName, 
-                 @ColumnId, @AdditionalInfo, @AnalyzedBy, @ApprovedByReviewer,
+                 @ColumnId, @AdditionalInfo, @ShowAdditionalInfo, @OtherInfo, @ShowInternalStandardPreparation,
+                 @AnalyzedBy, @ApprovedByReviewer,
                  @AnalysisStartDate, @AnalysisCompletionDate, @ApprovedAtReviewer, @Status,
                  @ApprovedByQA, @ApprovedAtQA, @RemarksByQA, @RemarksByReviewer, @PreparationCompletedBy,
                  @PreparationCompletedAt, @RemarksByAnalyst);
@@ -676,6 +681,9 @@ namespace RawDataWorkSheet.Repositories
                     param.MethodName,
                     param.ColumnId,
                     param.AdditionalInfo,
+                    param.ShowAdditionalInfo,
+                    param.OtherInfo,
+                    param.ShowInternalStandardPreparation,
                     param.AnalyzedBy,
                     param.ApprovedByReviewer,
                     AnalysisStartDate = ParseDateTime(param.AnalysisStartDate!),
@@ -710,6 +718,9 @@ namespace RawDataWorkSheet.Repositories
                     method_name = @MethodName,
                     column_id = @ColumnId,
                     additional_info = @AdditionalInfo,
+                    show_additional_info = @ShowAdditionalInfo,
+                    other_info = @OtherInfo,
+                    show_internal_standard_preparation = @ShowInternalStandardPreparation,
                     analyzed_by = @AnalyzedBy,
                     analysis_start_date = COALESCE(analysis_start_date, @AnalysisStartDate),
                     analysis_completion_date = COALESCE(analysis_completion_date, @AnalysisCompletionDate),
@@ -745,6 +756,9 @@ namespace RawDataWorkSheet.Repositories
                     param.MethodName,
                     param.ColumnId,
                     param.AdditionalInfo,
+                    param.ShowAdditionalInfo,
+                    param.OtherInfo,
+                    param.ShowInternalStandardPreparation,
                     param.AnalyzedBy,
                     param.ApprovedByReviewer,
                     AnalysisStartDate = ParseDateTime(param.AnalysisStartDate!),
@@ -957,13 +971,14 @@ namespace RawDataWorkSheet.Repositories
             IDbConnection connection,
             IDbTransaction transaction,
             int parameterId,
-            List<StandardDto> standards)
+            List<StandardDto> standards,
+            bool isInternalStandard = false)
         {
             standards ??= new List<StandardDto>();
 
             var existing = await connection.QueryAsync<string>(
-                "SELECT SerialNo FROM worksheet_standards WHERE parameter_id = @ParameterId",
-                new { ParameterId = parameterId }, transaction);
+                "SELECT SerialNo FROM worksheet_standards WHERE parameter_id = @ParameterId AND is_internal_standard = @IsInternalStandard",
+                new { ParameterId = parameterId, IsInternalStandard = isInternalStandard }, transaction);
 
             var existingSet = existing.ToHashSet();
             var newSet = standards.Select(s => s.SerialNo).ToHashSet();
@@ -971,8 +986,8 @@ namespace RawDataWorkSheet.Repositories
             var toDelete = existingSet.Except(newSet).ToList();
             if (toDelete.Any())
                 await connection.ExecuteAsync(
-                    "DELETE FROM worksheet_standards WHERE parameter_id = @ParameterId AND SerialNo IN @Ids",
-                    new { ParameterId = parameterId, Ids = toDelete }, transaction);
+                    "DELETE FROM worksheet_standards WHERE parameter_id = @ParameterId AND is_internal_standard = @IsInternalStandard AND SerialNo IN @Ids",
+                    new { ParameterId = parameterId, IsInternalStandard = isInternalStandard, Ids = toDelete }, transaction);
 
             foreach (var std in standards)
             {
@@ -982,10 +997,11 @@ namespace RawDataWorkSheet.Repositories
                         @"UPDATE worksheet_standards
                         SET Name = @Name, BatchNo = @BatchNo, Make = @Make,
                             Purity = @Purity, Validity = @Validity
-                        WHERE parameter_id = @ParameterId AND SerialNo = @SerialNo",
+                        WHERE parameter_id = @ParameterId AND SerialNo = @SerialNo AND is_internal_standard = @IsInternalStandard",
                         new
                         {
                             ParameterId = parameterId,
+                            IsInternalStandard = isInternalStandard,
                             std.SerialNo,
                             std.Name,
                             std.BatchNo,
@@ -998,12 +1014,13 @@ namespace RawDataWorkSheet.Repositories
                 {
                     await connection.ExecuteAsync(
                         @"INSERT INTO worksheet_standards
-                            (parameter_id, SerialNo, Name, BatchNo, Make, Purity, Validity)
+                            (parameter_id, SerialNo, Name, BatchNo, Make, Purity, Validity, is_internal_standard)
                         VALUES
-                            (@ParameterId, @SerialNo, @Name, @BatchNo, @Make, @Purity, @Validity)",
+                            (@ParameterId, @SerialNo, @Name, @BatchNo, @Make, @Purity, @Validity, @IsInternalStandard)",
                         new
                         {
                             ParameterId = parameterId,
+                            IsInternalStandard = isInternalStandard,
                             std.SerialNo,
                             std.Name,
                             std.BatchNo,
@@ -1345,6 +1362,9 @@ namespace RawDataWorkSheet.Repositories
                         approved_by_reviewer       AS ApprovedByReviewer,
                         approved_at_reviewer       AS ApprovedAtReviewer,
                         additional_info                 AS AdditionalInfo,
+                        show_additional_info            AS ShowAdditionalInfo,
+                        other_info                      AS OtherInfo,
+                        show_internal_standard_preparation AS ShowInternalStandardPreparation,
                         status                     AS Status,
                         approved_by_qa             AS ApprovedByQA,
                         approved_at_qa             AS ApprovedAtQA,
@@ -1372,6 +1392,9 @@ namespace RawDataWorkSheet.Repositories
                         approved_by_reviewer       AS ApprovedByReviewer,
                         approved_at_reviewer       AS ApprovedAtReviewer,
                         additional_info            AS AdditionalInfo,
+                        show_additional_info      AS ShowAdditionalInfo,
+                        other_info                 AS OtherInfo,
+                        show_internal_standard_preparation AS ShowInternalStandardPreparation,
                         status                     AS Status,
                         approved_by_qa             AS ApprovedByQA,
                         approved_at_qa             AS ApprovedAtQA,
@@ -1399,6 +1422,9 @@ namespace RawDataWorkSheet.Repositories
                     MethodName = param.MethodName,
                     ColumnId = param.ColumnId,
                     AdditionalInfo = param.AdditionalInfo,
+                    ShowAdditionalInfo = param.ShowAdditionalInfo,
+                    OtherInfo = param.OtherInfo,
+                    ShowInternalStandardPreparation = param.ShowInternalStandardPreparation,
                     AnalysisStartDate = FormatDateTime(param.AnalysisStartDate),
                     AnalysisCompletionDate = FormatDateTime(param.AnalysisCompletionDate),
                     AnalyzedBy = param.AnalyzedBy,
@@ -1487,9 +1513,23 @@ namespace RawDataWorkSheet.Repositories
 
                 var standardRows = await connection.QueryAsync<WorksheetStandard>(
                     @"SELECT SerialNo, Name, BatchNo, Make, Purity, Validity
-                      FROM worksheet_standards WHERE parameter_id = @ParameterId",
+                      FROM worksheet_standards WHERE parameter_id = @ParameterId AND is_internal_standard = 0",
                     new { ParameterId = param.Id });
                 paramDetail.Standards = standardRows.Select(s => new StandardDto
+                {
+                    SerialNo = s.SerialNo,
+                    Name = s.Name,
+                    BatchNo = s.BatchNo,
+                    Make = s.Make,
+                    Purity = s.Purity,
+                    Validity = FormatDateTime(s.Validity)
+                }).ToList();
+
+                var internalStandardRows = await connection.QueryAsync<WorksheetStandard>(
+                    @"SELECT SerialNo, Name, BatchNo, Make, Purity, Validity
+                      FROM worksheet_standards WHERE parameter_id = @ParameterId AND is_internal_standard = 1",
+                    new { ParameterId = param.Id });
+                paramDetail.InternalStandards = internalStandardRows.Select(s => new StandardDto
                 {
                     SerialNo = s.SerialNo,
                     Name = s.Name,

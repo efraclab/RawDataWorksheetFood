@@ -12,6 +12,15 @@
         public string ColumnId { get; set; }
         public string DiluentPreparation { get; set; }
         public string AdditionalInfo { get; set; }
+        public bool? ShowAdditionalInfo { get; set; }
+
+        // Internal Standard Preparation (Hypromellose only): free-text notes, shown/hidden
+        // via its own toggle, independent of AdditionalInfo above. The related list of
+        // internal standards lives in its own table (see WorksheetStandard/equivalent),
+        // not here - this column only holds the toggle state and free-text notes.
+        public string OtherInfo { get; set; }
+        public bool? ShowInternalStandardPreparation { get; set; }
+
         public DateTime? AnalysisStartDate { get; set; }
         public DateTime? AnalysisCompletionDate { get; set; }
         public DateTime? AnalysisObservationDate { get; set; }

@@ -10,6 +10,11 @@
         public string? Make { get; set; }
         public string? Purity { get; set; }
         public DateTime? Validity { get; set; }
+
+        // Internal Standard Preparation (Hypromellose only): when true, this row belongs
+        // to the independent "Internal Standards" pool instead of the regular Standards
+        // table/list. Same shape, same table - just a different bucket per parameter.
+        public bool IsInternalStandard { get; set; }
     }
 
 }

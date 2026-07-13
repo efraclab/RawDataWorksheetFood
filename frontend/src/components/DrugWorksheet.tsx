@@ -24,7 +24,7 @@ import SamplePreparationLodDetail from "./sub-components/drugs/SamplePreparation
 import SamplePreparationSulphatedAshDetail from "./sub-components/drugs/SamplePreparationSulphatedAshDetail";
 import SamplePreparationROIDetail from "./sub-components/drugs/SamplePreparationROIDetail";
 import StandardSelectionDialog from "./shared/StandardSelectionDialog";
-import CopyFromWorksheetDialog from "./shared/CopyFromWorksheetDialog";
+import CopyFromWorksheetDialog from "./shared/Copyfromworksheetdialog.tsx";
 import type { CalculationAssay } from "../preparation_models/drugs/CalculationAssay";
 import CalculationDetailAssay from "./sub-components/drugs/CalculationDetailAssay";
 import { BiTestTube } from "react-icons/bi";
@@ -2057,13 +2057,29 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
         }));
       }
 
-      if (param.additional_info !== undefined) {
+      const savedAdditionalInfo =
+        param.additional_info ?? (param as any).additionalInfo;
+      if (savedAdditionalInfo !== undefined) {
         setAdditionalInfoPerParam((prev) => ({
           ...prev,
-          [paramId]: param.additional_info ?? "",
+          [paramId]: savedAdditionalInfo ?? "",
         }));
-        if (param.additional_info) {
+        if (savedAdditionalInfo || (param as any).showAdditionalInfo) {
           setShowAdditionalInfo((prev) => ({ ...prev, [paramId]: true }));
+        }
+      }
+
+      const savedOtherInfo = param.otherInfo ?? (param as any).other_info;
+      if (savedOtherInfo !== undefined) {
+        setOtherInfoPerParam((prev) => ({
+          ...prev,
+          [paramId]: savedOtherInfo ?? "",
+        }));
+        if (savedOtherInfo || (param as any).showInternalStandardPreparation) {
+          setShowInternalStandardPreparation((prev) => ({
+            ...prev,
+            [paramId]: true,
+          }));
         }
       }
 
@@ -4085,6 +4101,16 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
           columnId: columnsPerParam[param.id] || null,
           diluentPreparation: diluentPerParam[param.id] || null,
           otherInfo: otherInfoPerParam[param.id] || null,
+          additional_info: additionalInfoPerParam[param.id] || null,
+          ...({
+            // Send both common API naming styles. Unknown properties are ignored
+            // by ASP.NET, while the matching DTO property is persisted.
+            other_info: otherInfoPerParam[param.id] || null,
+            additionalInfo: additionalInfoPerParam[param.id] || null,
+            showInternalStandardPreparation:
+              showInternalStandardPreparation[param.id] || false,
+            showAdditionalInfo: showAdditionalInfo[param.id] || false,
+          } as any),
           analysisStartDate: analysisStartDatePerParam[param.id] || null,
           analysisCompletionDate:
             analysisCompletionDatePerParam[param.id] || null,
@@ -4194,43 +4220,38 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
     const worksheetData = collectFormDataForAPI();
 
     try {
+      // Reviewer/QA must save the worksheet-level fields first.
       if (role === "Reviewer" || role === "QA") {
-        const response = await updateWorksheet(worksheetId, worksheetData);
-
-        if (response && response.worksheetId) {
-          setToastMessage(`Draft saved successfully: ${response.worksheetId}`);
-          setShowToast(true);
-          setSaveSuccess(true);
-          setTimeout(() => setSaveSuccess(false), 3000);
-          await reloadWorksheet();
-        } else {
-          setToastMessage("Failed to save draft");
-          setShowToast(true);
-          setTimeout(() => {
-            setShowToast(false);
-          }, 4000);
+        const worksheetResponse = await updateWorksheet(
+          worksheetId,
+          worksheetData,
+        );
+        if (!worksheetResponse?.worksheetId) {
+          throw new Error("Worksheet-level draft data could not be saved.");
         }
-      } else {
-        worksheetData!.parameters!.forEach(async (param) => {
-          const response = await updateParameter(param.id, param);
-
-          if (response && response.parameterId) {
-            setToastMessage(`Draft saved successfully: ${worksheetId}`);
-            setShowToast(true);
-            setSaveSuccess(true);
-            setTimeout(() => setSaveSuccess(false), 3000);
-            await reloadWorksheet();
-          } else {
-            setToastMessage("Failed to save draft");
-            setShowToast(true);
-            setTimeout(() => {
-              setShowToast(false);
-            }, 4000);
-            return;
-          }
-        });
-        setSaveSuccess(true);
       }
+
+      // The table, internal-standard input, Additional Info, preparations,
+      // calculations and files are parameter-level data. Save every parameter
+      // for every role, including Reviewer and QA.
+      const parameterResponses = await Promise.all(
+        (worksheetData.parameters || []).map((param) =>
+          updateParameter(param.id, param),
+        ),
+      );
+
+      const allParametersSaved = parameterResponses.every(
+        (response) => response?.parameterId,
+      );
+      if (!allParametersSaved) {
+        throw new Error("One or more parameter details could not be saved.");
+      }
+
+      setToastMessage(`Draft saved successfully: ${worksheetId}`);
+      setShowToast(true);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+      await reloadWorksheet();
     } catch (err: any) {
       setToastMessage(`Failed to save draft: ${err.message}`);
       console.error("Save draft error:", err);
@@ -15254,6 +15275,7 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                   )}
 
                                   {!isReferenceDataLoading && !referenceDataError && (
+                                    <>
                                     <table className="w-full border-collapse text-sm shadow-md">
                                       <thead>
                                         <tr className="bg-emerald-100 border-2 border-emerald-500">
@@ -15348,6 +15370,29 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                                         </AnimatePresence>
                                       </tbody>
                                     </table>
+                                    <div className="mt-4">
+                                      <label
+                                        htmlFor={`internal-standard-info-${selectedParam.id}`}
+                                        className="block mb-2 text-sm font-semibold text-emerald-800"
+                                      >
+                                        Internal Standard Preparation Information
+                                      </label>
+                                      <input
+                                        id={`internal-standard-info-${selectedParam.id}`}
+                                        type="text"
+                                        value={otherInfoPerParam[selectedParam.id] || ""}
+                                        onChange={(e) =>
+                                          setOtherInfoPerParam((prev) => ({
+                                            ...prev,
+                                            [selectedParam.id]: e.target.value,
+                                          }))
+                                        }
+                                        disabled={isFullyLocked}
+                                        placeholder="Enter internal standard preparation information..."
+                                        className="w-full px-3 py-2 text-sm border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white text-gray-700 placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                      />
+                                    </div>
+                                    </>
                                   )}
                                 </div>
                               )}

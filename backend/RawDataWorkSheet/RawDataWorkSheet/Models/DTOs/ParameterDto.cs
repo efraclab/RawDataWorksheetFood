@@ -11,6 +11,12 @@ namespace RawDataWorkSheet.Models.DTOs
         public string? MethodName { get; set; }
         public string? ColumnId { get; set; }
         public string? AdditionalInfo { get; set; }
+        public bool? ShowAdditionalInfo { get; set; }
+
+        // Internal Standard Preparation (Hypromellose only): free-text notes field,
+        // shown/hidden via its own toggle, independent of AdditionalInfo above.
+        public string? OtherInfo { get; set; }
+        public bool? ShowInternalStandardPreparation { get; set; }
 
         public string? AnalyzedBy { get; set; }
         public string? AnalyzedByName { get; set; }
@@ -25,6 +31,12 @@ namespace RawDataWorkSheet.Models.DTOs
         public List<InstrumentDto>? Instruments { get; set; }
         public List<ChemicalDto>? Chemicals { get; set; }
         public List<StandardDto>? Standards { get; set; }
+
+        // Internal Standard Preparation (Hypromellose only): a separate, independent
+        // pool of standards from the one above - selecting a standard in one list
+        // does NOT remove it from the other.
+        public List<StandardDto>? InternalStandards { get; set; }
+
         public List<MediaDto>? Media { get; set; }
 
         public List<PreparationDto>? Preparations { get; set; }

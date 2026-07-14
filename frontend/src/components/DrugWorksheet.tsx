@@ -1937,6 +1937,9 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
                 name: step.name,
                 value1: step.value1 || "",
                 value2: step.value2 || "",
+                value3: step.value3 || "",
+                value4: step.value4 || "",
+                limitType: step.limitType,
               })),
             };
           });

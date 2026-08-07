@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
 using RawDataWorkSheet.Models;
 using RawDataWorkSheet.Models.DTOs;
 using RawDataWorkSheet.Models.Requests;
@@ -1177,7 +1178,7 @@ namespace RawDataWorkSheet.Repositories
                         @"UPDATE worksheet_calculations 
                           SET calculation_data = @CalculationData
                           WHERE id = @Id",
-                        new { Id = existingId, CalculationData = calc.Data },
+                        new { Id = existingId, CalculationData = JsonConvert.SerializeObject(calc.Data) },
                         transaction);
                 }
                 else
@@ -1191,7 +1192,7 @@ namespace RawDataWorkSheet.Repositories
                             ParameterId = parameterId,
                             calc.CalculationType,
                             calc.Label,
-                            CalculationData = calc.Data
+                            CalculationData = JsonConvert.SerializeObject(calc.Data)
                         },
                         transaction);
                 }

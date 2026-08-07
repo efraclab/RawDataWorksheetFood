@@ -4,6 +4,7 @@ import { Target } from "lucide-react";
 import type { MobilePhasePreparation } from "../../../preparation_models/drugs/MobilePhasePreparation";
 
 interface MobilePhasePreparationDetailProps {
+  isLocked: boolean
   mobilePhasePreparation: MobilePhasePreparation;
   onEdit: (id: string) => void;
   onRemove: (id: string) => void;
@@ -11,7 +12,7 @@ interface MobilePhasePreparationDetailProps {
 
 const MobilePhasePreparationDetail: React.FC<
   MobilePhasePreparationDetailProps
-> = ({ mobilePhasePreparation, onEdit, onRemove }) => {
+> = ({ isLocked, mobilePhasePreparation, onEdit, onRemove }) => {
   if (!mobilePhasePreparation) return null;
 
   const getPlainTextLength = (html: string) =>
@@ -43,8 +44,17 @@ const MobilePhasePreparationDetail: React.FC<
 
         <div className="flex items-center gap-2">
           <button
+            disabled={isLocked}
             onClick={() => onEdit(mobilePhasePreparation.id)}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-white/20 border border-white/30 rounded-lg hover:scale-103 transition-colors flex items-center gap-1.5"
+            className={`
+                  px-3 py-1.5 text-xs font-medium
+                  border rounded-lg flex items-center gap-1.5
+                  transition-colors
+                  ${isLocked
+                ? "bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed opacity-60"
+                : "text-white bg-white/20 border-white/30 hover:scale-103"
+              }
+              `}
             title="Edit document"
           >
             <svg
@@ -63,8 +73,17 @@ const MobilePhasePreparationDetail: React.FC<
             Edit
           </button>
           <button
+            disabled={isLocked}
             onClick={() => onRemove(mobilePhasePreparation.id)}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-white/20 border border-white/30 rounded-lg hover:scale-103 transition-colors flex items-center gap-1.5"
+            className={`
+                      px-3 py-1.5 text-xs font-medium
+                      border rounded-lg flex items-center gap-1.5
+                      transition-colors
+                      ${isLocked
+                ? "bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed opacity-60"
+                : "text-white bg-white/20 border-white/30 hover:scale-103"
+              }
+                  `}
             title="Delete document"
           >
             <svg

@@ -4,12 +4,14 @@ import { Target } from "lucide-react";
 import type { DiluentPreparation } from "../../../preparation_models/drugs/DiluentPreparation";
 
 interface DiluentPreparationDetailProps {
+  isLocked: boolean;
   diluentPreparation: DiluentPreparation;
   onEdit: (id: string) => void;
   onRemove: (id: string) => void;
 }
 
 const DiluentPreparationDetail: React.FC<DiluentPreparationDetailProps> = ({
+  isLocked,
   diluentPreparation,
   onEdit,
   onRemove,
@@ -44,8 +46,17 @@ const DiluentPreparationDetail: React.FC<DiluentPreparationDetailProps> = ({
 
         <div className="flex items-center gap-2">
           <button
+            disabled={isLocked}
             onClick={() => onEdit(diluentPreparation.id)}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-white/20 border border-white/30 rounded-lg hover:scale-103 transition-colors flex items-center gap-1.5"
+            className={`
+                      px-3 py-1.5 text-xs font-medium
+                      border rounded-lg flex items-center gap-1.5
+                      transition-colors
+                      ${isLocked
+                ? "bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed opacity-60"
+                : "text-white bg-white/20 border-white/30 hover:scale-103"
+              }
+                  `}
             title="Edit document"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,7 +66,16 @@ const DiluentPreparationDetail: React.FC<DiluentPreparationDetailProps> = ({
           </button>
           <button
             onClick={() => onRemove(diluentPreparation.id)}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-white/20 border border-white/30 rounded-lg hover:scale-103 transition-colors flex items-center gap-1.5"
+            disabled={isLocked}
+            className={`
+                    px-3 py-1.5 text-xs font-medium
+                    border rounded-lg flex items-center gap-1.5
+                    transition-colors
+                    ${isLocked
+                                ? "bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed opacity-60"
+                                : "text-white bg-white/20 border-white/30 hover:scale-103"
+                              }
+                `}
             title="Delete document"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

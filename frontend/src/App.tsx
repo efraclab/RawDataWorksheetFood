@@ -18,6 +18,7 @@ import CreateWorksheet from "./components/CreateWorksheet";
 import DrugWorksheet from "./components/DrugWorksheet";
 import MicroWorksheet from "./components/MicroWorksheet";
 import MetalWorksheet from "./components/MetalWorksheet";
+import FoodWorksheet from "./components/FoodWorksheet";
 import DrugPrintReport from "./components/DrugPrintReport";
 import MicroPrintReport from "./components/MicroPrintReport";
 import MetalPrintReport from "./components/MetalPrintReport";
@@ -168,8 +169,10 @@ function WorksheetPage(props: {
   // lab comes from navigation state (set when clicking a worksheet card).
   // Fall back to the user's department if not provided (e.g. direct URL access).
   const lab: string = (location.state as any)?.lab ?? props.department ?? "";
-  const isMicro = lab.toLowerCase().includes("micro");
-  const isMetal = lab.toLowerCase().includes("metal");
+  const isGas = lab.toLowerCase().includes("gas");
+  const isDrug = lab.toLowerCase().includes("drug");
+  const isEnv = lab.toLowerCase().includes("environment");
+  const isFood = !(isGas || isDrug || isEnv);
 
   // Always-current reference data for use inside stable refs (updated every render, no re-render triggered).
   const latestRefDataRef = useRef({
@@ -217,26 +220,26 @@ function WorksheetPage(props: {
   // calls the most-recently-registered handler from Worksheet.
   const actionsRef = useRef<WorksheetSidebarActions>({
     onBack: () => window.history.back(),
-    onSaveDraft: () => {},
-    onSubmitForAnalysis: () => {},
-    onSubmitForQA: () => {},
-    onApproveWorksheet: () => {},
-    onPrintReport: () => {},
-    onContentReady: () => {},
-    onToggleAuditTrail: () => {},
+    onSaveDraft: () => { },
+    onSubmitForAnalysis: () => { },
+    onSubmitForQA: () => { },
+    onApproveWorksheet: () => { },
+    onPrintReport: () => { },
+    onContentReady: () => { },
+    onToggleAuditTrail: () => { },
   });
 
   // stableActions is created once and its methods always delegate through
   // actionsRef so the sidebar never holds a stale handler reference.
   const stableActionsRef = useRef<WorksheetSidebarActions>({
-    onBack:              () => actionsRef.current.onBack(),
-    onSaveDraft:         () => actionsRef.current.onSaveDraft(),
+    onBack: () => actionsRef.current.onBack(),
+    onSaveDraft: () => actionsRef.current.onSaveDraft(),
     onSubmitForAnalysis: () => actionsRef.current.onSubmitForAnalysis(),
-    onSubmitForQA:       () => actionsRef.current.onSubmitForQA(),
-    onApproveWorksheet:  () => actionsRef.current.onApproveWorksheet(),
-    onPrintReport:       () => actionsRef.current.onPrintReport(),
-    onContentReady:      () => actionsRef.current.onContentReady(),
-    onToggleAuditTrail:  () => setIncludeAuditTrail(v => !v),
+    onSubmitForQA: () => actionsRef.current.onSubmitForQA(),
+    onApproveWorksheet: () => actionsRef.current.onApproveWorksheet(),
+    onPrintReport: () => actionsRef.current.onPrintReport(),
+    onContentReady: () => actionsRef.current.onContentReady(),
+    onToggleAuditTrail: () => setIncludeAuditTrail(v => !v),
   });
 
   const stableAiReviewRef = useRef(async () => {
@@ -262,9 +265,9 @@ function WorksheetPage(props: {
     }: any) => ({
       ...rest,
       instruments: (instrumentIds ?? []).map((i: string) => instruments.find((x: Instrument) => x.id === i.trim())?.name).filter(Boolean),
-      chemicals:   (chemicalIds   ?? []).map((i: string) => chemicals.find((x: Chemical)   => x.slno === i.trim())?.name).filter(Boolean),
-      standards:   (standardIds   ?? []).map((i: string) => standards.find((x: Standard)   => x.serialNo === i.trim())?.name).filter(Boolean),
-      media:       (mediaIds       ?? []).map((i: string) => media.find((x: Media)          => x.id.toString() === i.trim())?.name).filter(Boolean),
+      chemicals: (chemicalIds ?? []).map((i: string) => chemicals.find((x: Chemical) => x.slno === i.trim())?.name).filter(Boolean),
+      standards: (standardIds ?? []).map((i: string) => standards.find((x: Standard) => x.serialNo === i.trim())?.name).filter(Boolean),
+      media: (mediaIds ?? []).map((i: string) => media.find((x: Media) => x.id.toString() === i.trim())?.name).filter(Boolean),
     }));
 
     return reviewWorksheetWithAI({
@@ -343,37 +346,51 @@ function WorksheetPage(props: {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="bg-white"
             >
-              {isMicro ? (
-                <MicroPrintReport
-                  worksheetInfo={printData.worksheetInfo}
-                  analysts={printData.analysts}
-                  sampleData={printData.sampleData}
-                  instruments={props.instruments}
-                  chemicals={props.chemicals}
-                  media={props.media}
-                  onClose={handleClosePrint}
-                />
-              ) : isMetal ? (
-                <MetalPrintReport
-                  worksheetInfo={printData.worksheetInfo}
-                  analysts={printData.analysts}
-                  sampleData={printData.sampleData}
-                  instruments={props.instruments}
-                  chemicals={props.chemicals}
-                  standards={props.standards}
-                  onClose={handleClosePrint}
-                />
-              ) : (
-                <DrugPrintReport
-                  worksheetInfo={printData.worksheetInfo}
-                  analysts={printData.analysts}
-                  sampleData={printData.sampleData}
-                  instruments={props.instruments}
-                  chemicals={props.chemicals}
-                  standards={props.standards}
-                  onClose={handleClosePrint}
-                />
-              )}
+              {
+                // isMicro ? (
+                //   <MicroPrintReport
+                //     worksheetInfo={printData.worksheetInfo}
+                //     analysts={printData.analysts}
+                //     sampleData={printData.sampleData}
+                //     instruments={props.instruments}
+                //     chemicals={props.chemicals}
+                //     media={props.media}
+                //     onClose={handleClosePrint}
+                //   />
+                // ) : isMetal ? (
+                //   <MetalPrintReport
+                //     worksheetInfo={printData.worksheetInfo}
+                //     analysts={printData.analysts}
+                //     sampleData={printData.sampleData}
+                //     instruments={props.instruments}
+                //     chemicals={props.chemicals}
+                //     standards={props.standards}
+                //     onClose={handleClosePrint}
+                //   />
+                // ) 
+                // : isFood ? (
+                // <MetalPrintReport
+                //   worksheetInfo={printData.worksheetInfo}
+                //   analysts={printData.analysts}
+                //   sampleData={printData.sampleData}
+                //   instruments={props.instruments}
+                //   chemicals={props.chemicals}
+                //   standards={props.standards}
+                //   onClose={handleClosePrint}
+                // />
+                // )
+                // : (
+                //   <DrugPrintReport
+                //     worksheetInfo={printData.worksheetInfo}
+                //     analysts={printData.analysts}
+                //     sampleData={printData.sampleData}
+                //     instruments={props.instruments}
+                //     chemicals={props.chemicals}
+                //     standards={props.standards}
+                //     onClose={handleClosePrint}
+                //   />
+                // )
+              }
             </motion.div>
           ) : (
             /* Worksheet view */
@@ -385,55 +402,39 @@ function WorksheetPage(props: {
               transition={{ duration: 0.2 }}
               className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30"
             >
-              {isMicro ? (
-                <MicroWorksheet
-                  worksheetId={worksheetId}
-                  instruments={props.instruments}
-                  chemicals={props.chemicals}
-                  media={props.media}
-                  // columns={props.columns}
-                  isReferenceDataLoading={props.isReferenceDataLoading}
-                  referenceDataError={props.referenceDataError}
-                  employeeId={props.employeeId}
-                  role={props.role}
-                  department={props.department}
-                  onPrint={handlePrintRequest}
-                  onSidebarStateChange={handleSidebarStateChange}
-                  onSidebarActionsReady={handleSidebarActionsReady}
-                />
-              ) : isMetal ? (
-                <MetalWorksheet
-                  worksheetId={worksheetId}
-                  instruments={props.instruments}
-                  chemicals={props.chemicals}
-                  standards={props.standards}
-                  // columns={props.columns}
-                  isReferenceDataLoading={props.isReferenceDataLoading}
-                  referenceDataError={props.referenceDataError}
-                  employeeId={props.employeeId}
-                  role={props.role}
-                  department={props.department}
-                  onPrint={handlePrintRequest}
-                  onSidebarStateChange={handleSidebarStateChange}
-                  onSidebarActionsReady={handleSidebarActionsReady}
-                />
-              ) : (
-                <DrugWorksheet
-                  worksheetId={worksheetId}
-                  instruments={props.instruments}
-                  chemicals={props.chemicals}
-                  standards={props.standards}
-                  // columns={props.columns}
-                  isReferenceDataLoading={props.isReferenceDataLoading}
-                  referenceDataError={props.referenceDataError}
-                  employeeId={props.employeeId}
-                  role={props.role}
-                  department={props.department}
-                  onPrint={handlePrintRequest}
-                  onSidebarStateChange={handleSidebarStateChange}
-                  onSidebarActionsReady={handleSidebarActionsReady}
-                />
-              )}
+              {
+                isFood ? (
+                  <FoodWorksheet
+                    worksheetId={worksheetId}
+                    instruments={props.instruments}
+                    chemicals={props.chemicals}
+                    standards={props.standards}
+                    isReferenceDataLoading={props.isReferenceDataLoading}
+                    referenceDataError={props.referenceDataError}
+                    employeeId={props.employeeId}
+                    role={props.role}
+                    department={props.department}
+                    onPrint={handlePrintRequest}
+                    onSidebarStateChange={handleSidebarStateChange}
+                    onSidebarActionsReady={handleSidebarActionsReady}
+                  />
+                ) : isDrug ? (
+                  <DrugWorksheet
+                    worksheetId={worksheetId}
+                    instruments={props.instruments}
+                    chemicals={props.chemicals}
+                    standards={props.standards}
+                    isReferenceDataLoading={props.isReferenceDataLoading}
+                    referenceDataError={props.referenceDataError}
+                    employeeId={props.employeeId}
+                    role={props.role}
+                    department={props.department}
+                    onPrint={handlePrintRequest}
+                    onSidebarStateChange={handleSidebarStateChange}
+                    onSidebarActionsReady={handleSidebarActionsReady}
+                  />
+                ) : null
+              }
             </motion.div>
           )}
         </AnimatePresence>

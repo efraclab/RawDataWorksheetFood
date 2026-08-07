@@ -6,6 +6,7 @@ import type { WorksheetFileData } from "./WorksheetFileData";
 import type { WorksheetInstrument } from "./WorksheetInstrument";
 import type { WorksheetMedia } from "./WorksheetMedia";
 import type { WorksheetStandard } from "./WorksheetStandard";
+import type { PreparationDraft } from "../pages/food/types/PreparationDraft";
 
 export interface ParameterDetail {
     preparationCompletedBy: string | null;
@@ -48,4 +49,6 @@ export interface ParameterDetail {
     preparations?: PreparationData[];
     calculations?: CalculationData[];
     files?: WorksheetFileData[];
+
+    preparationDraft?: PreparationDraft;
 }

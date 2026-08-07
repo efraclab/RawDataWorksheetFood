@@ -245,13 +245,22 @@ export const CopyFromWorksheetDialog: React.FC<CopyFromWorksheetDialogProps> = (
   };
 
   const newInstrumentCount = preview
-    ? preview.instruments.filter((i) => !existingInstrumentIds.includes(i.instrumentId)).length
+    ? preview.instruments.filter(i => {
+        const id = i.instrumentId;
+        return id !== null && !existingInstrumentIds.includes(id);
+      }).length
     : 0;
   const newChemicalCount = preview
-    ? preview.chemicals.filter((c) => !existingChemicalIds.includes(c.slno)).length
+    ? preview.chemicals.filter(c => {
+        const id = c.slno;
+        return id !== null && !existingChemicalIds.includes(id);
+      }).length
     : 0;
-  const newStandardCount = preview
-    ? preview.standards.filter((s) => !existingStandardIds.includes(s.serialNo)).length
+ const newStandardCount = preview
+    ? preview.standards.filter(s => {
+        const id = s.serialNo;
+        return id !== null && !existingStandardIds.includes(id);
+      }).length
     : 0;
 
   return (

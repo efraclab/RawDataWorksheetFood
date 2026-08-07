@@ -18,6 +18,7 @@ const weightVolUnitOptions = [
   
 interface BufferPreparationDetailProps {
   buffer: BufferPreparation;
+  isLocked : boolean,
   onStepChange: (
     bufferId: number,
     stepName: BufferPreparationStep["name"],
@@ -33,7 +34,7 @@ interface BufferPreparationDetailProps {
 
 const BufferPreparationDetail: React.FC<
   BufferPreparationDetailProps
-> = ({ buffer, onStepChange, onRemove }) => {
+> = ({ buffer,isLocked, onStepChange, onRemove }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
@@ -74,7 +75,7 @@ const BufferPreparationDetail: React.FC<
                   {buffer.label}
                 </h4>
                 <p className="text-xs text-emerald-100">
-                  Mobile Phase Preparation Details
+                  Buffer Phase Preparation Details
                 </p>
               </div>
             </div>
@@ -95,6 +96,7 @@ const BufferPreparationDetail: React.FC<
               </motion.button>
 
               <motion.button
+                disabled={isLocked}
                 onClick={(e) => {
                   e.stopPropagation();
                   onRemove();

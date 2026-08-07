@@ -89,7 +89,7 @@ const WorksheetFileAttacher: React.FC<WorksheetFileAttacherProps> = ({
         <div className="flex items-center gap-2">
           {PDF_ICON}
           <span className="text-sm font-bold text-emerald-700">
-            {isForPrep ? "Attach Weight Print Sheets (PDF)" : "Attach Files (PDF)"} 
+            {isForPrep ? "Attach Weight Print Sheets (PDF)" : "Attach Files (PDF)"}
           </span>
           <span className="text-xs text-emerald-500 font-medium">
             ({files.length}/{maxFiles})
@@ -101,7 +101,7 @@ const WorksheetFileAttacher: React.FC<WorksheetFileAttacherProps> = ({
           inputRef.current?.click(). This is a direct browser-native trigger —
           no JS event indirection, no animation delay, file picker opens instantly.
         */}
-        {canAdd && (
+        {/* {canAdd && (
           <label
             htmlFor={inputId}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 active:scale-95 transition-all shadow cursor-pointer select-none"
@@ -117,7 +117,36 @@ const WorksheetFileAttacher: React.FC<WorksheetFileAttacherProps> = ({
             </svg>
             Attach PDF
           </label>
-        )}
+        )} */}
+
+        <label
+          htmlFor={!isLocked ? inputId : undefined}
+          className={`
+        flex items-center gap-1.5 px-3 py-1.5
+        rounded-lg text-xs font-semibold shadow select-none
+        transition-all
+        ${isLocked || files.length >= maxFiles
+              ? "bg-emerald-300 text-white opacity-50 cursor-not-allowed"
+              : "bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer active:scale-95"
+            }
+    `}
+        >
+          <svg
+            className="w-3.5 h-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+
+          Attach PDF
+        </label>
 
         <input
           ref={inputRef}
@@ -125,6 +154,7 @@ const WorksheetFileAttacher: React.FC<WorksheetFileAttacherProps> = ({
           type="file"
           accept="application/pdf"
           multiple
+          disabled={isLocked}
           className="hidden"
           onChange={handleFilePick}
         />

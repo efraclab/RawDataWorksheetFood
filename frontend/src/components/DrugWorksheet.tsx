@@ -1797,7 +1797,8 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
   useEffect(() => {
     const fetchAllAnalysts = async () => {
       try {
-        const analysts = await fetchAnalysts();
+       
+         const analysts = await fetchAnalysts();
 
         setAnalysts(analysts.filter((a) =>
           a.department?.toLowerCase().includes("drug")
@@ -4221,6 +4222,11 @@ const DrugWorksheet: React.FC<WorksheetProps> = ({
   const handleSaveDraft = async () => {
     setIsSaving(true);
     const worksheetData = collectFormDataForAPI();
+
+     console.log(
+                "Drug Worksheet Request",
+                JSON.stringify(worksheetData, null, 2)
+            );
 
     try {
       // Reviewer/QA must save the worksheet-level fields first.

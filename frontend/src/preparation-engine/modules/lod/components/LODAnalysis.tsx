@@ -36,6 +36,8 @@ interface Props {
 
     isLocked: boolean;
 
+    parameterType: string;
+
     onLockPreparation: (parameterId: number) => void;
 
     onUnlockPreparation: (parameterId: number) => void;
@@ -53,6 +55,8 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
     role,
 
     isLocked,
+
+    parameterType,
 
     onLockPreparation,
 
@@ -157,7 +161,9 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
 
         setToastType("success");
 
-        setToastMessage("LOD preparation marked as complete!");
+        setToastMessage(
+            `${parameterType.toUpperCase()} preparation marked as complete!`
+        );
 
         setShowToast(true);
 
@@ -185,7 +191,9 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
 
             setToastType("success");
 
-            setToastMessage("LOD preparation unlocked successfully.");
+            setToastMessage(
+                `${parameterType.toUpperCase()} preparation unlocked successfully.`
+            );
 
             setShowToast(true);
 
@@ -315,7 +323,7 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
             const samplePreps = preps
                 .filter(x =>
                     x.preparationCategory === "sample" &&
-                    x.preparationType === "lod"
+                    x.preparationType === parameterType
                 )
                 .map((x, index) => ({
 
@@ -339,7 +347,7 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
             const lodFiles = (parameter.files ?? []).filter(
                 x =>
 
-                    x.preparationType === "lod"
+                    x.preparationType === parameterType
             );
 
             setFiles(lodFiles);
@@ -449,6 +457,7 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
 
             <LODHeader
                 sampleCount={samplePreparations.length}
+                parameterType={parameterType}
             />
 
             <SamplePreparationSection
@@ -458,6 +467,7 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
                 onRemove={handleRemovePreparation}
                 onStepChange={handleStepChange}
                 isLocked={isLocked}
+                parameterType={parameterType}
             />
             {samplePreparations.length > 0 && (
 
@@ -485,6 +495,8 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
                             samplePreparations={samplePreparations}
                             onAdd={handleAddCalculation}
                             onRemove={handleRemoveCalculation}
+                            parameterType={parameterType}
+                            role={role}
                             onFieldChange={handleCalculationFieldChange}
                         />
 

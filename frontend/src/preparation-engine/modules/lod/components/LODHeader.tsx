@@ -3,15 +3,40 @@ import { BiTestTube } from "react-icons/bi";
 
 interface Props {
     sampleCount: number;
+    parameterType?: string | null;
 }
 
 const LODHeader: React.FC<Props> = ({
-    sampleCount
+    sampleCount,
+    parameterType
 }) => {
 
-    return (
+    const type = String(parameterType ?? "lod").toLowerCase();
 
-       <div className="px-6 py-5 bg-gradient-to-r from-white via-white to-emerald-50">
+    let title: string;
+    let description: string;
+
+    switch (type) {
+
+        case "lod":
+            title = "LOD Analysis";
+            description = "Loss on Drying • Sample & Calculations";
+            break;
+
+        case "fat":
+            title = "FAT Analysis";
+            description = "Fat • Sample & Calculations";
+            break;
+
+        default:
+            title = `${type.toUpperCase()} Analysis`;
+            description = `${type.toUpperCase()} • Sample & Calculations`;
+            break;
+    }
+
+    return (
+        <div className="px-6 py-5 bg-gradient-to-r from-white via-white to-emerald-50">
+
             <div className="flex items-center justify-between">
 
                 <div className="flex items-center gap-3">
@@ -27,15 +52,11 @@ const LODHeader: React.FC<Props> = ({
                     <div>
 
                         <h2 className="text-2xl font-bold text-emerald-900">
-
-                            LOD Analysis
-
+                            {title}
                         </h2>
 
                         <p className="text-sm text-emerald-600">
-
-                            Loss on Drying • Sample & Calculations
-
+                            {description}
                         </p>
 
                     </div>
@@ -51,9 +72,7 @@ const LODHeader: React.FC<Props> = ({
             </div>
 
         </div>
-
     );
-
 };
 
 export default LODHeader;

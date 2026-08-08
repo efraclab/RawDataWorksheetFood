@@ -3,9 +3,10 @@ import { motion } from "framer-motion";
 
 interface Props {
     onAdd: () => void;
+    parameterType: string;
 }
 
-const EmptySamplePreparation: React.FC<Props> = ({ onAdd }) => {
+const EmptySamplePreparation: React.FC<Props> = ({ onAdd, parameterType }) => {
     const Target: React.FC<{ className: string }> = ({ className }) => (
         <svg
             className={className}
@@ -37,8 +38,7 @@ const EmptySamplePreparation: React.FC<Props> = ({ onAdd }) => {
                     No sample preparations added yet
                 </p>
                 <p className="text-xs text-emerald-600/80 max-w-md mx-auto">
-                    Click the add button to create
-                    LOD sample preparation
+                    Click the add button to create {parameterType.toUpperCase()} sample preparation
                 </p>
 
                 <div className="mt-6 inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-100/50 px-4 py-2">

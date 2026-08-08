@@ -1,5 +1,7 @@
-import { lodConfig } from "./lod.config";
+import { lodConfig } from "./lodConfig";
+import { fatConfig } from "./fatConfig";
 
 export const preparationConfigs = [
-    lodConfig
+    lodConfig,
+    fatConfig
 ];

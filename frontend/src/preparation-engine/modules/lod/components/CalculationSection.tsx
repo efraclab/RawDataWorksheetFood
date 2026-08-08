@@ -3,7 +3,7 @@ import { FaPlus } from "react-icons/fa";
 
 import EmptyCalculation from "./EmptyCalculation";
 import CalculationDetailLod from "./CalculationDetailLod";
-
+import CalculationDetailFAT from "../../fat/CalculationDetailFAT.tsx";
 import type { CalculationLod } from "../models/CalculationLod";
 import type { SamplePreparationLod } from "../models/SamplePreparationLod";
 
@@ -16,6 +16,10 @@ interface Props {
     onAdd: () => void;
 
     onRemove: (id: number) => void;
+
+    parameterType: string;
+
+    role: string;
 
     onFieldChange: (
         calculationId: number,
@@ -30,8 +34,13 @@ const CalculationSection: React.FC<Props> = ({
     samplePreparations,
     onAdd,
     onRemove,
+    parameterType,
+    role,
     onFieldChange
 }) => {
+
+    const parameterTitle =
+        parameterType.charAt(0).toUpperCase() + parameterType.slice(1);
 
     return (
 
@@ -92,9 +101,7 @@ const CalculationSection: React.FC<Props> = ({
                         <span className="w-1.5 h-6 rounded-full bg-gradient-to-b from-emerald-600 to-emerald-900" />
 
                         <span className="text-emerald-900">
-
-                            Calculations for LOD
-
+                            Calculations for {parameterTitle}
                         </span>
 
                     </h3>
@@ -140,30 +147,33 @@ const CalculationSection: React.FC<Props> = ({
 
                 {/* ================= BODY ================= */}
 
-                {calculations.length === 0 ? (
+                {calculations.map((calc) => (
 
-                    <EmptyCalculation />
+                    parameterType === "fat" ? (
 
-                ) : (
+                        <CalculationDetailFAT
+                            key={calc.id}
+                            calculation={calc}
+                            samplePreparations={samplePreparations}
+                            onRemove={() => onRemove(calc.id)}
+                            onFieldChange={onFieldChange}
+                            role={role}
+                        />
 
-                    <div className="space-y-6">
+                    ) : (
 
-                        {calculations.map((calc, index) => (
+                        <CalculationDetailLod
+                            key={calc.id}
+                            calculation={calc}
+                            samplePreparations={samplePreparations}
+                            onRemove={() => onRemove(calc.id)}
+                            onFieldChange={onFieldChange}
+                            role={role}
+                        />
 
-                            <CalculationDetailLod
-                                key={calc.id}
-                                calculation={calc}
-                                samplePreparations={samplePreparations}
-                                onRemove={() => onRemove(calc.id)}
-                                onFieldChange={onFieldChange}
-                                role="Reviewer"
-                            />
+                    )
 
-                        ))}
-
-                    </div>
-
-                )}
+                ))}
 
             </div>
 

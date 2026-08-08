@@ -47,36 +47,36 @@ const ModuleRenderer: React.FC<Props> = ({
 }) => {
 
     return (
+    <>
+        {activeGroups.includes("lod") && (
+            <LODAnalysis
+                ref={lodRef}
+                parameterId={parameterId}
+                parameterName={parameterName}
+                parameterCode={parameterCode}
+                role={role}
+                isLocked={isLocked}
+                parameterType="lod"
+                onLockPreparation={onLockPreparation}
+                onUnlockPreparation={onUnlockPreparation}
+            />
+        )}
 
-        <>
-
-            {activeGroups.includes("lod") && (
-
-                <LODAnalysis
-
-                    ref={lodRef}
-
-                    parameterId={parameterId}
-
-                    parameterName={parameterName}
-
-                    parameterCode={parameterCode}
-
-                    role={role}
-
-                    isLocked={isLocked}
-
-                    onLockPreparation={onLockPreparation}
-
-                    onUnlockPreparation={onUnlockPreparation}
-
-                />
-
-            )}
-
-        </>
-
-    );
+        {activeGroups.includes("fat") && (
+            <LODAnalysis
+                ref={lodRef}
+                parameterId={parameterId}
+                parameterName={parameterName}
+                parameterCode={parameterCode}
+                role={role}
+                isLocked={isLocked}
+                parameterType="fat"
+                onLockPreparation={onLockPreparation}
+                onUnlockPreparation={onUnlockPreparation}
+            />
+        )}
+    </>
+);
 
 };
 

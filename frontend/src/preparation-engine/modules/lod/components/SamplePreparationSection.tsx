@@ -22,6 +22,7 @@ interface Props {
         value: string
     ) => void;
     isLocked: boolean;
+    parameterType: string;
 }
 
 const SamplePreparationSection: React.FC<Props> = ({
@@ -31,6 +32,7 @@ const SamplePreparationSection: React.FC<Props> = ({
     onRemove,
     onStepChange,
     isLocked,
+    parameterType,
 }) => {
 
     return (
@@ -45,19 +47,13 @@ const SamplePreparationSection: React.FC<Props> = ({
 
                     {/* Vertical Emerald Bar */}
 
-                    <div className="w-1.5 h-6 rounded-full bg-emerald-800" />
+                    {/* <div className="w-1.5 h-6 rounded-full bg-emerald-800" /> */}
 
-                    <div>
+                    <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
+                        <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
+                        Sample Preparations for {parameterType.toUpperCase()}
+                    </h3>
 
-                        <h3 className="text-2xl font-bold text-emerald-950 tracking-tight">
-
-                            Sample Preparations for LOD
-
-                        </h3>
-
-
-
-                    </div>
 
                 </div>
 
@@ -65,22 +61,22 @@ const SamplePreparationSection: React.FC<Props> = ({
                     onClick={onAdd}
                     disabled={isLocked}
                     className={`
-        rounded-xl
-        bg-emerald-600
-        hover:bg-emerald-700
-        px-5
-        py-2.5
-        text-sm
-        font-semibold
-        text-white
-        shadow-lg
-        transition-all
-        duration-200
-        ${isLocked
+                        rounded-xl
+                        bg-emerald-600
+                        hover:bg-emerald-700
+                        px-5
+                        py-2.5
+                        text-sm
+                        font-semibold
+                        text-white
+                        shadow-lg
+                        transition-all
+                        duration-200
+                        ${isLocked
                             ? "opacity-50 cursor-not-allowed hover:bg-emerald-600"
                             : ""
                         }
-    `}
+                        `}
                 >
                     + Add Preparation
                 </button>
@@ -93,6 +89,7 @@ const SamplePreparationSection: React.FC<Props> = ({
 
                 <EmptySamplePreparation
                     onAdd={onAdd}
+                    parameterType={parameterType}
                 />
 
             ) : (
@@ -115,6 +112,7 @@ const SamplePreparationSection: React.FC<Props> = ({
 
                             onStepChange={onStepChange}
                             isLocked={isLocked}
+                            // parameterType={parameterType}
                         />
 
                     ))}

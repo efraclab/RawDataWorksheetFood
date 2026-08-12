@@ -1,5 +1,5 @@
 import React from "react";
-import LODAnalysis from "../modules/lod/components/LODAnalysis";
+import { moduleRegistry } from "../configs/moduleRegistry";
 import type { PreparationModuleHandle } from "../../pages/food/types/PreparationModuleHandle";
 
 interface Props {
@@ -22,6 +22,7 @@ interface Props {
 
     lodRef: React.RefObject<PreparationModuleHandle | null>;
 
+    proteinRef: React.RefObject<PreparationModuleHandle | null>;
 }
 
 const ModuleRenderer: React.FC<Props> = ({
@@ -42,41 +43,63 @@ const ModuleRenderer: React.FC<Props> = ({
 
     onUnlockPreparation,
 
-    lodRef
+    lodRef,
+
+    proteinRef
 
 }) => {
 
-    return (
-    <>
-        {activeGroups.includes("lod") && (
-            <LODAnalysis
-                ref={lodRef}
-                parameterId={parameterId}
-                parameterName={parameterName}
-                parameterCode={parameterCode}
-                role={role}
-                isLocked={isLocked}
-                parameterType="lod"
-                onLockPreparation={onLockPreparation}
-                onUnlockPreparation={onUnlockPreparation}
-            />
-        )}
+    const moduleType = activeGroups[0];
+    const moduleRef =
+        moduleType === "protein"
+            ? proteinRef
+            : lodRef;
+    const moduleConfig =
+        moduleRegistry[
+        moduleType as keyof typeof moduleRegistry
+        ];
 
-        {activeGroups.includes("fat") && (
-            <LODAnalysis
-                ref={lodRef}
-                parameterId={parameterId}
-                parameterName={parameterName}
-                parameterCode={parameterCode}
-                role={role}
-                isLocked={isLocked}
-                parameterType="fat"
-                onLockPreparation={onLockPreparation}
-                onUnlockPreparation={onUnlockPreparation}
-            />
-        )}
-    </>
-);
+
+
+    if (!moduleConfig)
+        return null;
+
+    const AnalysisComponent =
+        moduleConfig.analysisComponent;
+
+    return (
+
+        <>
+
+            {AnalysisComponent && (
+
+                <AnalysisComponent
+
+                    ref={moduleRef}
+
+                    parameterId={parameterId}
+
+                    parameterName={parameterName}
+
+                    parameterCode={parameterCode}
+
+                    role={role}
+
+                    isLocked={isLocked}
+
+                    parameterType={moduleType}
+
+                    onLockPreparation={onLockPreparation}
+
+                    onUnlockPreparation={onUnlockPreparation}
+
+                />
+
+            )}
+
+        </>
+
+    );
 
 };
 

@@ -83,7 +83,7 @@ const FoodParameterManager: React.FC<Props> = ({
                             if (availableParameters.length === 0) return;
                             setShowDropdown(!showDropdown);
                         }}
-                        disabled={addedParameters.length >= (parameterCount ?? 0)}
+                        // disabled={addedParameters.length >= (parameterCount ?? 0)}
                         //disabled = {false}
                         className={`
                                 inline-flex items-start gap-2 rounded-lg

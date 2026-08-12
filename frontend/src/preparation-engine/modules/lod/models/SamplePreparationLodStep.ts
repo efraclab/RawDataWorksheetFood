@@ -1,9 +1,5 @@
 export type SamplePreparationLodStep = {
-    name:
-        | "Weight of Empty Dish"
-        | "Weight of Sample + Dish"
-        | "Drying"
-        | "Weight of Sample + Dish after Drying";
+    name: string;
 
     value1?: string;
     unit1?: string;

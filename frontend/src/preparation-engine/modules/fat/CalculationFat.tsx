@@ -1,18 +1,8 @@
-export interface CalculationFat {
+import type { CalculationBase } from "../../models/CalculationBase";
 
-    id: number;
-    label: string;
+export interface CalculationFat extends CalculationBase {
 
-    selectedSamplePreparationLabel: string | null;
-
-    acceptanceLimitMin: string | null;
-    acceptanceLimitMax: string | null;
-
-    calculationResult: string | null;
-    calculationResultUnit: string | null;
-
-    // Stored values used for calculation
-    w1: string | null;      // Initial Empty Flask
-    w2: string | null;      // Final Flask After Drying
-    w3: string | null;      // Sample Weight
+    w1: string | null;
+    w2: string | null;
+    w3: string | null;
 }

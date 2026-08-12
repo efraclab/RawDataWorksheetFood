@@ -7,13 +7,13 @@ import {
     CheckCircle2,
     XCircle,
 } from "lucide-react";
-import type { CalculationFat } from "../fat/CalculationFat";
-import type { SamplePreparationLod } from "../lod/models/SamplePreparationLod";
+import type { CalculationFat } from "./CalculationFat";
+import type { SamplePreparationFat } from "./SamplePreparationFAT";
 import CustomDropdown from "../../../components/shared/CustomDropdown";
 
 interface CalculationDetailFATProps {
     calculation: CalculationFat;
-    samplePreparations: SamplePreparationLod[];
+    samplePreparations: SamplePreparationFat[];
     onFieldChange: (
         calculationId: number,
         field: keyof CalculationFat,
@@ -69,6 +69,13 @@ const CalculationDetailFAT: React.FC<CalculationDetailFATProps> = ({
     const selectedSamplePrep = samplePreparations.find(
         (prep) => prep.label === calculation.selectedSamplePreparationLabel
     );
+    console.log("🔥 FAT RESTORE DEBUG", {
+    calculation,
+    selectedSamplePreparationLabel:
+        calculation.selectedSamplePreparationLabel,
+    samplePreparations,
+    selectedSamplePrep
+});
 
     useEffect(() => {
         if (calculation.selectedSamplePreparationLabel) {
@@ -98,28 +105,32 @@ const CalculationDetailFAT: React.FC<CalculationDetailFATProps> = ({
             ? selectedSamplePrep.steps
             : [];
 
-        const weighingEmptyCrucible = stepsArr.find(
-            (s) => s.name === "Weight of Empty Dish"
+        const initialEmptyFlask = stepsArr.find(
+            (s) => s.name === "Initial Empty Weight of R.B Flask"
         );
-        const weighingBeforeDrying = stepsArr.find(
-            (s) => s.name === "Weight of Sample + Dish"
+
+        const finalFlaskWeight = stepsArr.find(
+            (s) => s.name === "Final weight of R.B Flask After Drying"
         );
-        const weighingAfterDrying = stepsArr.find(
-            (s) => s.name === "Weight of Sample + Dish after Drying"
+
+        const sampleWeight = stepsArr.find(
+            (s) => s.name === "Weight of Sample"
         );
 
         return {
             w1: {
-                value: weighingEmptyCrucible?.value1 || "",
-                unit: weighingEmptyCrucible?.unit1 || "g",
+                value: initialEmptyFlask?.value1 || "",
+                unit: initialEmptyFlask?.unit1 || "g",
             },
+
             w2: {
-                value: weighingBeforeDrying?.value1 || "",
-                unit: weighingBeforeDrying?.unit1 || "g",
+                value: finalFlaskWeight?.value1 || "",
+                unit: finalFlaskWeight?.unit1 || "g",
             },
+
             w3: {
-                value: weighingAfterDrying?.value1 || "",
-                unit: weighingAfterDrying?.unit1 || "g",
+                value: sampleWeight?.value1 || "",
+                unit: sampleWeight?.unit1 || "g",
             },
         };
     };
@@ -132,12 +143,21 @@ const CalculationDetailFAT: React.FC<CalculationDetailFATProps> = ({
 
         if (!selectedSamplePrep) {
             errors.push("Please select a Sample Preparation");
-            return { isValid: false, errors, warnings };
+
+            return {
+                isValid: false,
+                errors,
+                warnings,
+            };
         }
 
         const isValueValid = (value: any): boolean => {
-            if (value === null || value === undefined) return false;
+            if (value === null || value === undefined) {
+                return false;
+            }
+
             const strValue = String(value).trim();
+
             return (
                 strValue !== "" &&
                 !isNaN(parseFloat(strValue)) &&
@@ -149,49 +169,58 @@ const CalculationDetailFAT: React.FC<CalculationDetailFATProps> = ({
             ? selectedSamplePrep.steps
             : [];
 
-        const weighingEmpty = smpSteps.find(
-            (s) => s.name === "Weight of Empty Dish"
+        // --------------------------------------------------
+        // 1. Initial Empty Weight of R.B Flask
+        // --------------------------------------------------
+
+        const initialEmptyFlask = smpSteps.find(
+            (s) => s.name === "Initial Empty Weight of R.B Flask"
         );
-        if (!weighingEmpty) {
+
+        if (!initialEmptyFlask) {
             errors.push(
-                "Sample Preparation: Weight of Empty Dish step is missing"
+                "Sample Preparation: Initial Empty Weight of R.B Flask step is missing"
             );
-        } else {
-            if (!isValueValid(weighingEmpty.value1)) {
-                errors.push(
-                    "Sample Preparation - Weight of Empty Dish: Weight value is required"
-                );
-            }
+        } else if (!isValueValid(initialEmptyFlask.value1)) {
+            errors.push(
+                "Sample Preparation - Initial Empty Weight of R.B Flask: Weight value is required"
+            );
         }
 
-        const weighingBefore = smpSteps.find(
-            (s) => s.name === "Weight of Sample + Dish"
+        // --------------------------------------------------
+        // 2. Final weight of R.B Flask After Drying
+        // --------------------------------------------------
+
+        const finalFlaskWeight = smpSteps.find(
+            (s) => s.name === "Final weight of R.B Flask After Drying"
         );
-        if (!weighingBefore) {
+
+        if (!finalFlaskWeight) {
             errors.push(
-                "Sample Preparation: Weight of Sample + Dish step is missing"
+                "Sample Preparation: Final weight of R.B Flask After Drying step is missing"
             );
-        } else {
-            if (!isValueValid(weighingBefore.value1)) {
-                errors.push(
-                    "Sample Preparation - Weight of Sample + Dish: Weight value is required"
-                );
-            }
+        } else if (!isValueValid(finalFlaskWeight.value1)) {
+            errors.push(
+                "Sample Preparation - Final weight of R.B Flask After Drying: Weight value is required"
+            );
         }
 
-        const weighingAfter = smpSteps.find(
-            (s) => s.name === "Weight of Sample + Dish after Drying"
+        // --------------------------------------------------
+        // 3. Weight of Sample
+        // --------------------------------------------------
+
+        const sampleWeight = smpSteps.find(
+            (s) => s.name === "Weight of Sample"
         );
-        if (!weighingAfter) {
+
+        if (!sampleWeight) {
             errors.push(
-                "Sample Preparation: Weight of Sample + Dish after Drying step is missing"
+                "Sample Preparation: Weight of Sample step is missing"
             );
-        } else {
-            if (!isValueValid(weighingAfter.value1)) {
-                errors.push(
-                    "Sample Preparation - Weight of Sample + Dish after Drying: Weight value is required"
-                );
-            }
+        } else if (!isValueValid(sampleWeight.value1)) {
+            errors.push(
+                "Sample Preparation - Weight of Sample: Weight value is required"
+            );
         }
 
         return {
@@ -201,10 +230,10 @@ const CalculationDetailFAT: React.FC<CalculationDetailFATProps> = ({
         };
     };
 
-    useEffect(() => {
-        const result = validatePreparations();
-        setValidationResult(result);
-    }, [selectedSamplePrep]);
+useEffect(() => {
+    const result = validatePreparations();
+    setValidationResult(result);
+}, [selectedSamplePrep, sampleWeights.w1.value, sampleWeights.w2.value, sampleWeights.w3.value]);
 
     // Formula Display Component
     const FormulaDisplay: React.FC = () => {
@@ -297,22 +326,24 @@ const CalculationDetailFAT: React.FC<CalculationDetailFATProps> = ({
     const canCalculate = selectedSamplePrep;
 
     const performCalculation = () => {
-        console.group("🔥 LOD Calculation Started");
+        console.group("🔥 FAT Calculation Started");
 
         if (!canCalculate) {
             console.warn("Cannot calculate: Missing sample preparation.");
+
             onFieldChange(
                 calculation.id,
                 "calculationResult",
                 "Error: Please select a Sample Preparation."
             );
+
             console.groupEnd();
             return;
         }
 
         const W1_raw = sampleWeights.w1.value;
         const W2_raw = sampleWeights.w2.value;
-        // const W3_raw = sampleWeights.w3.value;
+        const W3_raw = sampleWeights.w3.value;
 
         const W1_unit = sampleWeights.w1.unit;
         const W2_unit = sampleWeights.w2.unit;
@@ -320,31 +351,47 @@ const CalculationDetailFAT: React.FC<CalculationDetailFATProps> = ({
 
         const W1 = convertMassToG(W1_raw, W1_unit);
         const W2 = convertMassToG(W2_raw, W2_unit);
-        //const W3 = convertMassToG(W3_raw, W3_unit);
+        const W3 = convertMassToG(W3_raw, W3_unit);
 
-        onFieldChange(calculation.id, "w1", W1.toString());
-        onFieldChange(calculation.id, "w2", W2.toString());
-        //onFieldChange(calculation.id, "w3", W3.toString());
+        // Store values in calculation
+        onFieldChange(
+            calculation.id,
+            "w1",
+            W1.toString()
+        );
 
+        onFieldChange(
+            calculation.id,
+            "w2",
+            W2.toString()
+        );
 
+        onFieldChange(
+            calculation.id,
+            "w3",
+            W3.toString()
+        );
 
-        // Weight of Sample (entered by analyst)
-        const W3 =
-            parseFloat(String(calculation.w3 ?? 0));
-
+        // Validate sample weight
         if (W3 <= 0) {
             onFieldChange(
                 calculation.id,
                 "calculationResult",
                 "Error: Sample weight must be greater than zero."
             );
+
+            console.groupEnd();
             return;
         }
 
+        // FAT calculation
         const fatPercentage =
             ((W2 - W1) * 100) / W3;
 
-        if (isNaN(fatPercentage) || !isFinite(fatPercentage)) {
+        if (
+            isNaN(fatPercentage) ||
+            !isFinite(fatPercentage)
+        ) {
             onFieldChange(
                 calculation.id,
                 "calculationResult",
@@ -354,7 +401,7 @@ const CalculationDetailFAT: React.FC<CalculationDetailFATProps> = ({
             onFieldChange(
                 calculation.id,
                 "calculationResult",
-                fatPercentage.toFixedNoRound(4).toFixed(3)
+                fatPercentage.toFixed(3)
             );
 
             onFieldChange(
@@ -365,8 +412,6 @@ const CalculationDetailFAT: React.FC<CalculationDetailFATProps> = ({
         }
 
         console.groupEnd();
-
-
     };
 
     return (

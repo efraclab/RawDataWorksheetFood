@@ -14,9 +14,11 @@ export interface PreparationData {
 
     preparationType:
         | "assay"
+        | "fat"
         | "residual_solvent"
         | "dissolution"
         | "lod"
+        | "protein"
         | "roi"
         | "sulphated_ash"
         | "titration"

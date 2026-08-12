@@ -58,6 +58,8 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
 
     const lodRef = useRef<PreparationModuleHandle>(null);
 
+    const proteinRef = useRef<PreparationModuleHandle>(null);
+
     const pendingRestore =
         useRef<ParameterDetail | null>(null);
 
@@ -114,6 +116,29 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
 
         collectDraft(): PreparationDraft {
 
+            const activeGroup = activeGroups[0];
+
+            if (activeGroup === "fat") {
+
+                return {
+                    activeGroup: activeGroups,
+                    fat: lodRef.current?.getDraft()
+                };
+
+            }
+
+            if (activeGroup === "protein") {
+
+                return {
+
+                    activeGroup: activeGroups,
+
+                    protein: proteinRef.current?.getDraft()
+
+                };
+
+            }
+
             return {
 
                 activeGroup: activeGroups,
@@ -121,7 +146,6 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
                 lod: lodRef.current?.getDraft()
 
             };
-
         },
 
         loadDraft(draft: PreparationDraft) {
@@ -129,14 +153,41 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
             if (!draft)
                 return;
 
+            const activeGroup =
+                draft.activeGroup?.[0];
+
             setActiveGroups(
                 draft.activeGroup ?? []
             );
 
-            if (draft.lod) {
+            if (
+                activeGroup === "lod" &&
+                draft.lod
+            ) {
 
                 lodRef.current?.loadDraft(
                     draft.lod
+                );
+
+            }
+
+            if (
+                activeGroup === "fat" &&
+                draft.fat
+            ) {
+
+                lodRef.current?.loadDraft(
+                    draft.fat
+                );
+
+            }
+            if (
+                activeGroup === "protein" &&
+                draft.protein
+            ) {
+
+                proteinRef.current?.loadDraft(
+                    draft.protein
                 );
 
             }
@@ -151,6 +202,10 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
 
             const groups: string[] = [];
 
+            // =========================
+            // LOD
+            // =========================
+
             if (
                 preps.some(
                     p =>
@@ -161,18 +216,61 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
                 groups.push("lod");
             }
 
+            // =========================
+            // FAT
+            // =========================
+
+            if (
+                preps.some(
+                    p =>
+                        p.preparationCategory === "sample" &&
+                        p.preparationType === "fat"
+                )
+            ) {
+                groups.push("fat");
+            }
+
+            if (
+                preps.some(
+                    p =>
+                        p.preparationCategory === "sample" &&
+                        p.preparationType === "protein"
+                )
+            ) {
+                groups.push("protein");
+            }
+
             setActiveGroups(groups);
-        }
+        },
 
     }));
 
     useEffect(() => {
 
-        if (!pendingRestore.current)
-            return;
+    if (!pendingRestore.current)
+        return;
 
-        if (!lodRef.current)
-            return;
+    const activeGroup = activeGroups[0];
+
+    console.log("🔥 RESTORE EFFECT:", {
+        activeGroup,
+        hasLodRef: !!lodRef.current,
+        hasProteinRef: !!proteinRef.current,
+    });
+
+    // =====================================================
+    // LOD / FAT
+    // =====================================================
+
+    if (
+        (activeGroup === "lod" ||
+            activeGroup === "fat") &&
+        lodRef.current
+    ) {
+
+        console.log(
+            "🔥 Restoring LOD/FAT preparation"
+        );
 
         lodRef.current.restoreFromWorksheet(
             pendingRestore.current
@@ -180,7 +278,37 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
 
         pendingRestore.current = null;
 
-    }, [activeGroups]);
+        return;
+    }
+
+    // =====================================================
+    // PROTEIN
+    // =====================================================
+
+    if (
+        activeGroup === "protein" &&
+        proteinRef.current
+    ) {
+
+        console.log(
+            "🔥 Restoring PROTEIN preparation"
+        );
+
+        proteinRef.current.restoreFromWorksheet(
+            pendingRestore.current
+        );
+
+        pendingRestore.current = null;
+
+        return;
+    }
+
+}, [activeGroups]);
+
+    // console.log("🔥 PREPARATION ENGINE STATE", {
+    //     showMenu,
+    //     activeGroups,
+    // });
 
     return (
 
@@ -223,14 +351,13 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
                 <div className="relative">
 
                     <button
+                        type="button"
                         disabled={isLocked}
                         onClick={() => {
-
                             if (isLocked)
                                 return;
-
+                            //console.log("🔥 ADD PREPARATION CLICKED");
                             setShowMenu(v => !v);
-
                         }}
                         className="disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-lg transition-all duration-200"
                     >
@@ -255,7 +382,6 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
             />
 
             <ModuleRenderer
-
                 activeGroups={activeGroups}
 
                 parameterId={parameterId}
@@ -274,6 +400,7 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
 
                 lodRef={lodRef}
 
+                proteinRef={proteinRef}
             />
 
         </div>

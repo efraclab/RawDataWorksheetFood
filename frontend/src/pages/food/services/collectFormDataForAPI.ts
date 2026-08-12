@@ -7,11 +7,24 @@ import type { PreparationData } from "../../../models/PreparationData";
 import type { CalculationData } from "../../../models/CalculationData";
 import type { WorksheetFileData } from "../../../models/WorksheetFileData";
 
+
 import {
     mapLodDraftToPreparations,
     mapLodDraftToCalculations,
     mapLodDraftToFiles
 } from "../mappers/lodMapper";
+
+import {
+    mapFatDraftToPreparations,
+    mapFatDraftToCalculations,
+    mapFatDraftToFiles
+} from "../mappers/fatMapper";
+
+import {
+    mapProteinDraftToPreparations,
+    mapProteinDraftToCalculations,
+    mapProteinDraftToFiles
+} from "../mappers/proteinMapper";
 
 import type { PreparationEngineHandle }
     from "../types/PreparationEngineHandle";
@@ -131,26 +144,79 @@ export function collectFormDataForAPI({
 
             const files: WorksheetFileData[] = [];
 
+            const activeGroup =
+                draft?.activeGroup?.[0];
+
             //
             // LOD
             //
 
+            if (activeGroup === "lod") {
+
+                preparations.push(
+                    ...mapLodDraftToPreparations(
+                        draft?.lod
+                    )
+                );
+
+                calculations.push(
+                    ...mapLodDraftToCalculations(
+                        draft?.lod
+                    )
+                );
+
+                files.push(
+                    ...mapLodDraftToFiles(
+                        draft?.lod
+                    )
+                );
+            }
+
+            //
+            // FAT
+            //
+
+            if (activeGroup === "fat") {
+
+                preparations.push(
+                    ...mapFatDraftToPreparations(
+                        draft?.fat
+                    )
+                );
+
+                calculations.push(
+                    ...mapFatDraftToCalculations(
+                        draft?.fat
+                    )
+                );
+
+                files.push(
+                    ...mapFatDraftToFiles(
+                        draft?.fat
+                    )
+                );
+            }
+
+            // ============================================================
+            // PROTEIN
+            // ============================================================
+
             preparations.push(
-
-                ...mapLodDraftToPreparations(draft?.lod)
-
+                ...mapProteinDraftToPreparations(
+                    draft?.protein
+                )
             );
 
             calculations.push(
-
-                ...mapLodDraftToCalculations(draft?.lod)
-
+                ...mapProteinDraftToCalculations(
+                    draft?.protein
+                )
             );
 
             files.push(
-
-                ...mapLodDraftToFiles(draft?.lod)
-
+                ...mapProteinDraftToFiles(
+                    draft?.protein
+                )
             );
 
             const parameterFiles: WorksheetFileData[] =

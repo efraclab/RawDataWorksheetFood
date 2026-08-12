@@ -4,6 +4,7 @@ import { ChevronDown, Droplets, Trash } from "lucide-react";
 import type { SamplePreparationLod } from "../models/SamplePreparationLod";
 import type { SamplePreparationLodStep } from "../models/SamplePreparationLodStep";
 import CustomDropdown from "../../../../components/shared/CustomDropdown";
+import { moduleRegistry } from "../../../configs/moduleRegistry";
 
 // Define options for CustomDropdown
 const weightUnitOptions = [
@@ -24,8 +25,8 @@ const tempUnitOptions = [
   { value: "K", label: "K" },
 ];
 
-interface SamplePreparationLodDetailProps {
-  samplePreparationLod: SamplePreparationLod;
+interface SamplePreparationDetailProps {
+  samplePreparation: SamplePreparationLod;
   onStepChange: (
     samplePreparationLodId: number,
     stepName: SamplePreparationLodStep["name"],
@@ -35,18 +36,27 @@ interface SamplePreparationLodDetailProps {
   onRemove: () => void;
   role: string;
   isLocked: boolean;
+  parameterType: string
 }
 
-const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
-  samplePreparationLod,
+const SamplePreparationDetail: React.FC<SamplePreparationDetailProps> = ({
+  samplePreparation,
   onStepChange,
   onRemove,
   role,
   isLocked,
+  parameterType,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
+
+  const labels =
+    moduleRegistry[
+        parameterType as keyof typeof moduleRegistry
+    ].labels;
+
+
 
   return (
     <motion.div
@@ -82,10 +92,10 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
 
               <div>
                 <h4 className="text-sm font-semibold text-white tracking-wide">
-                  {samplePreparationLod.label}
+                  {samplePreparation.label}
                 </h4>
                 <p className="text-xs text-emerald-100">
-                  Sample Preparation for LOD Details
+                  {labels.details}
                 </p>
               </div>
             </div>
@@ -126,7 +136,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                       border-white/30
                       ${isLocked ? "opacity-50 cursor-not-allowed" : "hover:bg-white/30"}
                   `}
-                title={`Remove ${samplePreparationLod.label}`}
+                title={`Remove ${samplePreparation.label}`}
               >
                 <Trash className="w-4 h-4 text-white" />
               </motion.button>
@@ -144,14 +154,21 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
               transition={{ duration: 0.3, ease: "easeInOut" }}
             >
               <div className="p-5 space-y-3 bg-gradient-to-br from-emerald-50/50 to-slate-50/30">
-                {samplePreparationLod.steps.map((step, index) => {
-                  const isWeighingEmptyBottle =
-                    step.name === "Weight of Empty Dish";
-                  const isWeighingBeforeDrying =
-                    step.name === "Weight of Sample + Dish";
-                  const isWeighingAfterDrying =
-                    step.name === "Weight of Sample + Dish after Drying";
-                  const isDrying = step.name === "Drying";
+                {samplePreparation.steps.map((step, index) => {
+                  // const isW1 =
+                  //   step.name === "Weight of Empty Dish";
+                  // const isW2 =
+                  //   step.name === "Weight of Sample + Dish";
+                  // const isWeighingAfterDrying =
+                  //   step.name === "Weight of Sample + Dish after Drying";
+                  // const isDrying = step.name === "Drying";
+
+                  const isW1 = step.name === labels.w1;
+                  const isW2 = step.name === labels.w2;
+                  const isW3 = step.name === labels.w3;
+                  const isDrying = step.name === labels.drying;
+
+                  
 
                   return (
                     <motion.div
@@ -179,11 +196,11 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                               <div className="h-px flex-1 bg-gradient-to-r from-slate-300 to-transparent" />
                             </div>
 
-                            {isWeighingEmptyBottle && (
+                            {isW1 && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   <span className="text-gray-600 font-medium">
-                                    Weight of Empty Dish
+                                    {labels.w1}
                                   </span>
                                   <input disabled={isLocked}
                                     type="number"
@@ -193,7 +210,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                     value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparationLod.id,
+                                        samplePreparation.id,
                                         step.name,
                                         "value1",
                                         e.target.value
@@ -217,7 +234,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                       value={step.unit1}
                                       onChange={(newUnit) =>
                                         onStepChange(
-                                          samplePreparationLod.id,
+                                          samplePreparation.id,
                                           step.name,
                                           "unit1",
                                           newUnit
@@ -236,7 +253,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                     value={step.logBookID || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparationLod.id,
+                                        samplePreparation.id,
                                         step.name,
                                         "logBookID",
                                         e.target.value
@@ -261,11 +278,11 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                               </div>
                             )}
 
-                            {isWeighingBeforeDrying && (
+                            {isW2 && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   <span className="text-gray-600 font-medium">
-                                    Weight of Sample + Dish after Drying
+                                    {labels.w2}
                                   </span>
                                   <input disabled={isLocked}
                                     type="number"
@@ -275,7 +292,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                     value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparationLod.id,
+                                        samplePreparation.id,
                                         step.name,
                                         "value1",
                                         e.target.value
@@ -299,7 +316,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                       value={step.unit1}
                                       onChange={(newUnit) =>
                                         onStepChange(
-                                          samplePreparationLod.id,
+                                          samplePreparation.id,
                                           step.name,
                                           "unit1",
                                           newUnit
@@ -320,7 +337,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   <span className="text-gray-600 font-medium">
-                                    Dry at
+                                    {labels.drying}
                                   </span>
                                   <input disabled={isLocked}
                                     type="number"
@@ -330,7 +347,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                     value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparationLod.id,
+                                        samplePreparation.id,
                                         step.name,
                                         "value1",
                                         e.target.value
@@ -354,7 +371,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                       value={step.unit1}
                                       onChange={(newUnit) =>
                                         onStepChange(
-                                          samplePreparationLod.id,
+                                          samplePreparation.id,
                                           step.name,
                                           "unit1",
                                           newUnit
@@ -376,7 +393,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                     value={step.value2 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparationLod.id,
+                                        samplePreparation.id,
                                         step.name,
                                         "value2",
                                         e.target.value
@@ -400,7 +417,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                       value={step.unit2}
                                       onChange={(newUnit) =>
                                         onStepChange(
-                                          samplePreparationLod.id,
+                                          samplePreparation.id,
                                           step.name,
                                           "unit2",
                                           newUnit
@@ -419,7 +436,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                     value={step.logBookID || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparationLod.id,
+                                        samplePreparation.id,
                                         step.name,
                                         "logBookID",
                                         e.target.value
@@ -444,11 +461,11 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                               </div>
                             )}
 
-                            {isWeighingAfterDrying && (
+                            {isW3 && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   <span className="text-gray-600 font-medium">
-                                    Weigh of Bottle + Sample
+                                    {labels.w3}
                                   </span>
                                   <input disabled={isLocked}
                                     type="number"
@@ -458,7 +475,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                     value={step.value1 || ""}
                                     onChange={(e) =>
                                       onStepChange(
-                                        samplePreparationLod.id,
+                                        samplePreparation.id,
                                         step.name,
                                         "value1",
                                         e.target.value
@@ -482,7 +499,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                                       value={step.unit1}
                                       onChange={(newUnit) =>
                                         onStepChange(
-                                          samplePreparationLod.id,
+                                          samplePreparation.id,
                                           step.name,
                                           "unit1",
                                           newUnit
@@ -513,4 +530,4 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
   );
 };
 
-export default SamplePreparationLodDetail;
+export default SamplePreparationDetail;

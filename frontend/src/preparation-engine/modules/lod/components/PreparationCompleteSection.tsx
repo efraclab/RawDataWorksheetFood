@@ -6,6 +6,7 @@ interface Props {
     completedAt: Date | null;
     onComplete: () => void;
     onUnlock: () => void;
+    parameterType: string;
 }
 
 const PreparationCompleteSection: React.FC<Props> = ({
@@ -13,9 +14,13 @@ const PreparationCompleteSection: React.FC<Props> = ({
     completedAt,
     onComplete,
     onUnlock,
+    parameterType,
 }) => {
-
+    const parameterTitle =
+            parameterType.charAt(0).toUpperCase() +
+            parameterType.slice(1);
     if (completed) {
+        
 
         return (
 
@@ -146,7 +151,7 @@ const PreparationCompleteSection: React.FC<Props> = ({
 
                 <Lock className="w-4 h-4" />
 
-                Mark LOD Preparation as Complete
+                Mark {parameterTitle} Preparation as Complete
 
             </button>
 

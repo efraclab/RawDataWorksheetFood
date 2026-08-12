@@ -4,6 +4,7 @@ import { ChevronDown, Droplets, Trash } from "lucide-react";
 import type { SamplePreparationLod } from "../../../preparation_models/drugs/SamplePreparationLod";
 import type { SamplePreparationLodStep } from "../../../preparation_models/drugs/SamplePreparationLodStep";
 import CustomDropdown from "../../shared/CustomDropdown"; // Import CustomDropdown
+import { moduleRegistry } from "../../../preparation-engine/configs/moduleRegistry";
 
 // Define options for CustomDropdown
 const weightUnitOptions = [
@@ -34,6 +35,7 @@ interface SamplePreparationLodDetailProps {
   ) => void;
   onRemove: () => void;
   role: string;
+  parameterType: string;
 }
 
 const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
@@ -41,10 +43,16 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
   onStepChange,
   onRemove,
   role,
+  parameterType,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const headerRoundingClass = isExpanded ? "rounded-t-lg" : "rounded-lg";
+
+  const labels =
+    moduleRegistry[
+        parameterType as keyof typeof moduleRegistry
+    ].labels;
 
   return (
     <motion.div
@@ -59,9 +67,8 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
       <div className="relative bg-white/95 backdrop-blur-sm rounded-lg border border-slate-700/40 transition-all duration-300 mb-4">
         {/* Elegant Header */}
         <div
-          className={`relative bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 ${headerRoundingClass} ${
-            isExpanded ? "rounded-t-lg" : "rounded-lg"
-          }`}
+          className={`relative bg-gradient-to-r from-emerald-700 via-emerald-800 to-slate-900 ${headerRoundingClass} ${isExpanded ? "rounded-t-lg" : "rounded-lg"
+            }`}
         >
           <div className="relative flex items-center justify-between px-4 py-3">
             <div
@@ -84,7 +91,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                   {samplePreparationLod.label}
                 </h4>
                 <p className="text-xs text-emerald-100">
-                  Sample Preparation for LOD Details
+                  {labels.details}
                 </p>
               </div>
             </div>
@@ -131,13 +138,10 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
             >
               <div className="p-5 space-y-3 bg-gradient-to-br from-emerald-50/50 to-slate-50/30">
                 {samplePreparationLod.steps.map((step, index) => {
-                  const isWeighingEmptyBottle =
-                    step.name === "Weighing (Empty Bottle)";
-                  const isWeighingBeforeDrying =
-                    step.name === "Weighing (Before Drying)";
-                  const isWeighingAfterDrying =
-                    step.name === "Weighing (After Drying)";
+                  const isStep1 = index === 0;
+                  const isStep2 = index === 1;
                   const isDrying = step.name === "Drying";
+                  const isStep4 = index === 3;
 
                   return (
                     <motion.div
@@ -160,16 +164,23 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-3">
                               <div className="font-bold text-emerald-900 text-sm">
-                                {step.name}
+                                {index === 0
+                                  ? labels.w1
+                                  : index === 1
+                                    ? labels.w2
+                                    : index === 2
+                                      ? labels.drying
+                                      : labels.w3}
                               </div>
+
                               <div className="h-px flex-1 bg-gradient-to-r from-slate-300 to-transparent" />
                             </div>
 
-                            {isWeighingEmptyBottle && (
+                            {isStep1 && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   <span className="text-gray-600 font-medium">
-                                    Weigh of Empty Bottle
+                                    {labels.w1}
                                   </span>
                                   <input
                                     type="number"
@@ -247,11 +258,11 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                               </div>
                             )}
 
-                            {isWeighingBeforeDrying && (
+                            {isStep2 && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   <span className="text-gray-600 font-medium">
-                                    Weigh of Bottle + Sample
+                                    {labels.w2}
                                   </span>
                                   <input
                                     type="number"
@@ -306,7 +317,7 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   <span className="text-gray-600 font-medium">
-                                    Dry the sample at
+                                    {labels.drying}
                                   </span>
                                   <input
                                     type="number"
@@ -430,11 +441,11 @@ const SamplePreparationLodDetail: React.FC<SamplePreparationLodDetailProps> = ({
                               </div>
                             )}
 
-                            {isWeighingAfterDrying && (
+                            {isStep4 && (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   <span className="text-gray-600 font-medium">
-                                    Weigh of Bottle + Sample
+                                    {labels.w3}
                                   </span>
                                   <input
                                     type="number"

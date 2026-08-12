@@ -3,7 +3,7 @@ import {
     createNewCalculationLod
 } from "./factory";
 import type { SamplePreparationLodStep } from "./models/SamplePreparationLodStep";
-
+import { moduleRegistry } from "../../configs/moduleRegistry";
 import type { SamplePreparationLod } from "./models/SamplePreparationLod";
 import type { CalculationLod } from "./models/CalculationLod";
 
@@ -33,15 +33,18 @@ export const updateCalculation = (
 };
 
 export const addSamplePreparation = (
-    current: SamplePreparationLod[]
-): SamplePreparationLod[] => {
+    samplePreparations: SamplePreparationLod[],
+    parameterType: string
+) => {
+
+    const moduleConfig =
+        moduleRegistry[
+        parameterType as keyof typeof moduleRegistry
+        ];
 
     return [
-
-        ...current,
-
-        createNewSamplePreparationLod(current.length)
-
+        ...samplePreparations,
+        moduleConfig.createSamplePreparation(samplePreparations.length)
     ];
 
 };

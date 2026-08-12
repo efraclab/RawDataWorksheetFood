@@ -17,12 +17,13 @@ import type { SamplePreparationLod } from "../models/SamplePreparationLod";
 import type { SamplePreparationLodStep } from "../models/SamplePreparationLodStep";
 import type { AttachedFile } from "../../../../models/AttachedFile";
 import type { CalculationLod } from "../models/CalculationLod";
-import { createNewCalculationLod } from "../factory";
+import { moduleRegistry } from "../../../configs/moduleRegistry";
 import CalculationSection from "./CalculationSection";
 import PreparationCompleteModal from "./PreparationCompleteModal";
 import Toast from "../../../../components/shared/Toast";
 import UnlockPreparationDialog from "../../../components/UnlockPreparationDialog";
 import type { PreparationModuleHandle } from "../../../../pages/food/types/PreparationModuleHandle";
+import type { CalculationBase } from "../../../models/CalculationBase";
 
 interface Props {
 
@@ -44,7 +45,7 @@ interface Props {
 
 }
 
-const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
+const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
 
     parameterId,
 
@@ -78,10 +79,15 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
 
     const handleAddPreparation = () => {
 
-        setSamplePreparations(prev =>
-            addSamplePreparation(prev)
-        );
+        const newPreparation =
+            moduleConfig.createSamplePreparation(
+                samplePreparations.length
+            );
 
+        setSamplePreparations(prev => [
+            ...prev,
+            newPreparation
+        ]);
     };
 
     const handleRemovePreparation = (
@@ -211,7 +217,16 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
         }
 
     };
-    const [calculations, setCalculations] = useState<CalculationLod[]>([]);
+    const [calculations, setCalculations] =
+        useState<CalculationBase[]>([]);
+    const moduleConfig =
+        moduleRegistry[
+        parameterType as keyof typeof moduleRegistry
+        ];
+    // console.log("🔥 PREPARATION ANALYSIS MOUNTED", {
+    //     parameterType,
+    //     moduleConfig,
+    // });
 
     const handleAddCalculation = () => {
 
@@ -219,7 +234,7 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
 
             ...prev,
 
-            createNewCalculationLod(prev.length)
+            moduleConfig.createCalculation(prev.length)
 
         ]);
 
@@ -237,7 +252,7 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
 
     const handleCalculationFieldChange = (
         calculationId: number,
-        field: keyof CalculationLod,
+        field: keyof CalculationBase,
         value: any
     ) => {
 
@@ -356,60 +371,24 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
             // Calculations
             //------------------------------------------------
 
-            const calculations: CalculationLod[] =
-                (parameter.calculations ?? []).map((c: any, index: number) => {
 
-                    const data =
-                        typeof c.data === "string"
-                            ? JSON.parse(c.data)
-                            : (c.data ?? {});
+            const rawCalculations =
+                (parameter.calculations ?? []) as any[];
 
-                    return {
-
-                        id: data.id ?? index + 1,
-
-                        label:
-                            data.label ??
-                            c.label ??
-                            `Calculation ${index + 1}`,
-
-                        selectedSamplePreparationLabel:
-                            data.selectedSamplePreparationLabel ?? null,
-
-                        acceptanceLimitMin:
-                            data.acceptanceLimitMin ?? "",
-
-                        acceptanceLimitMax:
-                            data.acceptanceLimitMax ?? "",
-
-                        w1_emptyDish:
-                            data.w1_emptyDish ?? "",
-
-                        w2_dishWithSample:
-                            data.w2_dishWithSample ?? "",
-
-                        w3_dishAfterIgnition:
-                            data.w3_dishAfterIgnition ?? "",
-
-                        calculationResult:
-                            data.calculationResult ?? null,
-
-                        calculationResultUnit:
-                            data.calculationResultUnit ?? null,
-
-                        w1: data.w1 ?? null,
-                        w2: data.w2 ?? null,
-                        w3: data.w3 ?? null
-                    };
-
-                });
+            const calculations: CalculationBase[] =
+                rawCalculations
+                    .filter(
+                        calculation =>
+                            calculation.calculationType === parameterType
+                    )
+                    .map(
+                        calculation =>
+                            moduleConfig.restoreCalculation(
+                                calculation
+                            ) as CalculationBase
+                    );
 
             setCalculations(calculations);
-
-            // console.log("LOD Parameter");
-            // console.log(parameter);
-            // console.log(parameter.calculations);
-            // console.log(parameter.preparations);
 
             //------------------------------------------------
             // Completed
@@ -487,6 +466,7 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
                         completedAt={completedAt}
                         onComplete={() => setShowCompleteModal(true)}
                         onUnlock={() => setShowUnlockDialog(true)}
+                        parameterType={parameterType}
                     />
                     {isPreparationCompleted && (
 
@@ -535,4 +515,4 @@ const LODAnalysis = forwardRef<PreparationModuleHandle, Props>(({
 
 });
 
-export default LODAnalysis;
+export default PreparationAnalysis;

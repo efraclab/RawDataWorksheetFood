@@ -839,6 +839,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
             };
 
             const samples =
+            
                 await fetchSample(request);
 
             setSamplesData(samples);
@@ -978,6 +979,8 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         loadAnalysts();
 
     }, []);
+
+    
     const availableToAdd = (samplesData ?? []).filter(
         (param) =>
             !addedParameters.find(
@@ -1343,7 +1346,6 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const handleSaveDraft = async () => {
 
         setIsSaving(true);
-
         try {
 
             if (!worksheetInfo) {
@@ -1531,7 +1533,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                         worksheetId={worksheetId}
                         registrationNo={registrationNo}
                         sampleName={worksheetInfo?.sample.sampleName ?? ""}
-                        parameterCount={worksheetInfo?.parameters.length}
+                        parameterCount={worksheetInfo?.sample.numberOfParameters ?? 0}
                         dueDate={worksheetInfo?.sample.dueDate}
                         displayStatus={worksheetInfo?.sample.status}
                     />
@@ -1541,6 +1543,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                         parameterName={addedParameters[0]?.parameterName ?? ""}
                         methodName={addedParameters[0]?.methodName ?? ""}
                     />
+                    
                     <FoodParameterManager
                         parameterCount={worksheetInfo?.parameters.length}
                         addedParameters={addedParameters}

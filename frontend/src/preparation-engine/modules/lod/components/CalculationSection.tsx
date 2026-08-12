@@ -1,17 +1,14 @@
 import React from "react";
 import { FaPlus } from "react-icons/fa";
 
-import EmptyCalculation from "./EmptyCalculation";
-import CalculationDetailLod from "./CalculationDetailLod";
-import CalculationDetailFAT from "../../fat/CalculationDetailFAT.tsx";
-import type { CalculationLod } from "../models/CalculationLod";
-import type { SamplePreparationLod } from "../models/SamplePreparationLod";
+import type { CalculationBase } from "../../../models/CalculationBase";
+
+import { moduleRegistry } from "../../../configs/moduleRegistry";
 
 interface Props {
+    calculations: CalculationBase[];
 
-    calculations: CalculationLod[];
-
-    samplePreparations: SamplePreparationLod[];
+    samplePreparations: any[];
 
     onAdd: () => void;
 
@@ -23,10 +20,9 @@ interface Props {
 
     onFieldChange: (
         calculationId: number,
-        field: keyof CalculationLod,
+        field: keyof CalculationBase,
         value: any
     ) => void;
-
 }
 
 const CalculationSection: React.FC<Props> = ({
@@ -36,14 +32,22 @@ const CalculationSection: React.FC<Props> = ({
     onRemove,
     parameterType,
     role,
-    onFieldChange
+    onFieldChange,
 }) => {
-
     const parameterTitle =
-        parameterType.charAt(0).toUpperCase() + parameterType.slice(1);
+        parameterType.charAt(0).toUpperCase() +
+        parameterType.slice(1);
+
+    const moduleConfig =
+        moduleRegistry[
+        parameterType as keyof typeof moduleRegistry
+        ];
+
+    if (!moduleConfig) return null;
+
+    const CalculationComponent = moduleConfig.calculationComponent;
 
     return (
-
         <div className="mt-8">
 
             {/* ================= CALCULATIONS DIVIDER ================= */}
@@ -73,21 +77,15 @@ const CalculationSection: React.FC<Props> = ({
             <div
                 className="
                     relative
-
                     mx-4
                     mr-5
                     mb-5
-
                     rounded-xl
-
                     border
                     border-emerald-200/30
-
                     bg-white/50
                     backdrop-blur-sm
-
                     shadow-lg
-
                     p-6
                 "
             >
@@ -112,26 +110,19 @@ const CalculationSection: React.FC<Props> = ({
                             flex
                             items-center
                             gap-1.5
-
                             px-3
                             py-2
-
                             rounded-lg
-
                             bg-gradient-to-r
                             from-emerald-600
                             to-emerald-900
-
                             text-xs
                             font-semibold
                             text-white
-
                             shadow-lg
-
                             hover:shadow-xl
                             hover:from-emerald-700
                             hover:to-emerald-800
-
                             transition-all
                             duration-200
                         "
@@ -148,39 +139,20 @@ const CalculationSection: React.FC<Props> = ({
                 {/* ================= BODY ================= */}
 
                 {calculations.map((calc) => (
-
-                    parameterType === "fat" ? (
-
-                        <CalculationDetailFAT
-                            key={calc.id}
-                            calculation={calc}
-                            samplePreparations={samplePreparations}
-                            onRemove={() => onRemove(calc.id)}
-                            onFieldChange={onFieldChange}
-                            role={role}
-                        />
-
-                    ) : (
-
-                        <CalculationDetailLod
-                            key={calc.id}
-                            calculation={calc}
-                            samplePreparations={samplePreparations}
-                            onRemove={() => onRemove(calc.id)}
-                            onFieldChange={onFieldChange}
-                            role={role}
-                        />
-
-                    )
-
+                    <CalculationComponent
+                        key={calc.id}
+                        calculation={calc as any}
+                        samplePreparations={samplePreparations}
+                        onRemove={() => onRemove(calc.id)}
+                        onFieldChange={onFieldChange as any}
+                        role={role}
+                    />
                 ))}
 
             </div>
 
         </div>
-
     );
-
 };
 
 export default CalculationSection;

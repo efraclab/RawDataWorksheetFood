@@ -1,25 +1,21 @@
-import type { SamplePreparationLod }
-    from "../../../preparation-engine/modules/lod/models/SamplePreparationLod";
+// import type { SamplePreparationLod }
+//     from "../../../preparation-engine/modules/lod/models/SamplePreparationLod";
 
-import type { CalculationLod }
-    from "../../../preparation-engine/modules/lod/models/CalculationLod";
+// import type { CalculationLod }
+//     from "../../../preparation-engine/modules/lod/models/CalculationLod";
 
-import type { AttachedFile }
-    from "../../../models/AttachedFile";
+// import type { SamplePreparationFat }
+//     from "../../../preparation-engine/modules/fat/SamplePreparationFAT";
 
-export interface LodDraft {
+// import type { CalculationFat }
+//     from "../../../preparation-engine/modules/fat/CalculationFat";
 
-    samplePreparations: SamplePreparationLod[];
+// import type { AttachedFile }
+//     from "../../../models/AttachedFile";
 
-    calculations: CalculationLod[];
-
-    files: AttachedFile[];
-
-    isPreparationCompleted: boolean;
-
-    completedAt: Date | null;
-
-}
+import type { FatDraft } from "./FatDraft";
+import type { LodDraft } from "./LodDraft";
+import type { ProteinDraft } from "./ProteinDraft";
 
 export interface PreparationDraft {
 
@@ -27,4 +23,34 @@ export interface PreparationDraft {
 
     lod?: LodDraft;
 
+    fat?: FatDraft;
+
+    protein?: ProteinDraft;
 }
+
+// export interface LodDraft {
+
+//     samplePreparations: SamplePreparationLod[];
+
+//     calculations: CalculationLod[];
+
+//     files: AttachedFile[];
+
+//     isPreparationCompleted: boolean;
+
+//     completedAt: Date | null;
+// }
+
+// export interface FatDraft {
+
+//     samplePreparations: SamplePreparationFat[];
+
+//     calculations: CalculationFat[];
+
+//     files: AttachedFile[];
+
+//     isPreparationCompleted: boolean;
+
+//     completedAt: Date | null;
+// }
+

@@ -1,8 +1,6 @@
 import React from "react";
-
 import EmptySamplePreparation from "./EmptySamplePreparation";
-import SamplePreparationLodDetail from "./SamplePreparationLodDetail";
-
+import { moduleRegistry } from "../../../configs/moduleRegistry";
 import type { SamplePreparationLod } from "../models/SamplePreparationLod";
 import type { SamplePreparationLodStep } from "../models/SamplePreparationLodStep";
 
@@ -34,6 +32,15 @@ const SamplePreparationSection: React.FC<Props> = ({
     isLocked,
     parameterType,
 }) => {
+    const moduleConfig =
+        moduleRegistry[
+        parameterType as keyof typeof moduleRegistry
+        ];
+
+    const SamplePreparationComponent =
+        moduleRegistry[
+            parameterType as keyof typeof moduleRegistry
+        ]?.samplePreparationComponent;
 
     return (
 
@@ -86,33 +93,31 @@ const SamplePreparationSection: React.FC<Props> = ({
             {/* Empty State */}
 
             {samplePreparations.length === 0 ? (
-
                 <EmptySamplePreparation
                     onAdd={onAdd}
                     parameterType={parameterType}
                 />
-
             ) : (
 
                 <div className="space-y-5">
-
                     {samplePreparations.map(preparation => (
 
-                        <SamplePreparationLodDetail
+                        <SamplePreparationComponent
 
                             key={preparation.id}
 
-                            samplePreparationLod={preparation}
+                            samplePreparation={preparation}
 
                             role={role}
 
-                            onRemove={() =>
-                                onRemove(preparation.id)
-                            }
+                            isLocked={isLocked}
+
+                            onRemove={() => onRemove(preparation.id)}
 
                             onStepChange={onStepChange}
-                            isLocked={isLocked}
-                            // parameterType={parameterType}
+
+                            parameterType={parameterType}
+
                         />
 
                     ))}

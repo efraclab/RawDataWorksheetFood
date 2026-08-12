@@ -58,8 +58,6 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
       };
       const data = await fetchSample(request);
 
-
-
       if (data && Array.isArray(data) && data.length > 0) {
         setSampleData(data);
       } else {
@@ -86,7 +84,6 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
     setIsCreating(true);
     setCreationError(null);
 
-
     try {
       const firstSample = sampleData[0];
       const worksheetId = generateWorksheetId();
@@ -98,7 +95,7 @@ const CreateWorksheet: React.FC<CreateWorksheetProps> = ({
           registrationNo: firstSample.registrationNo,
           sampleName: firstSample.sampleName,
           sampleCode: firstSample.sampleCode,
-          numberOfParameters: 0,
+          numberOfParameters: sampleData.length,
           dueDate: firstSample.tatDate,
           lab: firstSample.lab,
         },

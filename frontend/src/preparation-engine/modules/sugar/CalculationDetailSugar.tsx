@@ -1514,7 +1514,7 @@ const CalculationDetailSugar: React.FC<Props> = ({
                                                             flex
                                                             items-center
                                                             gap-4
-                                                            gap-3
+                                                            
                                                             p-4
                                                         "
                                                     >

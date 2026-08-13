@@ -32,6 +32,13 @@ import {
     mapSugarDraftToFiles
 } from "../mappers/sugarMapper";
 
+
+import {
+    mapEnergyDraftToPreparations,
+    mapEnergyDraftToCalculations,
+    mapEnergyDraftToFiles
+} from "../mappers/energyMapper";
+
 import type { PreparationEngineHandle }
     from "../types/PreparationEngineHandle";
 
@@ -250,6 +257,31 @@ export function collectFormDataForAPI({
                 files.push(
                     ...mapSugarDraftToFiles(
                         draft?.sugar
+                    )
+                );
+            }
+
+             // ============================================================
+            // ENERGY
+            // ============================================================
+
+            if (activeGroup === "energy") {
+
+                preparations.push(
+                    ...mapEnergyDraftToPreparations(
+                        draft?.energy
+                    )
+                );
+
+                calculations.push(
+                    ...mapEnergyDraftToCalculations(
+                        draft?.energy
+                    )
+                );
+
+                files.push(
+                    ...mapEnergyDraftToFiles(
+                        draft?.energy
                     )
                 );
             }

@@ -21,19 +21,21 @@ interface Props {
     isLocked: boolean;
 
     onLockPreparation:
-        (parameterId: number) => void;
+    (parameterId: number) => void;
 
     onUnlockPreparation:
-        (parameterId: number) => void;
+    (parameterId: number) => void;
 
     lodRef:
-        React.RefObject<PreparationModuleHandle | null>;
+    React.RefObject<PreparationModuleHandle | null>;
 
     proteinRef:
-        React.RefObject<PreparationModuleHandle | null>;
+    React.RefObject<PreparationModuleHandle | null>;
 
     sugarRef:
-        React.RefObject<PreparationModuleHandle | null>;
+    React.RefObject<PreparationModuleHandle | null>;
+    energyRef:
+    React.RefObject<PreparationModuleHandle | null>;
 
 }
 
@@ -62,6 +64,8 @@ const ModuleRenderer: React.FC<Props> = ({
 
     sugarRef,
 
+    energyRef
+
 }) => {
 
     const moduleType = activeGroups[0];
@@ -75,7 +79,9 @@ const ModuleRenderer: React.FC<Props> = ({
             ? proteinRef
             : moduleType === "sugar"
                 ? sugarRef
-                : lodRef;
+                : moduleType === "energy"
+                    ? energyRef
+                    : lodRef;
 
 
     // =====================================================
@@ -84,7 +90,7 @@ const ModuleRenderer: React.FC<Props> = ({
 
     const moduleConfig =
         moduleRegistry[
-            moduleType as keyof typeof moduleRegistry
+        moduleType as keyof typeof moduleRegistry
         ];
 
 

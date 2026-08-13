@@ -89,6 +89,7 @@ export const createSamplePreparation = (
         };
     }
 
+
     // =====================================================
     // PROTEIN
     // =====================================================
@@ -135,28 +136,113 @@ export const createSamplePreparation = (
         };
     }
 
+
+    // =====================================================
+    // CARBOHYDRATE
+    // =====================================================
+
+    if (parameterType === "carbohydrate") {
+
+        return {
+
+            id: Date.now() + index,
+
+            label: `Sample Preparation ${index + 1}`,
+
+            steps: [
+
+                // =================================================
+                // 1. MOISTURE
+                // =================================================
+
+                {
+                    name: "Moisture",
+
+                    value1: "",
+
+                    unit1: "g/100g",
+
+                    logBookID: "",
+                },
+
+
+                // =================================================
+                // 2. ASH
+                // =================================================
+
+                {
+                    name: "Ash",
+
+                    value1: "",
+
+                    unit1: "g/100g",
+
+                    logBookID: "",
+                },
+
+
+                // =================================================
+                // 3. PROTEIN
+                // =================================================
+
+                {
+                    name: "Protein",
+
+                    value1: "",
+
+                    unit1: "g/100g",
+
+                    logBookID: "",
+                },
+
+
+                // =================================================
+                // 4. FAT
+                // =================================================
+
+                {
+                    name: "Fat",
+
+                    value1: "",
+
+                    unit1: "g/100g",
+
+                    logBookID: "",
+                },
+
+            ],
+
+        };
+
+    }
+
+
     // =====================================================
     // LOD / FAT
     // =====================================================
 
     return {
+
         id: Date.now() + index,
 
         label: `Sample Preparation ${index + 1}`,
 
         steps: [
+
             {
                 name: labels.w1,
                 value1: "",
                 unit1: "g",
                 logBookID: "",
             },
+
             {
                 name: labels.w2,
                 value1: "",
                 unit1: "g",
                 logBookID: "",
             },
+
             {
                 name: labels.drying,
                 value1: "",
@@ -165,12 +251,15 @@ export const createSamplePreparation = (
                 unit2: "min",
                 logBookID: "",
             },
+
             {
                 name: labels.w3,
                 value1: "",
                 unit1: "g",
                 logBookID: "",
             },
+
         ],
+
     };
 };

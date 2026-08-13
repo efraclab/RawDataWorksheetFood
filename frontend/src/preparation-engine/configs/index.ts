@@ -3,6 +3,7 @@ import { fatConfig } from "./fatConfig";
 import { proteinConfig } from "./protineConfig";
 import { sugarConfig } from "./sugarConfig";
 import { energyConfig } from "./energyConfig";
+import { carbohydrateConfig } from "./carbohydrateConfig";
 
 
 export const preparationConfigs = [
@@ -15,6 +16,8 @@ export const preparationConfigs = [
 
     sugarConfig,
 
-    energyConfig
+    energyConfig,
+
+    carbohydrateConfig
 
 ];

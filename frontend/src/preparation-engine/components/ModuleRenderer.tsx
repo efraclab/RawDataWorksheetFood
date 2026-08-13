@@ -34,9 +34,12 @@ interface Props {
 
     sugarRef:
     React.RefObject<PreparationModuleHandle | null>;
+
     energyRef:
     React.RefObject<PreparationModuleHandle | null>;
 
+    carbohydrateRef:
+    React.RefObject<PreparationModuleHandle | null>;
 }
 
 
@@ -64,11 +67,14 @@ const ModuleRenderer: React.FC<Props> = ({
 
     sugarRef,
 
-    energyRef
+    energyRef,
+
+    carbohydrateRef
 
 }) => {
 
     const moduleType = activeGroups[0];
+
 
     // =====================================================
     // SELECT CORRECT MODULE REF
@@ -81,7 +87,9 @@ const ModuleRenderer: React.FC<Props> = ({
                 ? sugarRef
                 : moduleType === "energy"
                     ? energyRef
-                    : lodRef;
+                    : moduleType === "carbohydrate"
+                        ? carbohydrateRef
+                        : lodRef;
 
 
     // =====================================================
@@ -90,7 +98,7 @@ const ModuleRenderer: React.FC<Props> = ({
 
     const moduleConfig =
         moduleRegistry[
-        moduleType as keyof typeof moduleRegistry
+            moduleType as keyof typeof moduleRegistry
         ];
 
 

@@ -13,6 +13,14 @@ import SamplePreparationDetailSugar from "../modules/sugar/models/SamplePreparat
 import CalculationDetailEnergy from "../modules/energy/CalculationDetailEnergy";
 import SamplePreparationDetailEnergy from "../modules/energy/models/SamplePreparationDetailEnergy";
 import { createCalculationEnergy, createSamplePreparationEnergy, restoreCalculationEnergy } from "../modules/energy/factory";
+import CalculationDetailCarbohydrate from "../modules/carbohydrate/CalculationDetailCarbohydrate";
+import SamplePreparationDetailCarbohydrate from "../modules/carbohydrate/models/SamplePreparationDetailCarbohydrate";
+import {
+    createCalculationCarbohydrate,
+    createSamplePreparationCarbohydrate,
+    restoreCalculationCarbohydrate
+} from "../modules/carbohydrate/factory";
+
 interface ModuleLabels {
     details: string;
     w1: string;
@@ -190,6 +198,56 @@ export const moduleRegistry: Record<
 
             w4:
                 "Energy Step 5"
+
+        }
+
+    },
+        carbohydrate: {
+
+        id: "carbohydrate",
+
+        title: "Carbohydrate Analysis",
+
+        shortName: "Carbohydrate",
+
+        icon: "🍞",
+
+        analysisComponent: PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailCarbohydrate,
+
+        calculationComponent:
+            CalculationDetailCarbohydrate,
+
+        createCalculation:
+            createCalculationCarbohydrate,
+
+        createSamplePreparation:
+            createSamplePreparationCarbohydrate,
+
+        restoreCalculation:
+            restoreCalculationCarbohydrate,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Carbohydrate Details",
+
+            w1:
+                "Moisture",
+
+            w2:
+                "Fat",
+
+            drying:
+                "Ash",
+
+            w3:
+                "Protein",
+
+            w4:
+                "Carbohydrate"
 
         }
 

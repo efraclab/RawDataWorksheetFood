@@ -42,6 +42,12 @@ import {
 import type { PreparationEngineHandle }
     from "../types/PreparationEngineHandle";
 
+import {
+    mapCarbohydrateDraftToPreparations,
+    mapCarbohydrateDraftToCalculations,
+    mapCarbohydrateDraftToFiles
+} from "../mappers/carbohydrateMapper";
+
 export function collectFormDataForAPI({
 
     role,
@@ -261,7 +267,7 @@ export function collectFormDataForAPI({
                 );
             }
 
-             // ============================================================
+            // ============================================================
             // ENERGY
             // ============================================================
 
@@ -282,6 +288,30 @@ export function collectFormDataForAPI({
                 files.push(
                     ...mapEnergyDraftToFiles(
                         draft?.energy
+                    )
+                );
+            }
+            // ============================================================
+            // CARBOHYDRATE
+            // ============================================================
+
+            if (activeGroup === "carbohydrate") {
+
+                preparations.push(
+                    ...mapCarbohydrateDraftToPreparations(
+                        draft?.carbohydrate
+                    )
+                );
+
+                calculations.push(
+                    ...mapCarbohydrateDraftToCalculations(
+                        draft?.carbohydrate
+                    )
+                );
+
+                files.push(
+                    ...mapCarbohydrateDraftToFiles(
+                        draft?.carbohydrate
                     )
                 );
             }

@@ -45,10 +45,10 @@ interface Props {
     isLocked: boolean;
 
     onLockPreparation:
-        (parameterId: number) => void;
+    (parameterId: number) => void;
 
     onUnlockPreparation:
-        (parameterId: number) => void;
+    (parameterId: number) => void;
 
 }
 
@@ -88,6 +88,10 @@ const PreparationEngine =
 
         // ⭐ ENERGY REF
         const energyRef =
+            useRef<PreparationModuleHandle>(null);
+
+        // ⭐ CARBOHYDRATE REF
+        const carbohydrateRef =
             useRef<PreparationModuleHandle>(null);
 
 
@@ -288,6 +292,27 @@ const PreparationEngine =
 
                     }
 
+                    // ----------------------------------------------
+                    // CARBOHYDRATE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "carbohydrate"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            carbohydrate:
+                                carbohydrateRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
 
                     // ----------------------------------------------
                     // LOD
@@ -407,6 +432,21 @@ const PreparationEngine =
 
                     }
 
+                    // ----------------------------------------------
+                    // CARBOHYDRATE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "carbohydrate" &&
+                        draft.carbohydrate
+                    ) {
+
+                        carbohydrateRef.current?.loadDraft(
+                            draft.carbohydrate
+                        );
+
+                    }
+
                 },
 
 
@@ -437,10 +477,10 @@ const PreparationEngine =
                         preps.some(
                             p =>
                                 p.preparationCategory ===
-                                    "sample" &&
+                                "sample" &&
 
                                 p.preparationType ===
-                                    "lod"
+                                "lod"
                         )
                     ) {
 
@@ -457,10 +497,10 @@ const PreparationEngine =
                         preps.some(
                             p =>
                                 p.preparationCategory ===
-                                    "sample" &&
+                                "sample" &&
 
                                 p.preparationType ===
-                                    "fat"
+                                "fat"
                         )
                     ) {
 
@@ -477,10 +517,10 @@ const PreparationEngine =
                         preps.some(
                             p =>
                                 p.preparationCategory ===
-                                    "sample" &&
+                                "sample" &&
 
                                 p.preparationType ===
-                                    "protein"
+                                "protein"
                         )
                     ) {
 
@@ -497,10 +537,10 @@ const PreparationEngine =
                         preps.some(
                             p =>
                                 p.preparationCategory ===
-                                    "sample" &&
+                                "sample" &&
 
                                 p.preparationType ===
-                                    "sugar"
+                                "sugar"
                         )
                     ) {
 
@@ -517,14 +557,33 @@ const PreparationEngine =
                         preps.some(
                             p =>
                                 p.preparationCategory ===
-                                    "sample" &&
+                                "sample" &&
 
                                 p.preparationType ===
-                                    "energy"
+                                "energy"
                         )
                     ) {
 
                         groups.push("energy");
+
+                    }
+
+                    // ----------------------------------------------
+                    // CARBOHYDRATE
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "carbohydrate"
+                        )
+                    ) {
+
+                        groups.push("carbohydrate");
 
                     }
 
@@ -658,6 +717,31 @@ const PreparationEngine =
                 pendingRestore.current =
                     null;
 
+
+                return;
+
+            }
+
+            // ========================================================
+            // CARBOHYDRATE
+            // ========================================================
+
+            if (
+                activeGroup === "carbohydrate" &&
+                carbohydrateRef.current
+            ) {
+
+                // console.log(
+                //     "🔥 Restoring CARBOHYDRATE preparation"
+                // );
+
+                carbohydrateRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+                pendingRestore.current =
+                    null;
 
                 return;
 
@@ -891,6 +975,9 @@ const PreparationEngine =
 
                     energyRef={
                         energyRef
+                    }
+                    carbohydrateRef={
+                        carbohydrateRef
                     }
 
                 />

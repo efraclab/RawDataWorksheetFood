@@ -21,6 +21,7 @@ export interface PreparationData {
         | "protein"
         | "sugar"
         | "energy"
+        | "carbohydrate"
         | "roi"
         | "sulphated_ash"
         | "titration"

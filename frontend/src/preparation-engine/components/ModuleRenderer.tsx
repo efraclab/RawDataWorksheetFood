@@ -1,6 +1,10 @@
 import React from "react";
+
 import { moduleRegistry } from "../configs/moduleRegistry";
-import type { PreparationModuleHandle } from "../../pages/food/types/PreparationModuleHandle";
+
+import type { PreparationModuleHandle }
+    from "../../pages/food/types/PreparationModuleHandle";
+
 
 interface Props {
 
@@ -16,14 +20,23 @@ interface Props {
 
     isLocked: boolean;
 
-    onLockPreparation: (parameterId: number) => void;
+    onLockPreparation:
+        (parameterId: number) => void;
 
-    onUnlockPreparation: (parameterId: number) => void;
+    onUnlockPreparation:
+        (parameterId: number) => void;
 
-    lodRef: React.RefObject<PreparationModuleHandle | null>;
+    lodRef:
+        React.RefObject<PreparationModuleHandle | null>;
 
-    proteinRef: React.RefObject<PreparationModuleHandle | null>;
+    proteinRef:
+        React.RefObject<PreparationModuleHandle | null>;
+
+    sugarRef:
+        React.RefObject<PreparationModuleHandle | null>;
+
 }
+
 
 const ModuleRenderer: React.FC<Props> = ({
 
@@ -45,27 +58,47 @@ const ModuleRenderer: React.FC<Props> = ({
 
     lodRef,
 
-    proteinRef
+    proteinRef,
+
+    sugarRef,
 
 }) => {
 
     const moduleType = activeGroups[0];
+
+    // =====================================================
+    // SELECT CORRECT MODULE REF
+    // =====================================================
+
     const moduleRef =
         moduleType === "protein"
             ? proteinRef
-            : lodRef;
+            : moduleType === "sugar"
+                ? sugarRef
+                : lodRef;
+
+
+    // =====================================================
+    // GET MODULE CONFIG
+    // =====================================================
+
     const moduleConfig =
         moduleRegistry[
-        moduleType as keyof typeof moduleRegistry
+            moduleType as keyof typeof moduleRegistry
         ];
-
 
 
     if (!moduleConfig)
         return null;
 
+
+    // =====================================================
+    // ANALYSIS COMPONENT
+    // =====================================================
+
     const AnalysisComponent =
         moduleConfig.analysisComponent;
+
 
     return (
 
@@ -89,9 +122,13 @@ const ModuleRenderer: React.FC<Props> = ({
 
                     parameterType={moduleType}
 
-                    onLockPreparation={onLockPreparation}
+                    onLockPreparation={
+                        onLockPreparation
+                    }
 
-                    onUnlockPreparation={onUnlockPreparation}
+                    onUnlockPreparation={
+                        onUnlockPreparation
+                    }
 
                 />
 
@@ -102,5 +139,6 @@ const ModuleRenderer: React.FC<Props> = ({
     );
 
 };
+
 
 export default ModuleRenderer;

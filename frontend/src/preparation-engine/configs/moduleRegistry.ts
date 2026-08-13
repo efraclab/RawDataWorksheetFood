@@ -1,32 +1,15 @@
 import PreparationAnalysis from "../modules/lod/components/PreparationAnalysis";
 import CalculationDetailLod from "../modules/lod/components/CalculationDetailLod";
-
-import {
-    createNewCalculationLod,
-    createNewSamplePreparationLod,
-    restoreCalculationLod
-} from "../modules/lod/factory";
-
+import {createNewCalculationLod, createNewSamplePreparationLod, restoreCalculationLod} from "../modules/lod/factory";
 import CalculationDetailFAT from "../modules/fat/CalculationDetailFAT";
-
-import {
-    createCalculationFat,
-    createSamplePreparationFat,
-    restoreCalculationFat
-} from "../modules/fat/factory";
-
+import {createCalculationFat, createSamplePreparationFat, restoreCalculationFat} from "../modules/fat/factory";
 import SamplePreparationDetail from "../modules/lod/components/SamplePreparationDetail";
 import SamplePreparationDetailProtein from "../modules/protein/models/SamplePreparationDetailProtein";
-
-import CalculationDetailProtein
-    from "../modules/protein/CalculationDetailProtein";
-
-import {
-    createCalculationProtein,
-    createSamplePreparationProtein,
-    restoreCalculationProtein
-} from "../modules/protein/factory";
-
+import CalculationDetailProtein from "../modules/protein/CalculationDetailProtein";
+import {createCalculationProtein, createSamplePreparationProtein, restoreCalculationProtein} from "../modules/protein/factory";
+import CalculationDetailSugar from "../modules/sugar/CalculationDetailSugar";
+import {createCalculationSugar, createSamplePreparationSugar, restoreCalculationSugar} from "../modules/sugar/factory";
+import SamplePreparationDetailSugar from "../modules/sugar/models/SamplePreparationDetailSugar";
 interface ModuleLabels {
     details: string;
     w1: string;
@@ -54,119 +37,108 @@ export const moduleRegistry: Record<
 > = {
 
     lod: {
-
         id: "lod",
-
         title: "LOD Analysis",
-
         shortName: "LOD",
-
         icon: "🧪",
-
         analysisComponent: PreparationAnalysis,
-
         samplePreparationComponent: SamplePreparationDetail,
-
         calculationComponent: CalculationDetailLod,
-
         createCalculation: createNewCalculationLod,
-
         createSamplePreparation: createNewSamplePreparationLod,
-
         restoreCalculation: restoreCalculationLod,
-
         labels: {
-
             details: "Sample Preparation for LOD Details",
-
             w1: "Weight of Empty Dish",
-
             w2: "Weight of Sample + Dish",
-
             drying: "Drying",
-
             w3: "Weight of Sample + Dish after Drying",
-
         }
-
     },
 
     fat: {
-
         id: "fat",
-
         title: "FAT Analysis",
-
         shortName: "FAT",
-
         icon: "🧈",
-
         analysisComponent: PreparationAnalysis,
-
         samplePreparationComponent: SamplePreparationDetail,
-
         calculationComponent: CalculationDetailFAT,
-
         createCalculation: createCalculationFat,
-
         createSamplePreparation: createSamplePreparationFat,
-
         restoreCalculation: restoreCalculationFat,
-
         labels: {
-
             details: "Sample Preparation for FAT Details",
-
             w1: "Initial Empty Weight of R.B Flask",
-
             w2: "Final weight of R.B Flask After Drying",
-
             drying: "Dry at",
-
             w3: "Weight of Sample",
-
         }
-
     },
 
     protein: {
-
         id: "protein",
-
         title: "Protein Analysis",
-
         shortName: "Protein",
-
         icon: "🥛",
-
         analysisComponent: PreparationAnalysis,
-
         samplePreparationComponent: SamplePreparationDetailProtein,
-
         calculationComponent: CalculationDetailProtein,
-
         createCalculation: createCalculationProtein,
-
         createSamplePreparation: createSamplePreparationProtein,
-
         restoreCalculation: restoreCalculationProtein,
-
         labels: {
-
             details: "Sample Preparation for Protein Details",
-
             w1: "Sample Weight",
-
             w2: "Sample Titre Value",
-
             drying: "Blank Titre Value",
-
             w3: "Normality",
-
             w4: "Protein Factor",
-
         }
-
     },
+    sugar: {
 
+    id: "sugar",
+
+    title: "Total Sugar Analysis",
+
+    shortName: "Total Sugar",
+
+    icon: "🍬",
+
+    analysisComponent: PreparationAnalysis,
+
+    samplePreparationComponent: SamplePreparationDetailSugar,
+
+    calculationComponent: CalculationDetailSugar,
+
+    createCalculation: createCalculationSugar,
+
+    createSamplePreparation: createSamplePreparationSugar,
+
+    restoreCalculation: restoreCalculationSugar,
+
+    labels: {
+
+        details:
+            "Sample Preparation for Total Sugar Details",
+
+        w1:
+            "Sample Weight",
+
+        w2:
+            "Volume Make Up",
+
+        drying:
+            "Sample Titre Value",
+
+        w3:
+            "Dilution Factor",
+
+        w4:
+            "Std Dextrose Weight",
+
+    }
+
+},
 };

@@ -60,6 +60,8 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
 
     const proteinRef = useRef<PreparationModuleHandle>(null);
 
+    const sugarRef = useRef<PreparationModuleHandle>(null);
+
     const pendingRestore =
         useRef<ParameterDetail | null>(null);
 
@@ -139,6 +141,19 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
 
             }
 
+            if (activeGroup === "sugar") {
+
+                return {
+
+                    activeGroup: activeGroups,
+
+                    sugar:
+                        sugarRef.current?.getDraft()
+
+                };
+
+            }
+
             return {
 
                 activeGroup: activeGroups,
@@ -192,6 +207,17 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
 
             }
 
+            if (
+                activeGroup === "sugar" &&
+                draft.sugar
+            ) {
+
+                sugarRef.current?.loadDraft(
+                    draft.sugar
+                );
+
+            }
+
         },
 
         restoreFromWorksheet(parameter) {
@@ -240,6 +266,22 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
                 groups.push("protein");
             }
 
+            // =========================
+            // SUGAR
+            // =========================
+
+            if (
+                preps.some(
+                    p =>
+                        p.preparationCategory === "sample" &&
+                        p.preparationType === "sugar"
+                )
+            ) {
+
+                groups.push("sugar");
+
+            }
+
             setActiveGroups(groups);
         },
 
@@ -247,63 +289,77 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
 
     useEffect(() => {
 
-    if (!pendingRestore.current)
-        return;
+        if (!pendingRestore.current)
+            return;
 
-    const activeGroup = activeGroups[0];
+        const activeGroup = activeGroups[0];
 
-    console.log("🔥 RESTORE EFFECT:", {
-        activeGroup,
-        hasLodRef: !!lodRef.current,
-        hasProteinRef: !!proteinRef.current,
-    });
 
-    // =====================================================
-    // LOD / FAT
-    // =====================================================
 
-    if (
-        (activeGroup === "lod" ||
-            activeGroup === "fat") &&
-        lodRef.current
-    ) {
+        // =====================================================
+        // LOD / FAT
+        // =====================================================
 
-        console.log(
-            "🔥 Restoring LOD/FAT preparation"
-        );
+        if (
+            (activeGroup === "lod" ||
+                activeGroup === "fat") &&
+            lodRef.current
+        ) {
 
-        lodRef.current.restoreFromWorksheet(
-            pendingRestore.current
-        );
+            console.log(
+                "🔥 Restoring LOD/FAT preparation"
+            );
 
-        pendingRestore.current = null;
+            lodRef.current.restoreFromWorksheet(
+                pendingRestore.current
+            );
 
-        return;
-    }
+            pendingRestore.current = null;
 
-    // =====================================================
-    // PROTEIN
-    // =====================================================
+            return;
+        }
 
-    if (
-        activeGroup === "protein" &&
-        proteinRef.current
-    ) {
+        // =====================================================
+        // PROTEIN
+        // =====================================================
 
-        console.log(
-            "🔥 Restoring PROTEIN preparation"
-        );
+        if (
+            activeGroup === "protein" &&
+            proteinRef.current
+        ) {
 
-        proteinRef.current.restoreFromWorksheet(
-            pendingRestore.current
-        );
+            proteinRef.current.restoreFromWorksheet(
+                pendingRestore.current
+            );
 
-        pendingRestore.current = null;
+            pendingRestore.current = null;
 
-        return;
-    }
+            return;
+        }
 
-}, [activeGroups]);
+        // =====================================================
+        // SUGAR
+        // =====================================================
+
+        if (
+            activeGroup === "sugar" &&
+            sugarRef.current
+        ) {
+
+            // console.log(
+            //     "🔥 Restoring SUGAR preparation"
+            // );
+
+            sugarRef.current.restoreFromWorksheet(
+                pendingRestore.current
+            );
+
+            pendingRestore.current = null;
+
+            return;
+        }
+
+    }, [activeGroups]);
 
     // console.log("🔥 PREPARATION ENGINE STATE", {
     //     showMenu,
@@ -401,6 +457,8 @@ const PreparationEngine = forwardRef<PreparationEngineHandle, Props>(({
                 lodRef={lodRef}
 
                 proteinRef={proteinRef}
+
+                sugarRef={sugarRef}
             />
 
         </div>

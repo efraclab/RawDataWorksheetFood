@@ -26,6 +26,12 @@ import {
     mapProteinDraftToFiles
 } from "../mappers/proteinMapper";
 
+import {
+    mapSugarDraftToPreparations,
+    mapSugarDraftToCalculations,
+    mapSugarDraftToFiles
+} from "../mappers/sugarMapper";
+
 import type { PreparationEngineHandle }
     from "../types/PreparationEngineHandle";
 
@@ -201,23 +207,56 @@ export function collectFormDataForAPI({
             // PROTEIN
             // ============================================================
 
-            preparations.push(
-                ...mapProteinDraftToPreparations(
-                    draft?.protein
-                )
-            );
+            if (activeGroup === "protein") {
 
-            calculations.push(
-                ...mapProteinDraftToCalculations(
-                    draft?.protein
-                )
-            );
+                preparations.push(
+                    ...mapProteinDraftToPreparations(
+                        draft?.protein
+                    )
+                );
 
-            files.push(
-                ...mapProteinDraftToFiles(
-                    draft?.protein
-                )
-            );
+                calculations.push(
+                    ...mapProteinDraftToCalculations(
+                        draft?.protein
+                    )
+                );
+
+                files.push(
+                    ...mapProteinDraftToFiles(
+                        draft?.protein
+                    )
+                );
+            }
+
+
+            // ============================================================
+            // SUGAR
+            // ============================================================
+
+            if (activeGroup === "sugar") {
+
+                preparations.push(
+                    ...mapSugarDraftToPreparations(
+                        draft?.sugar
+                    )
+                );
+
+                calculations.push(
+                    ...mapSugarDraftToCalculations(
+                        draft?.sugar
+                    )
+                );
+
+                files.push(
+                    ...mapSugarDraftToFiles(
+                        draft?.sugar
+                    )
+                );
+            }
+
+
+
+
 
             const parameterFiles: WorksheetFileData[] =
                 filesPerParam[param.id]?.param_level ?? [];

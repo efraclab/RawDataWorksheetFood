@@ -24,6 +24,7 @@ import Toast from "../../../../components/shared/Toast";
 import UnlockPreparationDialog from "../../../components/UnlockPreparationDialog";
 import type { PreparationModuleHandle } from "../../../../pages/food/types/PreparationModuleHandle";
 import type { CalculationBase } from "../../../models/CalculationBase";
+import { parseWorksheetDate } from "../../../../helpers/parseWorksheetDate";
 
 interface Props {
 
@@ -326,6 +327,8 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
         // NEW
         //----------------------------------------------------
 
+
+
         restoreFromWorksheet(parameter) {
             //console.log("LOD Parameter", parameter);
             const preps =
@@ -354,6 +357,15 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
                 }));
 
             setSamplePreparations(samplePreps);
+
+
+
+
+
+
+
+
+
 
             //------------------------------------------------
             // Files
@@ -390,28 +402,40 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
 
             setCalculations(calculations);
 
-            //------------------------------------------------
-            // Completed
-            //------------------------------------------------
+            // ============================================================
+            // COMPLETED
+            // ============================================================
 
-            // setIsPreparationCompleted(
-            //     samplePreps.length > 0
-            // );
+            const completedDate =
+                parseWorksheetDate(
+                    parameter.preparationCompletedAt
+                );
 
-            // const completed = parameter.status === "COMPLETED";
-            const completed = parameter.preparationCompletedAt != null;
+            console.log(
+                "Preparation completed date:",
+                {
+                    parameterType,
+                    raw: parameter.preparationCompletedAt,
+                    parsed: completedDate
+                }
+            );
 
-            setIsPreparationCompleted(completed);
+            const completed =
+                completedDate !== null;
 
+            setIsPreparationCompleted(
+                completed
+            );
 
             setCompletedAt(
-                parameter.preparationCompletedAt
-                    ? new Date(parameter.preparationCompletedAt)
-                    : null
+                completedDate
             );
 
             if (completed) {
-                onLockPreparation(parameterId);
+
+                onLockPreparation(
+                    parameterId
+                );
             }
         }
 

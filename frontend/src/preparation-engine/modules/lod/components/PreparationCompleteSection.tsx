@@ -16,23 +16,73 @@ const PreparationCompleteSection: React.FC<Props> = ({
     onUnlock,
     parameterType,
 }) => {
+
+    // ============================================================
+    // PARAMETER DISPLAY NAME
+    // ============================================================
+
+    const parameterTitleMap: Record<string, string> = {
+        lod: "LOD",
+        fat: "Fat",
+        protein: "Protein",
+        sugar: "Sugar",
+    };
+
     const parameterTitle =
-            parameterType.charAt(0).toUpperCase() +
-            parameterType.slice(1);
+        parameterTitleMap[
+            parameterType?.toLowerCase()
+        ] ??
+        (
+            parameterType
+                ? parameterType.charAt(0).toUpperCase() +
+                  parameterType.slice(1)
+                : "Sample"
+        );
+
+
+    // ============================================================
+    // COMPLETED
+    // ============================================================
+
     if (completed) {
-        
 
         return (
 
-            <div className="mx-6 mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3">
+            <div
+                className="
+                    mx-6
+                    mb-6
+                    rounded-xl
+                    border
+                    border-emerald-200
+                    bg-emerald-50
+                    px-5
+                    py-3
+                "
+            >
 
                 <div className="flex items-center justify-between">
 
-                    {/* Left Side */}
+                    {/* ==================================================
+                        LEFT SIDE
+                    ================================================== */}
+
                     <div className="flex items-center gap-3">
 
-                        {/* Success Icon (Same style as Toast) */}
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
+                        {/* Success Icon */}
+
+                        <div
+                            className="
+                                flex-shrink-0
+                                w-6
+                                h-6
+                                rounded-full
+                                bg-emerald-500
+                                flex
+                                items-center
+                                justify-center
+                            "
+                        >
 
                             <svg
                                 className="w-3.5 h-3.5 text-white"
@@ -40,30 +90,51 @@ const PreparationCompleteSection: React.FC<Props> = ({
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
                             >
+
                                 <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2.8}
                                     d="M5 13l4 4L19 7"
                                 />
+
                             </svg>
 
                         </div>
 
-                        {/* Text */}
+
+                        {/* ==================================================
+                            TEXT
+                        ================================================== */}
+
                         <div>
 
-                            <p className="text-sm font-semibold text-emerald-800">
+                            <p
+                                className="
+                                    text-sm
+                                    font-semibold
+                                    text-emerald-800
+                                "
+                            >
 
-                                LOD Preparation Completed
+                                {parameterTitle} Preparation Completed
 
                             </p>
 
-                            <p className="text-xs text-emerald-600">
+
+                            <p
+                                className="
+                                    text-xs
+                                    text-emerald-600
+                                "
+                            >
 
                                 Completed at{" "}
 
-                                {completedAt?.toLocaleString()}
+                                {completedAt
+                                    ? completedAt.toLocaleString()
+                                    : "-"
+                                }
 
                             </p>
 
@@ -71,9 +142,13 @@ const PreparationCompleteSection: React.FC<Props> = ({
 
                     </div>
 
-                    {/* Unlock Button */}
+
+                    {/* ==================================================
+                        UNLOCK BUTTON
+                    ================================================== */}
 
                     <button
+                        type="button"
                         onClick={onUnlock}
                         className="
                             flex
@@ -99,12 +174,20 @@ const PreparationCompleteSection: React.FC<Props> = ({
                             viewBox="0 0 24 24"
                             stroke="currentColor"
                         >
+
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                                d="
+                                    M8 11V7a4 4 0 118 0
+                                    m-4 8v2
+                                    m-6 4h12a2 2 0 002-2v-6
+                                    a2 2 0 00-2-2H6a2 2 0 00-2 2v6
+                                    a2 2 0 002 2z
+                                "
                             />
+
                         </svg>
 
                         Unlock Preparation
@@ -119,13 +202,21 @@ const PreparationCompleteSection: React.FC<Props> = ({
 
     }
 
+
+    // ============================================================
+    // NOT COMPLETED
+    // ============================================================
+
     return (
 
         <div className="mx-6 mb-6">
 
-            {/* Complete Button */}
+            {/* ======================================================
+                COMPLETE BUTTON
+            ====================================================== */}
 
             <button
+                type="button"
                 onClick={onComplete}
                 className="
                     w-full
@@ -155,7 +246,10 @@ const PreparationCompleteSection: React.FC<Props> = ({
 
             </button>
 
-            {/* Warning */}
+
+            {/* ======================================================
+                WARNING
+            ====================================================== */}
 
             <div
                 className="
@@ -172,14 +266,26 @@ const PreparationCompleteSection: React.FC<Props> = ({
             >
 
                 <AlertCircle
-                    className="mt-0.5 h-5 w-5 text-amber-600"
+                    className="
+                        mt-0.5
+                        h-5
+                        w-5
+                        text-amber-600
+                    "
                 />
 
                 <div>
 
-                    <p className="text-sm font-medium text-amber-900">
+                    <p
+                        className="
+                            text-sm
+                            font-medium
+                            text-amber-900
+                        "
+                    >
 
-                        Complete preparation above to unlock the Calculations section.
+                        Complete preparation above to unlock
+                        the Calculations section.
 
                     </p>
 

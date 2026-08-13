@@ -16,6 +16,7 @@
 import type { FatDraft } from "./FatDraft";
 import type { LodDraft } from "./LodDraft";
 import type { ProteinDraft } from "./ProteinDraft";
+import type { SugarDraft } from "./SugarDraft";
 
 export interface PreparationDraft {
 
@@ -26,6 +27,8 @@ export interface PreparationDraft {
     fat?: FatDraft;
 
     protein?: ProteinDraft;
+
+    sugar?: SugarDraft;
 }
 
 // export interface LodDraft {

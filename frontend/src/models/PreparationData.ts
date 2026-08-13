@@ -19,6 +19,7 @@ export interface PreparationData {
         | "dissolution"
         | "lod"
         | "protein"
+        | "sugar"
         | "roi"
         | "sulphated_ash"
         | "titration"

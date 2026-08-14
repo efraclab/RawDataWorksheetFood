@@ -46,6 +46,9 @@ interface Props {
 
     peroxideValueRef:
     React.RefObject<PreparationModuleHandle | null>;
+
+    acidValueRef:
+    React.RefObject<PreparationModuleHandle | null>;
 }
 
 
@@ -79,7 +82,9 @@ const ModuleRenderer: React.FC<Props> = ({
 
     crudeFiberRef,
 
-    peroxideValueRef
+    peroxideValueRef,
+
+    acidValueRef
 
 }) => {
 
@@ -103,7 +108,9 @@ const ModuleRenderer: React.FC<Props> = ({
                             ? crudeFiberRef
                             : moduleType === "peroxideValue"
                                 ? peroxideValueRef
-                                : lodRef;
+                                : moduleType === "acidValue"
+                                    ? acidValueRef
+                                    : lodRef;
 
 
     // =====================================================

@@ -86,13 +86,14 @@ const PreparationEngine =
         const sugarRef =
             useRef<PreparationModuleHandle>(null);
 
-        // ⭐ ENERGY REF
+        // ENERGY REF
         const energyRef =
             useRef<PreparationModuleHandle>(null);
 
-        // ⭐ CARBOHYDRATE REF
+        // CARBOHYDRATE REF
         const carbohydrateRef =
             useRef<PreparationModuleHandle>(null);
+
 
         // ============================================================
         // CRUDE FIBER REF
@@ -101,11 +102,20 @@ const PreparationEngine =
         const crudeFiberRef =
             useRef<PreparationModuleHandle>(null);
 
+
         // ============================================================
         // PEROXIDE VALUE REF
         // ============================================================
 
         const peroxideValueRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
+        // ACID VALUE REF
+        // ============================================================
+
+        const acidValueRef =
             useRef<PreparationModuleHandle>(null);
 
 
@@ -180,7 +190,6 @@ const PreparationEngine =
                         config.id,
 
                         {
-
                             id:
                                 config.id,
 
@@ -189,7 +198,6 @@ const PreparationEngine =
 
                             color:
                                 config.color
-
                         }
 
                     ]
@@ -306,6 +314,7 @@ const PreparationEngine =
 
                     }
 
+
                     // ----------------------------------------------
                     // CARBOHYDRATE
                     // ----------------------------------------------
@@ -365,6 +374,28 @@ const PreparationEngine =
 
                             peroxideValue:
                                 peroxideValueRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // ACID VALUE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "acidValue"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            acidValue:
+                                acidValueRef.current
                                     ?.getDraft()
 
                         };
@@ -490,6 +521,7 @@ const PreparationEngine =
 
                     }
 
+
                     // ----------------------------------------------
                     // CARBOHYDRATE
                     // ----------------------------------------------
@@ -533,6 +565,22 @@ const PreparationEngine =
 
                         peroxideValueRef.current?.loadDraft(
                             draft.peroxideValue
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // ACID VALUE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "acidValue" &&
+                        draft.acidValue
+                    ) {
+
+                        acidValueRef.current?.loadDraft(
+                            draft.acidValue
                         );
 
                     }
@@ -658,6 +706,7 @@ const PreparationEngine =
 
                     }
 
+
                     // ----------------------------------------------
                     // CARBOHYDRATE
                     // ----------------------------------------------
@@ -714,6 +763,26 @@ const PreparationEngine =
                     ) {
 
                         groups.push("peroxideValue");
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // ACID VALUE
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "acidValue"
+                        )
+                    ) {
+
+                        groups.push("acidValue");
 
                     }
 
@@ -852,6 +921,7 @@ const PreparationEngine =
 
             }
 
+
             // ========================================================
             // CARBOHYDRATE
             // ========================================================
@@ -866,8 +936,10 @@ const PreparationEngine =
                         pendingRestore.current
                     );
 
+
                 pendingRestore.current =
                     null;
+
 
                 return;
 
@@ -888,8 +960,10 @@ const PreparationEngine =
                         pendingRestore.current
                     );
 
+
                 pendingRestore.current =
                     null;
+
 
                 return;
 
@@ -910,8 +984,34 @@ const PreparationEngine =
                         pendingRestore.current
                     );
 
+
                 pendingRestore.current =
                     null;
+
+
+                return;
+
+            }
+
+
+            // ========================================================
+            // ACID VALUE
+            // ========================================================
+
+            if (
+                activeGroup === "acidValue" &&
+                acidValueRef.current
+            ) {
+
+                acidValueRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
 
                 return;
 
@@ -1146,6 +1246,7 @@ const PreparationEngine =
                     energyRef={
                         energyRef
                     }
+
                     carbohydrateRef={
                         carbohydrateRef
                     }
@@ -1156,6 +1257,10 @@ const PreparationEngine =
 
                     peroxideValueRef={
                         peroxideValueRef
+                    }
+
+                    acidValueRef={
+                        acidValueRef
                     }
 
                 />

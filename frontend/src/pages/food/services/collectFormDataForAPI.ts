@@ -8,11 +8,20 @@ import type { CalculationData } from "../../../models/CalculationData";
 import type { WorksheetFileData } from "../../../models/WorksheetFileData";
 
 
+// ============================================================
+// LOD
+// ============================================================
+
 import {
     mapLodDraftToPreparations,
     mapLodDraftToCalculations,
     mapLodDraftToFiles
 } from "../mappers/lodMapper";
+
+
+// ============================================================
+// FAT
+// ============================================================
 
 import {
     mapFatDraftToPreparations,
@@ -20,11 +29,21 @@ import {
     mapFatDraftToFiles
 } from "../mappers/fatMapper";
 
+
+// ============================================================
+// PROTEIN
+// ============================================================
+
 import {
     mapProteinDraftToPreparations,
     mapProteinDraftToCalculations,
     mapProteinDraftToFiles
 } from "../mappers/proteinMapper";
+
+
+// ============================================================
+// SUGAR
+// ============================================================
 
 import {
     mapSugarDraftToPreparations,
@@ -33,14 +52,20 @@ import {
 } from "../mappers/sugarMapper";
 
 
+// ============================================================
+// ENERGY
+// ============================================================
+
 import {
     mapEnergyDraftToPreparations,
     mapEnergyDraftToCalculations,
     mapEnergyDraftToFiles
 } from "../mappers/energyMapper";
 
-import type { PreparationEngineHandle }
-    from "../types/PreparationEngineHandle";
+
+// ============================================================
+// CARBOHYDRATE
+// ============================================================
 
 import {
     mapCarbohydrateDraftToPreparations,
@@ -48,17 +73,47 @@ import {
     mapCarbohydrateDraftToFiles
 } from "../mappers/carbohydrateMapper";
 
+
+// ============================================================
+// CRUDE FIBER
+// ============================================================
+
 import {
     mapCrudeFiberDraftToPreparations,
     mapCrudeFiberDraftToCalculations,
     mapCrudeFiberDraftToFiles
 } from "../mappers/crudeFiberMapper";
 
+
+// ============================================================
+// PEROXIDE VALUE
+// ============================================================
+
 import {
     mapPeroxideValueDraftToPreparations,
     mapPeroxideValueDraftToCalculations,
     mapPeroxideValueDraftToFiles
 } from "../mappers/PeroxideValueMapper";
+
+
+// ============================================================
+// ACID VALUE
+// ============================================================
+
+import {
+    mapAcidValueDraftToPreparations,
+    mapAcidValueDraftToCalculations,
+    mapAcidValueDraftToFiles
+} from "../mappers/acidValueMapper";
+
+
+import type { PreparationEngineHandle }
+    from "../types/PreparationEngineHandle";
+
+
+// ============================================================
+// COLLECT FORM DATA
+// ============================================================
 
 export function collectFormDataForAPI({
 
@@ -124,15 +179,19 @@ export function collectFormDataForAPI({
 
         role,
 
-        worksheetId: worksheetInfo.sample.worksheetId,
+        worksheetId:
+            worksheetInfo.sample.worksheetId,
 
         registrationInfo: {
 
-            registrationNo: worksheetInfo.sample.registrationNo,
+            registrationNo:
+                worksheetInfo.sample.registrationNo,
 
-            sampleName: worksheetInfo.sample.sampleName,
+            sampleName:
+                worksheetInfo.sample.sampleName,
 
-            sampleCode: worksheetInfo.sample.sampleCode,
+            sampleCode:
+                worksheetInfo.sample.sampleCode,
 
             sampleQuantity:
                 worksheetInfo.sample.sampleQuantity ?? undefined,
@@ -140,398 +199,511 @@ export function collectFormDataForAPI({
             natureOfSample:
                 worksheetInfo.sample.natureOfSample ?? undefined,
 
-            numberOfParameters: addedParameters.length,
+            numberOfParameters:
+                addedParameters.length,
 
-            dueDate: worksheetInfo.sample.dueDate,
+            dueDate:
+                worksheetInfo.sample.dueDate,
 
-            lab: worksheetInfo.sample.lab
+            lab:
+                worksheetInfo.sample.lab
 
         },
 
         documentInfo: {
 
-            preparedBy: worksheetInfo.sample.preparedBy,
+            preparedBy:
+                worksheetInfo.sample.preparedBy,
 
-            revisionDate: worksheetInfo.sample.revisionDate,
+            revisionDate:
+                worksheetInfo.sample.revisionDate,
 
-            status: worksheetInfo.sample.status,
+            status:
+                worksheetInfo.sample.status,
 
-            approvedAt: worksheetInfo.sample.approvedAt
+            approvedAt:
+                worksheetInfo.sample.approvedAt
 
         },
 
-        parameters: addedParameters.map(param => {
+        parameters:
 
-            const draft =
-                preparationRefs.current[param.id]?.collectDraft();
+            addedParameters.map(param => {
 
-            //
-            // Build exactly like Drug Worksheet
-            //
-
-            const preparations: PreparationData[] = [];
-
-            const calculations: CalculationData[] = [];
-
-            const files: WorksheetFileData[] = [];
-
-            const activeGroup =
-                draft?.activeGroup?.[0];
-
-            //
-            // LOD
-            //
-
-            if (activeGroup === "lod") {
-
-                preparations.push(
-                    ...mapLodDraftToPreparations(
-                        draft?.lod
-                    )
-                );
-
-                calculations.push(
-                    ...mapLodDraftToCalculations(
-                        draft?.lod
-                    )
-                );
-
-                files.push(
-                    ...mapLodDraftToFiles(
-                        draft?.lod
-                    )
-                );
-            }
-
-            //
-            // FAT
-            //
-
-            if (activeGroup === "fat") {
-
-                preparations.push(
-                    ...mapFatDraftToPreparations(
-                        draft?.fat
-                    )
-                );
-
-                calculations.push(
-                    ...mapFatDraftToCalculations(
-                        draft?.fat
-                    )
-                );
-
-                files.push(
-                    ...mapFatDraftToFiles(
-                        draft?.fat
-                    )
-                );
-            }
-
-            // ============================================================
-            // PROTEIN
-            // ============================================================
-
-            if (activeGroup === "protein") {
-
-                preparations.push(
-                    ...mapProteinDraftToPreparations(
-                        draft?.protein
-                    )
-                );
-
-                calculations.push(
-                    ...mapProteinDraftToCalculations(
-                        draft?.protein
-                    )
-                );
-
-                files.push(
-                    ...mapProteinDraftToFiles(
-                        draft?.protein
-                    )
-                );
-            }
+                const draft =
+                    preparationRefs.current[param.id]?.collectDraft();
 
 
-            // ============================================================
-            // SUGAR
-            // ============================================================
+                // ========================================================
+                // BUILD PREPARATIONS / CALCULATIONS / FILES
+                // ========================================================
 
-            if (activeGroup === "sugar") {
+                const preparations: PreparationData[] = [];
 
-                preparations.push(
-                    ...mapSugarDraftToPreparations(
-                        draft?.sugar
-                    )
-                );
+                const calculations: CalculationData[] = [];
 
-                calculations.push(
-                    ...mapSugarDraftToCalculations(
-                        draft?.sugar
-                    )
-                );
-
-                files.push(
-                    ...mapSugarDraftToFiles(
-                        draft?.sugar
-                    )
-                );
-            }
-
-            // ============================================================
-            // ENERGY
-            // ============================================================
-
-            if (activeGroup === "energy") {
-
-                preparations.push(
-                    ...mapEnergyDraftToPreparations(
-                        draft?.energy
-                    )
-                );
-
-                calculations.push(
-                    ...mapEnergyDraftToCalculations(
-                        draft?.energy
-                    )
-                );
-
-                files.push(
-                    ...mapEnergyDraftToFiles(
-                        draft?.energy
-                    )
-                );
-            }
-            // ============================================================
-            // CARBOHYDRATE
-            // ============================================================
-
-            if (activeGroup === "carbohydrate") {
-
-                preparations.push(
-                    ...mapCarbohydrateDraftToPreparations(
-                        draft?.carbohydrate
-                    )
-                );
-
-                calculations.push(
-                    ...mapCarbohydrateDraftToCalculations(
-                        draft?.carbohydrate
-                    )
-                );
-
-                files.push(
-                    ...mapCarbohydrateDraftToFiles(
-                        draft?.carbohydrate
-                    )
-                );
-            }
-
-            // ============================================================
-            // CRUDE FIBER
-            // ============================================================
-
-            if (activeGroup === "crudeFiber") {
-
-                preparations.push(
-                    ...mapCrudeFiberDraftToPreparations(
-                        draft?.crudeFiber
-                    )
-                );
-
-                calculations.push(
-                    ...mapCrudeFiberDraftToCalculations(
-                        draft?.crudeFiber
-                    )
-                );
-
-                files.push(
-                    ...mapCrudeFiberDraftToFiles(
-                        draft?.crudeFiber
-                    )
-                );
-            }
+                const files: WorksheetFileData[] = [];
 
 
-            // ============================================================
-            // PEROXIDE VALUE
-            // ============================================================
-
-            if (activeGroup === "peroxideValue") {
-
-                preparations.push(
-                    ...mapPeroxideValueDraftToPreparations(
-                        draft?.peroxideValue
-                    )
-                );
-
-                calculations.push(
-                    ...mapPeroxideValueDraftToCalculations(
-                        draft?.peroxideValue
-                    )
-                );
-
-                files.push(
-                    ...mapPeroxideValueDraftToFiles(
-                        draft?.peroxideValue
-                    )
-                );
-            }
+                const activeGroup =
+                    draft?.activeGroup?.[0];
 
 
-            const parameterFiles: WorksheetFileData[] =
-                filesPerParam[param.id]?.param_level ?? [];
+                // ========================================================
+                // LOD
+                // ========================================================
 
-            parameterFiles.forEach(file => {
+                if (activeGroup === "lod") {
 
-                files.push({
+                    preparations.push(
+                        ...mapLodDraftToPreparations(
+                            draft?.lod
+                        )
+                    );
 
-                    id: file.id,
+                    calculations.push(
+                        ...mapLodDraftToCalculations(
+                            draft?.lod
+                        )
+                    );
 
-                    preparationType: "parameter_file",
+                    files.push(
+                        ...mapLodDraftToFiles(
+                            draft?.lod
+                        )
+                    );
+                }
 
-                    label: file.label,
 
-                    fileName: file.fileName,
+                // ========================================================
+                // FAT
+                // ========================================================
 
-                    fileDataBase64: file.fileDataBase64
+                if (activeGroup === "fat") {
+
+                    preparations.push(
+                        ...mapFatDraftToPreparations(
+                            draft?.fat
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapFatDraftToCalculations(
+                            draft?.fat
+                        )
+                    );
+
+                    files.push(
+                        ...mapFatDraftToFiles(
+                            draft?.fat
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // PROTEIN
+                // ========================================================
+
+                if (activeGroup === "protein") {
+
+                    preparations.push(
+                        ...mapProteinDraftToPreparations(
+                            draft?.protein
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapProteinDraftToCalculations(
+                            draft?.protein
+                        )
+                    );
+
+                    files.push(
+                        ...mapProteinDraftToFiles(
+                            draft?.protein
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // SUGAR
+                // ========================================================
+
+                if (activeGroup === "sugar") {
+
+                    preparations.push(
+                        ...mapSugarDraftToPreparations(
+                            draft?.sugar
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapSugarDraftToCalculations(
+                            draft?.sugar
+                        )
+                    );
+
+                    files.push(
+                        ...mapSugarDraftToFiles(
+                            draft?.sugar
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // ENERGY
+                // ========================================================
+
+                if (activeGroup === "energy") {
+
+                    preparations.push(
+                        ...mapEnergyDraftToPreparations(
+                            draft?.energy
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapEnergyDraftToCalculations(
+                            draft?.energy
+                        )
+                    );
+
+                    files.push(
+                        ...mapEnergyDraftToFiles(
+                            draft?.energy
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // CARBOHYDRATE
+                // ========================================================
+
+                if (activeGroup === "carbohydrate") {
+
+                    preparations.push(
+                        ...mapCarbohydrateDraftToPreparations(
+                            draft?.carbohydrate
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapCarbohydrateDraftToCalculations(
+                            draft?.carbohydrate
+                        )
+                    );
+
+                    files.push(
+                        ...mapCarbohydrateDraftToFiles(
+                            draft?.carbohydrate
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // CRUDE FIBER
+                // ========================================================
+
+                if (activeGroup === "crudeFiber") {
+
+                    preparations.push(
+                        ...mapCrudeFiberDraftToPreparations(
+                            draft?.crudeFiber
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapCrudeFiberDraftToCalculations(
+                            draft?.crudeFiber
+                        )
+                    );
+
+                    files.push(
+                        ...mapCrudeFiberDraftToFiles(
+                            draft?.crudeFiber
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // PEROXIDE VALUE
+                // ========================================================
+
+                if (activeGroup === "peroxideValue") {
+
+                    preparations.push(
+                        ...mapPeroxideValueDraftToPreparations(
+                            draft?.peroxideValue
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapPeroxideValueDraftToCalculations(
+                            draft?.peroxideValue
+                        )
+                    );
+
+                    files.push(
+                        ...mapPeroxideValueDraftToFiles(
+                            draft?.peroxideValue
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // ACID VALUE
+                // ========================================================
+
+                if (activeGroup === "acidValue") {
+
+                    preparations.push(
+                        ...mapAcidValueDraftToPreparations(
+                            draft?.acidValue
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapAcidValueDraftToCalculations(
+                            draft?.acidValue
+                        )
+                    );
+
+                    files.push(
+                        ...mapAcidValueDraftToFiles(
+                            draft?.acidValue
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // PARAMETER LEVEL FILES
+                // ========================================================
+
+                const parameterFiles:
+                    WorksheetFileData[] =
+                    filesPerParam[param.id]?.param_level ?? [];
+
+
+                parameterFiles.forEach(file => {
+
+                    files.push({
+
+                        id:
+                            file.id,
+
+                        preparationType:
+                            "parameter_file",
+
+                        label:
+                            file.label,
+
+                        fileName:
+                            file.fileName,
+
+                        fileDataBase64:
+                            file.fileDataBase64
+
+                    });
 
                 });
 
-            });
 
-            //
-            // Buffer / Mobile Phase / Diluent /
-            // System Suitability / Parameter Files
-            // will be added in the next steps.
-            //
+                // ========================================================
+                // BUFFER
+                // ========================================================
 
+                (
+                    bufferPreparationPerParam[param.id] ?? []
+                ).forEach(buffer => {
 
-            // Buffer
-            (bufferPreparationPerParam[param.id] ?? []).forEach(buffer => {
+                    preparations.push({
 
-                preparations.push({
+                        label:
+                            buffer.label,
 
-                    label: buffer.label,
+                        preparationCategory:
+                            "buffer",
 
-                    preparationCategory: "buffer",
+                        preparationType:
+                            null,
 
-                    preparationType: null,
+                        assignedStandardId:
+                            null,
 
-                    assignedStandardId: null,
+                        steps:
+                            JSON.stringify(
+                                buffer.steps
+                            ),
 
-                    steps: JSON.stringify(buffer.steps),
+                        content:
+                            null
 
-                    content: null
-
-                });
-
-            });
-
-            // Mobile Phase
-            (mobilePhasePerParam[param.id] ?? []).forEach(mp => {
-
-                preparations.push({
-
-                    label: mp.label,
-
-                    preparationCategory: "mobile_phase",
-
-                    preparationType: null,
-
-                    assignedStandardId: null,
-
-                    steps: null,
-
-                    content: mp.content
+                    });
 
                 });
 
-            });
 
-            // Diluent
-            (diluentPreparationsPerParam[param.id] ?? []).forEach(dp => {
+                // ========================================================
+                // MOBILE PHASE
+                // ========================================================
 
-                preparations.push({
+                (
+                    mobilePhasePerParam[param.id] ?? []
+                ).forEach(mp => {
 
-                    label: dp.label,
+                    preparations.push({
 
-                    preparationCategory: "diluent",
+                        label:
+                            mp.label,
 
-                    preparationType: null,
+                        preparationCategory:
+                            "mobile_phase",
 
-                    assignedStandardId: null,
+                        preparationType:
+                            null,
 
-                    steps: null,
+                        assignedStandardId:
+                            null,
 
-                    content: dp.content
+                        steps:
+                            null,
 
-                });
+                        content:
+                            mp.content
 
-            });
-
-            // System Suitability
-            (systemSuitabilityPerParam[param.id] ?? []).forEach(ss => {
-
-                preparations.push({
-
-                    label: ss.label,
-
-                    preparationCategory: "system_suitability",
-
-                    preparationType: null,
-
-                    assignedStandardId: null,
-
-                    steps: JSON.stringify(ss.steps),
-
-                    content: null
+                    });
 
                 });
 
-            });
 
-            const instruments =
-                addedInstruments[param.id] ?? [];
+                // ========================================================
+                // DILUENT
+                // ========================================================
 
-            const chemicals =
-                addedChemicals[param.id] ?? [];
+                (
+                    diluentPreparationsPerParam[param.id] ?? []
+                ).forEach(dp => {
 
-            const standards =
-                addedStandards[param.id] ?? [];
+                    preparations.push({
 
-            return {
+                        label:
+                            dp.label,
 
-                ...param,
+                        preparationCategory:
+                            "diluent",
 
-                preparationCompletedAt: param.preparationCompletedAt,
-                preparationCompletedBy: param.preparationCompletedBy,
+                        preparationType:
+                            null,
 
-                additional_info:
-                    additionalInfoPerParam[param.id] ?? null,
+                        assignedStandardId:
+                            null,
 
-                additionalInfo:
-                    additionalInfoPerParam[param.id] ?? null,
+                        steps:
+                            null,
 
-                showAdditionalInfo:
-                    !!additionalInfoPerParam[param.id],
+                        content:
+                            dp.content
 
-                instruments,
+                    });
 
-                chemicals,
+                });
 
-                standards,
 
-                preparations,
+                // ========================================================
+                // SYSTEM SUITABILITY
+                // ========================================================
 
-                calculations,
+                (
+                    systemSuitabilityPerParam[param.id] ?? []
+                ).forEach(ss => {
 
-                files
+                    preparations.push({
 
-            };
+                        label:
+                            ss.label,
 
-        })
+                        preparationCategory:
+                            "system_suitability",
+
+                        preparationType:
+                            null,
+
+                        assignedStandardId:
+                            null,
+
+                        steps:
+                            JSON.stringify(
+                                ss.steps
+                            ),
+
+                        content:
+                            null
+
+                    });
+
+                });
+
+
+                // ========================================================
+                // INSTRUMENTS / CHEMICALS / STANDARDS
+                // ========================================================
+
+                const instruments =
+                    addedInstruments[param.id] ?? [];
+
+                const chemicals =
+                    addedChemicals[param.id] ?? [];
+
+                const standards =
+                    addedStandards[param.id] ?? [];
+
+
+                // ========================================================
+                // RETURN PARAMETER
+                // ========================================================
+
+                return {
+
+                    ...param,
+
+                    preparationCompletedAt:
+                        param.preparationCompletedAt,
+
+                    preparationCompletedBy:
+                        param.preparationCompletedBy,
+
+                    additional_info:
+                        additionalInfoPerParam[param.id] ?? null,
+
+                    additionalInfo:
+                        additionalInfoPerParam[param.id] ?? null,
+
+                    showAdditionalInfo:
+                        !!additionalInfoPerParam[param.id],
+
+                    instruments,
+
+                    chemicals,
+
+                    standards,
+
+                    preparations,
+
+                    calculations,
+
+                    files
+
+                };
+
+            })
 
     };
 

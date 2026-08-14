@@ -1,41 +1,97 @@
 import PreparationAnalysis from "../modules/lod/components/PreparationAnalysis";
 import CalculationDetailLod from "../modules/lod/components/CalculationDetailLod";
-import { createNewCalculationLod, createNewSamplePreparationLod, restoreCalculationLod } from "../modules/lod/factory";
+import {
+    createNewCalculationLod,
+    createNewSamplePreparationLod,
+    restoreCalculationLod
+} from "../modules/lod/factory";
+
 import CalculationDetailFAT from "../modules/fat/CalculationDetailFAT";
-import { createCalculationFat, createSamplePreparationFat, restoreCalculationFat } from "../modules/fat/factory";
+import {
+    createCalculationFat,
+    createSamplePreparationFat,
+    restoreCalculationFat
+} from "../modules/fat/factory";
+
 import SamplePreparationDetail from "../modules/lod/components/SamplePreparationDetail";
-import SamplePreparationDetailProtein from "../modules/protein/models/SamplePreparationDetailProtein";
-import CalculationDetailProtein from "../modules/protein/CalculationDetailProtein";
-import { createCalculationProtein, createSamplePreparationProtein, restoreCalculationProtein } from "../modules/protein/factory";
-import CalculationDetailSugar from "../modules/sugar/CalculationDetailSugar";
-import { createCalculationSugar, createSamplePreparationSugar, restoreCalculationSugar } from "../modules/sugar/factory";
-import SamplePreparationDetailSugar from "../modules/sugar/models/SamplePreparationDetailSugar";
-import CalculationDetailEnergy from "../modules/energy/CalculationDetailEnergy";
-import SamplePreparationDetailEnergy from "../modules/energy/models/SamplePreparationDetailEnergy";
-import { createCalculationEnergy, createSamplePreparationEnergy, restoreCalculationEnergy } from "../modules/energy/factory";
-import CalculationDetailCarbohydrate from "../modules/carbohydrate/CalculationDetailCarbohydrate";
-import SamplePreparationDetailCarbohydrate from "../modules/carbohydrate/models/SamplePreparationDetailCarbohydrate";
+
+import SamplePreparationDetailProtein
+    from "../modules/protein/models/SamplePreparationDetailProtein";
+import CalculationDetailProtein
+    from "../modules/protein/CalculationDetailProtein";
+import {
+    createCalculationProtein,
+    createSamplePreparationProtein,
+    restoreCalculationProtein
+} from "../modules/protein/factory";
+
+import CalculationDetailSugar
+    from "../modules/sugar/CalculationDetailSugar";
+import {
+    createCalculationSugar,
+    createSamplePreparationSugar,
+    restoreCalculationSugar
+} from "../modules/sugar/factory";
+import SamplePreparationDetailSugar
+    from "../modules/sugar/models/SamplePreparationDetailSugar";
+
+import CalculationDetailEnergy
+    from "../modules/energy/CalculationDetailEnergy";
+import SamplePreparationDetailEnergy
+    from "../modules/energy/models/SamplePreparationDetailEnergy";
+import {
+    createCalculationEnergy,
+    createSamplePreparationEnergy,
+    restoreCalculationEnergy
+} from "../modules/energy/factory";
+
+import CalculationDetailCarbohydrate
+    from "../modules/carbohydrate/CalculationDetailCarbohydrate";
+import SamplePreparationDetailCarbohydrate
+    from "../modules/carbohydrate/models/SamplePreparationDetailCarbohydrate";
 import {
     createCalculationCarbohydrate,
     createSamplePreparationCarbohydrate,
     restoreCalculationCarbohydrate
 } from "../modules/carbohydrate/factory";
 
-import CalculationDetailCrudeFiber from "../modules/crude-fiber/CalculationDetailCrudeFiber";
-import SamplePreparationDetailCrudeFiber from "../modules/crude-fiber/models/SamplePreparationDetailCrudeFiber";
+import CalculationDetailCrudeFiber
+    from "../modules/crude-fiber/CalculationDetailCrudeFiber";
+import SamplePreparationDetailCrudeFiber
+    from "../modules/crude-fiber/models/SamplePreparationDetailCrudeFiber";
 import {
     createCalculationCrudeFiber,
     createSamplePreparationCrudeFiber,
     restoreCalculationCrudeFiber
 } from "../modules/crude-fiber/factory";
 
-import CalculationDetailPeroxideValue from "../modules/peroxide-value/CalculationDetailPeroxideValue";
-import SamplePreparationDetailPeroxideValue from "../modules/peroxide-value/models/SamplePreparationDetailPeroxideValue";
+import CalculationDetailPeroxideValue
+    from "../modules/peroxide-value/CalculationDetailPeroxideValue";
+import SamplePreparationDetailPeroxideValue
+    from "../modules/peroxide-value/models/SamplePreparationDetailPeroxideValue";
 import {
     createCalculationPeroxideValue,
     createSamplePreparationPeroxideValue,
     restoreCalculationPeroxideValue
 } from "../modules/peroxide-value/factory";
+
+
+// ============================================================
+// ACID VALUE
+// ============================================================
+
+import CalculationDetailAcidValue
+    from "../modules/acid-value/CalculationDetailAcidValue";
+
+import SamplePreparationDetailAcidValue
+    from "../modules/acid-value/models/SamplePreparationDetailAcidValue";
+
+import {
+    createCalculationAcidValue,
+    createSamplePreparationAcidValue,
+    restoreCalculationAcidValue
+} from "../modules/acid-value/factory";
+
 
 interface ModuleLabels {
     details: string;
@@ -45,6 +101,7 @@ interface ModuleLabels {
     w3: string;
     w4?: string;
 }
+
 
 export const moduleRegistry: Record<
     string,
@@ -83,6 +140,7 @@ export const moduleRegistry: Record<
         }
     },
 
+
     fat: {
         id: "fat",
         title: "FAT Analysis",
@@ -102,6 +160,7 @@ export const moduleRegistry: Record<
             w3: "Weight of Sample",
         }
     },
+
 
     protein: {
         id: "protein",
@@ -124,6 +183,7 @@ export const moduleRegistry: Record<
         }
     },
 
+
     sugar: {
         id: "sugar",
         title: "Total Sugar Analysis",
@@ -144,6 +204,7 @@ export const moduleRegistry: Record<
             w4: "Std Dextrose Weight",
         }
     },
+
 
     energy: {
         id: "energy",
@@ -166,6 +227,7 @@ export const moduleRegistry: Record<
         }
     },
 
+
     carbohydrate: {
         id: "carbohydrate",
         title: "Carbohydrate Analysis",
@@ -186,6 +248,7 @@ export const moduleRegistry: Record<
             w4: "Carbohydrate"
         }
     },
+
 
     crudeFiber: {
         id: "crudeFiber",
@@ -208,6 +271,7 @@ export const moduleRegistry: Record<
         }
     },
 
+
     peroxideValue: {
         id: "peroxideValue",
         title: "Peroxide Value Analysis",
@@ -227,5 +291,32 @@ export const moduleRegistry: Record<
             w3: "Normality",
             w4: "Peroxide Value"
         }
+    },
+
+
+    // ============================================================
+    // ACID VALUE
+    // ============================================================
+
+    acidValue: {
+        id: "acidValue",
+        title: "Acid Value Analysis",
+        shortName: "Acid Value",
+        icon: "🧪",
+        analysisComponent: PreparationAnalysis,
+        samplePreparationComponent: SamplePreparationDetailAcidValue,
+        calculationComponent: CalculationDetailAcidValue,
+        createCalculation: createCalculationAcidValue,
+        createSamplePreparation: createSamplePreparationAcidValue,
+        restoreCalculation: restoreCalculationAcidValue,
+        labels: {
+            details: "Sample Preparation for Acid Value Details",
+            w1: "Sample Weight",
+            w2: "Sample Titre Value",
+            drying: "Normality",
+            w3: "Factor",
+            w4: "Acid Value"
+        }
     }
+
 };

@@ -5,7 +5,9 @@ export const createSamplePreparation = (
     index: number
 ): any => {
 
-    const labels = moduleRegistry[parameterType].labels;
+    const labels =
+        moduleRegistry[parameterType].labels;
+
 
     // =====================================================
     // SUGAR
@@ -15,9 +17,11 @@ export const createSamplePreparation = (
 
         return {
 
-            id: Date.now() + index,
+            id:
+                Date.now() + index,
 
-            label: `Sample Preparation ${index + 1}`,
+            label:
+                `Sample Preparation ${index + 1}`,
 
             steps: [
 
@@ -97,42 +101,52 @@ export const createSamplePreparation = (
     if (parameterType === "protein") {
 
         return {
-            id: Date.now() + index,
 
-            label: `Sample Preparation ${index + 1}`,
+            id:
+                Date.now() + index,
+
+            label:
+                `Sample Preparation ${index + 1}`,
 
             steps: [
+
                 {
                     name: "Sample Weight",
                     value1: "",
                     unit1: "g",
                     logBookID: "",
                 },
+
                 {
                     name: "Sample Titre Value",
                     value1: "",
                     unit1: "ml",
                     logBookID: "",
                 },
+
                 {
                     name: "Blank Titre Value",
                     value1: "",
                     unit1: "ml",
                     logBookID: "",
                 },
+
                 {
                     name: "Normality",
                     value1: "",
                     unit1: "ml",
                     logBookID: "",
                 },
+
                 {
                     name: "Protein Factor",
                     value1: "",
                     unit1: "",
                     logBookID: "",
                 },
+
             ],
+
         };
     }
 
@@ -145,9 +159,11 @@ export const createSamplePreparation = (
 
         return {
 
-            id: Date.now() + index,
+            id:
+                Date.now() + index,
 
-            label: `Sample Preparation ${index + 1}`,
+            label:
+                `Sample Preparation ${index + 1}`,
 
             steps: [
 
@@ -218,45 +234,158 @@ export const createSamplePreparation = (
 
 
     // =====================================================
+    // CRUDE FIBER
+    // =====================================================
+
+    if (parameterType === "crudeFiber") {
+
+        return {
+
+            id:
+                Date.now() + index,
+
+            label:
+                `Sample Preparation ${index + 1}`,
+
+            steps: [
+
+                // =================================================
+                // 1. WEIGHT OF CRUCIBLE AFTER DRYING
+                // =================================================
+
+                {
+                    name:
+                        "Weight of Crucible after Drying",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "g",
+
+                    logBookID:
+                        "",
+                },
+
+
+                // =================================================
+                // 2. WEIGHT OF CRUCIBLE AFTER ASHING
+                // =================================================
+
+                {
+                    name:
+                        "Weight of Crucible after Ashing",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "g",
+
+                    logBookID:
+                        "",
+                },
+
+
+                // =================================================
+                // 3. WEIGHT OF SAMPLE
+                // =================================================
+
+                {
+                    name:
+                        "Weight of Sample",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "g",
+
+                    logBookID:
+                        "",
+                },
+
+            ],
+
+        };
+
+    }
+
+
+    // =====================================================
     // LOD / FAT
     // =====================================================
 
     return {
 
-        id: Date.now() + index,
+        id:
+            Date.now() + index,
 
-        label: `Sample Preparation ${index + 1}`,
+        label:
+            `Sample Preparation ${index + 1}`,
 
         steps: [
 
             {
-                name: labels.w1,
-                value1: "",
-                unit1: "g",
-                logBookID: "",
+                name:
+                    labels.w1,
+
+                value1:
+                    "",
+
+                unit1:
+                    "g",
+
+                logBookID:
+                    "",
             },
 
             {
-                name: labels.w2,
-                value1: "",
-                unit1: "g",
-                logBookID: "",
+                name:
+                    labels.w2,
+
+                value1:
+                    "",
+
+                unit1:
+                    "g",
+
+                logBookID:
+                    "",
             },
 
             {
-                name: labels.drying,
-                value1: "",
-                unit1: "°C",
-                value2: "",
-                unit2: "min",
-                logBookID: "",
+                name:
+                    labels.drying,
+
+                value1:
+                    "",
+
+                unit1:
+                    "°C",
+
+                value2:
+                    "",
+
+                unit2:
+                    "min",
+
+                logBookID:
+                    "",
             },
 
             {
-                name: labels.w3,
-                value1: "",
-                unit1: "g",
-                logBookID: "",
+                name:
+                    labels.w3,
+
+                value1:
+                    "",
+
+                unit1:
+                    "g",
+
+                logBookID:
+                    "",
             },
 
         ],

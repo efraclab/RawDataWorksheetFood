@@ -48,6 +48,12 @@ import {
     mapCarbohydrateDraftToFiles
 } from "../mappers/carbohydrateMapper";
 
+import {
+    mapCrudeFiberDraftToPreparations,
+    mapCrudeFiberDraftToCalculations,
+    mapCrudeFiberDraftToFiles
+} from "../mappers/crudeFiberMapper";
+
 export function collectFormDataForAPI({
 
     role,
@@ -312,6 +318,31 @@ export function collectFormDataForAPI({
                 files.push(
                     ...mapCarbohydrateDraftToFiles(
                         draft?.carbohydrate
+                    )
+                );
+            }
+
+            // ============================================================
+            // CRUDE FIBER
+            // ============================================================
+
+            if (activeGroup === "crudeFiber") {
+
+                preparations.push(
+                    ...mapCrudeFiberDraftToPreparations(
+                        draft?.crudeFiber
+                    )
+                );
+
+                calculations.push(
+                    ...mapCrudeFiberDraftToCalculations(
+                        draft?.crudeFiber
+                    )
+                );
+
+                files.push(
+                    ...mapCrudeFiberDraftToFiles(
+                        draft?.crudeFiber
                     )
                 );
             }

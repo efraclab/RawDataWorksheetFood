@@ -22,6 +22,7 @@ export interface PreparationData {
         | "sugar"
         | "energy"
         | "carbohydrate"
+        | "crudeFiber"
         | "roi"
         | "sulphated_ash"
         | "titration"

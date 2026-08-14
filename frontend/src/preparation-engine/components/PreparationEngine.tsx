@@ -94,6 +94,13 @@ const PreparationEngine =
         const carbohydrateRef =
             useRef<PreparationModuleHandle>(null);
 
+        // ============================================================
+        // CRUDE FIBER REF
+        // ============================================================
+
+        const crudeFiberRef =
+            useRef<PreparationModuleHandle>(null);
+
 
         // ============================================================
         // RESTORE
@@ -315,6 +322,28 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // CRUDE FIBER
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "crudeFiber"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            crudeFiber:
+                                crudeFiberRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // LOD
                     // ----------------------------------------------
 
@@ -443,6 +472,22 @@ const PreparationEngine =
 
                         carbohydrateRef.current?.loadDraft(
                             draft.carbohydrate
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // CRUDE FIBER
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "crudeFiber" &&
+                        draft.crudeFiber
+                    ) {
+
+                        crudeFiberRef.current?.loadDraft(
+                            draft.crudeFiber
                         );
 
                     }
@@ -584,6 +629,26 @@ const PreparationEngine =
                     ) {
 
                         groups.push("carbohydrate");
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // CRUDE FIBER
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "crudeFiber"
+                        )
+                    ) {
+
+                        groups.push("crudeFiber");
 
                     }
 
@@ -731,11 +796,29 @@ const PreparationEngine =
                 carbohydrateRef.current
             ) {
 
-                // console.log(
-                //     "🔥 Restoring CARBOHYDRATE preparation"
-                // );
-
                 carbohydrateRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+                pendingRestore.current =
+                    null;
+
+                return;
+
+            }
+
+
+            // ========================================================
+            // CRUDE FIBER
+            // ========================================================
+
+            if (
+                activeGroup === "crudeFiber" &&
+                crudeFiberRef.current
+            ) {
+
+                crudeFiberRef.current
                     .restoreFromWorksheet(
                         pendingRestore.current
                     );
@@ -978,6 +1061,10 @@ const PreparationEngine =
                     }
                     carbohydrateRef={
                         carbohydrateRef
+                    }
+
+                    crudeFiberRef={
+                        crudeFiberRef
                     }
 
                 />

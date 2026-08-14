@@ -21,6 +21,14 @@ import {
     restoreCalculationCarbohydrate
 } from "../modules/carbohydrate/factory";
 
+import CalculationDetailCrudeFiber from "../modules/crude-fiber/CalculationDetailCrudeFiber";
+import SamplePreparationDetailCrudeFiber from "../modules/crude-fiber/models/SamplePreparationDetailCrudeFiber";
+import {
+    createCalculationCrudeFiber,
+    createSamplePreparationCrudeFiber,
+    restoreCalculationCrudeFiber
+} from "../modules/crude-fiber/factory";
+
 interface ModuleLabels {
     details: string;
     w1: string;
@@ -202,7 +210,7 @@ export const moduleRegistry: Record<
         }
 
     },
-        carbohydrate: {
+    carbohydrate: {
 
         id: "carbohydrate",
 
@@ -248,6 +256,56 @@ export const moduleRegistry: Record<
 
             w4:
                 "Carbohydrate"
+
+        }
+
+    },
+    crudeFiber: {
+
+        id: "crudeFiber",
+
+        title: "Crude Fiber Analysis",
+
+        shortName: "Crude Fiber",
+
+        icon: "🌾",
+
+        analysisComponent: PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailCrudeFiber,
+
+        calculationComponent:
+            CalculationDetailCrudeFiber,
+
+        createCalculation:
+            createCalculationCrudeFiber,
+
+        createSamplePreparation:
+            createSamplePreparationCrudeFiber,
+
+        restoreCalculation:
+            restoreCalculationCrudeFiber,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Crude Fiber Details",
+
+            w1:
+                "Weight of Crucible after Drying",
+
+            w2:
+                "Weight of Crucible after Ashing",
+
+            drying:
+                "Drying",
+
+            w3:
+                "Weight of Sample",
+
+            w4:
+                "Crude Fiber"
 
         }
 

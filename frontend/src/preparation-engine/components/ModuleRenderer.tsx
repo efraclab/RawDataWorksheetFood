@@ -40,6 +40,9 @@ interface Props {
 
     carbohydrateRef:
     React.RefObject<PreparationModuleHandle | null>;
+
+    crudeFiberRef:
+    React.RefObject<PreparationModuleHandle | null>;
 }
 
 
@@ -69,7 +72,9 @@ const ModuleRenderer: React.FC<Props> = ({
 
     energyRef,
 
-    carbohydrateRef
+    carbohydrateRef,
+
+    crudeFiberRef
 
 }) => {
 
@@ -89,7 +94,9 @@ const ModuleRenderer: React.FC<Props> = ({
                     ? energyRef
                     : moduleType === "carbohydrate"
                         ? carbohydrateRef
-                        : lodRef;
+                        : moduleType === "crudeFiber"
+                            ? crudeFiberRef
+                            : lodRef;
 
 
     // =====================================================

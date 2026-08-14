@@ -4,6 +4,7 @@ import type { ProteinDraft } from "./ProteinDraft";
 import type { SugarDraft } from "./SugarDraft";
 import type { EnergyDraft } from "./EnergyDraft";
 import type { CarbohydrateDraft } from "./CarbohydrateDraft";
+import type { CrudeFiberDraft } from "./CrudeFiberDraft";
 
 export interface PreparationDraft {
 
@@ -20,4 +21,6 @@ export interface PreparationDraft {
     carbohydrate?: CarbohydrateDraft;
 
     energy?: EnergyDraft;
+    
+    crudeFiber?: CrudeFiberDraft;
 }

@@ -106,6 +106,16 @@ import {
     mapAcidValueDraftToFiles
 } from "../mappers/acidValueMapper";
 
+// ============================================================
+// SAPONIFICATION VALUE
+// ============================================================
+
+import {
+    mapSaponificationValueDraftToPreparations,
+    mapSaponificationValueDraftToCalculations,
+    mapSaponificationValueDraftToFiles
+} from "../mappers/saponificationMapper";
+
 
 import type { PreparationEngineHandle }
     from "../types/PreparationEngineHandle";
@@ -478,6 +488,31 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapAcidValueDraftToFiles(
                             draft?.acidValue
+                        )
+                    );
+                }
+
+                // ========================================================
+                // SAPONIFICATION VALUE
+                // ========================================================
+
+                if (activeGroup === "saponificationValue") {
+
+                    preparations.push(
+                        ...mapSaponificationValueDraftToPreparations(
+                            draft?.saponificationValue
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapSaponificationValueDraftToCalculations(
+                            draft?.saponificationValue
+                        )
+                    );
+
+                    files.push(
+                        ...mapSaponificationValueDraftToFiles(
+                            draft?.saponificationValue
                         )
                     );
                 }

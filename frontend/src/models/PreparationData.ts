@@ -25,6 +25,7 @@ export interface PreparationData {
         | "crudeFiber"
         | "peroxideValue"
         | "acidValue"
+        | "saponificationValue"
         | "roi"
         | "sulphated_ash"
         | "titration"

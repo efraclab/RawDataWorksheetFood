@@ -424,6 +424,98 @@ export const createSamplePreparation = (
 
     }
 
+    // =====================================================
+    // SAPONIFICATION VALUE
+    // =====================================================
+
+    if (parameterType === "saponificationValue") {
+
+        return {
+
+            id:
+                Date.now() + index,
+
+            label:
+                `Sample Preparation ${index + 1}`,
+
+            steps: [
+
+                {
+                    name:
+                        "Sample Weight",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "g",
+
+                    logBookID:
+                        "",
+                },
+
+                {
+                    name:
+                        "Sample Titre Value",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "ml",
+
+                    logBookID:
+                        "",
+                },
+
+                {
+                    name:
+                        "Blank Titre Value",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "ml",
+
+                    logBookID:
+                        "",
+                },
+
+                {
+                    name:
+                        "Normality of HCL",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "N",
+
+                    logBookID:
+                        "",
+                },
+
+                {
+                    name:
+                        "Factor",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "",
+
+                    logBookID:
+                        "",
+                },
+
+            ],
+
+        };
+
+    }
+
 
     // =====================================================
     // LOD / FAT

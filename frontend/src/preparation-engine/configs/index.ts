@@ -7,6 +7,7 @@ import { carbohydrateConfig } from "./carbohydrateConfig";
 import { crudeFiberConfig } from "./crudeFiberConfig";
 import { peroxideValueConfig } from "./peroxideValueConfig";
 import { acidValueConfig } from "./acidValueConfig";
+import { saponificationValueConfig } from "./saponificationValueConfig";
 
 
 export const preparationConfigs = [
@@ -27,6 +28,8 @@ export const preparationConfigs = [
 
     peroxideValueConfig,
 
-    acidValueConfig
+    acidValueConfig,
+
+    saponificationValueConfig
 
 ];

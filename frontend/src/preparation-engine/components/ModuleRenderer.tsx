@@ -26,6 +26,11 @@ interface Props {
     onUnlockPreparation:
     (parameterId: number) => void;
 
+
+    // =====================================================
+    // MODULE REFS
+    // =====================================================
+
     lodRef:
     React.RefObject<PreparationModuleHandle | null>;
 
@@ -48,6 +53,9 @@ interface Props {
     React.RefObject<PreparationModuleHandle | null>;
 
     acidValueRef:
+    React.RefObject<PreparationModuleHandle | null>;
+
+    saponificationValueRef:
     React.RefObject<PreparationModuleHandle | null>;
 }
 
@@ -84,11 +92,14 @@ const ModuleRenderer: React.FC<Props> = ({
 
     peroxideValueRef,
 
-    acidValueRef
+    acidValueRef,
+
+    saponificationValueRef
 
 }) => {
 
-    const moduleType = activeGroups[0];
+    const moduleType =
+        activeGroups[0];
 
 
     // =====================================================
@@ -98,19 +109,29 @@ const ModuleRenderer: React.FC<Props> = ({
     const moduleRef =
         moduleType === "protein"
             ? proteinRef
+
             : moduleType === "sugar"
                 ? sugarRef
+
                 : moduleType === "energy"
                     ? energyRef
+
                     : moduleType === "carbohydrate"
                         ? carbohydrateRef
+
                         : moduleType === "crudeFiber"
                             ? crudeFiberRef
+
                             : moduleType === "peroxideValue"
                                 ? peroxideValueRef
+
                                 : moduleType === "acidValue"
                                     ? acidValueRef
-                                    : lodRef;
+
+                                    : moduleType === "saponificationValue"
+                                        ? saponificationValueRef
+
+                                        : lodRef;
 
 
     // =====================================================

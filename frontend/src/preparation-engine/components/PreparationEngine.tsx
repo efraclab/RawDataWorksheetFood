@@ -9,11 +9,17 @@ import React, {
 
 import { preparationConfigs } from "../configs";
 
-import PreparationDropdown from "./PreparationDropdown";
-import ActivePreparationGroups from "./ActivePreparationGroups";
-import ModuleRenderer from "./ModuleRenderer";
+import PreparationDropdown
+    from "./PreparationDropdown";
 
-import { BiTestTube } from "react-icons/bi";
+import ActivePreparationGroups
+    from "./ActivePreparationGroups";
+
+import ModuleRenderer
+    from "./ModuleRenderer";
+
+import { BiTestTube }
+    from "react-icons/bi";
 
 import type {
     PreparationEngineHandle
@@ -86,11 +92,9 @@ const PreparationEngine =
         const sugarRef =
             useRef<PreparationModuleHandle>(null);
 
-        // ENERGY REF
         const energyRef =
             useRef<PreparationModuleHandle>(null);
 
-        // CARBOHYDRATE REF
         const carbohydrateRef =
             useRef<PreparationModuleHandle>(null);
 
@@ -116,6 +120,14 @@ const PreparationEngine =
         // ============================================================
 
         const acidValueRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
+        // SAPONIFICATION VALUE REF
+        // ============================================================
+
+        const saponificationValueRef =
             useRef<PreparationModuleHandle>(null);
 
 
@@ -404,6 +416,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // SAPONIFICATION VALUE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "saponificationValue"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            saponificationValue:
+                                saponificationValueRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // LOD
                     // ----------------------------------------------
 
@@ -581,6 +616,23 @@ const PreparationEngine =
 
                         acidValueRef.current?.loadDraft(
                             draft.acidValue
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // SAPONIFICATION VALUE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "saponificationValue" &&
+                        draft.saponificationValue
+                    ) {
+
+                        saponificationValueRef.current?.loadDraft(
+                            draft.saponificationValue
                         );
 
                     }
@@ -783,6 +835,28 @@ const PreparationEngine =
                     ) {
 
                         groups.push("acidValue");
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // SAPONIFICATION VALUE
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "saponificationValue"
+                        )
+                    ) {
+
+                        groups.push(
+                            "saponificationValue"
+                        );
 
                     }
 
@@ -1004,6 +1078,31 @@ const PreparationEngine =
             ) {
 
                 acidValueRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
+
+            // ========================================================
+            // SAPONIFICATION VALUE
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "saponificationValue" &&
+                saponificationValueRef.current
+            ) {
+
+                saponificationValueRef.current
                     .restoreFromWorksheet(
                         pendingRestore.current
                     );
@@ -1261,6 +1360,10 @@ const PreparationEngine =
 
                     acidValueRef={
                         acidValueRef
+                    }
+
+                    saponificationValueRef={
+                        saponificationValueRef
                     }
 
                 />

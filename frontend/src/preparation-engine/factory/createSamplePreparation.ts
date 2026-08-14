@@ -167,62 +167,31 @@ export const createSamplePreparation = (
 
             steps: [
 
-                // =================================================
-                // 1. MOISTURE
-                // =================================================
-
                 {
                     name: "Moisture",
-
                     value1: "",
-
                     unit1: "g/100g",
-
                     logBookID: "",
                 },
-
-
-                // =================================================
-                // 2. ASH
-                // =================================================
 
                 {
                     name: "Ash",
-
                     value1: "",
-
                     unit1: "g/100g",
-
                     logBookID: "",
                 },
-
-
-                // =================================================
-                // 3. PROTEIN
-                // =================================================
 
                 {
                     name: "Protein",
-
                     value1: "",
-
                     unit1: "g/100g",
-
                     logBookID: "",
                 },
 
-
-                // =================================================
-                // 4. FAT
-                // =================================================
-
                 {
                     name: "Fat",
-
                     value1: "",
-
                     unit1: "g/100g",
-
                     logBookID: "",
                 },
 
@@ -249,10 +218,6 @@ export const createSamplePreparation = (
 
             steps: [
 
-                // =================================================
-                // 1. WEIGHT OF CRUCIBLE AFTER DRYING
-                // =================================================
-
                 {
                     name:
                         "Weight of Crucible after Drying",
@@ -266,11 +231,6 @@ export const createSamplePreparation = (
                     logBookID:
                         "",
                 },
-
-
-                // =================================================
-                // 2. WEIGHT OF CRUCIBLE AFTER ASHING
-                // =================================================
 
                 {
                     name:
@@ -286,11 +246,6 @@ export const createSamplePreparation = (
                         "",
                 },
 
-
-                // =================================================
-                // 3. WEIGHT OF SAMPLE
-                // =================================================
-
                 {
                     name:
                         "Weight of Sample",
@@ -300,6 +255,85 @@ export const createSamplePreparation = (
 
                     unit1:
                         "g",
+
+                    logBookID:
+                        "",
+                },
+
+            ],
+
+        };
+
+    }
+
+
+    // =====================================================
+    // PEROXIDE VALUE
+    // =====================================================
+
+    if (parameterType === "peroxideValue") {
+
+        return {
+
+            id:
+                Date.now() + index,
+
+            label:
+                `Sample Preparation ${index + 1}`,
+
+            steps: [
+
+                {
+                    name:
+                        "Sample Weight",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "g",
+
+                    logBookID:
+                        "",
+                },
+
+                {
+                    name:
+                        "Sample Titre Value",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "ml",
+
+                    logBookID:
+                        "",
+                },
+
+                {
+                    name:
+                        "Blank Titre Value",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "ml",
+
+                    logBookID:
+                        "",
+                },
+
+                {
+                    name:
+                        "Normality",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "ml",
 
                     logBookID:
                         "",

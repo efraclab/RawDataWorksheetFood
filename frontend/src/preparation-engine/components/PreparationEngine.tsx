@@ -101,6 +101,13 @@ const PreparationEngine =
         const crudeFiberRef =
             useRef<PreparationModuleHandle>(null);
 
+        // ============================================================
+        // PEROXIDE VALUE REF
+        // ============================================================
+
+        const peroxideValueRef =
+            useRef<PreparationModuleHandle>(null);
+
 
         // ============================================================
         // RESTORE
@@ -344,6 +351,28 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // PEROXIDE VALUE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "peroxideValue"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            peroxideValue:
+                                peroxideValueRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // LOD
                     // ----------------------------------------------
 
@@ -488,6 +517,22 @@ const PreparationEngine =
 
                         crudeFiberRef.current?.loadDraft(
                             draft.crudeFiber
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // PEROXIDE VALUE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "peroxideValue" &&
+                        draft.peroxideValue
+                    ) {
+
+                        peroxideValueRef.current?.loadDraft(
+                            draft.peroxideValue
                         );
 
                     }
@@ -649,6 +694,26 @@ const PreparationEngine =
                     ) {
 
                         groups.push("crudeFiber");
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // PEROXIDE VALUE
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "peroxideValue"
+                        )
+                    ) {
+
+                        groups.push("peroxideValue");
 
                     }
 
@@ -819,6 +884,28 @@ const PreparationEngine =
             ) {
 
                 crudeFiberRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+                pendingRestore.current =
+                    null;
+
+                return;
+
+            }
+
+
+            // ========================================================
+            // PEROXIDE VALUE
+            // ========================================================
+
+            if (
+                activeGroup === "peroxideValue" &&
+                peroxideValueRef.current
+            ) {
+
+                peroxideValueRef.current
                     .restoreFromWorksheet(
                         pendingRestore.current
                     );
@@ -1065,6 +1152,10 @@ const PreparationEngine =
 
                     crudeFiberRef={
                         crudeFiberRef
+                    }
+
+                    peroxideValueRef={
+                        peroxideValueRef
                     }
 
                 />

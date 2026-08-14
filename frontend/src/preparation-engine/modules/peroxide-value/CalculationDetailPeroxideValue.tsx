@@ -17,12 +17,12 @@ import {
 } from "framer-motion";
 
 import type {
-    CalculationCrudeFiber
-} from "./models/CalculationCrudeFiber";
+    CalculationPeroxideValue
+} from "./models/CalculationPeroxideValue";
 
 import type {
-    SamplePreparationCrudeFiber
-} from "./models/SamplePreparationCrudeFiber";
+    SamplePreparationPeroxideValue
+} from "./models/SamplePreparationPeroxideValue";
 
 import CustomDropdown
     from "../../../components/shared/CustomDropdown";
@@ -35,17 +35,17 @@ import CustomDropdown
 interface Props {
 
     calculation:
-        CalculationCrudeFiber;
+        CalculationPeroxideValue;
 
     samplePreparations:
-        SamplePreparationCrudeFiber[];
+        SamplePreparationPeroxideValue[];
 
     onRemove:
         () => void;
 
     onFieldChange: (
         calculationId: number,
-        field: keyof CalculationCrudeFiber,
+        field: keyof CalculationPeroxideValue,
         value: any
     ) => void;
 
@@ -88,7 +88,7 @@ const toNumber = (
 // COMPONENT
 // ============================================================
 
-const CalculationDetailCrudeFiber:
+const CalculationDetailPeroxideValue:
     React.FC<Props> = ({
 
         calculation,
@@ -185,7 +185,7 @@ const CalculationDetailCrudeFiber:
             );
 
 
-        // Crude Fiber always has these three
+        // Peroxide Value always has these three
         // preparation values in W1 / W2 / W order.
         if (matchedStep)
             return matchedStep;
@@ -212,264 +212,101 @@ const CalculationDetailCrudeFiber:
     // READ PREPARATION VALUES
     // ========================================================
 
-    const weightCrucibleAfterDrying =
-        toNumber(
-            getStep(
-                "Weight of Crucible after drying in g W1",
-                0
-            )?.value1
-        );
+    const sampleWeight = toNumber(
+        getStep("Sample Weight", 0)?.value1
+    );
 
+    const sampleTitreValue = toNumber(
+        getStep("Sample Titre Value", 1)?.value1
+    );
 
-    const weightCrucibleAfterAshing =
-        toNumber(
-            getStep(
-                "Weight of Crucible After Ashing in g W2",
-                1
-            )?.value1
-        );
+    const blankTitreValue = toNumber(
+        getStep("Blank Titre Value", 2)?.value1
+    );
 
-
-    const sampleWeight =
-        toNumber(
-            getStep(
-                "Weight Of Sample in g W",
-                2
-            )?.value1
-        );
+    const normality = toNumber(
+        getStep("Normality", 3)?.value1
+    );
 
 
     // ========================================================
-    // CRUDE FIBER CALCULATION
+    // PEROXIDE VALUE CALCULATION
     // ========================================================
 
-    const calculatedCrudeFiber =
-        useMemo(() => {
+    const calculatedPeroxideValue = useMemo(() => {
 
-            if (
-                sampleWeight <= 0
-            ) {
+        if (
+            sampleWeight <= 0 ||
+            sampleTitreValue < 0 ||
+            blankTitreValue < 0 ||
+            normality <= 0
+        ) {
+            return 0;
+        }
 
-                return 0;
-
-            }
-
-            return (
-                (
-                    weightCrucibleAfterDrying -
-                    weightCrucibleAfterAshing
-                ) *
-                100
-            ) /
+        const result =
+            ((sampleTitreValue - blankTitreValue) *
+                normality *
+                1000) /
             sampleWeight;
 
-        }, [
+        return result >= 0 ? result : 0;
 
-            weightCrucibleAfterDrying,
-
-            weightCrucibleAfterAshing,
-
-            sampleWeight
-
-        ]);
-
+    }, [
+        sampleWeight,
+        sampleTitreValue,
+        blankTitreValue,
+        normality
+    ]);
 
     // ========================================================
     // VALIDATION
     // ========================================================
 
-    const validationErrors =
-        useMemo(() => {
+    const validationErrors = useMemo(() => {
 
-            const errors:
-                string[] = [];
+        const errors: string[] = [];
 
-
-            // ------------------------------------------------
-            // SAMPLE PREPARATION
-            // ------------------------------------------------
-
-            if (
-                !selectedPreparation
-            ) {
-
-                errors.push(
-                    "Please select a Sample Preparation"
-                );
-
-                return errors;
-
-            }
-
-
-            // ------------------------------------------------
-            // CRUCIBLE AFTER DRYING
-            // ------------------------------------------------
-
-            if (
-                weightCrucibleAfterDrying < 0
-            ) {
-
-                errors.push(
-                    "Weight of Crucible after drying in g W1 cannot be negative"
-                );
-
-            }
-
-
-            // ------------------------------------------------
-            // CRUCIBLE AFTER ASHING
-            // ------------------------------------------------
-
-            if (
-                weightCrucibleAfterAshing < 0
-            ) {
-
-                errors.push(
-                    "Weight of Crucible After Ashing in g W2 cannot be negative"
-                );
-
-            }
-
-
-            // ------------------------------------------------
-            // SAMPLE WEIGHT
-            // ------------------------------------------------
-
-            if (
-                sampleWeight <= 0
-            ) {
-
-                errors.push(
-                    "Weight of Sample must be greater than 0"
-                );
-
-            }
-
-
-            // ------------------------------------------------
-            // W1 / W2 VALIDATION
-            // ------------------------------------------------
-
-            if (
-                weightCrucibleAfterDrying <
-                weightCrucibleAfterAshing
-            ) {
-
-                errors.push(
-                    "Weight of Crucible after drying in g W1 must be greater than or equal to Weight of Crucible After Ashing in g W2"
-                );
-
-            }
-
-
+        if (!selectedPreparation) {
+            errors.push("Please select a Sample Preparation");
             return errors;
+        }
 
-        }, [
+        if (sampleWeight <= 0) {
+            errors.push("Sample Weight must be greater than 0");
+        }
 
-            selectedPreparation,
+        if (sampleTitreValue < 0) {
+            errors.push("Sample Titre Value cannot be negative");
+        }
 
-            weightCrucibleAfterDrying,
+        if (blankTitreValue < 0) {
+            errors.push("Blank Titre Value cannot be negative");
+        }
 
-            weightCrucibleAfterAshing,
+        if (sampleTitreValue < blankTitreValue) {
+            errors.push(
+                "Sample Titre Value must be greater than or equal to Blank Titre Value"
+            );
+        }
 
-            sampleWeight
+        if (normality <= 0) {
+            errors.push("Normality must be greater than 0");
+        }
 
-        ]);
+        return errors;
+
+    }, [
+        selectedPreparation,
+        sampleWeight,
+        sampleTitreValue,
+        blankTitreValue,
+        normality
+    ]);
 
 
     const isValid =
         validationErrors.length === 0;
-
-
-    // ========================================================
-    // ACCEPTANCE LIMIT / PASS-FAIL
-    // ========================================================
-
-    const acceptanceStatus =
-        useMemo(() => {
-
-            if (
-                calculation.calculationResult === null ||
-                calculation.calculationResult === undefined
-            ) {
-
-                return null;
-
-            }
-
-            const result =
-                Number(calculation.calculationResult);
-
-            if (!Number.isFinite(result))
-                return null;
-
-
-            const minText =
-                calculation.acceptanceLimitMin;
-
-            const maxText =
-                calculation.acceptanceLimitMax;
-
-
-            const hasMin =
-                minText !== "" &&
-                minText !== null &&
-                Number.isFinite(Number(minText));
-
-            const hasMax =
-                maxText !== "" &&
-                maxText !== null &&
-                Number.isFinite(Number(maxText));
-
-
-            if (!hasMin && !hasMax)
-                return null;
-
-
-            const min =
-                hasMin
-                    ? Number(minText)
-                    : null;
-
-            const max =
-                hasMax
-                    ? Number(maxText)
-                    : null;
-
-
-            if (
-                min !== null &&
-                max !== null
-            ) {
-
-                return (
-                    result >= min &&
-                    result <= max
-                );
-
-            }
-
-
-            if (min !== null)
-                return result >= min;
-
-
-            if (max !== null)
-                return result <= max;
-
-
-            return null;
-
-        }, [
-
-            calculation.calculationResult,
-
-            calculation.acceptanceLimitMin,
-
-            calculation.acceptanceLimitMax
-
-        ]);
 
 
     // ========================================================
@@ -529,7 +366,7 @@ const CalculationDetailCrudeFiber:
 
             const result =
                 Number(
-                    calculatedCrudeFiber.toFixed(2)
+                    calculatedPeroxideValue.toFixed(2)
                 );
 
 
@@ -543,10 +380,56 @@ const CalculationDetailCrudeFiber:
             onFieldChange(
                 calculation.id,
                 "calculationResultUnit",
-                "%"
+                "meq/kg"
             );
 
         };
+
+
+    // ========================================================
+    // ACCEPTANCE LIMIT STATUS
+    // ========================================================
+
+    const acceptanceStatus =
+        useMemo(() => {
+
+            const min =
+                Number(calculation.acceptanceLimitMin);
+
+            const max =
+                Number(calculation.acceptanceLimitMax);
+
+            const hasMin =
+                calculation.acceptanceLimitMin !== "" &&
+                Number.isFinite(min);
+
+            const hasMax =
+                calculation.acceptanceLimitMax !== "" &&
+                Number.isFinite(max);
+
+            if (!hasMin && !hasMax)
+                return null;
+
+            if (
+                hasMin &&
+                hasMax
+            ) {
+                return (
+                    calculatedPeroxideValue >= min &&
+                    calculatedPeroxideValue <= max
+                );
+            }
+
+            if (hasMin)
+                return calculatedPeroxideValue >= min;
+
+            return calculatedPeroxideValue <= max;
+
+        }, [
+            calculation.acceptanceLimitMin,
+            calculation.acceptanceLimitMax,
+            calculatedPeroxideValue
+        ]);
 
 
     // ============================================================
@@ -672,7 +555,7 @@ const CalculationDetailCrudeFiber:
                                 "
                             >
 
-                                Calculation for Crude Fiber
+                                Calculation for Peroxide Value
 
                             </p>
 
@@ -1011,12 +894,9 @@ const CalculationDetailCrudeFiber:
                                         "
                                     >
 
-                                        Formula for Crude Fiber
+                                        Formula for Peroxide Value
 
                                     </h4>
-
-
-                                    {/* FORMULA */}
 
                                     <div
                                         className="
@@ -1036,14 +916,11 @@ const CalculationDetailCrudeFiber:
                                             "
                                         >
 
-                                            ((W1 − W2) × 100) ÷ W
+                                            ((Sample Titre − Blank Titre) × Normality × 1000) ÷ Sample Weight
 
                                         </p>
 
                                     </div>
-
-
-                                    {/* ACTUAL CALCULATION */}
 
                                     <div
                                         className="
@@ -1064,33 +941,12 @@ const CalculationDetailCrudeFiber:
                                         >
 
                                             ((
-
-                                            {
-                                                weightCrucibleAfterDrying.toFixed(
-                                                    4
-                                                )
-                                            }
-
+                                            {sampleTitreValue.toFixed(4)}
                                             {" − "}
-
-                                            {
-                                                weightCrucibleAfterAshing.toFixed(
-                                                    4
-                                                )
-                                            }
-
-                                            ) × 100) ÷
-
-                                            {" "}
-
-                                            {
-                                                sampleWeight.toFixed(
-                                                    4
-                                                )
-                                            }
+                                            {blankTitreValue.toFixed(4)}
+                                            ) × {normality.toFixed(4)} × 1000) ÷ {sampleWeight.toFixed(4)}
 
                                         </p>
-
 
                                         <div
                                             className="
@@ -1102,15 +958,7 @@ const CalculationDetailCrudeFiber:
                                             "
                                         >
 
-                                            ={" "}
-
-                                            {
-                                                calculatedCrudeFiber.toFixed(
-                                                    2
-                                                )
-                                            }
-
-                                            {" %"}
+                                            = {calculatedPeroxideValue.toFixed(2)} meq/kg
 
                                         </div>
 
@@ -1148,11 +996,8 @@ const CalculationDetailCrudeFiber:
                                             mb-3
                                         "
                                     >
-
                                         Acceptance Limit
-
                                     </label>
-
 
                                     <div
                                         className="
@@ -1168,14 +1013,13 @@ const CalculationDetailCrudeFiber:
                                             step="0.01"
                                             inputMode="decimal"
                                             value={
-                                                calculation
-                                                    .acceptanceLimitMin
+                                                calculation.acceptanceLimitMin
                                             }
-                                            onChange={(event) =>
+                                            onChange={(e) =>
                                                 onFieldChange(
                                                     calculation.id,
                                                     "acceptanceLimitMin",
-                                                    event.target.value
+                                                    e.target.value
                                                 )
                                             }
                                             placeholder="Minimum"
@@ -1190,10 +1034,10 @@ const CalculationDetailCrudeFiber:
                                                 bg-white
                                                 focus:outline-none
                                                 focus:ring-2
-                                                focus:ring-emerald-300
+                                                focus:ring-emerald-400
+                                                focus:border-transparent
                                             "
                                         />
-
 
                                         <span
                                             className="
@@ -1202,11 +1046,8 @@ const CalculationDetailCrudeFiber:
                                                 text-gray-600
                                             "
                                         >
-
                                             to
-
                                         </span>
-
 
                                         <input
                                             type="number"
@@ -1214,14 +1055,13 @@ const CalculationDetailCrudeFiber:
                                             step="0.01"
                                             inputMode="decimal"
                                             value={
-                                                calculation
-                                                    .acceptanceLimitMax
+                                                calculation.acceptanceLimitMax
                                             }
-                                            onChange={(event) =>
+                                            onChange={(e) =>
                                                 onFieldChange(
                                                     calculation.id,
                                                     "acceptanceLimitMax",
-                                                    event.target.value
+                                                    e.target.value
                                                 )
                                             }
                                             placeholder="Maximum"
@@ -1236,9 +1076,11 @@ const CalculationDetailCrudeFiber:
                                                 bg-white
                                                 focus:outline-none
                                                 focus:ring-2
-                                                focus:ring-emerald-300
+                                                focus:ring-emerald-400
+                                                focus:border-transparent
                                             "
                                         />
+
 
                                     </div>
 
@@ -1464,7 +1306,7 @@ const CalculationDetailCrudeFiber:
                                                     "
                                                 >
 
-                                                    Crude Fiber Result
+                                                    Peroxide Value Result
 
                                                 </h6>
 
@@ -1492,7 +1334,7 @@ const CalculationDetailCrudeFiber:
                                                         "
                                                     >
 
-                                                        Crude Fiber
+                                                        Peroxide Value
 
                                                     </p>
 
@@ -1514,20 +1356,13 @@ const CalculationDetailCrudeFiber:
 
                                                         {" "}
 
-                                                        {
-                                                            calculation
-                                                                .calculationResultUnit
-                                                            ||
-                                                            "%"
-                                                        }
+                                                        meq/kg
 
                                                     </p>
 
                                                 </div>
 
-
                                                 {acceptanceStatus !== null && (
-
                                                     <div
                                                         className={`
                                                             px-3
@@ -1551,13 +1386,10 @@ const CalculationDetailCrudeFiber:
                                                             }
                                                         `}
                                                     >
-
                                                         {acceptanceStatus
                                                             ? "Pass"
                                                             : "Fail"}
-
                                                     </div>
-
                                                 )}
 
                                             </div>
@@ -1629,4 +1461,4 @@ const CalculationDetailCrudeFiber:
 };
 
 
-export default CalculationDetailCrudeFiber;
+export default CalculationDetailPeroxideValue;

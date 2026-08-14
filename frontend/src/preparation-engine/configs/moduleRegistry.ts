@@ -29,6 +29,14 @@ import {
     restoreCalculationCrudeFiber
 } from "../modules/crude-fiber/factory";
 
+import CalculationDetailPeroxideValue from "../modules/peroxide-value/CalculationDetailPeroxideValue";
+import SamplePreparationDetailPeroxideValue from "../modules/peroxide-value/models/SamplePreparationDetailPeroxideValue";
+import {
+    createCalculationPeroxideValue,
+    createSamplePreparationPeroxideValue,
+    restoreCalculationPeroxideValue
+} from "../modules/peroxide-value/factory";
+
 interface ModuleLabels {
     details: string;
     w1: string;
@@ -115,199 +123,109 @@ export const moduleRegistry: Record<
             w4: "Protein Factor",
         }
     },
+
     sugar: {
-
         id: "sugar",
-
         title: "Total Sugar Analysis",
-
         shortName: "Total Sugar",
-
         icon: "🍬",
-
         analysisComponent: PreparationAnalysis,
-
         samplePreparationComponent: SamplePreparationDetailSugar,
-
         calculationComponent: CalculationDetailSugar,
-
         createCalculation: createCalculationSugar,
-
         createSamplePreparation: createSamplePreparationSugar,
-
         restoreCalculation: restoreCalculationSugar,
-
         labels: {
-
-            details:
-                "Sample Preparation for Total Sugar Details",
-
-            w1:
-                "Sample Weight",
-
-            w2:
-                "Volume Make Up",
-
-            drying:
-                "Sample Titre Value",
-
-            w3:
-                "Dilution Factor",
-
-            w4:
-                "Std Dextrose Weight",
-
+            details: "Sample Preparation for Total Sugar Details",
+            w1: "Sample Weight",
+            w2: "Volume Make Up",
+            drying: "Sample Titre Value",
+            w3: "Dilution Factor",
+            w4: "Std Dextrose Weight",
         }
-
     },
+
     energy: {
-
         id: "energy",
-
         title: "Energy Analysis",
-
         shortName: "Energy",
-
         icon: "⚡",
-
         analysisComponent: PreparationAnalysis,
-
-        samplePreparationComponent:
-            SamplePreparationDetailEnergy,
-
-        calculationComponent:
-            CalculationDetailEnergy,
-
-        createCalculation:
-            createCalculationEnergy,
-
-        createSamplePreparation:
-            createSamplePreparationEnergy,
-
-        restoreCalculation:
-            restoreCalculationEnergy,
-
+        samplePreparationComponent: SamplePreparationDetailEnergy,
+        calculationComponent: CalculationDetailEnergy,
+        createCalculation: createCalculationEnergy,
+        createSamplePreparation: createSamplePreparationEnergy,
+        restoreCalculation: restoreCalculationEnergy,
         labels: {
-
-            details:
-                "Sample Preparation for Energy Details",
-
-            w1:
-                "Sample Weight",
-
-            w2:
-                "Energy Step 2",
-
-            drying:
-                "Energy Step 3",
-
-            w3:
-                "Energy Step 4",
-
-            w4:
-                "Energy Step 5"
-
+            details: "Sample Preparation for Energy Details",
+            w1: "Sample Weight",
+            w2: "Energy Step 2",
+            drying: "Energy Step 3",
+            w3: "Energy Step 4",
+            w4: "Energy Step 5"
         }
-
     },
+
     carbohydrate: {
-
         id: "carbohydrate",
-
         title: "Carbohydrate Analysis",
-
         shortName: "Carbohydrate",
-
         icon: "🍞",
-
         analysisComponent: PreparationAnalysis,
-
-        samplePreparationComponent:
-            SamplePreparationDetailCarbohydrate,
-
-        calculationComponent:
-            CalculationDetailCarbohydrate,
-
-        createCalculation:
-            createCalculationCarbohydrate,
-
-        createSamplePreparation:
-            createSamplePreparationCarbohydrate,
-
-        restoreCalculation:
-            restoreCalculationCarbohydrate,
-
+        samplePreparationComponent: SamplePreparationDetailCarbohydrate,
+        calculationComponent: CalculationDetailCarbohydrate,
+        createCalculation: createCalculationCarbohydrate,
+        createSamplePreparation: createSamplePreparationCarbohydrate,
+        restoreCalculation: restoreCalculationCarbohydrate,
         labels: {
-
-            details:
-                "Sample Preparation for Carbohydrate Details",
-
-            w1:
-                "Moisture",
-
-            w2:
-                "Fat",
-
-            drying:
-                "Ash",
-
-            w3:
-                "Protein",
-
-            w4:
-                "Carbohydrate"
-
+            details: "Sample Preparation for Carbohydrate Details",
+            w1: "Moisture",
+            w2: "Fat",
+            drying: "Ash",
+            w3: "Protein",
+            w4: "Carbohydrate"
         }
-
     },
+
     crudeFiber: {
-
         id: "crudeFiber",
-
         title: "Crude Fiber Analysis",
-
         shortName: "Crude Fiber",
-
         icon: "🌾",
-
         analysisComponent: PreparationAnalysis,
-
-        samplePreparationComponent:
-            SamplePreparationDetailCrudeFiber,
-
-        calculationComponent:
-            CalculationDetailCrudeFiber,
-
-        createCalculation:
-            createCalculationCrudeFiber,
-
-        createSamplePreparation:
-            createSamplePreparationCrudeFiber,
-
-        restoreCalculation:
-            restoreCalculationCrudeFiber,
-
+        samplePreparationComponent: SamplePreparationDetailCrudeFiber,
+        calculationComponent: CalculationDetailCrudeFiber,
+        createCalculation: createCalculationCrudeFiber,
+        createSamplePreparation: createSamplePreparationCrudeFiber,
+        restoreCalculation: restoreCalculationCrudeFiber,
         labels: {
-
-            details:
-                "Sample Preparation for Crude Fiber Details",
-
-            w1:
-                "Weight of Crucible after Drying",
-
-            w2:
-                "Weight of Crucible after Ashing",
-
-            drying:
-                "Drying",
-
-            w3:
-                "Weight of Sample",
-
-            w4:
-                "Crude Fiber"
-
+            details: "Sample Preparation for Crude Fiber Details",
+            w1: "Weight of Crucible after Drying",
+            w2: "Weight of Crucible after Ashing",
+            drying: "Drying",
+            w3: "Weight of Sample",
+            w4: "Crude Fiber"
         }
-
     },
+
+    peroxideValue: {
+        id: "peroxideValue",
+        title: "Peroxide Value Analysis",
+        shortName: "Peroxide Value",
+        icon: "🧪",
+        analysisComponent: PreparationAnalysis,
+        samplePreparationComponent: SamplePreparationDetailPeroxideValue,
+        calculationComponent: CalculationDetailPeroxideValue,
+        createCalculation: createCalculationPeroxideValue,
+        createSamplePreparation: createSamplePreparationPeroxideValue,
+        restoreCalculation: restoreCalculationPeroxideValue,
+        labels: {
+            details: "Sample Preparation for Peroxide Value Details",
+            w1: "Sample Weight",
+            w2: "Sample Titre Value",
+            drying: "Blank Titre Value",
+            w3: "Normality",
+            w4: "Peroxide Value"
+        }
+    }
 };

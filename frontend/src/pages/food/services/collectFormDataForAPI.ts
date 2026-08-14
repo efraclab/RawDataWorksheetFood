@@ -54,6 +54,12 @@ import {
     mapCrudeFiberDraftToFiles
 } from "../mappers/crudeFiberMapper";
 
+import {
+    mapPeroxideValueDraftToPreparations,
+    mapPeroxideValueDraftToCalculations,
+    mapPeroxideValueDraftToFiles
+} from "../mappers/PeroxideValueMapper";
+
 export function collectFormDataForAPI({
 
     role,
@@ -348,7 +354,30 @@ export function collectFormDataForAPI({
             }
 
 
+            // ============================================================
+            // PEROXIDE VALUE
+            // ============================================================
 
+            if (activeGroup === "peroxideValue") {
+
+                preparations.push(
+                    ...mapPeroxideValueDraftToPreparations(
+                        draft?.peroxideValue
+                    )
+                );
+
+                calculations.push(
+                    ...mapPeroxideValueDraftToCalculations(
+                        draft?.peroxideValue
+                    )
+                );
+
+                files.push(
+                    ...mapPeroxideValueDraftToFiles(
+                        draft?.peroxideValue
+                    )
+                );
+            }
 
 
             const parameterFiles: WorksheetFileData[] =

@@ -23,6 +23,7 @@ export interface PreparationData {
         | "energy"
         | "carbohydrate"
         | "crudeFiber"
+        | "peroxideValue"
         | "roi"
         | "sulphated_ash"
         | "titration"

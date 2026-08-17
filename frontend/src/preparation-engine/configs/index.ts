@@ -14,6 +14,8 @@ import {artificialSweetnerConfig} from "./artificialSweetnerConfig";
 import {preservativeConfig} from "./preservativeConfig";
 import {notsConfig} from "./notsConfig";
 import {artificialColourConfig} from "./artificialColourConfig";
+import {uricAcidConfig} from "./uricAcidConfig";
+
 
 
 export const preparationConfigs = [
@@ -49,5 +51,7 @@ export const preparationConfigs = [
     notsConfig,
 
     artificialColourConfig,
+
+    uricAcidConfig,
 
 ];

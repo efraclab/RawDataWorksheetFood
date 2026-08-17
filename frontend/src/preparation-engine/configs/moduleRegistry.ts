@@ -191,6 +191,23 @@ import {
 
 
 // ============================================================
+// URIC ACID
+// ============================================================
+
+import CalculationDetailUricAcid
+    from "../modules/uric-acid/CalculationDetailUricAcid";
+
+import SamplePreparationDetailUricAcid
+    from "../modules/uric-acid/models/SamplePreparationDetailUricAcid";
+
+import {
+    createCalculationUricAcid,
+    createSamplePreparationUricAcid,
+    restoreCalculationUricAcid
+} from "../modules/uric-acid/factory";
+
+
+// ============================================================
 // ACID VALUE
 // ============================================================
 
@@ -1176,6 +1193,67 @@ export const moduleRegistry: Record<
 
             w4:
                 "Artificial Colour"
+
+        }
+
+    },
+
+
+    // ============================================================
+    // URIC ACID
+    // ============================================================
+
+    uricAcid: {
+
+        id:
+            "uricAcid",
+
+        title:
+            "Uric Acid Analysis",
+
+        shortName:
+            "Uric Acid",
+
+        icon:
+            "🧪",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailUricAcid,
+
+        calculationComponent:
+            CalculationDetailUricAcid,
+
+        createCalculation:
+            createCalculationUricAcid,
+
+        createSamplePreparation:
+            createSamplePreparationUricAcid,
+
+        restoreCalculation:
+            restoreCalculationUricAcid,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Uric Acid Details",
+
+            w1:
+                "Sample Weight",
+
+            w2:
+                "Volume",
+
+            drying:
+                "Instrument Concentration",
+
+            w3:
+                "Dilution Factor",
+
+            w4:
+                "Purity"
 
         }
 

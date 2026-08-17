@@ -180,6 +180,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // URIC ACID REF
+        // ============================================================
+
+        const uricAcidRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // RESTORE
         // ============================================================
 
@@ -625,6 +633,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // URIC ACID
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "uricAcid"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            uricAcid:
+                                uricAcidRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // LOD
                     // ----------------------------------------------
 
@@ -675,6 +706,23 @@ const PreparationEngine =
 
                         artificialColourRef.current?.loadDraft(
                             draft.artificialColour
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // URIC ACID
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "uricAcid" &&
+                        draft.uricAcid
+                    ) {
+
+                        uricAcidRef.current?.loadDraft(
+                            draft.uricAcid
                         );
 
                     }
@@ -964,6 +1012,28 @@ const PreparationEngine =
 
                         groups.push(
                             "artificialColour"
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // URIC ACID
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "uricAcid"
+                        )
+                    ) {
+
+                        groups.push(
+                            "uricAcid"
                         );
 
                     }
@@ -1318,6 +1388,31 @@ const PreparationEngine =
             ) {
 
                 artificialColourRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
+
+            // ========================================================
+            // URIC ACID
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "uricAcid" &&
+                uricAcidRef.current
+            ) {
+
+                uricAcidRef.current
                     .restoreFromWorksheet(
                         pendingRestore.current
                     );
@@ -1964,6 +2059,10 @@ const PreparationEngine =
 
                     artificialColourRef={
                         artificialColourRef
+                    }
+
+                    uricAcidRef={
+                        uricAcidRef
                     }
 
                 />

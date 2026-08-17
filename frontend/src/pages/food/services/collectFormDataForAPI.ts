@@ -1,11 +1,22 @@
 import type * as React from "react";
 
-import type { WorksheetDetail } from "../../../models/WorksheetDetail";
-import type { WorksheetRequest } from "../../../models/WorksheetRequest";
-import type { ParameterDetail } from "../../../models/ParameterDetail";
-import type { PreparationData } from "../../../models/PreparationData";
-import type { CalculationData } from "../../../models/CalculationData";
-import type { WorksheetFileData } from "../../../models/WorksheetFileData";
+import type { WorksheetDetail }
+    from "../../../models/WorksheetDetail";
+
+import type { WorksheetRequest }
+    from "../../../models/WorksheetRequest";
+
+import type { ParameterDetail }
+    from "../../../models/ParameterDetail";
+
+import type { PreparationData }
+    from "../../../models/PreparationData";
+
+import type { CalculationData }
+    from "../../../models/CalculationData";
+
+import type { WorksheetFileData }
+    from "../../../models/WorksheetFileData";
 
 
 // ============================================================
@@ -106,6 +117,7 @@ import {
     mapAcidValueDraftToFiles
 } from "../mappers/acidValueMapper";
 
+
 // ============================================================
 // SAPONIFICATION VALUE
 // ============================================================
@@ -115,6 +127,7 @@ import {
     mapSaponificationValueDraftToCalculations,
     mapSaponificationValueDraftToFiles
 } from "../mappers/saponificationMapper";
+
 
 // ============================================================
 // FREE FATTY ACID
@@ -126,11 +139,21 @@ import {
     mapFreeFattyAcidDraftToFiles
 } from "../mappers/freeFattyAcidMapper";
 
+
+// ============================================================
+// UNSAPONIFIABLE MATTER
+// ============================================================
+
 import {
     mapUnsapMatterDraftToPreparations,
     mapUnsapMatterDraftToCalculations,
     mapUnsapMatterDraftToFiles
 } from "../mappers/unsapMatterMapper";
+
+
+// ============================================================
+// ARTIFICIAL SWEETNER
+// ============================================================
 
 import {
     mapArtificialSweetnerDraftToPreparations,
@@ -138,11 +161,21 @@ import {
     mapArtificialSweetnerDraftToFiles
 } from "../mappers/artificialSweetnerMapper";
 
+
+// ============================================================
+// PRESERVATIVE
+// ============================================================
+
 import {
     mapPreservativeDraftToPreparations,
     mapPreservativeDraftToCalculations,
     mapPreservativeDraftToFiles
 } from "../mappers/preservativeMapper";
+
+
+// ============================================================
+// NOTS
+// ============================================================
 
 import {
     mapNotsDraftToPreparations,
@@ -150,11 +183,27 @@ import {
     mapNotsDraftToFiles
 } from "../mappers/NotsMapper";
 
+
+// ============================================================
+// ARTIFICIAL COLOUR
+// ============================================================
+
 import {
     mapArtificialColourDraftToPreparations,
     mapArtificialColourDraftToCalculations,
     mapArtificialColourDraftToFiles
 } from "../mappers/ArtificialColourMapper";
+
+
+// ============================================================
+// URIC ACID
+// ============================================================
+
+import {
+    mapUricAcidDraftToPreparations,
+    mapUricAcidDraftToCalculations,
+    mapUricAcidDraftToFiles
+} from "../mappers/uricAcidMapper";
 
 
 import type { PreparationEngineHandle }
@@ -205,23 +254,32 @@ export function collectFormDataForAPI({
         Record<number, PreparationEngineHandle | null>
     >;
 
-    bufferPreparationPerParam: Record<number, any[]>;
+    bufferPreparationPerParam:
+        Record<number, any[]>;
 
-    mobilePhasePerParam: Record<number, any[]>;
+    mobilePhasePerParam:
+        Record<number, any[]>;
 
-    diluentPreparationsPerParam: Record<number, any[]>;
+    diluentPreparationsPerParam:
+        Record<number, any[]>;
 
-    systemSuitabilityPerParam: Record<number, any[]>;
+    systemSuitabilityPerParam:
+        Record<number, any[]>;
 
-    filesPerParam: Record<number, any>;
+    filesPerParam:
+        Record<number, any>;
 
-    additionalInfoPerParam: Record<number, string>;
+    additionalInfoPerParam:
+        Record<number, string>;
 
-    addedChemicals: Record<number, any[]>;
+    addedChemicals:
+        Record<number, any[]>;
 
-    addedStandards: Record<number, any[]>;
+    addedStandards:
+        Record<number, any[]>;
 
-    addedInstruments: Record<number, any[]>;
+    addedInstruments:
+        Record<number, any[]>;
 
 }): WorksheetRequest {
 
@@ -244,10 +302,12 @@ export function collectFormDataForAPI({
                 worksheetInfo.sample.sampleCode,
 
             sampleQuantity:
-                worksheetInfo.sample.sampleQuantity ?? undefined,
+                worksheetInfo.sample.sampleQuantity ??
+                undefined,
 
             natureOfSample:
-                worksheetInfo.sample.natureOfSample ?? undefined,
+                worksheetInfo.sample.natureOfSample ??
+                undefined,
 
             numberOfParameters:
                 addedParameters.length,
@@ -281,18 +341,22 @@ export function collectFormDataForAPI({
             addedParameters.map(param => {
 
                 const draft =
-                    preparationRefs.current[param.id]?.collectDraft();
+                    preparationRefs.current[param.id]
+                        ?.collectDraft();
 
 
                 // ========================================================
                 // BUILD PREPARATIONS / CALCULATIONS / FILES
                 // ========================================================
 
-                const preparations: PreparationData[] = [];
+                const preparations:
+                    PreparationData[] = [];
 
-                const calculations: CalculationData[] = [];
+                const calculations:
+                    CalculationData[] = [];
 
-                const files: WorksheetFileData[] = [];
+                const files:
+                    WorksheetFileData[] = [];
 
 
                 const activeGroup =
@@ -303,7 +367,9 @@ export function collectFormDataForAPI({
                 // LOD
                 // ========================================================
 
-                if (activeGroup === "lod") {
+                if (
+                    activeGroup === "lod"
+                ) {
 
                     preparations.push(
                         ...mapLodDraftToPreparations(
@@ -329,7 +395,9 @@ export function collectFormDataForAPI({
                 // FAT
                 // ========================================================
 
-                if (activeGroup === "fat") {
+                if (
+                    activeGroup === "fat"
+                ) {
 
                     preparations.push(
                         ...mapFatDraftToPreparations(
@@ -355,7 +423,9 @@ export function collectFormDataForAPI({
                 // PROTEIN
                 // ========================================================
 
-                if (activeGroup === "protein") {
+                if (
+                    activeGroup === "protein"
+                ) {
 
                     preparations.push(
                         ...mapProteinDraftToPreparations(
@@ -381,7 +451,9 @@ export function collectFormDataForAPI({
                 // SUGAR
                 // ========================================================
 
-                if (activeGroup === "sugar") {
+                if (
+                    activeGroup === "sugar"
+                ) {
 
                     preparations.push(
                         ...mapSugarDraftToPreparations(
@@ -407,7 +479,9 @@ export function collectFormDataForAPI({
                 // ENERGY
                 // ========================================================
 
-                if (activeGroup === "energy") {
+                if (
+                    activeGroup === "energy"
+                ) {
 
                     preparations.push(
                         ...mapEnergyDraftToPreparations(
@@ -433,7 +507,9 @@ export function collectFormDataForAPI({
                 // CARBOHYDRATE
                 // ========================================================
 
-                if (activeGroup === "carbohydrate") {
+                if (
+                    activeGroup === "carbohydrate"
+                ) {
 
                     preparations.push(
                         ...mapCarbohydrateDraftToPreparations(
@@ -459,7 +535,9 @@ export function collectFormDataForAPI({
                 // CRUDE FIBER
                 // ========================================================
 
-                if (activeGroup === "crudeFiber") {
+                if (
+                    activeGroup === "crudeFiber"
+                ) {
 
                     preparations.push(
                         ...mapCrudeFiberDraftToPreparations(
@@ -485,7 +563,9 @@ export function collectFormDataForAPI({
                 // PEROXIDE VALUE
                 // ========================================================
 
-                if (activeGroup === "peroxideValue") {
+                if (
+                    activeGroup === "peroxideValue"
+                ) {
 
                     preparations.push(
                         ...mapPeroxideValueDraftToPreparations(
@@ -511,7 +591,9 @@ export function collectFormDataForAPI({
                 // ACID VALUE
                 // ========================================================
 
-                if (activeGroup === "acidValue") {
+                if (
+                    activeGroup === "acidValue"
+                ) {
 
                     preparations.push(
                         ...mapAcidValueDraftToPreparations(
@@ -532,11 +614,14 @@ export function collectFormDataForAPI({
                     );
                 }
 
+
                 // ========================================================
                 // SAPONIFICATION VALUE
                 // ========================================================
 
-                if (activeGroup === "saponificationValue") {
+                if (
+                    activeGroup === "saponificationValue"
+                ) {
 
                     preparations.push(
                         ...mapSaponificationValueDraftToPreparations(
@@ -557,11 +642,15 @@ export function collectFormDataForAPI({
                     );
                 }
 
+
                 // ========================================================
                 // FREE FATTY ACID
                 // ========================================================
 
-                if (activeGroup === "freeFattyAcid") {
+                if (
+                    activeGroup === "freeFattyAcid"
+                ) {
+
                     preparations.push(
                         ...mapFreeFattyAcidDraftToPreparations(
                             draft?.freeFattyAcid
@@ -581,12 +670,14 @@ export function collectFormDataForAPI({
                     );
                 }
 
-                if (activeGroup === "unsapMatter") {
 
-                    // ========================================================
-                    // UNSAP MATTERS
-                    // ========================================================
+                // ========================================================
+                // UNSAPONIFIABLE MATTER
+                // ========================================================
 
+                if (
+                    activeGroup === "unsapMatter"
+                ) {
 
                     preparations.push(
                         ...mapUnsapMatterDraftToPreparations(
@@ -608,8 +699,13 @@ export function collectFormDataForAPI({
                 }
 
 
+                // ========================================================
+                // ARTIFICIAL SWEETNER
+                // ========================================================
 
-                if (activeGroup === "artificialSweetner") {
+                if (
+                    activeGroup === "artificialSweetner"
+                ) {
 
                     preparations.push(
                         ...mapArtificialSweetnerDraftToPreparations(
@@ -630,7 +726,14 @@ export function collectFormDataForAPI({
                     );
                 }
 
-                if (activeGroup === "preservative") {
+
+                // ========================================================
+                // PRESERVATIVE
+                // ========================================================
+
+                if (
+                    activeGroup === "preservative"
+                ) {
 
                     preparations.push(
                         ...mapPreservativeDraftToPreparations(
@@ -651,7 +754,14 @@ export function collectFormDataForAPI({
                     );
                 }
 
-                if (activeGroup === "nots") {
+
+                // ========================================================
+                // NOTS
+                // ========================================================
+
+                if (
+                    activeGroup === "nots"
+                ) {
 
                     preparations.push(
                         ...mapNotsDraftToPreparations(
@@ -672,11 +782,14 @@ export function collectFormDataForAPI({
                     );
                 }
 
+
                 // ========================================================
                 // ARTIFICIAL COLOUR
                 // ========================================================
 
-                if (activeGroup === "artificialColour") {
+                if (
+                    activeGroup === "artificialColour"
+                ) {
 
                     preparations.push(
                         ...mapArtificialColourDraftToPreparations(
@@ -698,7 +811,32 @@ export function collectFormDataForAPI({
                 }
 
 
+                // ========================================================
+                // URIC ACID
+                // ========================================================
 
+                if (
+                    activeGroup === "uricAcid"
+                ) {
+
+                    preparations.push(
+                        ...mapUricAcidDraftToPreparations(
+                            draft?.uricAcid
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapUricAcidDraftToCalculations(
+                            draft?.uricAcid
+                        )
+                    );
+
+                    files.push(
+                        ...mapUricAcidDraftToFiles(
+                            draft?.uricAcid
+                        )
+                    );
+                }
 
 
                 // ========================================================
@@ -899,10 +1037,12 @@ export function collectFormDataForAPI({
                         param.preparationCompletedBy,
 
                     additional_info:
-                        additionalInfoPerParam[param.id] ?? null,
+                        additionalInfoPerParam[param.id] ??
+                        null,
 
                     additionalInfo:
-                        additionalInfoPerParam[param.id] ?? null,
+                        additionalInfoPerParam[param.id] ??
+                        null,
 
                     showAdditionalInfo:
                         !!additionalInfoPerParam[param.id],

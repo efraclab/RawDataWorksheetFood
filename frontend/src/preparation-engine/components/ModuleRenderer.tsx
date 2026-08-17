@@ -75,6 +75,9 @@ interface Props {
 
     artificialColourRef:
     React.RefObject<PreparationModuleHandle | null>;
+
+    uricAcidRef:
+    React.RefObject<PreparationModuleHandle | null>;
 }
 
 
@@ -124,7 +127,9 @@ const ModuleRenderer: React.FC<Props> = ({
 
     notsRef,
 
-    artificialColourRef
+    artificialColourRef,
+
+    uricAcidRef
 
 }) => {
 
@@ -179,7 +184,10 @@ const ModuleRenderer: React.FC<Props> = ({
                                                             : moduleType === "artificialColour"
                                                                 ? artificialColourRef
 
-                                                                : lodRef;
+                                                                : moduleType === "uricAcid"
+                                                                    ? uricAcidRef
+
+                                                                    : lodRef;
 
 
     // =====================================================

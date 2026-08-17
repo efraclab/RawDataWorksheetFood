@@ -29,6 +29,7 @@ export interface PreparationData {
         | "freeFattyAcid"
         | "unsapMatter"
         | "artificialSweetner"
+        | "preservative"
         | "roi"
         | "sulphated_ash"
         | "titration"

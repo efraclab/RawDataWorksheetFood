@@ -156,6 +156,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // PRESERVATIVE REF
+        // ============================================================
+
+        const preservativeRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // RESTORE
         // ============================================================
 
@@ -532,6 +540,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // PRESERVATIVE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "preservative"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            preservative:
+                                preservativeRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // LOD
                     // ----------------------------------------------
 
@@ -777,6 +808,23 @@ const PreparationEngine =
 
                         artificialSweetnerRef.current?.loadDraft(
                             draft.artificialSweetner
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // PRESERVATIVE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "preservative" &&
+                        draft.preservative
+                    ) {
+
+                        preservativeRef.current?.loadDraft(
+                            draft.preservative
                         );
 
                     }
@@ -1066,6 +1114,28 @@ const PreparationEngine =
 
                         groups.push(
                             "artificialSweetner"
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // PRESERVATIVE
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "preservative"
+                        )
+                    ) {
+
+                        groups.push(
+                            "preservative"
                         );
 
                     }
@@ -1401,6 +1471,31 @@ const PreparationEngine =
 
             }
 
+
+            // ========================================================
+            // PRESERVATIVE
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "preservative" &&
+                preservativeRef.current
+            ) {
+
+                preservativeRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
         }, [activeGroups]);
 
 
@@ -1667,6 +1762,10 @@ const PreparationEngine =
 
                     artificialSweetnerRef={
                         artificialSweetnerRef
+                    }
+
+                    preservativeRef={
+                        preservativeRef
                     }
 
                 />

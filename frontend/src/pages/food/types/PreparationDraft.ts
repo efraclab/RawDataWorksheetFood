@@ -11,6 +11,7 @@ import type { SaponificationValueDraft } from "./SaponificationValueDraft";
 import type { FreeFattyAcidDraft } from "./FreeFattyAcidDraft";
 import type { UnsapMatterDraft } from "./UnsapMatterDraft";
 import type { ArtificialSweetnerDraft } from "./ArtificialSweetnerDraft";
+import type { PreservativeDraft } from "./PreservativeDraft";
 
 
 export interface PreparationDraft {
@@ -42,4 +43,6 @@ export interface PreparationDraft {
     unsapMatter?:UnsapMatterDraft;
 
     artificialSweetner?: ArtificialSweetnerDraft;
+
+    preservative?: PreservativeDraft;
 }

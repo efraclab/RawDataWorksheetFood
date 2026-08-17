@@ -138,6 +138,12 @@ import {
     mapArtificialSweetnerDraftToFiles
 } from "../mappers/artificialSweetnerMapper";
 
+import {
+    mapPreservativeDraftToPreparations,
+    mapPreservativeDraftToCalculations,
+    mapPreservativeDraftToFiles
+} from "../mappers/preservativeMapper";
+
 
 import type { PreparationEngineHandle }
     from "../types/PreparationEngineHandle";
@@ -589,7 +595,7 @@ export function collectFormDataForAPI({
                     );
                 }
 
-           
+
 
                 if (activeGroup === "artificialSweetner") {
 
@@ -608,6 +614,27 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapArtificialSweetnerDraftToFiles(
                             draft?.artificialSweetner
+                        )
+                    );
+                }
+
+                if (activeGroup === "preservative") {
+
+                    preparations.push(
+                        ...mapPreservativeDraftToPreparations(
+                            draft?.preservative
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapPreservativeDraftToCalculations(
+                            draft?.preservative
+                        )
+                    );
+
+                    files.push(
+                        ...mapPreservativeDraftToFiles(
+                            draft?.preservative
                         )
                     );
                 }

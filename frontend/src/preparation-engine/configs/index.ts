@@ -11,6 +11,7 @@ import { saponificationValueConfig } from "./saponificationValueConfig";
 import { freeFattyAcidConfig } from "./freeFattyAcidConfig";
 import { unsapMatterConfig } from "./unsapMatterConfig";
 import {artificialSweetnerConfig} from "./artificialSweetnerConfig";
+import {preservativeConfig} from "./preservativeConfig";
 
 
 export const preparationConfigs = [
@@ -39,6 +40,8 @@ export const preparationConfigs = [
 
     unsapMatterConfig,
 
-    artificialSweetnerConfig
+    artificialSweetnerConfig,
+
+    preservativeConfig
 
 ];

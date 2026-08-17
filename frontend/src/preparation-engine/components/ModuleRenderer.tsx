@@ -66,6 +66,9 @@ interface Props {
 
     artificialSweetnerRef:
     React.RefObject<PreparationModuleHandle | null>;
+
+    preservativeRef:
+    React.RefObject<PreparationModuleHandle | null>;
 }
 
 
@@ -109,7 +112,9 @@ const ModuleRenderer: React.FC<Props> = ({
 
     unsapMatterRef,
 
-    artificialSweetnerRef
+    artificialSweetnerRef,
+
+    preservativeRef
 
 }) => {
 
@@ -155,7 +160,10 @@ const ModuleRenderer: React.FC<Props> = ({
                                                 : moduleType === "artificialSweetner"
                                                     ? artificialSweetnerRef
 
-                                                    : lodRef;
+                                                    : moduleType === "preservative"
+                                                        ? preservativeRef
+
+                                                        : lodRef;
 
 
     // =====================================================

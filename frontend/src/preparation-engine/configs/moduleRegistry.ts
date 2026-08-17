@@ -140,6 +140,23 @@ import {
 
 
 // ============================================================
+ // PRESERVATIVE
+ // ============================================================
+
+import CalculationDetailPreservative
+    from "../modules/preservative/CalculationDetailPreservative";
+
+import SamplePreparationDetailPreservative
+    from "../modules/preservative/models/SamplePreparationDetailPreservative";
+
+import {
+    createCalculationPreservative,
+    createSamplePreparationPreservative,
+    restoreCalculationPreservative
+} from "../modules/preservative/factory";
+
+
+// ============================================================
 // ACID VALUE
 // ============================================================
 
@@ -941,6 +958,68 @@ export const moduleRegistry: Record<
 
             w4:
                 "Purity"
+
+        }
+
+    }
+,
+
+
+    // ============================================================
+    // PRESERVATIVE
+    // ============================================================
+
+    preservative: {
+
+        id:
+            "preservative",
+
+        title:
+            "Preservative Analysis",
+
+        shortName:
+            "Preservative",
+
+        icon:
+            "🧪",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailPreservative,
+
+        calculationComponent:
+            CalculationDetailPreservative,
+
+        createCalculation:
+            createCalculationPreservative,
+
+        createSamplePreparation:
+            createSamplePreparationPreservative,
+
+        restoreCalculation:
+            restoreCalculationPreservative,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Preservative Details",
+
+            w1:
+                "Sample Weight",
+
+            w2:
+                "Preservative Step 2",
+
+            drying:
+                "Preservative Step 3",
+
+            w3:
+                "Preservative Step 4",
+
+            w4:
+                "Preservative"
 
         }
 

@@ -26,6 +26,7 @@ export interface PreparationData {
         | "peroxideValue"
         | "acidValue"
         | "saponificationValue"
+        | "freeFattyAcid"
         | "roi"
         | "sulphated_ash"
         | "titration"

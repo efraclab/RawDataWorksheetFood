@@ -132,6 +132,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // FREE FATTY ACID REF
+        // ============================================================
+
+        const freeFattyAcidRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // RESTORE
         // ============================================================
 
@@ -439,6 +447,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // FREE FATTY ACID
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "freeFattyAcid"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            freeFattyAcid:
+                                freeFattyAcidRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // LOD
                     // ----------------------------------------------
 
@@ -633,6 +664,23 @@ const PreparationEngine =
 
                         saponificationValueRef.current?.loadDraft(
                             draft.saponificationValue
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // FREE FATTY ACID
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "freeFattyAcid" &&
+                        draft.freeFattyAcid
+                    ) {
+
+                        freeFattyAcidRef.current?.loadDraft(
+                            draft.freeFattyAcid
                         );
 
                     }
@@ -856,6 +904,28 @@ const PreparationEngine =
 
                         groups.push(
                             "saponificationValue"
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // FREE FATTY ACID
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "freeFattyAcid"
+                        )
+                    ) {
+
+                        groups.push(
+                            "freeFattyAcid"
                         );
 
                     }
@@ -1116,6 +1186,31 @@ const PreparationEngine =
 
             }
 
+
+            // ========================================================
+            // FREE FATTY ACID
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "freeFattyAcid" &&
+                freeFattyAcidRef.current
+            ) {
+
+                freeFattyAcidRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
         }, [activeGroups]);
 
 
@@ -1201,7 +1296,9 @@ const PreparationEngine =
                                     tracking-tight
                                 "
                             >
+
                                 Preparation Management
+
                             </h3>
 
 
@@ -1212,8 +1309,10 @@ const PreparationEngine =
                                     font-medium
                                 "
                             >
+
                                 Configure analysis preparations
                                 for this parameter
+
                             </p>
 
                         </div>
@@ -1255,7 +1354,9 @@ const PreparationEngine =
                                 duration-200
                             "
                         >
+
                             + Add Preparation
+
                         </button>
 
 
@@ -1364,6 +1465,10 @@ const PreparationEngine =
 
                     saponificationValueRef={
                         saponificationValueRef
+                    }
+
+                    freeFattyAcidRef={
+                        freeFattyAcidRef
                     }
 
                 />

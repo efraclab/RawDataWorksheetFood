@@ -8,6 +8,7 @@ import type { CrudeFiberDraft } from "./CrudeFiberDraft";
 import type { PeroxideValueDraft } from "./PeroxideValueDraft";
 import type { AcidValueDraft } from "./AcidValueDraft";
 import type { SaponificationValueDraft } from "./SaponificationValueDraft";
+import type { FreeFattyAcidDraft } from "./FreeFattyAcidDraft";
 
 export interface PreparationDraft {
 
@@ -32,4 +33,6 @@ export interface PreparationDraft {
     acidValue?: AcidValueDraft;
 
     saponificationValue?:SaponificationValueDraft;
+
+    freeFattyAcid?:FreeFattyAcidDraft;
 }

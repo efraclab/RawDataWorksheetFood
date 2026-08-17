@@ -116,6 +116,16 @@ import {
     mapSaponificationValueDraftToFiles
 } from "../mappers/saponificationMapper";
 
+// ============================================================
+// FREE FATTY ACID
+// ============================================================
+
+import {
+    mapFreeFattyAcidDraftToPreparations,
+    mapFreeFattyAcidDraftToCalculations,
+    mapFreeFattyAcidDraftToFiles
+} from "../mappers/freeFattyAcidMapper";
+
 
 import type { PreparationEngineHandle }
     from "../types/PreparationEngineHandle";
@@ -516,6 +526,34 @@ export function collectFormDataForAPI({
                         )
                     );
                 }
+
+                // ========================================================
+                // FREE FATTY ACID
+                // ========================================================
+
+                if (activeGroup === "freeFattyAcid") {
+                    preparations.push(
+                        ...mapFreeFattyAcidDraftToPreparations(
+                            draft?.freeFattyAcid
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapFreeFattyAcidDraftToCalculations(
+                            draft?.freeFattyAcid
+                        )
+                    );
+
+                    files.push(
+                        ...mapFreeFattyAcidDraftToFiles(
+                            draft?.freeFattyAcid
+                        )
+                    );
+                }
+
+
+
+
 
 
                 // ========================================================

@@ -57,6 +57,9 @@ interface Props {
 
     saponificationValueRef:
     React.RefObject<PreparationModuleHandle | null>;
+
+    freeFattyAcidRef:
+    React.RefObject<PreparationModuleHandle | null>;
 }
 
 
@@ -94,7 +97,9 @@ const ModuleRenderer: React.FC<Props> = ({
 
     acidValueRef,
 
-    saponificationValueRef
+    saponificationValueRef,
+
+    freeFattyAcidRef
 
 }) => {
 
@@ -131,7 +136,10 @@ const ModuleRenderer: React.FC<Props> = ({
                                     : moduleType === "saponificationValue"
                                         ? saponificationValueRef
 
-                                        : lodRef;
+                                        : moduleType === "freeFattyAcid"
+                                            ? freeFattyAcidRef
+
+                                            : lodRef;
 
 
     // =====================================================

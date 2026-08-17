@@ -88,6 +88,22 @@ import {
     restoreCalculationPeroxideValue
 } from "../modules/peroxide-value/factory";
 
+// ============================================================
+// FREE FATTY ACID
+// ============================================================
+
+import CalculationDetailFreeFattyAcid
+    from "../modules/free-fatty-acid/CalculationDetailFreeFattyAcid";
+
+import SamplePreparationDetailFreeFattyAcid
+    from "../modules/free-fatty-acid/models/SamplePreparationDetailFreeFattyAcid";
+
+import {
+    createCalculationFreeFattyAcid,
+    createSamplePreparationFreeFattyAcid,
+    restoreCalculationFreeFattyAcid
+} from "../modules/free-fatty-acid/factory";
+
 
 // ============================================================
 // ACID VALUE
@@ -711,6 +727,66 @@ export const moduleRegistry: Record<
             w4:
                 "Factor"
         }
+    },
+
+    // ============================================================
+    // FREE FATTY ACID
+    // ============================================================
+
+    freeFattyAcid: {
+
+        id:
+            "freeFattyAcid",
+
+        title:
+            "Free Fatty Acid Analysis",
+
+        shortName:
+            "Free Fatty Acid",
+
+        icon:
+            "🧪",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailFreeFattyAcid,
+
+        calculationComponent:
+            CalculationDetailFreeFattyAcid,
+
+        createCalculation:
+            createCalculationFreeFattyAcid,
+
+        createSamplePreparation:
+            createSamplePreparationFreeFattyAcid,
+
+        restoreCalculation:
+            restoreCalculationFreeFattyAcid,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Free Fatty Acid Details",
+
+            w1:
+                "Sample Weight",
+
+            w2:
+                "Sample Titre Value",
+
+            drying:
+                "Normality of HCL",
+
+            w3:
+                "Factor",
+
+            w4:
+                "Free Fatty Acid"
+
+        }
+
     }
 
 };

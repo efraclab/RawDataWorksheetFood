@@ -126,6 +126,12 @@ import {
     mapFreeFattyAcidDraftToFiles
 } from "../mappers/freeFattyAcidMapper";
 
+import {
+    mapUnsapMatterDraftToPreparations,
+    mapUnsapMatterDraftToCalculations,
+    mapUnsapMatterDraftToFiles
+} from "../mappers/unsapMatterMapper";
+
 
 import type { PreparationEngineHandle }
     from "../types/PreparationEngineHandle";
@@ -547,6 +553,32 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapFreeFattyAcidDraftToFiles(
                             draft?.freeFattyAcid
+                        )
+                    );
+                }
+
+                if (activeGroup === "unsapMatter") {
+
+                    // ========================================================
+                    // UNSAP MATTERS
+                    // ========================================================
+
+
+                    preparations.push(
+                        ...mapUnsapMatterDraftToPreparations(
+                            draft?.unsapMatter
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapUnsapMatterDraftToCalculations(
+                            draft?.unsapMatter
+                        )
+                    );
+
+                    files.push(
+                        ...mapUnsapMatterDraftToFiles(
+                            draft?.unsapMatter
                         )
                     );
                 }

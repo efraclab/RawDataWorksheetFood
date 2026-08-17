@@ -106,6 +106,23 @@ import {
 
 
 // ============================================================
+// UNSAPONIFIABLE MATTER
+// ============================================================
+
+import CalculationDetailUnsapMatter
+    from "../modules/unsap-matter/CalculationDetailUnsapMatter";
+
+import SamplePreparationDetailUnsapMatter
+    from "../modules/unsap-matter/models/SamplePreparationDetailUnsapMatter";
+
+import {
+    createCalculationUnsapMatter,
+    createSamplePreparationUnsapMatter,
+    restoreCalculationUnsapMatter
+} from "../modules/unsap-matter/factory";
+
+
+// ============================================================
 // ACID VALUE
 // ============================================================
 
@@ -784,6 +801,67 @@ export const moduleRegistry: Record<
 
             w4:
                 "Free Fatty Acid"
+
+        }
+
+    },
+
+
+    // ============================================================
+    // UNSAPONIFIABLE MATTER
+    // ============================================================
+
+    unsapMatter: {
+
+        id:
+            "unsapMatter",
+
+        title:
+            "Unsaponifiable Matter Analysis",
+
+        shortName:
+            "Unsaponifiable Matter",
+
+        icon:
+            "🧪",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailUnsapMatter,
+
+        calculationComponent:
+            CalculationDetailUnsapMatter,
+
+        createCalculation:
+            createCalculationUnsapMatter,
+
+        createSamplePreparation:
+            createSamplePreparationUnsapMatter,
+
+        restoreCalculation:
+            restoreCalculationUnsapMatter,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Unsaponifiable Matter Details",
+
+            w1:
+                "Sample Weight",
+
+            w2:
+                "Weight of Empty Flask",
+
+            drying:
+                "Weight of Residue + Empty Flask",
+
+            w3:
+                "Residue Weight",
+
+            w4:
+                "Unsaponifiable Matter"
 
         }
 

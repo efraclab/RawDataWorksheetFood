@@ -9,6 +9,7 @@ import { peroxideValueConfig } from "./peroxideValueConfig";
 import { acidValueConfig } from "./acidValueConfig";
 import { saponificationValueConfig } from "./saponificationValueConfig";
 import { freeFattyAcidConfig } from "./freeFattyAcidConfig";
+import { unsapMatterConfig } from "./unsapMatterConfig";
 
 
 export const preparationConfigs = [
@@ -33,6 +34,8 @@ export const preparationConfigs = [
 
     saponificationValueConfig,
 
-    freeFattyAcidConfig
+    freeFattyAcidConfig,
+
+    unsapMatterConfig
 
 ];

@@ -615,6 +615,113 @@ export const createSamplePreparation = (
 
 
     // =====================================================
+    // UNSAPONIFIABLE MATTER
+    // =====================================================
+
+    if (parameterType === "unsapMatter") {
+
+        return {
+
+            id:
+                Date.now() + index,
+
+            label:
+                `Sample Preparation ${index + 1}`,
+
+            steps: [
+
+                {
+                    name:
+                        "Sample Weight",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "g",
+
+                    logBookID:
+                        "",
+                },
+
+                {
+                    name:
+                        "Weight of Empty Flask",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "g",
+
+                    logBookID:
+                        "",
+                },
+
+                {
+                    name:
+                        "Weight of Residue + Empty Flask",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "g",
+
+                    logBookID:
+                        "",
+                },
+
+                {
+                    name:
+                        "Normality of 0.02 N NaOH",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "N",
+
+                    logBookID:
+                        "",
+                },
+
+                {
+                    name:
+                        "Titre Value",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "ml",
+
+                    logBookID:
+                        "",
+                },
+
+                {
+                    name:
+                        "Factor",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "",
+
+                    logBookID:
+                        "",
+                },
+
+            ],
+
+        };
+
+    }
+
+
+    // =====================================================
     // LOD / FAT
     // =====================================================
 

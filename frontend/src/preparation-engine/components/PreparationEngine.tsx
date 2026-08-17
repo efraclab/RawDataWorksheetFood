@@ -140,6 +140,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // UNSAPONIFIABLE MATTER REF
+        // ============================================================
+
+        const unsapMatterRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // RESTORE
         // ============================================================
 
@@ -470,6 +478,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // UNSAPONIFIABLE MATTER
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "unsapMatter"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            unsapMatter:
+                                unsapMatterRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // LOD
                     // ----------------------------------------------
 
@@ -681,6 +712,23 @@ const PreparationEngine =
 
                         freeFattyAcidRef.current?.loadDraft(
                             draft.freeFattyAcid
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // UNSAPONIFIABLE MATTER
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "unsapMatter" &&
+                        draft.unsapMatter
+                    ) {
+
+                        unsapMatterRef.current?.loadDraft(
+                            draft.unsapMatter
                         );
 
                     }
@@ -926,6 +974,28 @@ const PreparationEngine =
 
                         groups.push(
                             "freeFattyAcid"
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // UNSAPONIFIABLE MATTER
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "unsapMatter"
+                        )
+                    ) {
+
+                        groups.push(
+                            "unsapMatter"
                         );
 
                     }
@@ -1211,6 +1281,31 @@ const PreparationEngine =
 
             }
 
+
+            // ========================================================
+            // UNSAPONIFIABLE MATTER
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "unsapMatter" &&
+                unsapMatterRef.current
+            ) {
+
+                unsapMatterRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
         }, [activeGroups]);
 
 
@@ -1469,6 +1564,10 @@ const PreparationEngine =
 
                     freeFattyAcidRef={
                         freeFattyAcidRef
+                    }
+
+                    unsapMatterRef={
+                        unsapMatterRef
                     }
 
                 />

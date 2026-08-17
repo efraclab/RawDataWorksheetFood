@@ -9,6 +9,7 @@ import type { PeroxideValueDraft } from "./PeroxideValueDraft";
 import type { AcidValueDraft } from "./AcidValueDraft";
 import type { SaponificationValueDraft } from "./SaponificationValueDraft";
 import type { FreeFattyAcidDraft } from "./FreeFattyAcidDraft";
+import type { UnsapMatterDraft } from "./UnsapMatterDraft";
 
 export interface PreparationDraft {
 
@@ -35,4 +36,6 @@ export interface PreparationDraft {
     saponificationValue?:SaponificationValueDraft;
 
     freeFattyAcid?:FreeFattyAcidDraft;
+    
+    unsapMatter?:UnsapMatterDraft;
 }

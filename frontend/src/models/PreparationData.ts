@@ -33,6 +33,7 @@ export interface PreparationData {
         | "nots"
         | "artificialColour"
         | "uricAcid"
+        | "fsv"
         | "roi"
         | "sulphated_ash"
         | "titration"

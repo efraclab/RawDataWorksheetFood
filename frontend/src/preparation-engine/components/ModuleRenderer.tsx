@@ -78,6 +78,13 @@ interface Props {
 
     uricAcidRef:
     React.RefObject<PreparationModuleHandle | null>;
+
+    // =====================================================
+    // FSV (A, D, E, K)
+    // =====================================================
+
+    fsvRef:
+    React.RefObject<PreparationModuleHandle | null>;
 }
 
 
@@ -129,7 +136,9 @@ const ModuleRenderer: React.FC<Props> = ({
 
     artificialColourRef,
 
-    uricAcidRef
+    uricAcidRef,
+
+    fsvRef
 
 }) => {
 
@@ -187,7 +196,10 @@ const ModuleRenderer: React.FC<Props> = ({
                                                                 : moduleType === "uricAcid"
                                                                     ? uricAcidRef
 
-                                                                    : lodRef;
+                                                                    : moduleType === "fsv"
+                                                                        ? fsvRef
+
+                                                                        : lodRef;
 
 
     // =====================================================

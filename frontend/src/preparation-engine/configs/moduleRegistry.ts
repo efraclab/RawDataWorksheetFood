@@ -206,6 +206,22 @@ import {
     restoreCalculationUricAcid
 } from "../modules/uric-acid/factory";
 
+// ============================================================
+// FSV (A, D, E, K)
+// ============================================================
+
+import CalculationDetailFSV
+    from "../modules/fsv/CalculationDetailFSV";
+
+import SamplePreparationDetailFSV
+    from "../modules/fsv/models/SamplePreparationDetailFSV";
+
+import {
+    createCalculationFSV,
+    createSamplePreparationFSV,
+    restoreCalculationFSV
+} from "../modules/fsv/factory";
+
 
 // ============================================================
 // ACID VALUE
@@ -1239,6 +1255,67 @@ export const moduleRegistry: Record<
 
             details:
                 "Sample Preparation for Uric Acid Details",
+
+            w1:
+                "Sample Weight",
+
+            w2:
+                "Volume",
+
+            drying:
+                "Instrument Concentration",
+
+            w3:
+                "Dilution Factor",
+
+            w4:
+                "Purity"
+
+        }
+
+    },
+
+
+    // ============================================================
+    // FSV (A, D, E, K)
+    // ============================================================
+
+    fsv: {
+
+        id:
+            "fsv",
+
+        title:
+            "FSV (A, D, E, K) Analysis",
+
+        shortName:
+            "FSV",
+
+        icon:
+            "🧪",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailFSV,
+
+        calculationComponent:
+            CalculationDetailFSV,
+
+        createCalculation:
+            createCalculationFSV,
+
+        createSamplePreparation:
+            createSamplePreparationFSV,
+
+        restoreCalculation:
+            restoreCalculationFSV,
+
+        labels: {
+
+            details:
+                "Sample Preparation for FSV (A, D, E, K) Details",
 
             w1:
                 "Sample Weight",

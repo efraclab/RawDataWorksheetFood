@@ -15,6 +15,7 @@ import type { PreservativeDraft } from "./PreservativeDraft";
 import type { NotsDraft } from "./NotsDraft";
 import type { ArtificialColourDraft } from "./ArtificialColourDraft";
 import type { UricAcidDraft } from "./UricAcidDraft";
+import type { FSVDraft } from "./FSVDraft";
 
 
 export interface PreparationDraft {
@@ -54,4 +55,6 @@ export interface PreparationDraft {
     artificialColour?: ArtificialColourDraft;
     
     uricAcid?: UricAcidDraft;
+
+    fsv?: FSVDraft;
 }

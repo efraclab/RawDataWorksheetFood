@@ -206,6 +206,17 @@ import {
 } from "../mappers/uricAcidMapper";
 
 
+// ============================================================
+// FSV (A, D, E, K)
+// ============================================================
+
+import {
+    mapFSVDraftToPreparations,
+    mapFSVDraftToCalculations,
+    mapFSVDraftToFiles
+} from "../mappers/FSVMapper";
+
+
 import type { PreparationEngineHandle }
     from "../types/PreparationEngineHandle";
 
@@ -834,6 +845,34 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapUricAcidDraftToFiles(
                             draft?.uricAcid
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // FSV (A, D, E, K)
+                // ========================================================
+
+                if (
+                    activeGroup === "fsv"
+                ) {
+
+                    preparations.push(
+                        ...mapFSVDraftToPreparations(
+                            draft?.fsv
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapFSVDraftToCalculations(
+                            draft?.fsv
+                        )
+                    );
+
+                    files.push(
+                        ...mapFSVDraftToFiles(
+                            draft?.fsv
                         )
                     );
                 }

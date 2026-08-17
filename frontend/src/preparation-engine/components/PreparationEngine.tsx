@@ -188,6 +188,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // FSV (A, D, E, K) REF
+        // ============================================================
+
+        const fsvRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // RESTORE
         // ============================================================
 
@@ -656,6 +664,28 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // FSV (A, D, E, K)
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "fsv"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            fsv:
+                                fsvRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // LOD
                     // ----------------------------------------------
 
@@ -723,6 +753,22 @@ const PreparationEngine =
 
                         uricAcidRef.current?.loadDraft(
                             draft.uricAcid
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // FSV (A, D, E, K)
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "fsv" &&
+                        draft.fsv
+                    ) {
+
+                        fsvRef.current?.loadDraft(
+                            draft.fsv
                         );
 
                     }
@@ -1351,6 +1397,28 @@ const PreparationEngine =
                     }
 
 
+                    // ----------------------------------------------
+                    // FSV (A, D, E, K)
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "fsv"
+                        )
+                    ) {
+
+                        groups.push(
+                            "fsv"
+                        );
+
+                    }
+
+
                     setActiveGroups(
                         groups
                     );
@@ -1413,6 +1481,30 @@ const PreparationEngine =
             ) {
 
                 uricAcidRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
+
+            // ========================================================
+            // FSV (A, D, E, K)
+            // ========================================================
+
+            if (
+                activeGroup === "fsv" &&
+                fsvRef.current
+            ) {
+
+                fsvRef.current
                     .restoreFromWorksheet(
                         pendingRestore.current
                     );
@@ -2063,6 +2155,10 @@ const PreparationEngine =
 
                     uricAcidRef={
                         uricAcidRef
+                    }
+
+                    fsvRef={
+                        fsvRef
                     }
 
                 />

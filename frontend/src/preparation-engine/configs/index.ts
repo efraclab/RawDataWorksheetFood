@@ -13,6 +13,7 @@ import { unsapMatterConfig } from "./unsapMatterConfig";
 import {artificialSweetnerConfig} from "./artificialSweetnerConfig";
 import {preservativeConfig} from "./preservativeConfig";
 import {notsConfig} from "./notsConfig";
+import {artificialColourConfig} from "./artificialColourConfig";
 
 
 export const preparationConfigs = [
@@ -46,5 +47,7 @@ export const preparationConfigs = [
     preservativeConfig,
 
     notsConfig,
+
+    artificialColourConfig,
 
 ];

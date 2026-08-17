@@ -72,6 +72,9 @@ interface Props {
 
     notsRef:
     React.RefObject<PreparationModuleHandle | null>;
+
+    artificialColourRef:
+    React.RefObject<PreparationModuleHandle | null>;
 }
 
 
@@ -119,7 +122,9 @@ const ModuleRenderer: React.FC<Props> = ({
 
     preservativeRef,
 
-    notsRef
+    notsRef,
+
+    artificialColourRef
 
 }) => {
 
@@ -171,7 +176,10 @@ const ModuleRenderer: React.FC<Props> = ({
                                                         : moduleType === "nots"
                                                             ? notsRef
 
-                                                            : lodRef;
+                                                            : moduleType === "artificialColour"
+                                                                ? artificialColourRef
+
+                                                                : lodRef;
 
 
     // =====================================================

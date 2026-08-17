@@ -31,6 +31,7 @@ export interface PreparationData {
         | "artificialSweetner"
         | "preservative"
         | "nots"
+        | "artificialColour"
         | "roi"
         | "sulphated_ash"
         | "titration"

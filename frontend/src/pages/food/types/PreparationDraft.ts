@@ -13,6 +13,7 @@ import type { UnsapMatterDraft } from "./UnsapMatterDraft";
 import type { ArtificialSweetnerDraft } from "./ArtificialSweetnerDraft";
 import type { PreservativeDraft } from "./PreservativeDraft";
 import type { NotsDraft } from "./NotsDraft";
+import type { ArtificialColourDraft } from "./ArtificialColourDraft";
 
 
 export interface PreparationDraft {
@@ -48,4 +49,6 @@ export interface PreparationDraft {
     preservative?: PreservativeDraft;
 
     nots?: NotsDraft;
+
+    artificialColour?: ArtificialColourDraft;
 }

@@ -150,6 +150,12 @@ import {
     mapNotsDraftToFiles
 } from "../mappers/NotsMapper";
 
+import {
+    mapArtificialColourDraftToPreparations,
+    mapArtificialColourDraftToCalculations,
+    mapArtificialColourDraftToFiles
+} from "../mappers/ArtificialColourMapper";
+
 
 import type { PreparationEngineHandle }
     from "../types/PreparationEngineHandle";
@@ -662,6 +668,31 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapNotsDraftToFiles(
                             draft?.nots
+                        )
+                    );
+                }
+
+                // ========================================================
+                // ARTIFICIAL COLOUR
+                // ========================================================
+
+                if (activeGroup === "artificialColour") {
+
+                    preparations.push(
+                        ...mapArtificialColourDraftToPreparations(
+                            draft?.artificialColour
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapArtificialColourDraftToCalculations(
+                            draft?.artificialColour
+                        )
+                    );
+
+                    files.push(
+                        ...mapArtificialColourDraftToFiles(
+                            draft?.artificialColour
                         )
                     );
                 }

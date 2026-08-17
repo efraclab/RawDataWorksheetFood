@@ -173,6 +173,23 @@ import {
 } from "../modules/nots/factory";
 
 
+ // ============================================================
+ // ARTIFICIAL COLOUR
+ // ============================================================
+
+import CalculationDetailArtificialColour
+    from "../modules/artificial-colour/CalculationDetailArtificialColour";
+
+import SamplePreparationDetailArtificialColour
+    from "../modules/artificial-colour/models/SamplePreparationDetailArtificialColour";
+
+import {
+    createCalculationArtificialColour,
+    createSamplePreparationArtificialColour,
+    restoreCalculationArtificialColour
+} from "../modules/artificial-colour/factory";
+
+
 // ============================================================
 // ACID VALUE
 // ============================================================
@@ -1098,6 +1115,67 @@ export const moduleRegistry: Record<
 
             w4:
                 "NOTS"
+
+        }
+
+    },
+
+
+    // ============================================================
+    // ARTIFICIAL COLOUR
+    // ============================================================
+
+    artificialColour: {
+
+        id:
+            "artificialColour",
+
+        title:
+            "Artificial Colour Analysis",
+
+        shortName:
+            "Artificial Colour",
+
+        icon:
+            "🎨",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailArtificialColour,
+
+        calculationComponent:
+            CalculationDetailArtificialColour,
+
+        createCalculation:
+            createCalculationArtificialColour,
+
+        createSamplePreparation:
+            createSamplePreparationArtificialColour,
+
+        restoreCalculation:
+            restoreCalculationArtificialColour,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Artificial Colour Details",
+
+            w1:
+                "Sample Weight",
+
+            w2:
+                "Artificial Colour Step 2",
+
+            drying:
+                "Artificial Colour Step 3",
+
+            w3:
+                "Artificial Colour Step 4",
+
+            w4:
+                "Artificial Colour"
 
         }
 

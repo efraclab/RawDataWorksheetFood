@@ -172,6 +172,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // ARTIFICIAL COLOUR REF
+        // ============================================================
+
+        const artificialColourRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // RESTORE
         // ============================================================
 
@@ -594,6 +602,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // ARTIFICIAL COLOUR
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "artificialColour"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            artificialColour:
+                                artificialColourRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // LOD
                     // ----------------------------------------------
 
@@ -630,6 +661,23 @@ const PreparationEngine =
                     setActiveGroups(
                         draft.activeGroup ?? []
                     );
+
+
+                    // ----------------------------------------------
+                    // ARTIFICIAL COLOUR
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "artificialColour" &&
+                        draft.artificialColour
+                    ) {
+
+                        artificialColourRef.current?.loadDraft(
+                            draft.artificialColour
+                        );
+
+                    }
 
 
                     // ----------------------------------------------
@@ -897,6 +945,28 @@ const PreparationEngine =
 
 
                     const groups: string[] = [];
+
+
+                    // ----------------------------------------------
+                    // ARTIFICIAL COLOUR
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "artificialColour"
+                        )
+                    ) {
+
+                        groups.push(
+                            "artificialColour"
+                        );
+
+                    }
 
 
                     // ----------------------------------------------
@@ -1235,6 +1305,31 @@ const PreparationEngine =
 
             const activeGroup =
                 activeGroups[0];
+
+
+            // ========================================================
+            // ARTIFICIAL COLOUR
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "artificialColour" &&
+                artificialColourRef.current
+            ) {
+
+                artificialColourRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
 
 
             // ========================================================
@@ -1865,6 +1960,10 @@ const PreparationEngine =
 
                     notsRef={
                         notsRef
+                    }
+
+                    artificialColourRef={
+                        artificialColourRef
                     }
 
                 />

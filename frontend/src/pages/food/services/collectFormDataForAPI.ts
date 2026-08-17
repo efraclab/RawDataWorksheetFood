@@ -144,6 +144,12 @@ import {
     mapPreservativeDraftToFiles
 } from "../mappers/preservativeMapper";
 
+import {
+    mapNotsDraftToPreparations,
+    mapNotsDraftToCalculations,
+    mapNotsDraftToFiles
+} from "../mappers/NotsMapper";
+
 
 import type { PreparationEngineHandle }
     from "../types/PreparationEngineHandle";
@@ -639,6 +645,26 @@ export function collectFormDataForAPI({
                     );
                 }
 
+                if (activeGroup === "nots") {
+
+                    preparations.push(
+                        ...mapNotsDraftToPreparations(
+                            draft?.nots
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapNotsDraftToCalculations(
+                            draft?.nots
+                        )
+                    );
+
+                    files.push(
+                        ...mapNotsDraftToFiles(
+                            draft?.nots
+                        )
+                    );
+                }
 
 
 

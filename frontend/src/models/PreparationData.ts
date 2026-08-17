@@ -30,6 +30,7 @@ export interface PreparationData {
         | "unsapMatter"
         | "artificialSweetner"
         | "preservative"
+        | "nots"
         | "roi"
         | "sulphated_ash"
         | "titration"

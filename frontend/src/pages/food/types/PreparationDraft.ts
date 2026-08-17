@@ -12,6 +12,7 @@ import type { FreeFattyAcidDraft } from "./FreeFattyAcidDraft";
 import type { UnsapMatterDraft } from "./UnsapMatterDraft";
 import type { ArtificialSweetnerDraft } from "./ArtificialSweetnerDraft";
 import type { PreservativeDraft } from "./PreservativeDraft";
+import type { NotsDraft } from "./NotsDraft";
 
 
 export interface PreparationDraft {
@@ -45,4 +46,6 @@ export interface PreparationDraft {
     artificialSweetner?: ArtificialSweetnerDraft;
 
     preservative?: PreservativeDraft;
+
+    nots?: NotsDraft;
 }

@@ -157,6 +157,23 @@ import {
 
 
 // ============================================================
+// NOTS
+// ============================================================
+
+import CalculationDetailNots
+    from "../modules/nots/CalculationDetailNots";
+
+import SamplePreparationDetailNots
+    from "../modules/nots/models/SamplePreparationDetailNots";
+
+import {
+    createCalculationNots,
+    createSamplePreparationNots,
+    restoreCalculationNots
+} from "../modules/nots/factory";
+
+
+// ============================================================
 // ACID VALUE
 // ============================================================
 
@@ -1020,6 +1037,67 @@ export const moduleRegistry: Record<
 
             w4:
                 "Preservative"
+
+        }
+
+    },
+
+
+    // ============================================================
+    // NOTS
+    // ============================================================
+
+    nots: {
+
+        id:
+            "nots",
+
+        title:
+            "NOTS Analysis",
+
+        shortName:
+            "NOTS",
+
+        icon:
+            "🧪",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailNots,
+
+        calculationComponent:
+            CalculationDetailNots,
+
+        createCalculation:
+            createCalculationNots,
+
+        createSamplePreparation:
+            createSamplePreparationNots,
+
+        restoreCalculation:
+            restoreCalculationNots,
+
+        labels: {
+
+            details:
+                "Sample Preparation for NOTS Details",
+
+            w1:
+                "Sample Weight",
+
+            w2:
+                "NOTS Step 2",
+
+            drying:
+                "NOTS Step 3",
+
+            w3:
+                "NOTS Step 4",
+
+            w4:
+                "NOTS"
 
         }
 

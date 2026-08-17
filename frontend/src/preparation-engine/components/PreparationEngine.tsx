@@ -164,6 +164,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // NOTS REF
+        // ============================================================
+
+        const notsRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // RESTORE
         // ============================================================
 
@@ -563,6 +571,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // NOTS
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "nots"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            nots:
+                                notsRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // LOD
                     // ----------------------------------------------
 
@@ -825,6 +856,23 @@ const PreparationEngine =
 
                         preservativeRef.current?.loadDraft(
                             draft.preservative
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // NOTS
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "nots" &&
+                        draft.nots
+                    ) {
+
+                        notsRef.current?.loadDraft(
+                            draft.nots
                         );
 
                     }
@@ -1136,6 +1184,28 @@ const PreparationEngine =
 
                         groups.push(
                             "preservative"
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // NOTS
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "nots"
+                        )
+                    ) {
+
+                        groups.push(
+                            "nots"
                         );
 
                     }
@@ -1496,6 +1566,31 @@ const PreparationEngine =
 
             }
 
+
+            // ========================================================
+            // NOTS
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "nots" &&
+                notsRef.current
+            ) {
+
+                notsRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
         }, [activeGroups]);
 
 
@@ -1766,6 +1861,10 @@ const PreparationEngine =
 
                     preservativeRef={
                         preservativeRef
+                    }
+
+                    notsRef={
+                        notsRef
                     }
 
                 />

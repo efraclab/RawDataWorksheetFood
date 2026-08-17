@@ -69,6 +69,9 @@ interface Props {
 
     preservativeRef:
     React.RefObject<PreparationModuleHandle | null>;
+
+    notsRef:
+    React.RefObject<PreparationModuleHandle | null>;
 }
 
 
@@ -114,7 +117,9 @@ const ModuleRenderer: React.FC<Props> = ({
 
     artificialSweetnerRef,
 
-    preservativeRef
+    preservativeRef,
+
+    notsRef
 
 }) => {
 
@@ -163,7 +168,10 @@ const ModuleRenderer: React.FC<Props> = ({
                                                     : moduleType === "preservative"
                                                         ? preservativeRef
 
-                                                        : lodRef;
+                                                        : moduleType === "nots"
+                                                            ? notsRef
+
+                                                            : lodRef;
 
 
     // =====================================================

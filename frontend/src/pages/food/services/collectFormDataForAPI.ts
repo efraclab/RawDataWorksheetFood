@@ -132,6 +132,12 @@ import {
     mapUnsapMatterDraftToFiles
 } from "../mappers/unsapMatterMapper";
 
+import {
+    mapArtificialSweetnerDraftToPreparations,
+    mapArtificialSweetnerDraftToCalculations,
+    mapArtificialSweetnerDraftToFiles
+} from "../mappers/artificialSweetnerMapper";
+
 
 import type { PreparationEngineHandle }
     from "../types/PreparationEngineHandle";
@@ -579,6 +585,29 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapUnsapMatterDraftToFiles(
                             draft?.unsapMatter
+                        )
+                    );
+                }
+
+           
+
+                if (activeGroup === "artificialSweetner") {
+
+                    preparations.push(
+                        ...mapArtificialSweetnerDraftToPreparations(
+                            draft?.artificialSweetner
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapArtificialSweetnerDraftToCalculations(
+                            draft?.artificialSweetner
+                        )
+                    );
+
+                    files.push(
+                        ...mapArtificialSweetnerDraftToFiles(
+                            draft?.artificialSweetner
                         )
                     );
                 }

@@ -148,6 +148,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // ARTIFICIAL SWEETNER REF
+        // ============================================================
+
+        const artificialSweetnerRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // RESTORE
         // ============================================================
 
@@ -501,6 +509,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // ARTIFICIAL SWEETNER
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "artificialSweetner"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            artificialSweetner:
+                                artificialSweetnerRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // LOD
                     // ----------------------------------------------
 
@@ -729,6 +760,23 @@ const PreparationEngine =
 
                         unsapMatterRef.current?.loadDraft(
                             draft.unsapMatter
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // ARTIFICIAL SWEETNER
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "artificialSweetner" &&
+                        draft.artificialSweetner
+                    ) {
+
+                        artificialSweetnerRef.current?.loadDraft(
+                            draft.artificialSweetner
                         );
 
                     }
@@ -996,6 +1044,28 @@ const PreparationEngine =
 
                         groups.push(
                             "unsapMatter"
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // ARTIFICIAL SWEETNER
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "artificialSweetner"
+                        )
+                    ) {
+
+                        groups.push(
+                            "artificialSweetner"
                         );
 
                     }
@@ -1306,6 +1376,31 @@ const PreparationEngine =
 
             }
 
+
+            // ========================================================
+            // ARTIFICIAL SWEETNER
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "artificialSweetner" &&
+                artificialSweetnerRef.current
+            ) {
+
+                artificialSweetnerRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
         }, [activeGroups]);
 
 
@@ -1568,6 +1663,10 @@ const PreparationEngine =
 
                     unsapMatterRef={
                         unsapMatterRef
+                    }
+
+                    artificialSweetnerRef={
+                        artificialSweetnerRef
                     }
 
                 />

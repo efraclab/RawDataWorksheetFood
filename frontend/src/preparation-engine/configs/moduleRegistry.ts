@@ -123,6 +123,23 @@ import {
 
 
 // ============================================================
+ // ARTIFICIAL SWEETNER
+ // ============================================================
+
+import CalculationDetailArtificialSweetner
+    from "../modules/artificial-sweetner/CalculationDetailArtificialSweetner";
+
+import SamplePreparationDetailArtificialSweetner
+    from "../modules/artificial-sweetner/models/SamplePreparationDetailArtificialSweetner";
+
+import {
+    createCalculationArtificialSweetner,
+    createSamplePreparationArtificialSweetner,
+    restoreCalculationArtificialSweetner
+} from "../modules/artificial-sweetner/factory";
+
+
+// ============================================================
 // ACID VALUE
 // ============================================================
 
@@ -862,6 +879,68 @@ export const moduleRegistry: Record<
 
             w4:
                 "Unsaponifiable Matter"
+
+        }
+
+    }
+,
+
+
+    // ============================================================
+    // ARTIFICIAL SWEETNER
+    // ============================================================
+
+    artificialSweetner: {
+
+        id:
+            "artificialSweetner",
+
+        title:
+            "Artificial Sweetner Analysis",
+
+        shortName:
+            "Artificial Sweetner",
+
+        icon:
+            "🧪",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailArtificialSweetner,
+
+        calculationComponent:
+            CalculationDetailArtificialSweetner,
+
+        createCalculation:
+            createCalculationArtificialSweetner,
+
+        createSamplePreparation:
+            createSamplePreparationArtificialSweetner,
+
+        restoreCalculation:
+            restoreCalculationArtificialSweetner,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Artificial Sweetner Details",
+
+            w1:
+                "Sample Weight",
+
+            w2:
+                "Volume",
+
+            drying:
+                "Instrument Concentration",
+
+            w3:
+                "Dilution Factor",
+
+            w4:
+                "Purity"
 
         }
 

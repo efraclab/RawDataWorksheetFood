@@ -48,6 +48,7 @@ export interface PreparationData {
         | "roi"
         | "sulphated_ash"
         | "sulphurDioxide"
+        | "cholesterol"
         | "titration"
         | null;
 

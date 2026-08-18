@@ -196,6 +196,17 @@ import {
 
 
 // ============================================================
+// CHOLESTEROL
+// ============================================================
+
+import {
+    mapCholesterolDraftToPreparations,
+    mapCholesterolDraftToCalculations,
+    mapCholesterolDraftToFiles
+} from "../mappers/cholesterolMapper";
+
+
+// ============================================================
 // ARTIFICIAL COLOUR
 // ============================================================
 
@@ -838,6 +849,34 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapSulphurDioxideDraftToFiles(
                             draft?.sulphurDioxide
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // CHOLESTEROL
+                // ========================================================
+
+                if (
+                    activeGroup === "cholesterol"
+                ) {
+
+                    preparations.push(
+                        ...mapCholesterolDraftToPreparations(
+                            draft?.cholesterol
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapCholesterolDraftToCalculations(
+                            draft?.cholesterol
+                        )
+                    );
+
+                    files.push(
+                        ...mapCholesterolDraftToFiles(
+                            draft?.cholesterol
                         )
                     );
                 }

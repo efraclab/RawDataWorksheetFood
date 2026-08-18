@@ -18,6 +18,7 @@ import {uricAcidConfig} from "./uricAcidConfig";
 import {fsvConfig} from "./fsvConfig";
 import {fattyAcidProfileConfig} from "./fattyAcidProfileConfig"
 import {sulphurDioxideConfig} from "./sulphurDioxideConfig"
+import {cholesterolConfig} from "./cholesterolConfig"
 
 
 
@@ -61,6 +62,8 @@ export const preparationConfigs = [
 
     fattyAcidProfileConfig,
 
-    sulphurDioxideConfig
+    sulphurDioxideConfig,
+
+    cholesterolConfig
 
 ];

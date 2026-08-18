@@ -237,6 +237,23 @@ import {
 
 
 // ============================================================
+// CHOLESTEROL
+// ============================================================
+
+import CalculationDetailCholesterol
+    from "../modules/cholesterol/CalculationDetailCholesterol";
+
+import SamplePreparationDetailCholesterol
+    from "../modules/cholesterol/models/SamplePreparationDetailCholesterol";
+
+import {
+    createCalculationCholesterol,
+    createSamplePreparationCholesterol,
+    restoreCalculationCholesterol
+} from "../modules/cholesterol/factory";
+
+
+// ============================================================
 // ARTIFICIAL COLOUR
 // ============================================================
 
@@ -1297,6 +1314,67 @@ export const moduleRegistry: Record<
 
             w4:
                 "Sulphur Dioxide"
+
+        }
+
+    },
+
+
+    // ============================================================
+    // CHOLESTEROL
+    // ============================================================
+
+    cholesterol: {
+
+        id:
+            "cholesterol",
+
+        title:
+            "Cholesterol Analysis",
+
+        shortName:
+            "Cholesterol",
+
+        icon:
+            "🧪",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailCholesterol,
+
+        calculationComponent:
+            CalculationDetailCholesterol,
+
+        createCalculation:
+            createCalculationCholesterol,
+
+        createSamplePreparation:
+            createSamplePreparationCholesterol,
+
+        restoreCalculation:
+            restoreCalculationCholesterol,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Cholesterol Details",
+
+            w1:
+                "Sample wt",
+
+            w2:
+                "Volume",
+
+            drying:
+                "Instrument Conc",
+
+            w3:
+                "Dilution Factor",
+
+            w4:
+                "Purity"
 
         }
 

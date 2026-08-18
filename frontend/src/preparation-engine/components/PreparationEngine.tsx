@@ -180,6 +180,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // CHOLESTEROL REF
+        // ============================================================
+
+        const cholesterolRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // ARTIFICIAL COLOUR REF
         // ============================================================
 
@@ -657,6 +665,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // CHOLESTEROL
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "cholesterol"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            cholesterol:
+                                cholesterolRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // ARTIFICIAL COLOUR
                     // ----------------------------------------------
 
@@ -1115,6 +1146,23 @@ const PreparationEngine =
 
                     }
 
+
+                    // ----------------------------------------------
+                    // CHOLESTEROL
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "cholesterol" &&
+                        draft.cholesterol
+                    ) {
+
+                        cholesterolRef.current?.loadDraft(
+                            draft.cholesterol
+                        );
+
+                    }
+
                 },
 
 
@@ -1220,6 +1268,28 @@ const PreparationEngine =
 
                         groups.push(
                             "sulphurDioxide"
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // CHOLESTEROL
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "cholesterol"
+                        )
+                    ) {
+
+                        groups.push(
+                            "cholesterol"
                         );
 
                     }
@@ -1695,6 +1765,31 @@ const PreparationEngine =
             ) {
 
                 sulphurDioxideRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
+
+            // ========================================================
+            // CHOLESTEROL
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "cholesterol" &&
+                cholesterolRef.current
+            ) {
+
+                cholesterolRef.current
                     .restoreFromWorksheet(
                         pendingRestore.current
                     );
@@ -2341,6 +2436,10 @@ const PreparationEngine =
 
                     sulphurDioxideRef={
                         sulphurDioxideRef
+                    }
+
+                    cholesterolRef={
+                        cholesterolRef
                     }
 
                     artificialColourRef={

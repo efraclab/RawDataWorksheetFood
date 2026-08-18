@@ -73,12 +73,26 @@ interface Props {
     notsRef:
     React.RefObject<PreparationModuleHandle | null>;
 
+
     // =====================================================
     // SULPHUR DIOXIDE
     // =====================================================
 
     sulphurDioxideRef:
     React.RefObject<PreparationModuleHandle | null>;
+
+
+    // =====================================================
+    // CHOLESTEROL
+    // =====================================================
+
+    cholesterolRef:
+    React.RefObject<PreparationModuleHandle | null>;
+
+
+    // =====================================================
+    // ARTIFICIAL COLOUR
+    // =====================================================
 
     artificialColourRef:
     React.RefObject<PreparationModuleHandle | null>;
@@ -152,6 +166,8 @@ const ModuleRenderer: React.FC<Props> = ({
 
     sulphurDioxideRef,
 
+    cholesterolRef,
+
     artificialColourRef,
 
     uricAcidRef,
@@ -213,19 +229,22 @@ const ModuleRenderer: React.FC<Props> = ({
                                                             : moduleType === "sulphurDioxide"
                                                                 ? sulphurDioxideRef
 
-                                                                : moduleType === "artificialColour"
-                                                                    ? artificialColourRef
+                                                                : moduleType === "cholesterol"
+                                                                    ? cholesterolRef
 
-                                                                    : moduleType === "uricAcid"
-                                                                        ? uricAcidRef
+                                                                    : moduleType === "artificialColour"
+                                                                        ? artificialColourRef
 
-                                                                        : moduleType === "fsv"
-                                                                            ? fsvRef
+                                                                        : moduleType === "uricAcid"
+                                                                            ? uricAcidRef
 
-                                                                            : moduleType === "fattyAcidProfile"
-                                                                                ? fattyAcidProfileRef
+                                                                            : moduleType === "fsv"
+                                                                                ? fsvRef
 
-                                                                                : lodRef;
+                                                                                : moduleType === "fattyAcidProfile"
+                                                                                    ? fattyAcidProfileRef
+
+                                                                                    : lodRef;
 
 
     // =====================================================

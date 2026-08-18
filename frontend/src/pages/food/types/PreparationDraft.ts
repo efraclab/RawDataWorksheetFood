@@ -18,6 +18,8 @@ import type { UricAcidDraft } from "./UricAcidDraft";
 import type { FSVDraft } from "./FSVDraft";
 import type { FattyAcidProfileDraft } from "./FattyAcidProfileDraft";
 import type { SulphurDioxideDraft } from "./SulphurDioxideDraft";
+import type { CholesterolDraft } from "./CholesterolDraft";
+
 
 
 
@@ -64,4 +66,6 @@ export interface PreparationDraft {
     fattyAcidProfile?: FattyAcidProfileDraft;
 
     sulphurDioxide?: SulphurDioxideDraft;
+
+    cholesterol?: CholesterolDraft;
 }

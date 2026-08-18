@@ -196,6 +196,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // FATTY ACID PROFILE REF
+        // ============================================================
+
+        const fattyAcidProfileRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // RESTORE
         // ============================================================
 
@@ -686,6 +694,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // FATTY ACID PROFILE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "fattyAcidProfile"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            fattyAcidProfile:
+                                fattyAcidProfileRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // LOD
                     // ----------------------------------------------
 
@@ -769,6 +800,22 @@ const PreparationEngine =
 
                         fsvRef.current?.loadDraft(
                             draft.fsv
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // FATTY ACID PROFILE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "fattyAcidProfile" &&
+                        draft.fattyAcidProfile
+                    ) {
+
+                        fattyAcidProfileRef.current?.loadDraft(
+                            draft.fattyAcidProfile
                         );
 
                     }
@@ -1080,6 +1127,28 @@ const PreparationEngine =
 
                         groups.push(
                             "uricAcid"
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // FATTY ACID PROFILE
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "fattyAcidProfile"
+                        )
+                    ) {
+
+                        groups.push(
+                            "fattyAcidProfile"
                         );
 
                     }
@@ -1505,6 +1574,31 @@ const PreparationEngine =
             ) {
 
                 fsvRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
+
+            // ========================================================
+            // FATTY ACID PROFILE
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "fattyAcidProfile" &&
+                fattyAcidProfileRef.current
+            ) {
+
+                fattyAcidProfileRef.current
                     .restoreFromWorksheet(
                         pendingRestore.current
                     );
@@ -2159,6 +2253,10 @@ const PreparationEngine =
 
                     fsvRef={
                         fsvRef
+                    }
+
+                    fattyAcidProfileRef={
+                        fattyAcidProfileRef
                     }
 
                 />

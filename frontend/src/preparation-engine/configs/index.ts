@@ -16,6 +16,7 @@ import {notsConfig} from "./notsConfig";
 import {artificialColourConfig} from "./artificialColourConfig";
 import {uricAcidConfig} from "./uricAcidConfig";
 import {fsvConfig} from "./fsvConfig";
+import {fattyAcidProfileConfig} from "./fattyAcidProfileConfig"
 
 
 
@@ -56,5 +57,7 @@ export const preparationConfigs = [
     uricAcidConfig,
 
     fsvConfig,
+
+    fattyAcidProfileConfig
 
 ];

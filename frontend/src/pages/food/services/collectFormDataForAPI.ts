@@ -217,6 +217,18 @@ import {
 } from "../mappers/FSVMapper";
 
 
+
+
+// ============================================================
+// FATTY ACID PROFILE
+// ============================================================
+
+import {
+    mapFattyAcidProfileDraftToPreparations,
+    mapFattyAcidProfileDraftToCalculations,
+    mapFattyAcidProfileDraftToFiles
+} from "../mappers/fattyAcidProfileMapper";
+
 import type { PreparationEngineHandle }
     from "../types/PreparationEngineHandle";
 
@@ -873,6 +885,35 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapFSVDraftToFiles(
                             draft?.fsv
+                        )
+                    );
+                }
+
+
+
+                // ========================================================
+                // FATTY ACID PROFILE
+                // ========================================================
+
+                if (
+                    activeGroup === "fattyAcidProfile"
+                ) {
+
+                    preparations.push(
+                        ...mapFattyAcidProfileDraftToPreparations(
+                            draft?.fattyAcidProfile
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapFattyAcidProfileDraftToCalculations(
+                            draft?.fattyAcidProfile
+                        )
+                    );
+
+                    files.push(
+                        ...mapFattyAcidProfileDraftToFiles(
+                            draft?.fattyAcidProfile
                         )
                     );
                 }

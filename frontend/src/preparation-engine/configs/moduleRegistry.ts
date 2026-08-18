@@ -224,6 +224,23 @@ import {
 
 
 // ============================================================
+// FATTY ACID PROFILE
+// ============================================================
+
+import CalculationDetailFattyAcidProfile
+    from "../modules/fatty-acid-profile/CalculationDetailFattyAcidProfile";
+
+import SamplePreparationDetailFattyAcidProfile
+    from "../modules/fatty-acid-profile/models/SamplePreparationDetailFattyAcidProfile";
+
+import {
+    createCalculationFattyAcidProfile,
+    createSamplePreparationFattyAcidProfile,
+    restoreCalculationFattyAcidProfile
+} from "../modules/fatty-acid-profile/factory";
+
+
+// ============================================================
 // ACID VALUE
 // ============================================================
 
@@ -1331,6 +1348,67 @@ export const moduleRegistry: Record<
 
             w4:
                 "Purity"
+
+        }
+
+    },
+
+
+    // ============================================================
+    // FATTY ACID PROFILE
+    // ============================================================
+
+    fattyAcidProfile: {
+
+        id:
+            "fattyAcidProfile",
+
+        title:
+            "Fatty Acid Profile Analysis",
+
+        shortName:
+            "Fatty Acid Profile",
+
+        icon:
+            "🧬",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailFattyAcidProfile,
+
+        calculationComponent:
+            CalculationDetailFattyAcidProfile,
+
+        createCalculation:
+            createCalculationFattyAcidProfile,
+
+        createSamplePreparation:
+            createSamplePreparationFattyAcidProfile,
+
+        restoreCalculation:
+            restoreCalculationFattyAcidProfile,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Fatty Acid Profile Details",
+
+            w1:
+                "Sample Area %",
+
+            w2:
+                "Fat Content",
+
+            drying:
+                "Fatty Acid Profile",
+
+            w3:
+                "Result",
+
+            w4:
+                "Fatty Acid Profile"
 
         }
 

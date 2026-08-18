@@ -1,5 +1,11 @@
 export interface PreparationData {
+
     label: string;
+
+
+    // ============================================================
+    // PREPARATION CATEGORY
+    // ============================================================
 
     preparationCategory:
         | "sample"
@@ -12,9 +18,15 @@ export interface PreparationData {
         | "dissolution_media"
         | "blank";
 
+
+    // ============================================================
+    // PREPARATION TYPE
+    // ============================================================
+
     preparationType:
         | "assay"
         | "fat"
+        | "fattyAcidProfile"
         | "residual_solvent"
         | "dissolution"
         | "lod"
@@ -39,14 +51,39 @@ export interface PreparationData {
         | "titration"
         | null;
 
-    assignedStandardId: string | null;
 
-    steps: any;
+    // ============================================================
+    // STANDARD
+    // ============================================================
 
-    content: any;
+    assignedStandardId:
+        string | null;
 
-    // NEW
-    isPreparationCompleted?: boolean;
 
-    completedAt?: string | null;
+    // ============================================================
+    // PREPARATION STEPS
+    // ============================================================
+
+    steps:
+        any;
+
+
+    // ============================================================
+    // CONTENT
+    // ============================================================
+
+    content:
+        any;
+
+
+    // ============================================================
+    // PREPARATION COMPLETION
+    // ============================================================
+
+    isPreparationCompleted?:
+        boolean;
+
+
+    completedAt?:
+        string | null;
 }

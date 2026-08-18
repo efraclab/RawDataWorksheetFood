@@ -79,11 +79,20 @@ interface Props {
     uricAcidRef:
     React.RefObject<PreparationModuleHandle | null>;
 
+
     // =====================================================
     // FSV (A, D, E, K)
     // =====================================================
 
     fsvRef:
+    React.RefObject<PreparationModuleHandle | null>;
+
+
+    // =====================================================
+    // FATTY ACID PROFILE
+    // =====================================================
+
+    fattyAcidProfileRef:
     React.RefObject<PreparationModuleHandle | null>;
 }
 
@@ -138,7 +147,9 @@ const ModuleRenderer: React.FC<Props> = ({
 
     uricAcidRef,
 
-    fsvRef
+    fsvRef,
+
+    fattyAcidProfileRef
 
 }) => {
 
@@ -199,7 +210,10 @@ const ModuleRenderer: React.FC<Props> = ({
                                                                     : moduleType === "fsv"
                                                                         ? fsvRef
 
-                                                                        : lodRef;
+                                                                        : moduleType === "fattyAcidProfile"
+                                                                            ? fattyAcidProfileRef
+
+                                                                            : lodRef;
 
 
     // =====================================================

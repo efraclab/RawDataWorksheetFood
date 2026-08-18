@@ -23,6 +23,7 @@ import {wsvConfig} from "./wsvConfig"
 import {aminoAcidConfig} from "./aminoAcidConfig"
 import {moistureConfig} from "./moistureConfig"
 import {acidityConfig} from "./acidityConfig"
+import {sugarSaponinCatechinProfileConfig} from "./sugarSaponinCatechinProfileConfig"
 
 export const preparationConfigs = [
 
@@ -74,6 +75,8 @@ export const preparationConfigs = [
 
     moistureConfig,
 
-    acidityConfig
+    acidityConfig,
+
+    sugarSaponinCatechinProfileConfig
 
 ];

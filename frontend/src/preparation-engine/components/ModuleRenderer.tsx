@@ -152,6 +152,13 @@ interface Props {
 
     fattyAcidProfileRef:
     React.RefObject<PreparationModuleHandle | null>;
+
+    // =====================================================
+    // SUGAR / SAPONIN / CATECHIN PROFILE
+    // =====================================================
+
+    sugarSaponinCatechinProfileRef:
+    React.RefObject<PreparationModuleHandle | null>;
 }
 
 
@@ -219,7 +226,9 @@ const ModuleRenderer: React.FC<Props> = ({
 
     fsvRef,
 
-    fattyAcidProfileRef
+    fattyAcidProfileRef,
+
+    sugarSaponinCatechinProfileRef
 
 }) => {
 
@@ -302,7 +311,10 @@ const ModuleRenderer: React.FC<Props> = ({
                                                                                                 : moduleType === "fattyAcidProfile"
                                                                                                     ? fattyAcidProfileRef
 
-                                                                                                    : lodRef;
+                                                                                                    : moduleType === "sugarSaponinCatechinProfile"
+                                                                                                        ? sugarSaponinCatechinProfileRef
+
+                                                                                                        : lodRef;
 
 
     // =====================================================

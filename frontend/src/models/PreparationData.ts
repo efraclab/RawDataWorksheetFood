@@ -48,6 +48,7 @@ export interface PreparationData {
     | "roi"
     | "saponificationValue"
     | "sugar"
+    | "sugarSaponinCatechinProfile"
     | "sulphated_ash"
     | "sulphurDioxide"
     | "titration"

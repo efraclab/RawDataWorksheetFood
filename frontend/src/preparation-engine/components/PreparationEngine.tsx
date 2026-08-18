@@ -252,6 +252,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // SUGAR / SAPONIN / CATECHIN PROFILE REF
+        // ============================================================
+
+        const sugarSaponinCatechinProfileRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // RESTORE
         // ============================================================
 
@@ -902,6 +910,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // SUGAR / SAPONIN / CATECHIN PROFILE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "sugarSaponinCatechinProfile"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            sugarSaponinCatechinProfile:
+                                sugarSaponinCatechinProfileRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // LOD
                     // ----------------------------------------------
 
@@ -1002,6 +1033,23 @@ const PreparationEngine =
 
                         fattyAcidProfileRef.current?.loadDraft(
                             draft.fattyAcidProfile
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // SUGAR / SAPONIN / CATECHIN PROFILE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "sugarSaponinCatechinProfile" &&
+                        draft.sugarSaponinCatechinProfile
+                    ) {
+
+                        sugarSaponinCatechinProfileRef.current?.loadDraft(
+                            draft.sugarSaponinCatechinProfile
                         );
 
                     }
@@ -1884,6 +1932,28 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // SUGAR / SAPONIN / CATECHIN PROFILE
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "sugarSaponinCatechinProfile"
+                        )
+                    ) {
+
+                        groups.push(
+                            "sugarSaponinCatechinProfile"
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
                     // FSV (A, D, E, K)
                     // ----------------------------------------------
 
@@ -2510,6 +2580,31 @@ const PreparationEngine =
 
 
             // ========================================================
+            // SUGAR / SAPONIN / CATECHIN PROFILE
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "sugarSaponinCatechinProfile" &&
+                sugarSaponinCatechinProfileRef.current
+            ) {
+
+                sugarSaponinCatechinProfileRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
+
+            // ========================================================
             // NOTS
             // ========================================================
 
@@ -2847,6 +2942,10 @@ const PreparationEngine =
 
                     fattyAcidProfileRef={
                         fattyAcidProfileRef
+                    }
+
+                    sugarSaponinCatechinProfileRef={
+                        sugarSaponinCatechinProfileRef
                     }
 
                 />

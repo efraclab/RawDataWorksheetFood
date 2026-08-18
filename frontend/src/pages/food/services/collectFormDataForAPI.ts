@@ -76,6 +76,17 @@ import {
 
 
 // ============================================================
+// SUGAR / SAPONIN / CATECHIN PROFILE
+// ============================================================
+
+import {
+    mapSugarSaponinCatechinProfileDraftToPreparations,
+    mapSugarSaponinCatechinProfileDraftToCalculations,
+    mapSugarSaponinCatechinProfileDraftToFiles
+} from "../mappers/sugarSaponinCatechinProfileMapper";
+
+
+// ============================================================
 // ENERGY
 // ============================================================
 
@@ -558,6 +569,32 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapSugarDraftToFiles(
                             draft?.sugar
+                        )
+                    );
+                }
+               // ========================================================
+                // SUGAR / SAPONIN / CATECHIN PROFILE
+                // ========================================================
+
+                if (
+                    activeGroup === "sugarSaponinCatechinProfile"
+                ) {
+
+                    preparations.push(
+                        ...mapSugarSaponinCatechinProfileDraftToPreparations(
+                            draft?.sugarSaponinCatechinProfile
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapSugarSaponinCatechinProfileDraftToCalculations(
+                            draft?.sugarSaponinCatechinProfile
+                        )
+                    );
+
+                    files.push(
+                        ...mapSugarSaponinCatechinProfileDraftToFiles(
+                            draft?.sugarSaponinCatechinProfile
                         )
                     );
                 }

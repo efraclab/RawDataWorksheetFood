@@ -373,6 +373,23 @@ import {
 
 
 // ============================================================
+// SUGAR / SAPONIN / CATECHIN PROFILE
+// ============================================================
+
+import CalculationDetailSugarSaponinCatechinProfile
+    from "../modules/sugar-saponin-catechin-profile/CalculationDetailSugarSaponinCatechinProfile";
+
+import SamplePreparationDetailSugarSaponinCatechinProfile
+    from "../modules/sugar-saponin-catechin-profile/models/SamplePreparationDetailSugarSaponinCatechinProfile";
+
+import {
+    createCalculationSugarSaponinCatechinProfile,
+    createSamplePreparationSugarSaponinCatechinProfile,
+    restoreCalculationSugarSaponinCatechinProfile
+} from "../modules/sugar-saponin-catechin-profile/factory";
+
+
+// ============================================================
 // ACID VALUE
 // ============================================================
 
@@ -1851,6 +1868,67 @@ export const moduleRegistry: Record<
 
             details:
                 "Sample Preparation for FSV (A, D, E, K) Details",
+
+            w1:
+                "Sample Weight",
+
+            w2:
+                "Volume",
+
+            drying:
+                "Instrument Concentration",
+
+            w3:
+                "Dilution Factor",
+
+            w4:
+                "Purity"
+
+        }
+
+    },
+
+
+    // ============================================================
+    // SUGAR / SAPONIN / CATECHIN PROFILE
+    // ============================================================
+
+    sugarSaponinCatechinProfile: {
+
+        id:
+            "sugarSaponinCatechinProfile",
+
+        title:
+            "Sugar / Saponin / Catechin Profile Analysis",
+
+        shortName:
+            "Sugar / Saponin / Catechin Profile",
+
+        icon:
+            "🧪",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailSugarSaponinCatechinProfile,
+
+        calculationComponent:
+            CalculationDetailSugarSaponinCatechinProfile,
+
+        createCalculation:
+            createCalculationSugarSaponinCatechinProfile,
+
+        createSamplePreparation:
+            createSamplePreparationSugarSaponinCatechinProfile,
+
+        restoreCalculation:
+            restoreCalculationSugarSaponinCatechinProfile,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Sugar / Saponin / Catechin Profile Details",
 
             w1:
                 "Sample Weight",

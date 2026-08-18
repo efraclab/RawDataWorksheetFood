@@ -23,6 +23,7 @@ import type { WsvDraft } from "./WsvDraft";
 import type { AminoAcidDraft } from "./AminoAcidDraft";
 import type { MoistureDraft } from "./MoistureDraft";
 import type { AcidityDraft } from "./AcidityDraft";
+import type { SugarSaponinCatechinProfileDraft } from "./SugarSaponinCatechinProfileDraft";
 
 export interface PreparationDraft {
 
@@ -77,4 +78,6 @@ export interface PreparationDraft {
     moisture?: MoistureDraft;
 
     acidity?: AcidityDraft;
+
+    sugarSaponinCatechinProfile?: SugarSaponinCatechinProfileDraft;
 }

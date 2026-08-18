@@ -1,12 +1,27 @@
-import PreparationAnalysis from "../modules/lod/components/PreparationAnalysis";
-import CalculationDetailLod from "../modules/lod/components/CalculationDetailLod";
+// ============================================================
+// LOD
+// ============================================================
+
+import PreparationAnalysis
+    from "../modules/lod/components/PreparationAnalysis";
+
+import CalculationDetailLod
+    from "../modules/lod/components/CalculationDetailLod";
+
 import {
     createNewCalculationLod,
     createNewSamplePreparationLod,
     restoreCalculationLod
 } from "../modules/lod/factory";
 
-import CalculationDetailFAT from "../modules/fat/CalculationDetailFAT";
+
+// ============================================================
+// FAT
+// ============================================================
+
+import CalculationDetailFAT
+    from "../modules/fat/CalculationDetailFAT";
+
 import {
     createCalculationFat,
     createSamplePreparationFat,
@@ -15,6 +30,11 @@ import {
 
 import SamplePreparationDetail
     from "../modules/lod/components/SamplePreparationDetail";
+
+
+// ============================================================
+// PROTEIN
+// ============================================================
 
 import SamplePreparationDetailProtein
     from "../modules/protein/models/SamplePreparationDetailProtein";
@@ -28,6 +48,11 @@ import {
     restoreCalculationProtein
 } from "../modules/protein/factory";
 
+
+// ============================================================
+// SUGAR
+// ============================================================
+
 import CalculationDetailSugar
     from "../modules/sugar/CalculationDetailSugar";
 
@@ -39,6 +64,11 @@ import {
 
 import SamplePreparationDetailSugar
     from "../modules/sugar/models/SamplePreparationDetailSugar";
+
+
+// ============================================================
+// ENERGY
+// ============================================================
 
 import CalculationDetailEnergy
     from "../modules/energy/CalculationDetailEnergy";
@@ -52,6 +82,11 @@ import {
     restoreCalculationEnergy
 } from "../modules/energy/factory";
 
+
+// ============================================================
+// CARBOHYDRATE
+// ============================================================
+
 import CalculationDetailCarbohydrate
     from "../modules/carbohydrate/CalculationDetailCarbohydrate";
 
@@ -63,6 +98,11 @@ import {
     createSamplePreparationCarbohydrate,
     restoreCalculationCarbohydrate
 } from "../modules/carbohydrate/factory";
+
+
+// ============================================================
+// CRUDE FIBER
+// ============================================================
 
 import CalculationDetailCrudeFiber
     from "../modules/crude-fiber/CalculationDetailCrudeFiber";
@@ -76,6 +116,11 @@ import {
     restoreCalculationCrudeFiber
 } from "../modules/crude-fiber/factory";
 
+
+// ============================================================
+// PEROXIDE VALUE
+// ============================================================
+
 import CalculationDetailPeroxideValue
     from "../modules/peroxide-value/CalculationDetailPeroxideValue";
 
@@ -87,6 +132,7 @@ import {
     createSamplePreparationPeroxideValue,
     restoreCalculationPeroxideValue
 } from "../modules/peroxide-value/factory";
+
 
 // ============================================================
 // FREE FATTY ACID
@@ -123,8 +169,8 @@ import {
 
 
 // ============================================================
- // ARTIFICIAL SWEETNER
- // ============================================================
+// ARTIFICIAL SWEETNER
+// ============================================================
 
 import CalculationDetailArtificialSweetner
     from "../modules/artificial-sweetner/CalculationDetailArtificialSweetner";
@@ -140,8 +186,8 @@ import {
 
 
 // ============================================================
- // PRESERVATIVE
- // ============================================================
+// PRESERVATIVE
+// ============================================================
 
 import CalculationDetailPreservative
     from "../modules/preservative/CalculationDetailPreservative";
@@ -173,9 +219,26 @@ import {
 } from "../modules/nots/factory";
 
 
- // ============================================================
- // ARTIFICIAL COLOUR
- // ============================================================
+// ============================================================
+// SULPHUR DIOXIDE
+// ============================================================
+
+import CalculationDetailSulphurDioxide
+    from "../modules/sulphur-dioxide/CalculationDetailSulphurDioxide";
+
+import SamplePreparationDetailSulphurDioxide
+    from "../modules/sulphur-dioxide/models/SamplePreparationDetailSulphurDioxide";
+
+import {
+    createCalculationSulphurDioxide,
+    createSamplePreparationSulphurDioxide,
+    restoreCalculationSulphurDioxide
+} from "../modules/sulphur-dioxide/factory";
+
+
+// ============================================================
+// ARTIFICIAL COLOUR
+// ============================================================
 
 import CalculationDetailArtificialColour
     from "../modules/artificial-colour/CalculationDetailArtificialColour";
@@ -205,6 +268,7 @@ import {
     createSamplePreparationUricAcid,
     restoreCalculationUricAcid
 } from "../modules/uric-acid/factory";
+
 
 // ============================================================
 // FSV (A, D, E, K)
@@ -274,6 +338,10 @@ import {
 } from "../modules/saponification-value/factory";
 
 
+// ============================================================
+// MODULE LABELS
+// ============================================================
+
 interface ModuleLabels {
 
     details: string;
@@ -289,6 +357,10 @@ interface ModuleLabels {
     w4?: string;
 }
 
+
+// ============================================================
+// MODULE REGISTRY
+// ============================================================
 
 export const moduleRegistry: Record<
     string,
@@ -365,7 +437,7 @@ export const moduleRegistry: Record<
                 "Drying",
 
             w3:
-                "Weight of Sample + Dish after Drying",
+                "Weight of Sample + Dish after Drying"
         }
     },
 
@@ -864,6 +936,7 @@ export const moduleRegistry: Record<
         }
     },
 
+
     // ============================================================
     // FREE FATTY ACID
     // ============================================================
@@ -983,8 +1056,7 @@ export const moduleRegistry: Record<
 
         }
 
-    }
-,
+    },
 
 
     // ============================================================
@@ -1045,8 +1117,7 @@ export const moduleRegistry: Record<
 
         }
 
-    }
-,
+    },
 
 
     // ============================================================
@@ -1165,6 +1236,67 @@ export const moduleRegistry: Record<
 
             w4:
                 "NOTS"
+
+        }
+
+    },
+
+
+    // ============================================================
+    // SULPHUR DIOXIDE
+    // ============================================================
+
+    sulphurDioxide: {
+
+        id:
+            "sulphurDioxide",
+
+        title:
+            "Sulphur Dioxide Analysis",
+
+        shortName:
+            "Sulphur Dioxide",
+
+        icon:
+            "🧪",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailSulphurDioxide,
+
+        calculationComponent:
+            CalculationDetailSulphurDioxide,
+
+        createCalculation:
+            createCalculationSulphurDioxide,
+
+        createSamplePreparation:
+            createSamplePreparationSulphurDioxide,
+
+        restoreCalculation:
+            restoreCalculationSulphurDioxide,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Sulphur Dioxide Details",
+
+            w1:
+                "Sample Weight",
+
+            w2:
+                "Sample Titre Value",
+
+            drying:
+                "Blank Titre Value",
+
+            w3:
+                "Normality",
+
+            w4:
+                "Sulphur Dioxide"
 
         }
 

@@ -73,6 +73,13 @@ interface Props {
     notsRef:
     React.RefObject<PreparationModuleHandle | null>;
 
+    // =====================================================
+    // SULPHUR DIOXIDE
+    // =====================================================
+
+    sulphurDioxideRef:
+    React.RefObject<PreparationModuleHandle | null>;
+
     artificialColourRef:
     React.RefObject<PreparationModuleHandle | null>;
 
@@ -143,6 +150,8 @@ const ModuleRenderer: React.FC<Props> = ({
 
     notsRef,
 
+    sulphurDioxideRef,
+
     artificialColourRef,
 
     uricAcidRef,
@@ -201,19 +210,22 @@ const ModuleRenderer: React.FC<Props> = ({
                                                         : moduleType === "nots"
                                                             ? notsRef
 
-                                                            : moduleType === "artificialColour"
-                                                                ? artificialColourRef
+                                                            : moduleType === "sulphurDioxide"
+                                                                ? sulphurDioxideRef
 
-                                                                : moduleType === "uricAcid"
-                                                                    ? uricAcidRef
+                                                                : moduleType === "artificialColour"
+                                                                    ? artificialColourRef
 
-                                                                    : moduleType === "fsv"
-                                                                        ? fsvRef
+                                                                    : moduleType === "uricAcid"
+                                                                        ? uricAcidRef
 
-                                                                        : moduleType === "fattyAcidProfile"
-                                                                            ? fattyAcidProfileRef
+                                                                        : moduleType === "fsv"
+                                                                            ? fsvRef
 
-                                                                            : lodRef;
+                                                                            : moduleType === "fattyAcidProfile"
+                                                                                ? fattyAcidProfileRef
+
+                                                                                : lodRef;
 
 
     // =====================================================

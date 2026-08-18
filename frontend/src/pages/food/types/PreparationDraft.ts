@@ -17,6 +17,8 @@ import type { ArtificialColourDraft } from "./ArtificialColourDraft";
 import type { UricAcidDraft } from "./UricAcidDraft";
 import type { FSVDraft } from "./FSVDraft";
 import type { FattyAcidProfileDraft } from "./FattyAcidProfileDraft";
+import type { SulphurDioxideDraft } from "./SulphurDioxideDraft";
+
 
 
 export interface PreparationDraft {
@@ -60,4 +62,6 @@ export interface PreparationDraft {
     fsv?: FSVDraft;
 
     fattyAcidProfile?: FattyAcidProfileDraft;
+
+    sulphurDioxide?: SulphurDioxideDraft;
 }

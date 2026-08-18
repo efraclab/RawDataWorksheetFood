@@ -185,6 +185,17 @@ import {
 
 
 // ============================================================
+// SULPHUR DIOXIDE
+// ============================================================
+
+import {
+    mapSulphurDioxideDraftToPreparations,
+    mapSulphurDioxideDraftToCalculations,
+    mapSulphurDioxideDraftToFiles
+} from "../mappers/SulphurDioxideMapper";
+
+
+// ============================================================
 // ARTIFICIAL COLOUR
 // ============================================================
 
@@ -215,8 +226,6 @@ import {
     mapFSVDraftToCalculations,
     mapFSVDraftToFiles
 } from "../mappers/FSVMapper";
-
-
 
 
 // ============================================================
@@ -807,6 +816,34 @@ export function collectFormDataForAPI({
 
 
                 // ========================================================
+                // SULPHUR DIOXIDE
+                // ========================================================
+
+                if (
+                    activeGroup === "sulphurDioxide"
+                ) {
+
+                    preparations.push(
+                        ...mapSulphurDioxideDraftToPreparations(
+                            draft?.sulphurDioxide
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapSulphurDioxideDraftToCalculations(
+                            draft?.sulphurDioxide
+                        )
+                    );
+
+                    files.push(
+                        ...mapSulphurDioxideDraftToFiles(
+                            draft?.sulphurDioxide
+                        )
+                    );
+                }
+
+
+                // ========================================================
                 // ARTIFICIAL COLOUR
                 // ========================================================
 
@@ -888,7 +925,6 @@ export function collectFormDataForAPI({
                         )
                     );
                 }
-
 
 
                 // ========================================================

@@ -2,7 +2,6 @@ export interface PreparationData {
 
     label: string;
 
-
     // ============================================================
     // PREPARATION CATEGORY
     // ============================================================
@@ -48,6 +47,7 @@ export interface PreparationData {
         | "fsv"
         | "roi"
         | "sulphated_ash"
+        | "sulphurDioxide"
         | "titration"
         | null;
 
@@ -82,7 +82,6 @@ export interface PreparationData {
 
     isPreparationCompleted?:
         boolean;
-
 
     completedAt?:
         string | null;

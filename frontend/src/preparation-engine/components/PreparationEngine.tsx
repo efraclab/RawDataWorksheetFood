@@ -172,6 +172,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // SULPHUR DIOXIDE REF
+        // ============================================================
+
+        const sulphurDioxideRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // ARTIFICIAL COLOUR REF
         // ============================================================
 
@@ -626,6 +634,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // SULPHUR DIOXIDE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "sulphurDioxide"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            sulphurDioxide:
+                                sulphurDioxideRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // ARTIFICIAL COLOUR
                     // ----------------------------------------------
 
@@ -810,7 +841,8 @@ const PreparationEngine =
                     // ----------------------------------------------
 
                     if (
-                        activeGroup === "fattyAcidProfile" &&
+                        activeGroup ===
+                        "fattyAcidProfile" &&
                         draft.fattyAcidProfile
                     ) {
 
@@ -1066,6 +1098,23 @@ const PreparationEngine =
 
                     }
 
+
+                    // ----------------------------------------------
+                    // SULPHUR DIOXIDE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "sulphurDioxide" &&
+                        draft.sulphurDioxide
+                    ) {
+
+                        sulphurDioxideRef.current?.loadDraft(
+                            draft.sulphurDioxide
+                        );
+
+                    }
+
                 },
 
 
@@ -1149,6 +1198,28 @@ const PreparationEngine =
 
                         groups.push(
                             "fattyAcidProfile"
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // SULPHUR DIOXIDE
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "sulphurDioxide"
+                        )
+                    ) {
+
+                        groups.push(
+                            "sulphurDioxide"
                         );
 
                     }
@@ -1599,6 +1670,31 @@ const PreparationEngine =
             ) {
 
                 fattyAcidProfileRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
+
+            // ========================================================
+            // SULPHUR DIOXIDE
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "sulphurDioxide" &&
+                sulphurDioxideRef.current
+            ) {
+
+                sulphurDioxideRef.current
                     .restoreFromWorksheet(
                         pendingRestore.current
                     );
@@ -2241,6 +2337,10 @@ const PreparationEngine =
 
                     notsRef={
                         notsRef
+                    }
+
+                    sulphurDioxideRef={
+                        sulphurDioxideRef
                     }
 
                     artificialColourRef={

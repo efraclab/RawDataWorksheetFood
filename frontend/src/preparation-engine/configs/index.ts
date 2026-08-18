@@ -17,6 +17,7 @@ import {artificialColourConfig} from "./artificialColourConfig";
 import {uricAcidConfig} from "./uricAcidConfig";
 import {fsvConfig} from "./fsvConfig";
 import {fattyAcidProfileConfig} from "./fattyAcidProfileConfig"
+import {sulphurDioxideConfig} from "./sulphurDioxideConfig"
 
 
 
@@ -58,6 +59,8 @@ export const preparationConfigs = [
 
     fsvConfig,
 
-    fattyAcidProfileConfig
+    fattyAcidProfileConfig,
+
+    sulphurDioxideConfig
 
 ];

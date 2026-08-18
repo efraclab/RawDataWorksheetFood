@@ -7,15 +7,15 @@ export interface PreparationData {
     // ============================================================
 
     preparationCategory:
+        | "blank"
+        | "buffer"
+        | "diluent"
+        | "dissolution_media"
+        | "mobile_phase"
+        | "parameter_file"
         | "sample"
         | "standard"
-        | "buffer"
-        | "mobile_phase"
-        | "diluent"
-        | "system_suitability"
-        | "parameter_file"
-        | "dissolution_media"
-        | "blank";
+        | "system_suitability";
 
 
     // ============================================================
@@ -23,69 +23,65 @@ export interface PreparationData {
     // ============================================================
 
     preparationType:
-        | "assay"
-        | "aminoAcid"
-        | "fat"
-        | "fattyAcidProfile"
-        | "residual_solvent"
-        | "dissolution"
-        | "lod"
-        | "protein"
-        | "sugar"
-        | "energy"
-        | "carbohydrate"
-        | "crudeFiber"
-        | "peroxideValue"
-        | "acidValue"
-        | "saponificationValue"
-        | "freeFattyAcid"
-        | "unsapMatter"
-        | "artificialSweetner"
-        | "preservative"
-        | "nots"
-        | "artificialColour"
-        | "uricAcid"
-        | "fsv"
-        | "roi"
-        | "sulphated_ash"
-        | "sulphurDioxide"
-        | "cholesterol"
-        | "titration"
-        | "wsv"
-        | null;
+    | "acidValue"
+    | "aminoAcid"
+    | "artificialColour"
+    | "artificialSweetner"
+    | "assay"
+    | "carbohydrate"
+    | "cholesterol"
+    | "crudeFiber"
+    | "dissolution"
+    | "energy"
+    | "fat"
+    | "fattyAcidProfile"
+    | "freeFattyAcid"
+    | "fsv"
+    | "lod"
+    | "moisture"
+    | "nots"
+    | "peroxideValue"
+    | "preservative"
+    | "protein"
+    | "residual_solvent"
+    | "roi"
+    | "saponificationValue"
+    | "sugar"
+    | "sulphated_ash"
+    | "sulphurDioxide"
+    | "titration"
+    | "unsapMatter"
+    | "uricAcid"
+    | "wsv"
+    | null;
 
 
     // ============================================================
     // STANDARD
     // ============================================================
 
-    assignedStandardId:
-        string | null;
+    assignedStandardId: string | null;
 
 
     // ============================================================
     // PREPARATION STEPS
     // ============================================================
 
-    steps:
-        any;
+    steps: any;
 
 
     // ============================================================
     // CONTENT
     // ============================================================
 
-    content:
-        any;
+    content: any;
 
 
     // ============================================================
     // PREPARATION COMPLETION
     // ============================================================
 
-    isPreparationCompleted?:
-        boolean;
+    isPreparationCompleted?: boolean;
 
-    completedAt?:
-        string | null;
+    completedAt?: string | null;
 }

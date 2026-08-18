@@ -70,6 +70,19 @@ interface Props {
     preservativeRef:
     React.RefObject<PreparationModuleHandle | null>;
 
+
+    // =====================================================
+    // MOISTURE
+    // =====================================================
+
+    moistureRef:
+    React.RefObject<PreparationModuleHandle | null>;
+
+
+    // =====================================================
+    // NOTS
+    // =====================================================
+
     notsRef:
     React.RefObject<PreparationModuleHandle | null>;
 
@@ -179,6 +192,8 @@ const ModuleRenderer: React.FC<Props> = ({
 
     preservativeRef,
 
+    moistureRef,
+
     notsRef,
 
     sulphurDioxideRef,
@@ -245,34 +260,37 @@ const ModuleRenderer: React.FC<Props> = ({
                                                     : moduleType === "preservative"
                                                         ? preservativeRef
 
-                                                        : moduleType === "nots"
-                                                            ? notsRef
+                                                        : moduleType === "moisture"
+                                                            ? moistureRef
 
-                                                            : moduleType === "sulphurDioxide"
-                                                                ? sulphurDioxideRef
+                                                            : moduleType === "nots"
+                                                                ? notsRef
 
-                                                                : moduleType === "cholesterol"
-                                                                    ? cholesterolRef
+                                                                : moduleType === "sulphurDioxide"
+                                                                    ? sulphurDioxideRef
 
-                                                                    : moduleType === "wsv"
-                                                                        ? wsvRef
+                                                                    : moduleType === "cholesterol"
+                                                                        ? cholesterolRef
 
-                                                                        : moduleType === "aminoAcid"
-                                                                            ? aminoAcidRef
+                                                                        : moduleType === "wsv"
+                                                                            ? wsvRef
 
-                                                                            : moduleType === "artificialColour"
-                                                                                ? artificialColourRef
+                                                                            : moduleType === "aminoAcid"
+                                                                                ? aminoAcidRef
 
-                                                                                : moduleType === "uricAcid"
-                                                                                    ? uricAcidRef
+                                                                                : moduleType === "artificialColour"
+                                                                                    ? artificialColourRef
 
-                                                                                    : moduleType === "fsv"
-                                                                                        ? fsvRef
+                                                                                    : moduleType === "uricAcid"
+                                                                                        ? uricAcidRef
 
-                                                                                        : moduleType === "fattyAcidProfile"
-                                                                                            ? fattyAcidProfileRef
+                                                                                        : moduleType === "fsv"
+                                                                                            ? fsvRef
 
-                                                                                            : lodRef;
+                                                                                            : moduleType === "fattyAcidProfile"
+                                                                                                ? fattyAcidProfileRef
+
+                                                                                                : lodRef;
 
 
     // =====================================================

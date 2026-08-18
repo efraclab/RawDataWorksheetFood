@@ -203,6 +203,23 @@ import {
 
 
 // ============================================================
+// MOISTURE
+// ============================================================
+
+import CalculationDetailMoisture
+    from "../modules/moisture/CalculationDetailMoisture";
+
+import SamplePreparationDetailMoisture
+    from "../modules/moisture/models/SamplePreparationDetailMoisture";
+
+import {
+    createCalculationMoisture,
+    createSamplePreparationMoisture,
+    restoreCalculationMoisture
+} from "../modules/moisture/factory";
+
+
+// ============================================================
 // NOTS
 // ============================================================
 
@@ -1226,6 +1243,67 @@ export const moduleRegistry: Record<
 
             w4:
                 "Preservative"
+
+        }
+
+    },
+
+
+    // ============================================================
+    // MOISTURE
+    // ============================================================
+
+    moisture: {
+
+        id:
+            "moisture",
+
+        title:
+            "Moisture Analysis",
+
+        shortName:
+            "Moisture",
+
+        icon:
+            "💧",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailMoisture,
+
+        calculationComponent:
+            CalculationDetailMoisture,
+
+        createCalculation:
+            createCalculationMoisture,
+
+        createSamplePreparation:
+            createSamplePreparationMoisture,
+
+        restoreCalculation:
+            restoreCalculationMoisture,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Moisture Details",
+
+            w1:
+                "Weight of Empty Dish",
+
+            w2:
+                "Weight of Sample + Dish",
+
+            drying:
+                "After Drying",
+
+            w3:
+                "Weight of Sample + Dish after Drying",
+
+            w4:
+                "Moisture"
 
         }
 

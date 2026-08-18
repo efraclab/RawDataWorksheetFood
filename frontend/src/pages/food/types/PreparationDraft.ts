@@ -21,7 +21,7 @@ import type { SulphurDioxideDraft } from "./SulphurDioxideDraft";
 import type { CholesterolDraft } from "./CholesterolDraft";
 import type { WsvDraft } from "./WsvDraft";
 import type { AminoAcidDraft } from "./AminoAcidDraft";
-
+import type { MoistureDraft } from "./MoistureDraft";
 
 
 export interface PreparationDraft {
@@ -73,4 +73,6 @@ export interface PreparationDraft {
     wsv?: WsvDraft;
 
     aminoAcid?: AminoAcidDraft;
+
+    moisture?: MoistureDraft;
 }

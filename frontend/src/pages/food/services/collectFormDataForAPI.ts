@@ -31,6 +31,18 @@ import {
 
 
 // ============================================================
+// MOISTURE
+// ============================================================
+
+import {
+    mapMoistureDraftToPreparations,
+    mapMoistureDraftToCalculations,
+    mapMoistureDraftToFiles
+} from "../mappers/moistureMapper";
+
+
+
+// ============================================================
 // FAT
 // ============================================================
 
@@ -815,6 +827,34 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapPreservativeDraftToFiles(
                             draft?.preservative
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // MOISTURE
+                // ========================================================
+
+                if (
+                    activeGroup === "moisture"
+                ) {
+
+                    preparations.push(
+                        ...mapMoistureDraftToPreparations(
+                            draft?.moisture
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapMoistureDraftToCalculations(
+                            draft?.moisture
+                        )
+                    );
+
+                    files.push(
+                        ...mapMoistureDraftToFiles(
+                            draft?.moisture
                         )
                     );
                 }

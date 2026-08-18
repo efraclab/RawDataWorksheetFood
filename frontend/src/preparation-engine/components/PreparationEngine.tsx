@@ -164,6 +164,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // MOISTURE REF
+        // ============================================================
+
+        const moistureRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // NOTS REF
         // ============================================================
 
@@ -627,6 +635,29 @@ const PreparationEngine =
 
                             preservative:
                                 preservativeRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // MOISTURE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "moisture"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            moisture:
+                                moistureRef.current
                                     ?.getDraft()
 
                         };
@@ -1170,6 +1201,23 @@ const PreparationEngine =
 
                         preservativeRef.current?.loadDraft(
                             draft.preservative
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // MOISTURE
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "moisture" &&
+                        draft.moisture
+                    ) {
+
+                        moistureRef.current?.loadDraft(
+                            draft.moisture
                         );
 
                     }
@@ -1720,6 +1768,28 @@ const PreparationEngine =
 
                         groups.push(
                             "preservative"
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // MOISTURE
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "moisture"
+                        )
+                    ) {
+
+                        groups.push(
+                            "moisture"
                         );
 
                     }
@@ -2325,6 +2395,31 @@ const PreparationEngine =
 
 
             // ========================================================
+            // MOISTURE
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "moisture" &&
+                moistureRef.current
+            ) {
+
+                moistureRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
+
+            // ========================================================
             // NOTS
             // ========================================================
 
@@ -2618,6 +2713,10 @@ const PreparationEngine =
 
                     preservativeRef={
                         preservativeRef
+                    }
+
+                    moistureRef={
+                        moistureRef
                     }
 
                     notsRef={

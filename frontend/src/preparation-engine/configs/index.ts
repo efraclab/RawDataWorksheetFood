@@ -21,6 +21,7 @@ import {sulphurDioxideConfig} from "./sulphurDioxideConfig"
 import {cholesterolConfig} from "./cholesterolConfig"
 import {wsvConfig} from "./wsvConfig"
 import {aminoAcidConfig} from "./aminoAcidConfig"
+import {moistureConfig} from "./moistureConfig"
 
 export const preparationConfigs = [
 
@@ -68,6 +69,8 @@ export const preparationConfigs = [
 
     wsvConfig,
 
-    aminoAcidConfig
+    aminoAcidConfig,
+
+    moistureConfig
 
 ];

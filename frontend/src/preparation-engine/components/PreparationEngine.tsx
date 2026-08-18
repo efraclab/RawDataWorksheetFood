@@ -124,6 +124,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // ACIDITY REF
+        // ============================================================
+
+        const acidityRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // SAPONIFICATION VALUE REF
         // ============================================================
 
@@ -520,6 +528,28 @@ const PreparationEngine =
 
                             acidValue:
                                 acidValueRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // ACIDITY
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "acidity"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            acidity:
+                                acidityRef.current
                                     ?.getDraft()
 
                         };
@@ -1122,6 +1152,22 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // ACIDITY
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "acidity" &&
+                        draft.acidity
+                    ) {
+
+                        acidityRef.current?.loadDraft(
+                            draft.acidity
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
                     // SAPONIFICATION VALUE
                     // ----------------------------------------------
 
@@ -1659,6 +1705,26 @@ const PreparationEngine =
                     ) {
 
                         groups.push("acidValue");
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // ACIDITY
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "acidity"
+                        )
+                    ) {
+
+                        groups.push("acidity");
 
                     }
 
@@ -2270,6 +2336,30 @@ const PreparationEngine =
 
 
             // ========================================================
+            // ACIDITY
+            // ========================================================
+
+            if (
+                activeGroup === "acidity" &&
+                acidityRef.current
+            ) {
+
+                acidityRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
+
+            // ========================================================
             // SAPONIFICATION VALUE
             // ========================================================
 
@@ -2693,6 +2783,10 @@ const PreparationEngine =
 
                     acidValueRef={
                         acidValueRef
+                    }
+
+                    acidityRef={
+                        acidityRef
                     }
 
                     saponificationValueRef={

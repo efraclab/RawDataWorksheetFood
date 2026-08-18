@@ -22,6 +22,7 @@ import {cholesterolConfig} from "./cholesterolConfig"
 import {wsvConfig} from "./wsvConfig"
 import {aminoAcidConfig} from "./aminoAcidConfig"
 import {moistureConfig} from "./moistureConfig"
+import {acidityConfig} from "./acidityConfig"
 
 export const preparationConfigs = [
 
@@ -71,6 +72,8 @@ export const preparationConfigs = [
 
     aminoAcidConfig,
 
-    moistureConfig
+    moistureConfig,
+
+    acidityConfig
 
 ];

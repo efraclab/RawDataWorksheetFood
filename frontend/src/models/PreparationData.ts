@@ -7,15 +7,15 @@ export interface PreparationData {
     // ============================================================
 
     preparationCategory:
-        | "blank"
-        | "buffer"
-        | "diluent"
-        | "dissolution_media"
-        | "mobile_phase"
-        | "parameter_file"
-        | "sample"
-        | "standard"
-        | "system_suitability";
+    | "blank"
+    | "buffer"
+    | "diluent"
+    | "dissolution_media"
+    | "mobile_phase"
+    | "parameter_file"
+    | "sample"
+    | "standard"
+    | "system_suitability";
 
 
     // ============================================================
@@ -23,6 +23,7 @@ export interface PreparationData {
     // ============================================================
 
     preparationType:
+    | "acidity"
     | "acidValue"
     | "aminoAcid"
     | "artificialColour"

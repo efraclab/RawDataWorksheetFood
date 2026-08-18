@@ -22,7 +22,7 @@ import type { CholesterolDraft } from "./CholesterolDraft";
 import type { WsvDraft } from "./WsvDraft";
 import type { AminoAcidDraft } from "./AminoAcidDraft";
 import type { MoistureDraft } from "./MoistureDraft";
-
+import type { AcidityDraft } from "./AcidityDraft";
 
 export interface PreparationDraft {
 
@@ -75,4 +75,6 @@ export interface PreparationDraft {
     aminoAcid?: AminoAcidDraft;
 
     moisture?: MoistureDraft;
+
+    acidity?: AcidityDraft;
 }

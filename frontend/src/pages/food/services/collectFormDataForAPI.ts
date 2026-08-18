@@ -131,6 +131,17 @@ import {
 
 
 // ============================================================
+// ACIDITY
+// ============================================================
+
+import {
+    mapAcidityDraftToPreparations,
+    mapAcidityDraftToCalculations,
+    mapAcidityDraftToFiles
+} from "../mappers/AcidityMapper";
+
+
+// ============================================================
 // SAPONIFICATION VALUE
 // ============================================================
 
@@ -687,6 +698,34 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapAcidValueDraftToFiles(
                             draft?.acidValue
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // ACIDITY
+                // ========================================================
+
+                if (
+                    activeGroup === "acidity"
+                ) {
+
+                    preparations.push(
+                        ...mapAcidityDraftToPreparations(
+                            draft?.acidity
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapAcidityDraftToCalculations(
+                            draft?.acidity
+                        )
+                    );
+
+                    files.push(
+                        ...mapAcidityDraftToFiles(
+                            draft?.acidity
                         )
                     );
                 }

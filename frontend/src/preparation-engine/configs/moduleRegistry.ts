@@ -390,6 +390,23 @@ import {
 
 
 // ============================================================
+ // ACIDITY
+ // ============================================================
+
+import CalculationDetailAcidity
+    from "../modules/acidity/CalculationDetailAcidity";
+
+import SamplePreparationDetailAcidity
+    from "../modules/acidity/models/SamplePreparationDetailAcidity";
+
+import {
+    createCalculationAcidity,
+    createSamplePreparationAcidity,
+    restoreCalculationAcidity
+} from "../modules/acidity/factory";
+
+
+// ============================================================
 // SAPONIFICATION VALUE
 // ============================================================
 
@@ -944,6 +961,63 @@ export const moduleRegistry: Record<
             w4:
                 "Acid Value"
         }
+    },
+
+
+    // ============================================================
+    // ACIDITY
+    // ============================================================
+
+    acidity: {
+
+        id: "acidity",
+
+        title: "Acidity Analysis",
+
+        shortName: "Acidity",
+
+        icon: "🧪",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailAcidity,
+
+        calculationComponent:
+            CalculationDetailAcidity,
+
+        createCalculation:
+            createCalculationAcidity,
+
+        createSamplePreparation:
+            createSamplePreparationAcidity,
+
+        restoreCalculation:
+            restoreCalculationAcidity,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Acidity Details",
+
+            w1:
+                "Sample Weight",
+
+            w2:
+                "Sample Titre Value",
+
+            drying:
+                "Normality",
+
+            w3:
+                "Factor",
+
+            w4:
+                "Acidity"
+
+        }
+
     },
 
 

@@ -24,6 +24,7 @@ export interface PreparationData {
 
     preparationType:
         | "assay"
+        | "aminoAcid"
         | "fat"
         | "fattyAcidProfile"
         | "residual_solvent"

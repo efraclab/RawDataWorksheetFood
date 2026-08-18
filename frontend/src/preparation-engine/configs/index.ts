@@ -20,7 +20,7 @@ import {fattyAcidProfileConfig} from "./fattyAcidProfileConfig"
 import {sulphurDioxideConfig} from "./sulphurDioxideConfig"
 import {cholesterolConfig} from "./cholesterolConfig"
 import {wsvConfig} from "./wsvConfig"
-
+import {aminoAcidConfig} from "./aminoAcidConfig"
 
 export const preparationConfigs = [
 
@@ -66,6 +66,8 @@ export const preparationConfigs = [
 
     cholesterolConfig,
 
-    wsvConfig
+    wsvConfig,
+
+    aminoAcidConfig
 
 ];

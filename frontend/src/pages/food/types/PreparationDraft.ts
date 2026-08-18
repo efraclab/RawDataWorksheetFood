@@ -20,6 +20,7 @@ import type { FattyAcidProfileDraft } from "./FattyAcidProfileDraft";
 import type { SulphurDioxideDraft } from "./SulphurDioxideDraft";
 import type { CholesterolDraft } from "./CholesterolDraft";
 import type { WsvDraft } from "./WsvDraft";
+import type { AminoAcidDraft } from "./AminoAcidDraft";
 
 
 
@@ -70,4 +71,6 @@ export interface PreparationDraft {
     cholesterol?: CholesterolDraft;
 
     wsv?: WsvDraft;
+
+    aminoAcid?: AminoAcidDraft;
 }

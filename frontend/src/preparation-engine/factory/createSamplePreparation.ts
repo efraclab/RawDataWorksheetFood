@@ -1466,6 +1466,183 @@ export const createSamplePreparation = (
 
 
     // =====================================================
+    // AMINO ACID ON PROTEIN BASIS
+    // =====================================================
+
+    if (parameterType === "aminoAcid") {
+
+        return {
+
+            id:
+                Date.now() + index,
+
+            label:
+                `Sample Preparation ${index + 1}`,
+
+            steps: [
+
+                // =================================================
+                // 1. SAMPLE AREA
+                // Excel unit = "-"
+                // =================================================
+
+                {
+                    name:
+                        "Sample Area",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "-",
+
+                    logBookID:
+                        ""
+                },
+
+                // =================================================
+                // 2. STANDARD CONC.
+                // Excel unit = "mg/L"
+                // =================================================
+
+                {
+                    name:
+                        "Standard Conc.",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "mg/L",
+
+                    logBookID:
+                        ""
+                },
+
+                // =================================================
+                // 3. SAMPLE DILUTION FACTOR
+                // Excel unit = "-"
+                // =================================================
+
+                {
+                    name:
+                        "Sample Dilution Factor",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "-",
+
+                    logBookID:
+                        ""
+                },
+
+                // =================================================
+                // 4. PURITY
+                // Excel unit = "%"
+                // =================================================
+
+                {
+                    name:
+                        "Purity",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "%",
+
+                    logBookID:
+                        ""
+                },
+
+                // =================================================
+                // 5. STANDARD AREA
+                // Excel unit is blank.
+                // Keep unit1 empty so the unit dropdown is hidden.
+                // =================================================
+
+                {
+                    name:
+                        "Standard Area",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "",
+
+                    logBookID:
+                        ""
+                },
+
+                // =================================================
+                // 6. WEIGHT OF SAMPLE IN G
+                // Excel unit = "g"
+                // =================================================
+
+                {
+                    name:
+                        "Weight Of Sample in g",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "g",
+
+                    logBookID:
+                        ""
+                },
+
+                // =================================================
+                // 7. PROTEIN
+                // Excel unit = "%"
+                // =================================================
+
+                {
+                    name:
+                        "Protein",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "%",
+
+                    logBookID:
+                        ""
+                },
+
+                // =================================================
+                // 8. SAMPLE VOLUME
+                // Excel unit is blank.
+                // Keep unit1 empty so the unit dropdown is hidden.
+                // =================================================
+
+                {
+                    name:
+                        "Sample Volume",
+
+                    value1:
+                        "",
+
+                    unit1:
+                        "",
+
+                    logBookID:
+                        ""
+                }
+
+            ],
+
+        };
+
+    }
+
+
+    // =====================================================
     // FSV (A, D, E, K)
     // =====================================================
 

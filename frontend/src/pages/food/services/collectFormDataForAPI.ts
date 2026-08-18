@@ -217,6 +217,17 @@ import {
 } from "../mappers/wsvMapper";
 
 
+
+// ============================================================
+// AMINO ACID ON PROTEIN BASIS
+// ============================================================
+
+import {
+    mapAminoAcidDraftToPreparations,
+    mapAminoAcidDraftToCalculations,
+    mapAminoAcidDraftToFiles
+} from "../mappers/aminoAcidMapper";
+
 // ============================================================
 // ARTIFICIAL COLOUR
 // ============================================================
@@ -916,6 +927,35 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapWsvDraftToFiles(
                             draft?.wsv
+                        )
+                    );
+                }
+
+
+
+                // ========================================================
+                // AMINO ACID ON PROTEIN BASIS
+                // ========================================================
+
+                if (
+                    activeGroup === "aminoAcid"
+                ) {
+
+                    preparations.push(
+                        ...mapAminoAcidDraftToPreparations(
+                            draft?.aminoAcid
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapAminoAcidDraftToCalculations(
+                            draft?.aminoAcid
+                        )
+                    );
+
+                    files.push(
+                        ...mapAminoAcidDraftToFiles(
+                            draft?.aminoAcid
                         )
                     );
                 }

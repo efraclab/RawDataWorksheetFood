@@ -196,6 +196,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // AMINO ACID REF
+        // ============================================================
+
+        const aminoAcidRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // ARTIFICIAL COLOUR REF
         // ============================================================
 
@@ -719,6 +727,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // AMINO ACID
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "aminoAcid"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            aminoAcid:
+                                aminoAcidRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // ARTIFICIAL COLOUR
                     // ----------------------------------------------
 
@@ -1211,6 +1242,23 @@ const PreparationEngine =
 
                     }
 
+
+                    // ----------------------------------------------
+                    // AMINO ACID
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "aminoAcid" &&
+                        draft.aminoAcid
+                    ) {
+
+                        aminoAcidRef.current?.loadDraft(
+                            draft.aminoAcid
+                        );
+
+                    }
+
                 },
 
 
@@ -1360,6 +1408,28 @@ const PreparationEngine =
 
                         groups.push(
                             "wsv"
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // AMINO ACID
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "aminoAcid"
+                        )
+                    ) {
+
+                        groups.push(
+                            "aminoAcid"
                         );
 
                     }
@@ -1885,6 +1955,31 @@ const PreparationEngine =
             ) {
 
                 wsvRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
+
+            // ========================================================
+            // AMINO ACID
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "aminoAcid" &&
+                aminoAcidRef.current
+            ) {
+
+                aminoAcidRef.current
                     .restoreFromWorksheet(
                         pendingRestore.current
                     );
@@ -2539,6 +2634,10 @@ const PreparationEngine =
 
                     wsvRef={
                         wsvRef
+                    }
+
+                    aminoAcidRef={
+                        aminoAcidRef
                     }
 
                     artificialColourRef={

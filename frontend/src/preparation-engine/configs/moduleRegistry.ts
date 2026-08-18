@@ -271,6 +271,23 @@ import {
 
 
 // ============================================================
+// AMINO ACID
+// ============================================================
+
+import CalculationDetailAminoAcid
+    from "../modules/amino-acid/CalculationDetailAminoAcid";
+
+import SamplePreparationDetailAminoAcid
+    from "../modules/amino-acid/models/SamplePreparationDetailAminoAcid";
+
+import {
+    createCalculationAminoAcid,
+    createSamplePreparationAminoAcid,
+    restoreCalculationAminoAcid
+} from "../modules/amino-acid/factory";
+
+
+// ============================================================
 // ARTIFICIAL COLOUR
 // ============================================================
 
@@ -1453,6 +1470,67 @@ export const moduleRegistry: Record<
 
             w4:
                 "Purity"
+
+        }
+
+    },
+
+
+    // ============================================================
+    // AMINO ACID
+    // ============================================================
+
+    aminoAcid: {
+
+        id:
+            "aminoAcid",
+
+        title:
+            "Amino Acid Analysis",
+
+        shortName:
+            "Amino Acid",
+
+        icon:
+            "🧬",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailAminoAcid,
+
+        calculationComponent:
+            CalculationDetailAminoAcid,
+
+        createCalculation:
+            createCalculationAminoAcid,
+
+        createSamplePreparation:
+            createSamplePreparationAminoAcid,
+
+        restoreCalculation:
+            restoreCalculationAminoAcid,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Amino Acid Details",
+
+            w1:
+                "Sample Area",
+
+            w2:
+                "Standard Conc.",
+
+            drying:
+                "Sample Dilution Factor",
+
+            w3:
+                "Purity",
+
+            w4:
+                "Standard Area"
 
         }
 

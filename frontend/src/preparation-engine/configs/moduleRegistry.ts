@@ -254,6 +254,23 @@ import {
 
 
 // ============================================================
+// WSV (WATER SOLUBLE VITAMIN)
+// ============================================================
+
+import CalculationDetailWsv
+    from "../modules/wsv/CalculationDetailWsv";
+
+import SamplePreparationDetailWsv
+    from "../modules/wsv/models/SamplePreparationDetailWsv";
+
+import {
+    createCalculationWsv,
+    createSamplePreparationWsv,
+    restoreCalculationWsv
+} from "../modules/wsv/factory";
+
+
+// ============================================================
 // ARTIFICIAL COLOUR
 // ============================================================
 
@@ -1360,6 +1377,67 @@ export const moduleRegistry: Record<
 
             details:
                 "Sample Preparation for Cholesterol Details",
+
+            w1:
+                "Sample wt",
+
+            w2:
+                "Volume",
+
+            drying:
+                "Instrument Conc",
+
+            w3:
+                "Dilution Factor",
+
+            w4:
+                "Purity"
+
+        }
+
+    },
+
+
+    // ============================================================
+    // WSV (WATER SOLUBLE VITAMIN)
+    // ============================================================
+
+    wsv: {
+
+        id:
+            "wsv",
+
+        title:
+            "WSV Analysis",
+
+        shortName:
+            "WSV",
+
+        icon:
+            "💊",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailWsv,
+
+        calculationComponent:
+            CalculationDetailWsv,
+
+        createCalculation:
+            createCalculationWsv,
+
+        createSamplePreparation:
+            createSamplePreparationWsv,
+
+        restoreCalculation:
+            restoreCalculationWsv,
+
+        labels: {
+
+            details:
+                "Sample Preparation for WSV Details",
 
             w1:
                 "Sample wt",

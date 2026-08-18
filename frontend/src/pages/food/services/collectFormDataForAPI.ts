@@ -207,6 +207,17 @@ import {
 
 
 // ============================================================
+// WSV (WATER SOLUBLE VITAMIN)
+// ============================================================
+
+import {
+    mapWsvDraftToPreparations,
+    mapWsvDraftToCalculations,
+    mapWsvDraftToFiles
+} from "../mappers/wsvMapper";
+
+
+// ============================================================
 // ARTIFICIAL COLOUR
 // ============================================================
 
@@ -877,6 +888,34 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapCholesterolDraftToFiles(
                             draft?.cholesterol
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // WSV (WATER SOLUBLE VITAMIN)
+                // ========================================================
+
+                if (
+                    activeGroup === "wsv"
+                ) {
+
+                    preparations.push(
+                        ...mapWsvDraftToPreparations(
+                            draft?.wsv
+                        )
+                    );
+
+                    calculations.push(
+                        ...mapWsvDraftToCalculations(
+                            draft?.wsv
+                        )
+                    );
+
+                    files.push(
+                        ...mapWsvDraftToFiles(
+                            draft?.wsv
                         )
                     );
                 }

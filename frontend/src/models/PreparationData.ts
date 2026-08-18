@@ -50,6 +50,7 @@ export interface PreparationData {
         | "sulphurDioxide"
         | "cholesterol"
         | "titration"
+        | "wsv"
         | null;
 
 

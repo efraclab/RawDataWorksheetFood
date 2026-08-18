@@ -188,6 +188,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // WSV REF
+        // ============================================================
+
+        const wsvRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // ARTIFICIAL COLOUR REF
         // ============================================================
 
@@ -688,6 +696,29 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // WSV
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "wsv"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            wsv:
+                                wsvRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
                     // ARTIFICIAL COLOUR
                     // ----------------------------------------------
 
@@ -1163,6 +1194,23 @@ const PreparationEngine =
 
                     }
 
+
+                    // ----------------------------------------------
+                    // WSV
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup ===
+                        "wsv" &&
+                        draft.wsv
+                    ) {
+
+                        wsvRef.current?.loadDraft(
+                            draft.wsv
+                        );
+
+                    }
+
                 },
 
 
@@ -1290,6 +1338,28 @@ const PreparationEngine =
 
                         groups.push(
                             "cholesterol"
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // WSV
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "wsv"
+                        )
+                    ) {
+
+                        groups.push(
+                            "wsv"
                         );
 
                     }
@@ -1790,6 +1860,31 @@ const PreparationEngine =
             ) {
 
                 cholesterolRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
+
+            // ========================================================
+            // WSV
+            // ========================================================
+
+            if (
+                activeGroup ===
+                "wsv" &&
+                wsvRef.current
+            ) {
+
+                wsvRef.current
                     .restoreFromWorksheet(
                         pendingRestore.current
                     );
@@ -2440,6 +2535,10 @@ const PreparationEngine =
 
                     cholesterolRef={
                         cholesterolRef
+                    }
+
+                    wsvRef={
+                        wsvRef
                     }
 
                     artificialColourRef={

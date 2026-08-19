@@ -1,6 +1,8 @@
 import React from "react";
 import { BiTestTube } from "react-icons/bi";
 
+import { moduleRegistry } from "../../../configs/moduleRegistry";
+
 interface Props {
     sampleCount: number;
     parameterType?: string | null;
@@ -11,28 +13,24 @@ const LODHeader: React.FC<Props> = ({
     parameterType
 }) => {
 
-    const type = String(parameterType ?? "lod").toLowerCase();
+    const type =
+        String(parameterType ?? "lod");
 
-    let title: string;
-    let description: string;
+    const moduleConfig =
+        moduleRegistry[
+            type as keyof typeof moduleRegistry
+        ];
 
-    switch (type) {
+    const parameterTitle =
+        moduleConfig?.shortName ??
+        type;
 
-        case "lod":
-            title = "LOD Analysis";
-            description = "Loss on Drying • Sample & Calculations";
-            break;
+    const title =
+        moduleConfig?.title ??
+        `${parameterTitle} Analysis`;
 
-        case "fat":
-            title = "FAT Analysis";
-            description = "Fat • Sample & Calculations";
-            break;
-
-        default:
-            title = `${type.toUpperCase()} Analysis`;
-            description = `${type.toUpperCase()} • Sample & Calculations`;
-            break;
-    }
+    const description =
+        `${parameterTitle} • Sample & Calculations`;
 
     return (
         <div className="px-6 py-5 bg-gradient-to-r from-white via-white to-emerald-50">

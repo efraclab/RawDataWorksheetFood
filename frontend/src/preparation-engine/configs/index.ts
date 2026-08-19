@@ -28,58 +28,58 @@ import {dietaryFiberConfig} from "./dietaryFiberConfig"
 
 export const preparationConfigs = [
 
-    lodConfig,
-
-    fatConfig,
-
-    proteinConfig,
-
-    sugarConfig,
-
-    energyConfig,
-
-    carbohydrateConfig,
-
-    crudeFiberConfig,
-
-    peroxideValueConfig,
+    acidityConfig,
 
     acidValueConfig,
 
-    saponificationValueConfig,
-
-    freeFattyAcidConfig,
-
-    unsapMatterConfig,
-
-    artificialSweetnerConfig,
-
-    preservativeConfig,
-
-    notsConfig,
+    aminoAcidConfig,
 
     artificialColourConfig,
 
-    uricAcidConfig,
+    artificialSweetnerConfig,
 
-    fsvConfig,
-
-    fattyAcidProfileConfig,
-
-    sulphurDioxideConfig,
+    carbohydrateConfig,
 
     cholesterolConfig,
 
-    wsvConfig,
+    crudeFiberConfig,
 
-    aminoAcidConfig,
+    dietaryFiberConfig,
+
+    energyConfig,
+
+    fatConfig,
+
+    fattyAcidProfileConfig,
+
+    freeFattyAcidConfig,
+
+    fsvConfig,
+
+    lodConfig,
 
     moistureConfig,
 
-    acidityConfig,
+    notsConfig,
+
+    preservativeConfig,
+
+    peroxideValueConfig,
+
+    proteinConfig,
+
+    saponificationValueConfig,
+
+    sugarConfig,
 
     sugarSaponinCatechinProfileConfig,
 
-    dietaryFiberConfig
+    sulphurDioxideConfig,
+
+    unsapMatterConfig,
+
+    uricAcidConfig,
+
+    wsvConfig
 
 ];

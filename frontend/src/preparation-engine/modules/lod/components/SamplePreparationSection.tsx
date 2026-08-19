@@ -6,13 +6,9 @@ import type { SamplePreparationLodStep } from "../models/SamplePreparationLodSte
 
 interface Props {
     samplePreparations: SamplePreparationLod[];
-
     role: string;
-
     onAdd: () => void;
-
     onRemove: (samplePreparationId: number) => void;
-
     onStepChange: (
         samplePreparationId: number,
         stepName: SamplePreparationLodStep["name"],
@@ -34,34 +30,28 @@ const SamplePreparationSection: React.FC<Props> = ({
 }) => {
     const moduleConfig =
         moduleRegistry[
-        parameterType as keyof typeof moduleRegistry
+            parameterType as keyof typeof moduleRegistry
         ];
 
+    const parameterTitle =
+        moduleConfig?.shortName ?? parameterType;
+
     const SamplePreparationComponent =
-        moduleRegistry[
-            parameterType as keyof typeof moduleRegistry
-        ]?.samplePreparationComponent;
+        moduleConfig?.samplePreparationComponent;
+
+    if (!moduleConfig || !SamplePreparationComponent)
+        return null;
 
     return (
-
         <div className="p-6">
-
-            {/* Section Header */}
 
             <div className="flex items-center justify-between mb-6">
 
                 <div className="flex items-center gap-3">
-
-                    {/* Vertical Emerald Bar */}
-
-                    {/* <div className="w-1.5 h-6 rounded-full bg-emerald-800" /> */}
-
                     <h3 className="text-lg font-bold text-emerald-800 flex items-center gap-2.5 tracking-tight">
                         <span className="w-1.5 h-6 bg-gradient-to-b from-emerald-700 to-emerald-900 rounded-full"></span>
-                        Sample Preparations for {parameterType.toUpperCase()}
+                        Sample Preparations for {parameterTitle}
                     </h3>
-
-
                 </div>
 
                 <button
@@ -83,14 +73,11 @@ const SamplePreparationSection: React.FC<Props> = ({
                             ? "opacity-50 cursor-not-allowed hover:bg-emerald-600"
                             : ""
                         }
-                        `}
+                    `}
                 >
                     + Add Preparation
                 </button>
-
             </div>
-
-            {/* Empty State */}
 
             {samplePreparations.length === 0 ? (
                 <EmptySamplePreparation
@@ -98,38 +85,22 @@ const SamplePreparationSection: React.FC<Props> = ({
                     parameterType={parameterType}
                 />
             ) : (
-
                 <div className="space-y-5">
                     {samplePreparations.map(preparation => (
-
                         <SamplePreparationComponent
-
                             key={preparation.id}
-
                             samplePreparation={preparation}
-
                             role={role}
-
                             isLocked={isLocked}
-
                             onRemove={() => onRemove(preparation.id)}
-
                             onStepChange={onStepChange}
-
                             parameterType={parameterType}
-
                         />
-
                     ))}
-
                 </div>
-
             )}
-
         </div>
-
     );
-
 };
 
 export default SamplePreparationSection;

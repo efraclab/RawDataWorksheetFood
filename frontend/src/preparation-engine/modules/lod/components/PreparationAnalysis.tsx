@@ -72,6 +72,15 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
 
     const [isUnlocking, setIsUnlocking] = useState(false);
 
+    // Display-only name from module registry.
+    // parameterType itself remains unchanged for all internal logic.
+    const parameterTitle =
+        moduleRegistry[
+            parameterType as keyof typeof moduleRegistry
+        ]?.shortName ??
+        parameterType ??
+        "Sample";
+
     const [samplePreparations, setSamplePreparations] =
         useState<SamplePreparationLod[]>([]);
 
@@ -169,7 +178,7 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
         setToastType("success");
 
         setToastMessage(
-            `${parameterType.toUpperCase()} preparation marked as complete!`
+            `${parameterTitle} preparation marked as complete!`
         );
 
         setShowToast(true);
@@ -199,7 +208,7 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
             setToastType("success");
 
             setToastMessage(
-                `${parameterType.toUpperCase()} preparation unlocked successfully.`
+                `${parameterTitle} preparation unlocked successfully.`
             );
 
             setShowToast(true);

@@ -1,5 +1,6 @@
 import React from "react";
 import { AlertCircle, Lock } from "lucide-react";
+import { moduleRegistry } from "../../../configs/moduleRegistry";
 
 interface Props {
     completed: boolean;
@@ -16,38 +17,18 @@ const PreparationCompleteSection: React.FC<Props> = ({
     onUnlock,
     parameterType,
 }) => {
-
-    // ============================================================
-    // PARAMETER DISPLAY NAME
-    // ============================================================
-
-    const parameterTitleMap: Record<string, string> = {
-        lod: "LOD",
-        fat: "Fat",
-        protein: "Protein",
-        sugar: "Sugar",
-    };
+    const moduleConfig =
+        moduleRegistry[
+            parameterType as keyof typeof moduleRegistry
+        ];
 
     const parameterTitle =
-        parameterTitleMap[
-            parameterType?.toLowerCase()
-        ] ??
-        (
-            parameterType
-                ? parameterType.charAt(0).toUpperCase() +
-                  parameterType.slice(1)
-                : "Sample"
-        );
-
-
-    // ============================================================
-    // COMPLETED
-    // ============================================================
+        moduleConfig?.shortName ??
+        parameterType ??
+        "Sample";
 
     if (completed) {
-
         return (
-
             <div
                 className="
                     mx-6
@@ -60,16 +41,9 @@ const PreparationCompleteSection: React.FC<Props> = ({
                     py-3
                 "
             >
-
                 <div className="flex items-center justify-between">
 
-                    {/* ==================================================
-                        LEFT SIDE
-                    ================================================== */}
-
                     <div className="flex items-center gap-3">
-
-                        {/* Success Icon */}
 
                         <div
                             className="
@@ -83,32 +57,22 @@ const PreparationCompleteSection: React.FC<Props> = ({
                                 justify-center
                             "
                         >
-
                             <svg
                                 className="w-3.5 h-3.5 text-white"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
                             >
-
                                 <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2.8}
                                     d="M5 13l4 4L19 7"
                                 />
-
                             </svg>
-
                         </div>
 
-
-                        {/* ==================================================
-                            TEXT
-                        ================================================== */}
-
                         <div>
-
                             <p
                                 className="
                                     text-sm
@@ -116,11 +80,8 @@ const PreparationCompleteSection: React.FC<Props> = ({
                                     text-emerald-800
                                 "
                             >
-
                                 {parameterTitle} Preparation Completed
-
                             </p>
-
 
                             <p
                                 className="
@@ -128,24 +89,14 @@ const PreparationCompleteSection: React.FC<Props> = ({
                                     text-emerald-600
                                 "
                             >
-
                                 Completed at{" "}
-
                                 {completedAt
                                     ? completedAt.toLocaleString()
                                     : "-"
                                 }
-
                             </p>
-
                         </div>
-
                     </div>
-
-
-                    {/* ==================================================
-                        UNLOCK BUTTON
-                    ================================================== */}
 
                     <button
                         type="button"
@@ -167,14 +118,12 @@ const PreparationCompleteSection: React.FC<Props> = ({
                             transition-colors
                         "
                     >
-
                         <svg
                             className="w-3.5 h-3.5"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
                         >
-
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -187,33 +136,16 @@ const PreparationCompleteSection: React.FC<Props> = ({
                                     a2 2 0 002 2z
                                 "
                             />
-
                         </svg>
-
                         Unlock Preparation
-
                     </button>
-
                 </div>
-
             </div>
-
         );
-
     }
 
-
-    // ============================================================
-    // NOT COMPLETED
-    // ============================================================
-
     return (
-
         <div className="mx-6 mb-6">
-
-            {/* ======================================================
-                COMPLETE BUTTON
-            ====================================================== */}
 
             <button
                 type="button"
@@ -239,17 +171,9 @@ const PreparationCompleteSection: React.FC<Props> = ({
                     transition-all
                 "
             >
-
                 <Lock className="w-4 h-4" />
-
                 Mark {parameterTitle} Preparation as Complete
-
             </button>
-
-
-            {/* ======================================================
-                WARNING
-            ====================================================== */}
 
             <div
                 className="
@@ -264,7 +188,6 @@ const PreparationCompleteSection: React.FC<Props> = ({
                     p-4
                 "
             >
-
                 <AlertCircle
                     className="
                         mt-0.5
@@ -275,7 +198,6 @@ const PreparationCompleteSection: React.FC<Props> = ({
                 />
 
                 <div>
-
                     <p
                         className="
                             text-sm
@@ -283,20 +205,13 @@ const PreparationCompleteSection: React.FC<Props> = ({
                             text-amber-900
                         "
                     >
-
                         Complete preparation above to unlock
                         the Calculations section.
-
                     </p>
-
                 </div>
-
             </div>
-
         </div>
-
     );
-
 };
 
 export default PreparationCompleteSection;

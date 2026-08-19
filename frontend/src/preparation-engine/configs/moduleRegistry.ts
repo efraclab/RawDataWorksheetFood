@@ -118,6 +118,23 @@ import {
 
 
 // ============================================================
+// DIETARY FIBER
+// ============================================================
+
+import CalculationDetailDietaryFiber
+    from "../modules/dietary-fiber/CalculationDetailDietaryFiber";
+
+import SamplePreparationDetailDietaryFiber
+    from "../modules/dietary-fiber/models/SamplePreparationDetailDietaryFiber";
+
+import {
+    createCalculationDietaryFiber,
+    createSamplePreparationDietaryFiber,
+    restoreCalculationDietaryFiber
+} from "../modules/dietary-fiber/factory";
+
+
+// ============================================================
 // PEROXIDE VALUE
 // ============================================================
 
@@ -868,6 +885,67 @@ export const moduleRegistry: Record<
             w4:
                 "Crude Fiber"
         }
+    },
+
+
+    // ============================================================
+    // DIETARY FIBER
+    // ============================================================
+
+    dietaryFiber: {
+
+        id:
+            "dietaryFiber",
+
+        title:
+            "Dietary Fiber Analysis",
+
+        shortName:
+            "Dietary Fiber",
+
+        icon:
+            "🌾",
+
+        analysisComponent:
+            PreparationAnalysis,
+
+        samplePreparationComponent:
+            SamplePreparationDetailDietaryFiber,
+
+        calculationComponent:
+            CalculationDetailDietaryFiber,
+
+        createCalculation:
+            createCalculationDietaryFiber,
+
+        createSamplePreparation:
+            createSamplePreparationDietaryFiber,
+
+        restoreCalculation:
+            restoreCalculationDietaryFiber,
+
+        labels: {
+
+            details:
+                "Sample Preparation for Dietary Fiber Details",
+
+            w1:
+                "Wt of Spl (g) W1",
+
+            w2:
+                "Wt of Spl (g) W2",
+
+            drying:
+                "Avg Spl wt(g)",
+
+            w3:
+                "Avg Residue wt(g)",
+
+            w4:
+                "Dietary Fiber"
+
+        }
+
     },
 
 

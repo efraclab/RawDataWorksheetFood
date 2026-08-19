@@ -120,6 +120,17 @@ import {
 
 
 // ============================================================
+// DIETARY FIBER
+// ============================================================
+
+import {
+    mapDietaryFiberDraftToPreparations,
+    mapDietaryFiberDraftToCalculations,
+    mapDietaryFiberDraftToFiles
+} from "../mappers/dietaryFiberMapper";
+
+
+// ============================================================
 // PEROXIDE VALUE
 // ============================================================
 
@@ -679,6 +690,266 @@ export function collectFormDataForAPI({
                     files.push(
                         ...mapCrudeFiberDraftToFiles(
                             draft?.crudeFiber
+                        )
+                    );
+                }
+
+
+                // ========================================================
+                // DIETARY FIBER
+                // ========================================================
+
+                if (
+                    activeGroup === "dietaryFiber"
+                ) {
+
+                    const dietaryFiberDraft =
+                        draft?.dietaryFiber;
+
+                    const mappedPreparations =
+                        mapDietaryFiberDraftToPreparations(
+                            dietaryFiberDraft
+                        );
+
+                    // --------------------------------------------------------
+                    // Normalize the actual draft steps before sending them
+                    // to the API. The mapped preparation is kept for its
+                    // normal metadata, while the step values come directly
+                    // from the current UI draft.
+                    //
+                    // This is what guarantees that "Ash" (%) is included
+                    // in Save Draft and therefore survives browser reload.
+                    // --------------------------------------------------------
+
+                    const normalizeStepName =
+                        (value: any) =>
+                            String(value ?? "")
+                                .trim()
+                                .toLowerCase()
+                                .replace(
+                                    /\s+/g,
+                                    " "
+                                );
+
+                    const dietaryFiberStepOrder = [
+                        {
+                            name: "Wt of Spl (g) W1",
+                            aliases: [
+                                "wt of spl (g) w1"
+                            ],
+                            unit: "g"
+                        },
+                        {
+                            name: "Wt of Spl (g) W2",
+                            aliases: [
+                                "wt of spl (g) w2"
+                            ],
+                            unit: "g"
+                        },
+                        {
+                            name:
+                                "Empty wt of crucible(g) W1",
+                            aliases: [
+                                "empty wt of crucible(g) w1"
+                            ],
+                            unit: "g"
+                        },
+                        {
+                            name:
+                                "Empty wt of crucible(g) W2",
+                            aliases: [
+                                "empty wt of crucible(g) w2"
+                            ],
+                            unit: "g"
+                        },
+                        {
+                            name:
+                                "Crucible + Residue (g) W1",
+                            aliases: [
+                                "crucible + residue (g) w1"
+                            ],
+                            unit: "g"
+                        },
+                        {
+                            name:
+                                "Crucible + Residue (g) W2",
+                            aliases: [
+                                "crucible + residue (g) w2"
+                            ],
+                            unit: "g"
+                        },
+                        {
+                            name:
+                                "After Ashing(g)",
+                            aliases: [
+                                "after ashing(g)",
+                                "after ashing (g)",
+                                "after ashing"
+                            ],
+                            unit: "g"
+                        },
+                        {
+                            name:
+                                "Ash",
+                            aliases: [
+                                "ash",
+                                "% ash",
+                                "ash %",
+                                "ash percentage"
+                            ],
+                            unit: "%"
+                        },
+                        {
+                            name:
+                                "Spl T.V(ml)",
+                            aliases: [
+                                "spl t.v(ml)"
+                            ],
+                            unit: "ml"
+                        },
+                        {
+                            name:
+                                "Blk T.V(ml)",
+                            aliases: [
+                                "blk t.v(ml)"
+                            ],
+                            unit: "ml"
+                        },
+                        {
+                            name:
+                                "Normality",
+                            aliases: [
+                                "normality"
+                            ],
+                            unit: "N"
+                        },
+                        {
+                            name:
+                                "Blank Wt",
+                            aliases: [
+                                "blank wt"
+                            ],
+                            unit: "g"
+                        }
+                    ];
+
+                    const sourcePreparations =
+                        dietaryFiberDraft
+                            ?.samplePreparations ??
+                        [];
+
+                    const normalizedPreparations =
+                        mappedPreparations.map(
+                            mappedPreparation => {
+
+                                const sourcePreparation =
+                                    sourcePreparations.find(
+                                        (source: any) =>
+                                            source?.label ===
+                                            mappedPreparation?.label
+                                    );
+
+                                if (
+                                    !sourcePreparation
+                                ) {
+                                    return mappedPreparation;
+                                }
+
+                                const sourceSteps =
+                                    Array.isArray(
+                                        sourcePreparation.steps
+                                    )
+                                        ? sourcePreparation.steps
+                                        : [];
+
+                                const used =
+                                    new Set<number>();
+
+                                const normalizedSteps =
+                                    dietaryFiberStepOrder.map(
+                                        definition => {
+
+                                            const foundIndex =
+                                                sourceSteps.findIndex(
+                                                    (
+                                                        step: any,
+                                                        index: number
+                                                    ) =>
+                                                        !used.has(
+                                                            index
+                                                        ) &&
+                                                        (
+                                                            definition
+                                                                .aliases
+                                                                .includes(
+                                                                    normalizeStepName(
+                                                                        step?.name
+                                                                    )
+                                                                )
+                                                        )
+                                                );
+
+                                            if (
+                                                foundIndex >= 0
+                                            ) {
+
+                                                used.add(
+                                                    foundIndex
+                                                );
+
+                                                const found =
+                                                    sourceSteps[
+                                                        foundIndex
+                                                    ];
+
+                                                return {
+                                                    ...found,
+                                                    name:
+                                                        definition.name,
+                                                    unit1:
+                                                        definition.unit
+                                                };
+
+                                            }
+
+                                            return {
+                                                name:
+                                                    definition.name,
+                                                value1:
+                                                    "",
+                                                unit1:
+                                                    definition.unit,
+                                                logBookID:
+                                                    ""
+                                            };
+
+                                        }
+                                    );
+
+                                return {
+                                    ...mappedPreparation,
+                                    steps:
+                                        JSON.stringify(
+                                            normalizedSteps
+                                        )
+                                };
+
+                            }
+                        );
+
+                    preparations.push(
+                        ...normalizedPreparations
+                    );
+
+                    calculations.push(
+                        ...mapDietaryFiberDraftToCalculations(
+                            dietaryFiberDraft
+                        )
+                    );
+
+                    files.push(
+                        ...mapDietaryFiberDraftToFiles(
+                            dietaryFiberDraft
                         )
                     );
                 }

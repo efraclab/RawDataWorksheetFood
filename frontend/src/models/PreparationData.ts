@@ -32,6 +32,7 @@ export interface PreparationData {
     | "carbohydrate"
     | "cholesterol"
     | "crudeFiber"
+    | "dietaryFiber"
     | "dissolution"
     | "energy"
     | "fat"

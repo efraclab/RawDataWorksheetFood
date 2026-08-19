@@ -49,6 +49,13 @@ interface Props {
     crudeFiberRef:
     React.RefObject<PreparationModuleHandle | null>;
 
+    // =====================================================
+    // DIETARY FIBER
+    // =====================================================
+
+    dietaryFiberRef:
+    React.RefObject<PreparationModuleHandle | null>;
+
     peroxideValueRef:
     React.RefObject<PreparationModuleHandle | null>;
 
@@ -192,6 +199,8 @@ const ModuleRenderer: React.FC<Props> = ({
 
     crudeFiberRef,
 
+    dietaryFiberRef,
+
     peroxideValueRef,
 
     acidValueRef,
@@ -256,6 +265,9 @@ const ModuleRenderer: React.FC<Props> = ({
 
                         : moduleType === "crudeFiber"
                             ? crudeFiberRef
+
+                            : moduleType === "dietaryFiber"
+                                ? dietaryFiberRef
 
                             : moduleType === "peroxideValue"
                                 ? peroxideValueRef

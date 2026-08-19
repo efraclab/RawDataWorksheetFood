@@ -24,6 +24,7 @@ import type { AminoAcidDraft } from "./AminoAcidDraft";
 import type { MoistureDraft } from "./MoistureDraft";
 import type { AcidityDraft } from "./AcidityDraft";
 import type { SugarSaponinCatechinProfileDraft } from "./SugarSaponinCatechinProfileDraft";
+import type { DietaryFiberDraft } from "./DietaryFiberDraft";
 
 export interface PreparationDraft {
 
@@ -80,4 +81,6 @@ export interface PreparationDraft {
     acidity?: AcidityDraft;
 
     sugarSaponinCatechinProfile?: SugarSaponinCatechinProfileDraft;
+
+    dietaryFiber?: DietaryFiberDraft;
 }

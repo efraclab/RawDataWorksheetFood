@@ -24,6 +24,7 @@ import {aminoAcidConfig} from "./aminoAcidConfig"
 import {moistureConfig} from "./moistureConfig"
 import {acidityConfig} from "./acidityConfig"
 import {sugarSaponinCatechinProfileConfig} from "./sugarSaponinCatechinProfileConfig"
+import {dietaryFiberConfig} from "./dietaryFiberConfig"
 
 export const preparationConfigs = [
 
@@ -77,6 +78,8 @@ export const preparationConfigs = [
 
     acidityConfig,
 
-    sugarSaponinCatechinProfileConfig
+    sugarSaponinCatechinProfileConfig,
+
+    dietaryFiberConfig
 
 ];

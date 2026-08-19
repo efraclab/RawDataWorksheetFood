@@ -108,6 +108,14 @@ const PreparationEngine =
 
 
         // ============================================================
+        // DIETARY FIBER REF
+        // ============================================================
+
+        const dietaryFiberRef =
+            useRef<PreparationModuleHandle>(null);
+
+
+        // ============================================================
         // PEROXIDE VALUE REF
         // ============================================================
 
@@ -349,6 +357,173 @@ const PreparationEngine =
 
 
         // ============================================================
+        // DIETARY FIBER DRAFT NORMALIZATION
+        // ============================================================
+        // Existing drafts may have been saved before the Dietary Fiber
+        // "After Ashing(g)" input was introduced. In that case the module
+        // receives the old 12-step structure and the UI cannot render row 11.
+        // Normalize the draft before loading it into the module.
+        // ============================================================
+
+        const normalizeDietaryFiberDraft = (draft: any) => {
+
+            if (!draft)
+                return draft;
+
+            const normalizeName = (value: any) =>
+                String(value ?? "")
+                    .trim()
+                    .toLowerCase()
+                    .replace(/\s+/g, " ");
+
+            const samplePreparations =
+                Array.isArray(draft.samplePreparations)
+                    ? draft.samplePreparations.map((preparation: any) => {
+
+                        let steps: any[] = [];
+
+                        try {
+                            steps =
+                                typeof preparation?.steps === "string"
+                                    ? JSON.parse(preparation.steps)
+                                    : Array.isArray(preparation?.steps)
+                                        ? preparation.steps
+                                        : [];
+                        }
+                        catch {
+                            steps = [];
+                        }
+
+                        const findIndex = (...names: string[]) =>
+                            steps.findIndex(step =>
+                                names.includes(normalizeName(step?.name))
+                            );
+
+                        // Existing/legacy names are normalized first.
+                        let afterAshingIndex = findIndex(
+                            "after ashing(g)",
+                            "after ashing (g)",
+                            "after ashing"
+                        );
+
+                        let ashIndex = findIndex(
+                            "ash",
+                            "% ash",
+                            "ash %",
+                            "ash percentage"
+                        );
+
+                        // Ensure After Ashing(g) exists.
+                        if (afterAshingIndex < 0) {
+                            const afterAshingStep = {
+                                name: "After Ashing(g)",
+                                value1: "",
+                                unit1: "g",
+                                logBookID: ""
+                            };
+
+                            // Insert before Ash if Ash already exists.
+                            if (ashIndex >= 0) {
+                                steps.splice(ashIndex, 0, afterAshingStep);
+                            }
+                            else {
+                                // Otherwise insert before Spl T.V(ml), which
+                                // is the next input in the required order.
+                                const sampleTitreIndex = findIndex("spl t.v(ml)");
+
+                                if (sampleTitreIndex >= 0) {
+                                    steps.splice(sampleTitreIndex, 0, afterAshingStep);
+                                }
+                                else {
+                                    steps.push(afterAshingStep);
+                                }
+                            }
+                        }
+
+                        // Re-read indexes after insertion.
+                        afterAshingIndex = findIndex(
+                            "after ashing(g)",
+                            "after ashing (g)",
+                            "after ashing"
+                        );
+
+                        ashIndex = findIndex(
+                            "ash",
+                            "% ash",
+                            "ash %",
+                            "ash percentage"
+                        );
+
+                        // Ensure Ash exists.
+                        if (ashIndex < 0) {
+                            steps.splice(afterAshingIndex + 1, 0, {
+                                name: "Ash",
+                                value1: "",
+                                unit1: "%",
+                                logBookID: ""
+                            });
+                        }
+                        else {
+                            const existingAsh = {
+                                ...steps[ashIndex],
+                                name: "Ash",
+                                unit1: "%"
+                            };
+
+                            steps.splice(ashIndex, 1);
+
+                            afterAshingIndex = findIndex(
+                                "after ashing(g)",
+                                "after ashing (g)",
+                                "after ashing"
+                            );
+
+                            steps.splice(afterAshingIndex + 1, 0, existingAsh);
+                        }
+
+                        // Canonicalize After Ashing and guarantee it is directly
+                        // before Ash without losing an already entered value.
+                        afterAshingIndex = findIndex(
+                            "after ashing(g)",
+                            "after ashing (g)",
+                            "after ashing"
+                        );
+
+                        if (afterAshingIndex >= 0) {
+                            steps[afterAshingIndex] = {
+                                ...steps[afterAshingIndex],
+                                name: "After Ashing(g)",
+                                unit1: "g"
+                            };
+                        }
+
+                        ashIndex = findIndex("ash");
+
+                        if (
+                            afterAshingIndex >= 0 &&
+                            ashIndex >= 0 &&
+                            ashIndex !== afterAshingIndex + 1
+                        ) {
+                            const afterAshingStep = steps.splice(afterAshingIndex, 1)[0];
+                            ashIndex = findIndex("ash");
+                            steps.splice(ashIndex, 0, afterAshingStep);
+                        }
+
+                        return {
+                            ...preparation,
+                            steps
+                        };
+                    })
+                    : draft.samplePreparations;
+
+            return {
+                ...draft,
+                samplePreparations
+            };
+        };
+
+
+        // ============================================================
         // IMPERATIVE HANDLE
         // ============================================================
 
@@ -492,6 +667,28 @@ const PreparationEngine =
 
                             crudeFiber:
                                 crudeFiberRef.current
+                                    ?.getDraft()
+
+                        };
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // DIETARY FIBER
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "dietaryFiber"
+                    ) {
+
+                        return {
+
+                            activeGroup:
+                                activeGroups,
+
+                            dietaryFiber:
+                                dietaryFiberRef.current
                                     ?.getDraft()
 
                         };
@@ -1168,6 +1365,24 @@ const PreparationEngine =
 
 
                     // ----------------------------------------------
+                    // DIETARY FIBER
+                    // ----------------------------------------------
+
+                    if (
+                        activeGroup === "dietaryFiber" &&
+                        draft.dietaryFiber
+                    ) {
+
+                        dietaryFiberRef.current?.loadDraft(
+                            normalizeDietaryFiberDraft(
+                                draft.dietaryFiber
+                            )
+                        );
+
+                    }
+
+
+                    // ----------------------------------------------
                     // PEROXIDE VALUE
                     // ----------------------------------------------
 
@@ -1412,12 +1627,198 @@ const PreparationEngine =
                     parameter: ParameterDetail
                 ) {
 
+                    // ========================================================
+                    // NORMALIZE DIETARY FIBER WORKSHEET DATA
+                    // ========================================================
+                    // Older saved worksheets may contain the obsolete
+                    // "After Ashing(g)" step and may not contain the new
+                    // user-entered "Ash" (%) step. Normalize the API payload
+                    // before passing it to the Dietary Fiber module so the
+                    // value survives Save Draft + browser refresh.
+                    // ========================================================
+
+                    const normalizedParameter = {
+                        ...parameter,
+
+                        preparations:
+                            (parameter.preparations ?? []).map(
+                                preparation => {
+
+                                    if (
+                                        preparation.preparationType !==
+                                        "dietaryFiber"
+                                    ) {
+                                        return preparation;
+                                    }
+
+                                    let steps: any[] = [];
+
+                                    try {
+                                        steps =
+                                            typeof preparation.steps ===
+                                            "string"
+                                                ? JSON.parse(
+                                                    preparation.steps
+                                                )
+                                                : Array.isArray(
+                                                    preparation.steps
+                                                )
+                                                    ? preparation.steps
+                                                    : [];
+                                    }
+                                    catch {
+                                        steps = [];
+                                    }
+
+                                    // ========================================================
+                                    // ENSURE AFTER ASHING + ASH EXIST IN THE CORRECT ORDER
+                                    // ========================================================
+                                    // After Ashing(g) is a real user input and MUST be
+                                    // displayed immediately after Avg Residue wt(g).
+                                    //
+                                    // Older saved worksheets may not contain this step.
+                                    // Newer worksheets may contain Ash but still be missing
+                                    // After Ashing(g). Therefore both steps are normalized
+                                    // independently.
+                                    // ========================================================
+
+                                    let afterAshingIndex =
+                                        steps.findIndex(
+                                            step =>
+                                                step?.name ===
+                                                "After Ashing(g)"
+                                        );
+
+                                    let ashIndex =
+                                        steps.findIndex(
+                                            step =>
+                                                step?.name === "Ash"
+                                        );
+
+                                    const afterAshingStep = {
+                                        name: "After Ashing(g)",
+                                        value1: "",
+                                        unit1: "g",
+                                        logBookID: ""
+                                    };
+
+                                    const ashStep = {
+                                        name: "Ash",
+                                        value1: "",
+                                        unit1: "%",
+                                        logBookID: ""
+                                    };
+
+                                    // --------------------------------------------------------
+                                    // 1. Ensure After Ashing(g) exists.
+                                    // --------------------------------------------------------
+                                    if (
+                                        afterAshingIndex < 0
+                                    ) {
+                                        // Insert it immediately before Ash when Ash exists.
+                                        if (ashIndex >= 0) {
+                                            steps.splice(
+                                                ashIndex,
+                                                0,
+                                                afterAshingStep
+                                            );
+                                        }
+                                        else {
+                                            // Otherwise insert it before Spl T.V(ml),
+                                            // which is the next known input in the Excel order.
+                                            const sampleTitreIndex =
+                                                steps.findIndex(
+                                                    step =>
+                                                        step?.name ===
+                                                        "Spl T.V(ml)"
+                                                );
+
+                                            if (
+                                                sampleTitreIndex >= 0
+                                            ) {
+                                                steps.splice(
+                                                    sampleTitreIndex,
+                                                    0,
+                                                    afterAshingStep
+                                                );
+                                            }
+                                            else {
+                                                steps.push(
+                                                    afterAshingStep
+                                                );
+                                            }
+                                        }
+                                    }
+
+                                    // Re-read indexes because the array may have changed.
+                                    afterAshingIndex =
+                                        steps.findIndex(
+                                            step =>
+                                                step?.name ===
+                                                "After Ashing(g)"
+                                        );
+
+                                    ashIndex =
+                                        steps.findIndex(
+                                            step =>
+                                                step?.name === "Ash"
+                                        );
+
+                                    // --------------------------------------------------------
+                                    // 2. Ensure Ash exists and is immediately after
+                                    //    After Ashing(g).
+                                    // --------------------------------------------------------
+                                    if (
+                                        ashIndex < 0
+                                    ) {
+                                        steps.splice(
+                                            afterAshingIndex + 1,
+                                            0,
+                                            ashStep
+                                        );
+                                    }
+                                    else {
+                                        // Preserve the saved Ash value but force its unit
+                                        // to %. Also move Ash immediately after After Ashing.
+                                        const existingAsh =
+                                            steps[ashIndex];
+
+                                        steps.splice(
+                                            ashIndex,
+                                            1
+                                        );
+
+                                        afterAshingIndex =
+                                            steps.findIndex(
+                                                step =>
+                                                    step?.name ===
+                                                    "After Ashing(g)"
+                                            );
+
+                                        steps.splice(
+                                            afterAshingIndex + 1,
+                                            0,
+                                            {
+                                                ...existingAsh,
+                                                unit1: "%"
+                                            }
+                                        );
+                                    }
+
+                                    return {
+                                        ...preparation,
+                                        steps: JSON.stringify(steps)
+                                    };
+                                }
+                            )
+                    };
+
                     pendingRestore.current =
-                        parameter;
+                        normalizedParameter;
 
 
                     const preps =
-                        parameter.preparations ?? [];
+                        normalizedParameter.preparations ?? [];
 
 
                     const groups: string[] = [];
@@ -1713,6 +2114,26 @@ const PreparationEngine =
                     ) {
 
                         groups.push("crudeFiber");
+
+                    }
+
+
+                    // ----------------------------------------------
+                    // DIETARY FIBER
+                    // ----------------------------------------------
+
+                    if (
+                        preps.some(
+                            p =>
+                                p.preparationCategory ===
+                                "sample" &&
+
+                                p.preparationType ===
+                                "dietaryFiber"
+                        )
+                    ) {
+
+                        groups.push("dietaryFiber");
 
                     }
 
@@ -2358,6 +2779,30 @@ const PreparationEngine =
 
 
             // ========================================================
+            // DIETARY FIBER
+            // ========================================================
+
+            if (
+                activeGroup === "dietaryFiber" &&
+                dietaryFiberRef.current
+            ) {
+
+                dietaryFiberRef.current
+                    .restoreFromWorksheet(
+                        pendingRestore.current
+                    );
+
+
+                pendingRestore.current =
+                    null;
+
+
+                return;
+
+            }
+
+
+            // ========================================================
             // PEROXIDE VALUE
             // ========================================================
 
@@ -2870,6 +3315,10 @@ const PreparationEngine =
 
                     crudeFiberRef={
                         crudeFiberRef
+                    }
+
+                    dietaryFiberRef={
+                        dietaryFiberRef
                     }
 
                     peroxideValueRef={

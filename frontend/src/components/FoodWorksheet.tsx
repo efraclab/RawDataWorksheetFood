@@ -40,9 +40,11 @@ import type { PreparationEngineHandle } from "../pages/food/types/PreparationEng
 import { collectFormDataForAPI } from "../pages/food/services/collectFormDataForAPI";
 import {
     createWorksheet,
-    updateWorksheet
+    updateWorksheet,
+    insertWorksheetLog
 } from "../services/api";
 import Toast from "./shared/Toast";
+import SubmitDialog from "./shared/SubmitDialog";
 import type { PreparationDraft } from "../pages/food/types/PreparationDraft";
 
 
@@ -839,7 +841,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
             };
 
             const samples =
-            
+
                 await fetchSample(request);
 
             setSamplesData(samples);
@@ -881,6 +883,9 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [showToast, setShowToast] = useState(false);
 
+    const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
 
     useEffect(() => {
 
@@ -889,22 +894,24 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     }, [worksheetId]);
 
     useEffect(() => {
-
         props.onSidebarStateChange?.({
 
             worksheetId,
 
             registrationNo,
 
-            sampleName: worksheetInfo?.sample?.sampleName ?? "",
+            sampleName:
+                worksheetInfo?.sample?.sampleName ?? "",
 
-            worksheetStatus: worksheetInfo?.sample?.status ?? null,
+            worksheetStatus:
+                worksheetInfo?.sample?.status ?? null,
 
             role,
 
             isContentLoading: isLoading,
 
-            displayStatus: worksheetInfo?.sample?.status ?? "",
+            displayStatus:
+                worksheetInfo?.sample?.status ?? "",
 
             showSaveDraft:
                 worksheetInfo?.sample?.status === "Draft" ||
@@ -912,7 +919,11 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
             showSubmitForAnalysis:
                 role === "Reviewer" &&
-                worksheetInfo?.sample?.status === "Created",
+                (
+                    worksheetInfo?.sample?.status === "Draft" ||
+                    worksheetInfo?.sample?.status === "Created"
+                ) &&
+                addedParameters.length > 0,
 
             showSubmitForQA:
                 role === "Reviewer" &&
@@ -931,7 +942,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
             saveSuccess: false,
 
-            isSubmitting: false,
+            isSubmitting,
 
             isSubmittingForQA: false,
 
@@ -942,19 +953,14 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         });
 
     }, [
-
         worksheetId,
-
         registrationNo,
-
         worksheetInfo,
-
         role,
-
         isLoading,
-
+        addedParameters,
+        isSubmitting,
         props.onSidebarStateChange
-
     ]);
 
     useEffect(() => {
@@ -980,7 +986,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
     }, []);
 
-    
+
     const availableToAdd = (samplesData ?? []).filter(
         (param) =>
             !addedParameters.find(
@@ -1483,6 +1489,275 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
     };
     _saveDraftRef.current = handleSaveDraft;
+
+    const handleSubmitForAnalysis = async () => {
+        setIsSubmitting(true);
+
+        try {
+            if (!worksheetInfo) {
+                throw new Error("Worksheet information is not available");
+            }
+
+            const worksheetData = collectFormDataForAPI({
+                role,
+                worksheetInfo,
+                addedParameters,
+                preparationRefs,
+                bufferPreparationPerParam,
+                mobilePhasePerParam,
+                diluentPreparationsPerParam,
+                systemSuitabilityPerParam,
+                filesPerParam,
+                additionalInfoPerParam,
+                addedChemicals,
+                addedStandards,
+                addedInstruments
+            });
+
+            const currentWorksheetStatus =
+                worksheetInfo.sample?.status;
+
+            const createdParameters =
+                worksheetData?.parameters?.filter(
+                    (param) =>
+                        (
+                            parameterStatusPerParam[param.id] ||
+                            param.status ||
+                            "created"
+                        ).toLowerCase() === "created"
+                ) ?? [];
+
+            if (createdParameters.length === 0) {
+                setToastMessage(
+                    "No parameters with 'created' status to submit"
+                );
+
+                setToastType("error");
+                setShowToast(true);
+
+                setTimeout(() => {
+                    setShowToast(false);
+                }, 4000);
+
+                setIsSubmitting(false);
+                setShowSubmitDialog(false);
+
+                return;
+            }
+
+            // ---------------------------------------------------------
+            // Change CREATED parameters -> ANALYSIS PENDING
+            // ---------------------------------------------------------
+
+            if (currentWorksheetStatus === "Draft") {
+
+                const updatedWorksheetData = {
+                    ...worksheetData,
+
+                    parameters:
+                        worksheetData.parameters?.map((param) => {
+
+                            const isCreated =
+                                (
+                                    parameterStatusPerParam[param.id] ||
+                                    param.status ||
+                                    "created"
+                                ).toLowerCase() === "created";
+
+                            return {
+                                ...param,
+                                status: isCreated
+                                    ? "Analysis Pending"
+                                    : param.status
+                            };
+                        }),
+
+                    documentInfo: {
+                        ...worksheetData.documentInfo,
+                        status: "Submitted For Analysis"
+                    }
+                };
+
+                const response = await updateWorksheet(
+                    worksheetId,
+                    updatedWorksheetData
+                );
+
+                if (!response?.worksheetId) {
+                    throw new Error(
+                        "Failed to submit worksheet for analysis"
+                    );
+                }
+
+                // -----------------------------------------------------
+                // Update local worksheet status
+                // -----------------------------------------------------
+
+                setWorksheetInfo((prev) =>
+                    prev
+                        ? {
+                            ...prev,
+                            sample: {
+                                ...prev.sample,
+                                status: "Submitted For Analysis"
+                            }
+                        }
+                        : null
+                );
+
+                // -----------------------------------------------------
+                // Update local parameter statuses
+                // -----------------------------------------------------
+
+                createdParameters.forEach((param) => {
+
+                    setParameterStatusPerParam((prev) => ({
+                        ...prev,
+                        [param.id]: "Analysis Pending"
+                    }));
+
+                });
+
+                // ✅ ADD IT HERE
+                await insertWorksheetLog({
+                    worksheetId,
+                    action: "Submitted For Analysis",
+                    remarks: "Worksheet submitted for analysis",
+                    employeeId,
+                    role
+                });
+
+                // Also keep addedParameters in sync
+                setAddedParameters((prev) =>
+                    prev.map((param) => {
+
+                        const isCreated =
+                            (
+                                parameterStatusPerParam[param.id] ||
+                                param.status ||
+                                "created"
+                            ).toLowerCase() === "created";
+
+                        return isCreated
+                            ? {
+                                ...param,
+                                status: "Analysis Pending"
+                            }
+                            : param;
+                    })
+                );
+
+                setToastMessage(
+                    "Worksheet submitted for analysis successfully!"
+                );
+
+                setToastType("success");
+                setShowToast(true);
+
+                setTimeout(() => {
+                    setShowToast(false);
+                }, 4000);
+
+                // -----------------------------------------------------
+                // Audit log
+                // -----------------------------------------------------
+
+                // If insertWorksheetLog is already imported in FoodWorksheet
+                // keep this block.
+                // Otherwise add the import first.
+
+            } else if (
+                currentWorksheetStatus === "Submitted For Analysis"
+            ) {
+
+                // -----------------------------------------------------
+                // Worksheet already submitted.
+                // Submit newly-created parameters only.
+                // -----------------------------------------------------
+
+                for (const param of createdParameters) {
+
+                    const response = await updateWorksheet(
+                        worksheetId,
+                        {
+                            ...worksheetData,
+                            parameters:
+                                worksheetData.parameters?.map((p) =>
+                                    p.id === param.id
+                                        ? {
+                                            ...p,
+                                            status: "Analysis Pending"
+                                        }
+                                        : p
+                                )
+                        }
+                    );
+
+                    if (!response?.worksheetId) {
+                        throw new Error(
+                            `Failed to update parameter ${param.parameterName}`
+                        );
+                    }
+
+                    setParameterStatusPerParam((prev) => ({
+                        ...prev,
+                        [param.id]: "Analysis Pending"
+                    }));
+                }
+
+                setAddedParameters((prev) =>
+                    prev.map((param) =>
+                        createdParameters.some(
+                            (created) => created.id === param.id
+                        )
+                            ? {
+                                ...param,
+                                status: "Analysis Pending"
+                            }
+                            : param
+                    )
+                );
+
+                setToastMessage(
+                    "Parameters submitted for analysis successfully!"
+                );
+
+                setToastType("success");
+                setShowToast(true);
+
+                setTimeout(() => {
+                    setShowToast(false);
+                }, 4000);
+            }
+
+            setShowSubmitDialog(false);
+
+        } catch (error: any) {
+
+            console.error(
+                "Submit for Analysis error:",
+                error
+            );
+
+            setToastMessage(
+                `Failed to submit: ${error?.message || "Unknown error"
+                }`
+            );
+
+            setToastType("error");
+            setShowToast(true);
+
+            setTimeout(() => {
+                setShowToast(false);
+            }, 4000);
+
+        } finally {
+
+            setIsSubmitting(false);
+        }
+    };
+    _submitAnalysisRef.current = () =>
+        setShowSubmitDialog(true);
     useEffect(() => {
 
         props.onSidebarActionsReady?.({
@@ -1543,7 +1818,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                         parameterName={addedParameters[0]?.parameterName ?? ""}
                         methodName={addedParameters[0]?.methodName ?? ""}
                     />
-                    
+
                     <FoodParameterManager
                         parameterCount={worksheetInfo?.parameters.length}
                         addedParameters={addedParameters}
@@ -1579,8 +1854,18 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                             {/* Copy from another worksheet */}
                             <div className="mb-4 flex justify-end">
                                 <button
-                                    onClick={() => setShowCopyWorksheetDialog(true)}
-                                    className="flex items-center gap-2 px-3 py-1.5 bg-white border border-emerald-400 text-emerald-700 font-semibold rounded-lg hover:bg-emerald-50 transition-colors shadow-sm text-xs"
+                                    type="button"
+                                    disabled={isPreparationLocked}
+                                    onClick={() => {
+                                        if (isPreparationLocked)
+                                            return;
+
+                                        setShowCopyWorksheetDialog(true);
+                                    }}
+                                    className={`flex items-center gap-2 px-3 py-1.5 bg-white border border-emerald-400 text-emerald-700 font-semibold rounded-lg transition-colors shadow-sm text-xs ${isPreparationLocked
+                                            ? "opacity-50 cursor-not-allowed"
+                                            : "hover:bg-emerald-50"
+                                        }`}
                                 >
                                     Copy from Worksheet
                                 </button>
@@ -1683,7 +1968,10 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                 parameterId={selectedParameter.id}
                                 enabled={showAdditionalInfo[selectedParameter.id] ?? false}
                                 value={additionalInfoPerParam[selectedParameter.id] ?? ""}
+                                isLocked={isPreparationLocked}
                                 onToggle={(checked) => {
+                                    if (isPreparationLocked)
+                                        return;
 
                                     setShowAdditionalInfo(prev => ({
                                         ...prev,
@@ -1691,23 +1979,21 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                     }));
 
                                     if (!checked) {
-
                                         setAdditionalInfoPerParam(prev => ({
                                             ...prev,
                                             [selectedParameter.id]: ""
                                         }));
-
                                     }
-
                                 }}
-                                onChange={(value) =>
+                                onChange={(value) => {
+                                    if (isPreparationLocked)
+                                        return;
 
                                     setAdditionalInfoPerParam(prev => ({
                                         ...prev,
                                         [selectedParameter.id]: value
-                                    }))
-
-                                }
+                                    }));
+                                }}
                             />
 
                             <FoodBufferPreparation
@@ -1941,60 +2227,79 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                             <FoodSystemSuitability
                                 parameterId={selectedParameter.id}
                                 enabled={showSystemSuitability[selectedParameter.id] || false}
+                                isLocked={isPreparationLocked}
                                 systemSuitabilities={
                                     systemSuitabilityPerParam[selectedParameter.id] || []
                                 }
-                                onToggle={(checked) =>
+                                onToggle={(checked) => {
+                                    if (isPreparationLocked)
+                                        return;
+
                                     setShowSystemSuitability(prev => ({
                                         ...prev,
                                         [selectedParameter.id]: checked
-                                    }))
-                                }
-                                onAdd={() =>
-                                    handleAddSystemSuitability(selectedParameter.id)
-                                }
-                                onRemove={(id) =>
+                                    }));
+                                }}
+                                onAdd={() => {
+                                    if (isPreparationLocked)
+                                        return;
+
+                                    handleAddSystemSuitability(selectedParameter.id);
+                                }}
+                                onRemove={(id) => {
+                                    if (isPreparationLocked)
+                                        return;
+
                                     handleRemoveSystemSuitability(
                                         selectedParameter.id,
                                         id
-                                    )
-                                }
+                                    );
+                                }}
                                 onStepChange={(
                                     suitabilityId,
                                     stepName,
                                     field,
                                     value
-                                ) =>
+                                ) => {
+                                    if (isPreparationLocked)
+                                        return;
+
                                     handleSystemSuitabilityStepChange(
                                         selectedParameter.id,
                                         suitabilityId,
                                         stepName,
                                         field,
                                         value
-                                    )
-                                }
+                                    );
+                                }}
                                 onAddStep={(
                                     suitabilityId,
                                     stepName,
                                     limitType
-                                ) =>
+                                ) => {
+                                    if (isPreparationLocked)
+                                        return;
+
                                     handleAddSystemSuitabilityStep(
                                         selectedParameter.id,
                                         suitabilityId,
                                         stepName,
                                         limitType
-                                    )
-                                }
+                                    );
+                                }}
                                 onRemoveStep={(
                                     suitabilityId,
                                     stepName
-                                ) =>
+                                ) => {
+                                    if (isPreparationLocked)
+                                        return;
+
                                     handleRemoveSystemSuitabilityStep(
                                         selectedParameter.id,
                                         suitabilityId,
                                         stepName
-                                    )
-                                }
+                                    );
+                                }}
                             />
 
                             <FoodParameterFiles
@@ -2067,7 +2372,28 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                         type={toastType}
                         onClose={() => setShowToast(false)}
                     />
-
+                    <AnimatePresence>
+                        {showSubmitDialog && (
+                            <SubmitDialog
+                                isOpen={showSubmitDialog}
+                                isSubmitting={isSubmitting}
+                                onClose={() =>
+                                    setShowSubmitDialog(false)
+                                }
+                                onConfirm={handleSubmitForAnalysis}
+                                createdParametersCount={
+                                    addedParameters.filter(
+                                        (param) =>
+                                            (
+                                                parameterStatusPerParam[param.id] ||
+                                                param.status ||
+                                                "created"
+                                            ).toLowerCase() === "created"
+                                    ).length
+                                }
+                            />
+                        )}
+                    </AnimatePresence>
 
 
                 </div>

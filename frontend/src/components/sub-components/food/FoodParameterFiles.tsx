@@ -34,20 +34,49 @@ const FoodParameterFiles: React.FC<Props> = ({
 
             {/* Parameter Files Toggle */}
             <div className="mb-6 mt-4">
-                <label className="flex items-center gap-4 cursor-pointer group relative">
+
+                <label
+                    className={`flex items-center gap-4 group relative ${
+                        isLocked
+                            ? "cursor-not-allowed"
+                            : "cursor-pointer"
+                    }`}
+                >
 
                     <div className="relative flex items-center justify-center">
 
-                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-900 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
+                        <div
+                            className={`absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-900 rounded-full blur-lg transition-all duration-300 ${
+                                isLocked
+                                    ? "opacity-0"
+                                    : "opacity-0 group-hover:opacity-20"
+                            }`}
+                        />
 
                         <input
                             type="checkbox"
                             checked={enabled}
-                            onChange={(e) => onToggle(e.target.checked)}
+                            disabled={isLocked}
+                            onChange={(e) => {
+                                if (isLocked)
+                                    return;
+
+                                onToggle(e.target.checked);
+                            }}
                             className="peer sr-only"
                         />
 
-                        <div className="relative w-14 h-7 rounded-full border-2 border-emerald-200 bg-gray-200 peer-checked:bg-gradient-to-r peer-checked:from-emerald-700 peer-checked:to-emerald-900 peer-checked:border-emerald-600 transition-all duration-300 shadow-inner group-hover:border-emerald-300">
+                        <div
+                            className={`relative w-14 h-7 rounded-full border-2 transition-all duration-300 shadow-inner ${
+                                enabled
+                                    ? "bg-gradient-to-r from-emerald-700 to-emerald-900 border-emerald-600"
+                                    : "bg-gray-200 border-emerald-200"
+                            } ${
+                                isLocked
+                                    ? "opacity-60 cursor-not-allowed"
+                                    : "group-hover:border-emerald-300"
+                            }`}
+                        >
 
                             <motion.div
                                 className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
@@ -101,7 +130,13 @@ const FoodParameterFiles: React.FC<Props> = ({
 
                         <div className="flex items-center gap-2">
 
-                            <span className="text-base font-bold text-emerald-800">
+                            <span
+                                className={`text-base font-bold ${
+                                    isLocked
+                                        ? "text-emerald-800/50"
+                                        : "text-emerald-800"
+                                }`}
+                            >
                                 Parameter Files
                             </span>
 
@@ -112,6 +147,10 @@ const FoodParameterFiles: React.FC<Props> = ({
                                     enabled
                                         ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                                         : "bg-gray-100 text-gray-500 border border-gray-200"
+                                } ${
+                                    isLocked
+                                        ? "opacity-60"
+                                        : ""
                                 }`}
                             >
                                 {enabled ? "Active" : "Inactive"}
@@ -119,7 +158,13 @@ const FoodParameterFiles: React.FC<Props> = ({
 
                         </div>
 
-                        <p className="text-xs text-emerald-600/70">
+                        <p
+                            className={`text-xs ${
+                                isLocked
+                                    ? "text-emerald-600/40"
+                                    : "text-emerald-600/70"
+                            }`}
+                        >
                             Attach additional files for this parameter
                         </p>
 

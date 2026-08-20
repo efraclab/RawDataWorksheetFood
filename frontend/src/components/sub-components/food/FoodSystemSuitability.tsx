@@ -6,11 +6,15 @@ import SystemSuitabilityDetail from "../drugs/SystemSuitabilityDetail";
 
 interface Props {
     parameterId: number;
+
     enabled: boolean;
+
     systemSuitabilities: SystemSuitability[];
 
     onToggle: (checked: boolean) => void;
+
     onAdd: () => void;
+
     onRemove: (id: number) => void;
 
     onStepChange: (
@@ -30,7 +34,11 @@ interface Props {
         suitabilityId: number,
         stepName: string
     ) => void;
+
+    // Preparation lock state
+    isLocked: boolean;
 }
+
 const FoodSystemSuitability: React.FC<Props> = ({
     parameterId,
     enabled,
@@ -41,45 +49,56 @@ const FoodSystemSuitability: React.FC<Props> = ({
     onStepChange,
     onAddStep,
     onRemoveStep,
+    isLocked
 }) => {
-    return (
 
+    return (
         <div className="mt-8">
 
             {/* Toggle */}
-
             <div className="mb-6 mt-4">
 
-                <label className="flex items-center gap-4 cursor-pointer group relative">
+                <label
+                    className={`flex items-center gap-4 group relative ${
+                        isLocked
+                            ? "cursor-not-allowed"
+                            : "cursor-pointer"
+                    }`}
+                >
 
                     <div className="relative flex items-center justify-center">
 
-                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-900 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
+                        <div
+                            className={`absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-900 rounded-full blur-lg transition-all duration-300 ${
+                                isLocked
+                                    ? "opacity-0"
+                                    : "opacity-0 group-hover:opacity-20"
+                            }`}
+                        />
 
                         <input
                             type="checkbox"
                             checked={enabled}
-                            onChange={(e) => onToggle(e.target.checked)}
+                            disabled={isLocked}
+                            onChange={(e) => {
+                                if (isLocked)
+                                    return;
+
+                                onToggle(e.target.checked);
+                            }}
                             className="peer sr-only"
                         />
 
                         <div
-                            className="
-                            relative
-                            w-14
-                            h-7
-                            rounded-full
-                            border-2
-                            border-emerald-200
-                            bg-gray-200
-                            peer-checked:bg-gradient-to-r
-                            peer-checked:from-emerald-700
-                            peer-checked:to-emerald-900
-                            peer-checked:border-emerald-600
-                            transition-all
-                            duration-300
-                            shadow-inner
-                        "
+                            className={`relative w-14 h-7 rounded-full border-2 transition-all duration-300 shadow-inner ${
+                                enabled
+                                    ? "bg-gradient-to-r from-emerald-700 to-emerald-900 border-emerald-600"
+                                    : "bg-gray-200 border-emerald-200"
+                            } ${
+                                isLocked
+                                    ? "opacity-60 cursor-not-allowed"
+                                    : "group-hover:border-emerald-300"
+                            }`}
                         >
 
                             <motion.div
@@ -138,27 +157,40 @@ const FoodSystemSuitability: React.FC<Props> = ({
 
                         <div className="flex items-center gap-2">
 
-                            <span className="text-base font-bold text-emerald-800">
-
+                            <span
+                                className={`text-base font-bold ${
+                                    isLocked
+                                        ? "text-emerald-800/50"
+                                        : "text-emerald-800"
+                                }`}
+                            >
                                 System Suitability
-
                             </span>
 
                             <span
-                                className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${enabled
-                                    ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                                    : "bg-gray-100 text-gray-500 border border-gray-200"
-                                    }`}
+                                className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${
+                                    enabled
+                                        ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                                        : "bg-gray-100 text-gray-500 border border-gray-200"
+                                } ${
+                                    isLocked
+                                        ? "opacity-60"
+                                        : ""
+                                }`}
                             >
                                 {enabled ? "Active" : "Inactive"}
                             </span>
 
                         </div>
 
-                        <p className="text-xs text-emerald-600/70">
-
+                        <p
+                            className={`text-xs ${
+                                isLocked
+                                    ? "text-emerald-600/40"
+                                    : "text-emerald-600/70"
+                            }`}
+                        >
                             Toggle system suitability section
-
                         </p>
 
                     </div>
@@ -167,7 +199,7 @@ const FoodSystemSuitability: React.FC<Props> = ({
 
             </div>
 
-            {/* ADD THE MAIN SECTION HERE */}
+            {/* Main Section */}
             <AnimatePresence>
 
                 {enabled && (
@@ -190,8 +222,19 @@ const FoodSystemSuitability: React.FC<Props> = ({
                             </h3>
 
                             <button
-                                onClick={onAdd}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl shadow-md hover:shadow-lg text-sm"
+                                type="button"
+                                disabled={isLocked}
+                                onClick={() => {
+                                    if (isLocked)
+                                        return;
+
+                                    onAdd();
+                                }}
+                                className={`flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-700 to-emerald-900 text-white font-semibold rounded-xl shadow-md text-sm ${
+                                    isLocked
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : "hover:shadow-lg"
+                                }`}
                             >
                                 <Plus className="w-4 h-4" />
 
@@ -206,7 +249,11 @@ const FoodSystemSuitability: React.FC<Props> = ({
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="relative overflow-hidden text-center py-10 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner"
+                                className={`relative overflow-hidden text-center py-10 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl shadow-inner ${
+                                    isLocked
+                                        ? "opacity-60"
+                                        : ""
+                                }`}
                             >
 
                                 <div className="relative z-10">
@@ -218,15 +265,11 @@ const FoodSystemSuitability: React.FC<Props> = ({
                                     </div>
 
                                     <p className="text-lg font-bold text-emerald-800 mb-2">
-
                                         No system suitability added yet
-
                                     </p>
 
                                     <p className="text-sm text-emerald-600">
-
                                         Click "Add System Suitability" to begin
-
                                     </p>
 
                                 </div>
@@ -239,44 +282,72 @@ const FoodSystemSuitability: React.FC<Props> = ({
 
                                 {systemSuitabilities.map((suitability) => (
 
-                                    <div key={suitability.id}>
+                                    <div
+                                        key={suitability.id}
+                                        className={
+                                            isLocked
+                                                ? "pointer-events-none opacity-60"
+                                                : ""
+                                        }
+                                    >
 
                                         <SystemSuitabilityDetail
                                             systemSuitability={suitability}
-                                            onRemove={() => onRemove(suitability.id)}
+
+                                            onRemove={() => {
+                                                if (isLocked)
+                                                    return;
+
+                                                onRemove(suitability.id);
+                                            }}
+
                                             onStepChange={(
                                                 suitabilityId,
                                                 stepName,
                                                 field,
                                                 value
-                                            ) =>
+                                            ) => {
+
+                                                if (isLocked)
+                                                    return;
+
                                                 onStepChange(
                                                     suitabilityId,
                                                     stepName,
                                                     field,
                                                     value
-                                                )
-                                            }
+                                                );
+                                            }}
+
                                             onAddStep={(
                                                 suitabilityId,
                                                 stepName,
                                                 limitType
-                                            ) =>
+                                            ) => {
+
+                                                if (isLocked)
+                                                    return;
+
                                                 onAddStep(
                                                     suitabilityId,
                                                     stepName,
                                                     limitType
-                                                )
-                                            }
+                                                );
+                                            }}
+
                                             onRemoveStep={(
                                                 suitabilityId,
                                                 stepName
-                                            ) =>
+                                            ) => {
+
+                                                if (isLocked)
+                                                    return;
+
                                                 onRemoveStep(
                                                     suitabilityId,
                                                     stepName
-                                                )
-                                            }
+                                                );
+                                            }}
                                         />
 
                                     </div>
@@ -294,7 +365,6 @@ const FoodSystemSuitability: React.FC<Props> = ({
             </AnimatePresence>
 
         </div>
-
     );
 };
 

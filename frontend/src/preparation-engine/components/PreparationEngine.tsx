@@ -3252,6 +3252,7 @@ const PreparationEngine =
                     onRemove={
                         handleRemovePreparation
                     }
+                    isLocked={isLocked}
                 />
 
 

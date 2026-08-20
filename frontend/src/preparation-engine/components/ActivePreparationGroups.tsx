@@ -12,12 +12,14 @@ interface Props {
     activeGroups: string[];
     groups: Record<string, PreparationGroupInfo>;
     onRemove: (groupId: string) => void;
+    isLocked: boolean;
 }
 
 const ActivePreparationGroups: React.FC<Props> = ({
     activeGroups,
     groups,
     onRemove,
+    isLocked,
 }) => {
 
     const groupInfo: Record<string, PreparationGroupInfo> = {};
@@ -96,7 +98,11 @@ const ActivePreparationGroups: React.FC<Props> = ({
                                         scale: 0.8,
                                         y: 20,
                                     }}
-                                    whileHover={{ scale: 1.05 }}
+                                    whileHover={
+                                        isLocked
+                                            ? undefined
+                                            : { scale: 1.05 }
+                                    }
                                     className="group relative inline-flex items-center gap-3 py-2 px-4 bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-800 border-emerald-400 border-2 rounded-lg font-semibold shadow-lg shadow-emerald-200/50 hover:shadow-xl transition-all duration-300 overflow-hidden"
                                 >
 
@@ -113,16 +119,41 @@ const ActivePreparationGroups: React.FC<Props> = ({
                                     </div>
 
                                     <motion.button
-                                        onClick={() => onRemove(group.id)}
-                                        whileHover={{
-                                            scale: 1.2,
-                                            rotate: 90,
+                                        type="button"
+                                        disabled={isLocked}
+                                        onClick={() => {
+
+                                            if (isLocked)
+                                                return;
+
+                                            onRemove(group.id);
+
                                         }}
-                                        whileTap={{
-                                            scale: 0.9,
-                                        }}
-                                        className="relative z-10 w-5 h-5 flex items-center justify-center rounded-full bg-emerald-800 hover:bg-red-500 text-white transition-all font-bold border border-white/50 hover:border-red-600 shadow-sm"
-                                        title={`Remove ${group.label}`}
+                                        whileHover={
+                                            isLocked
+                                                ? undefined
+                                                : {
+                                                    scale: 1.2,
+                                                    rotate: 90,
+                                                }
+                                        }
+                                        whileTap={
+                                            isLocked
+                                                ? undefined
+                                                : {
+                                                    scale: 0.9,
+                                                }
+                                        }
+                                        className={`relative z-10 w-5 h-5 flex items-center justify-center rounded-full text-white transition-all font-bold border border-white/50 shadow-sm ${
+                                            isLocked
+                                                ? "bg-emerald-800/40 cursor-not-allowed opacity-60"
+                                                : "bg-emerald-800 hover:bg-red-500 hover:border-red-600"
+                                        }`}
+                                        title={
+                                            isLocked
+                                                ? `${group.label} is locked`
+                                                : `Remove ${group.label}`
+                                        }
                                     >
 
                                         <span className="text-[9px] inline-flex items-center justify-center h-full w-full">
@@ -245,7 +276,6 @@ const ActivePreparationGroups: React.FC<Props> = ({
         </AnimatePresence>
 
     );
-
 };
 
 export default ActivePreparationGroups;

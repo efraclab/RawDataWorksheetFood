@@ -8,6 +8,8 @@ interface Props {
 
     onToggle: (checked: boolean) => void;
     onChange: (value: string) => void;
+
+    isLocked: boolean;
 }
 
 const FoodAdditionalInfo: React.FC<Props> = ({
@@ -15,7 +17,8 @@ const FoodAdditionalInfo: React.FC<Props> = ({
     enabled,
     value,
     onToggle,
-    onChange
+    onChange,
+    isLocked
 }) => {
 
     return (
@@ -23,25 +26,49 @@ const FoodAdditionalInfo: React.FC<Props> = ({
 
             {/* Toggle */}
 
-            <label className="flex items-center gap-4 cursor-pointer group relative">
+            <label
+                className={`flex items-center gap-4 group relative ${
+                    isLocked
+                        ? "cursor-not-allowed"
+                        : "cursor-pointer"
+                }`}
+            >
 
                 <div className="relative flex items-center justify-center">
 
-                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-900 rounded-full blur-lg opacity-0 group-hover:opacity-20 transition-all duration-300" />
+                    <div
+                        className={`absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-900 rounded-full blur-lg transition-all duration-300 ${
+                            isLocked
+                                ? "opacity-0"
+                                : "opacity-0 group-hover:opacity-20"
+                        }`}
+                    />
 
                     <input
                         type="checkbox"
                         checked={enabled}
-                        onChange={(e) => onToggle(e.target.checked)}
+                        disabled={isLocked}
+                        onChange={(e) => {
+                            if (isLocked)
+                                return;
+
+                            onToggle(e.target.checked);
+                        }}
                         className="peer sr-only"
                     />
 
-                    <div className="relative w-14 h-7 rounded-full border-2 border-emerald-200 bg-gray-200
+                    <div
+                        className={`relative w-14 h-7 rounded-full border-2 border-emerald-200 bg-gray-200
                         peer-checked:bg-gradient-to-r
                         peer-checked:from-emerald-700
                         peer-checked:to-emerald-900
                         peer-checked:border-emerald-600
-                        transition-all duration-300 shadow-inner">
+                        transition-all duration-300 shadow-inner ${
+                            isLocked
+                                ? "opacity-60 cursor-not-allowed"
+                                : ""
+                        }`}
+                    >
 
                         <motion.div
                             className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
@@ -54,6 +81,7 @@ const FoodAdditionalInfo: React.FC<Props> = ({
                                 damping: 30
                             }}
                         >
+
                             {enabled ? (
 
                                 <svg
@@ -87,6 +115,7 @@ const FoodAdditionalInfo: React.FC<Props> = ({
                                 </svg>
 
                             )}
+
                         </motion.div>
 
                     </div>
@@ -97,23 +126,41 @@ const FoodAdditionalInfo: React.FC<Props> = ({
 
                     <div className="flex items-center gap-2">
 
-                        <span className="text-base font-bold text-emerald-800">
+                        <span
+                            className={`text-base font-bold ${
+                                isLocked
+                                    ? "text-emerald-800/50"
+                                    : "text-emerald-800"
+                            }`}
+                        >
                             Additional Info
                         </span>
 
                         <span
                             className={`px-2 py-0.5 text-[10px] font-medium rounded-full
-                            ${enabled
+                            ${
+                                enabled
                                     ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
                                     : "bg-gray-100 text-gray-500 border border-gray-200"
-                                }`}
+                            }
+                            ${
+                                isLocked
+                                    ? "opacity-60"
+                                    : ""
+                            }`}
                         >
                             {enabled ? "Active" : "Inactive"}
                         </span>
 
                     </div>
 
-                    <p className="text-xs text-emerald-500 mt-1">
+                    <p
+                        className={`text-xs mt-1 ${
+                            isLocked
+                                ? "text-emerald-500/40"
+                                : "text-emerald-500"
+                        }`}
+                    >
                         Toggle additional information section
                     </p>
 
@@ -141,7 +188,13 @@ const FoodAdditionalInfo: React.FC<Props> = ({
 
                                     <div className="w-1 h-6 bg-emerald-700 rounded-full"></div>
 
-                                    <h3 className="text-base font-bold text-emerald-900">
+                                    <h3
+                                        className={`text-base font-bold ${
+                                            isLocked
+                                                ? "text-emerald-900/50"
+                                                : "text-emerald-900"
+                                        }`}
+                                    >
                                         Additional Info
                                     </h3>
 
@@ -150,9 +203,15 @@ const FoodAdditionalInfo: React.FC<Props> = ({
                                 <textarea
                                     rows={5}
                                     value={value}
-                                    onChange={(e) => onChange(e.target.value)}
+                                    disabled={isLocked}
+                                    onChange={(e) => {
+                                        if (isLocked)
+                                            return;
+
+                                        onChange(e.target.value);
+                                    }}
                                     placeholder="Enter any additional information..."
-                                    className="
+                                    className={`
                                         w-full
                                         min-h-[120px]
                                         rounded-lg
@@ -168,7 +227,13 @@ const FoodAdditionalInfo: React.FC<Props> = ({
                                         focus:border-emerald-700
                                         focus:ring-2
                                         focus:ring-emerald-700/20
-                                        "
+
+                                        ${
+                                            isLocked
+                                                ? "opacity-60 cursor-not-allowed bg-gray-50"
+                                                : "bg-white"
+                                        }
+                                    `}
                                 />
 
                             </div>
@@ -180,9 +245,9 @@ const FoodAdditionalInfo: React.FC<Props> = ({
                 )}
 
             </AnimatePresence>
+
         </div>
     );
-
 };
 
 export default FoodAdditionalInfo;

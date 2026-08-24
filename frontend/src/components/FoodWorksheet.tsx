@@ -48,7 +48,7 @@ import {
 import Toast from "./shared/Toast";
 import SubmitDialog from "./shared/SubmitDialog";
 import AnalysisLockSection from "./shared/AnalysisLockSection";
-
+import StartAnalysisDialog from "./shared/StartAnalysisDialog";
 
 const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [preparationLockedPerParam, setPreparationLockedPerParam] = useState<Record<number, boolean>>({});
@@ -88,6 +88,11 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [showUnlockDialog, setShowUnlockDialog] = useState(false);
     const [isUnlocking, setIsUnlocking] = useState(false);
     const [parameterToUnlock, setParameterToUnlock] = useState<ParameterDetail | null>(null);
+    // Start Analysis dialog state
+    const [showStartAnalysisDialog, setShowStartAnalysisDialog] = useState(false);
+    const [isStartingAnalysis, setIsStartingAnalysis] = useState(false);
+    const [parameterForAnalysis, setParameterForAnalysis] =
+        useState<ParameterDetail | null>(null);
 
     const [toastType, setToastType] = useState<"success" | "error">("success");
     const restoreWorksheetToState = (worksheetData: WorksheetDetail) => {
@@ -1568,7 +1573,12 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const _submitQARef = useRef(() => { });
     const _approveRef = useRef(() => { });
 
-    const handleStartAnalysis = async (
+    const handleStartAnalysis = (parameter: ParameterDetail) => {
+        setParameterForAnalysis(parameter);
+        setShowStartAnalysisDialog(true);
+    };
+
+    const handleConfirmStartAnalysis = async (
         parameter: ParameterDetail
     ) => {
         if (!worksheetInfo) {
@@ -1583,7 +1593,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         }
 
         try {
-            setIsSubmitting(true);
+            setIsStartingAnalysis(true);
 
             const worksheetData = collectFormDataForAPI({
                 role,
@@ -1697,6 +1707,8 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                 employeeId,
                 role
             });
+            setShowStartAnalysisDialog(false);
+            setParameterForAnalysis(null);
 
             setToastMessage(
                 "Analysis started successfully."
@@ -1729,7 +1741,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
             }, 4000);
 
         } finally {
-            setIsSubmitting(false);
+            setIsStartingAnalysis(false);
         }
     };
     const handleSaveDraft = async () => {
@@ -2192,144 +2204,144 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
 
     if (isLoading) {
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 flex items-center justify-center p-4">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
-                className="relative"
-            >
-                {/* Animated Background Circles */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <motion.div
-                        animate={{
-                            scale: [1, 1.2, 1],
-                            opacity: [0.3, 0.1, 0.3],
-                        }}
-                        transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                        }}
-                        className="absolute w-64 h-64 rounded-full bg-emerald-500/20 blur-3xl"
-                    />
-
-                    <motion.div
-                        animate={{
-                            scale: [1, 1.3, 1],
-                            opacity: [0.2, 0.05, 0.2],
-                        }}
-                        transition={{
-                            duration: 2.5,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                            delay: 0.5,
-                        }}
-                        className="absolute w-80 h-80 rounded-full bg-emerald-600/10 blur-3xl"
-                    />
-                </div>
-
-                <div className="relative overflow-hidden bg-gradient-to-br from-emerald-700 via-emerald-800 to-slate-900 rounded-2xl shadow-2xl border border-emerald-700/40 p-12 min-w-[400px]">
-
-                    {/* Dot texture */}
-                    <div
-                        className="absolute inset-0 opacity-[0.04] pointer-events-none"
-                        style={{
-                            backgroundImage:
-                                "radial-gradient(rgba(255,255,255,.8) 1px, transparent 1px)",
-                            backgroundSize: "18px 18px",
-                        }}
-                    />
-
-                    {/* Spinner */}
-                    <div className="relative z-10 flex justify-center mb-6">
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 flex items-center justify-center p-4">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="relative"
+                >
+                    {/* Animated Background Circles */}
+                    <div className="absolute inset-0 flex items-center justify-center">
                         <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{
-                                duration: 1,
-                                repeat: Infinity,
-                                ease: "linear",
+                            animate={{
+                                scale: [1, 1.2, 1],
+                                opacity: [0.3, 0.1, 0.3],
                             }}
-                            className="relative w-20 h-20"
-                        >
-                            <div className="absolute inset-0 rounded-full border-4 border-white/10" />
+                            transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                            }}
+                            className="absolute w-64 h-64 rounded-full bg-emerald-500/20 blur-3xl"
+                        />
 
-                            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-emerald-400 border-r-emerald-400" />
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.3, 1],
+                                opacity: [0.2, 0.05, 0.2],
+                            }}
+                            transition={{
+                                duration: 2.5,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                                delay: 0.5,
+                            }}
+                            className="absolute w-80 h-80 rounded-full bg-emerald-600/10 blur-3xl"
+                        />
+                    </div>
 
-                            <div className="absolute inset-2 rounded-full bg-white/5" />
+                    <div className="relative overflow-hidden bg-gradient-to-br from-emerald-700 via-emerald-800 to-slate-900 rounded-2xl shadow-2xl border border-emerald-700/40 p-12 min-w-[400px]">
 
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <svg
-                                    className="w-8 h-8 text-emerald-300"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        {/* Dot texture */}
+                        <div
+                            className="absolute inset-0 opacity-[0.04] pointer-events-none"
+                            style={{
+                                backgroundImage:
+                                    "radial-gradient(rgba(255,255,255,.8) 1px, transparent 1px)",
+                                backgroundSize: "18px 18px",
+                            }}
+                        />
+
+                        {/* Spinner */}
+                        <div className="relative z-10 flex justify-center mb-6">
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{
+                                    duration: 1,
+                                    repeat: Infinity,
+                                    ease: "linear",
+                                }}
+                                className="relative w-20 h-20"
+                            >
+                                <div className="absolute inset-0 rounded-full border-4 border-white/10" />
+
+                                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-emerald-400 border-r-emerald-400" />
+
+                                <div className="absolute inset-2 rounded-full bg-white/5" />
+
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <svg
+                                        className="w-8 h-8 text-emerald-300"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                        />
+                                    </svg>
+                                </div>
+                            </motion.div>
+                        </div>
+
+                        {/* Text */}
+                        <div className="relative z-10 text-center space-y-3">
+                            <motion.h3
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="text-2xl font-bold text-white"
+                            >
+                                Loading Worksheet
+                            </motion.h3>
+
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.3 }}
+                                className="flex items-center justify-center gap-2 text-sm text-emerald-300/80"
+                            >
+                                <span>Fetching data for</span>
+
+                                <span className="px-2 py-0.5 bg-white/15 text-emerald-200 rounded font-semibold border border-white/20">
+                                    {worksheetId}
+                                </span>
+                            </motion.div>
+
+                            {/* Loading dots */}
+                            <motion.div
+                                className="flex justify-center gap-1.5 pt-2"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.4 }}
+                            >
+                                {[0, 1, 2].map((i) => (
+                                    <motion.div
+                                        key={i}
+                                        animate={{
+                                            scale: [1, 1.2, 1],
+                                            opacity: [0.3, 1, 0.3],
+                                        }}
+                                        transition={{
+                                            duration: 1.2,
+                                            repeat: Infinity,
+                                            delay: i * 0.2,
+                                        }}
+                                        className="w-2 h-2 rounded-full bg-emerald-400"
                                     />
-                                </svg>
-                            </div>
-                        </motion.div>
+                                ))}
+                            </motion.div>
+                        </div>
                     </div>
-
-                    {/* Text */}
-                    <div className="relative z-10 text-center space-y-3">
-                        <motion.h3
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="text-2xl font-bold text-white"
-                        >
-                            Loading Worksheet
-                        </motion.h3>
-
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.3 }}
-                            className="flex items-center justify-center gap-2 text-sm text-emerald-300/80"
-                        >
-                            <span>Fetching data for</span>
-
-                            <span className="px-2 py-0.5 bg-white/15 text-emerald-200 rounded font-semibold border border-white/20">
-                                {worksheetId}
-                            </span>
-                        </motion.div>
-
-                        {/* Loading dots */}
-                        <motion.div
-                            className="flex justify-center gap-1.5 pt-2"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.4 }}
-                        >
-                            {[0, 1, 2].map((i) => (
-                                <motion.div
-                                    key={i}
-                                    animate={{
-                                        scale: [1, 1.2, 1],
-                                        opacity: [0.3, 1, 0.3],
-                                    }}
-                                    transition={{
-                                        duration: 1.2,
-                                        repeat: Infinity,
-                                        delay: i * 0.2,
-                                    }}
-                                    className="w-2 h-2 rounded-full bg-emerald-400"
-                                />
-                            ))}
-                        </motion.div>
-                    </div>
-                </div>
-            </motion.div>
-        </div>
-    );
-}
+                </motion.div>
+            </div>
+        );
+    }
 
     if (error)
         return <div>{error}</div>;
@@ -2945,6 +2957,25 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                     setParameterToUnlock(null);
                                 }}
                                 onConfirm={handleConfirmUnlock}
+                            />
+
+                        )}
+                    </AnimatePresence>
+                    {/* Start Analysis Dialog */}
+                    <AnimatePresence>
+                        {showStartAnalysisDialog && parameterForAnalysis && (
+                            <StartAnalysisDialog
+                                isOpen={showStartAnalysisDialog}
+                                isStarting={isStartingAnalysis}
+                                parameterName={parameterForAnalysis.parameterName ?? ""}
+                                parameterCode={parameterForAnalysis.paraCode ?? ""}
+                                onClose={() => {
+                                    setShowStartAnalysisDialog(false);
+                                    setParameterForAnalysis(null);
+                                }}
+                                onConfirm={() =>
+                                    handleConfirmStartAnalysis(parameterForAnalysis)
+                                }
                             />
                         )}
                     </AnimatePresence>

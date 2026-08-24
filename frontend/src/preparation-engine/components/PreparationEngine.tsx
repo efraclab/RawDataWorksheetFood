@@ -50,6 +50,8 @@ interface Props {
 
     isLocked: boolean;
 
+    canEditCalculations?: boolean;
+
     /**
      * Controls whether the Preparation Complete section may be unlocked.
      * Reviewer worksheets that have already been submitted for analysis
@@ -78,6 +80,8 @@ const PreparationEngine =
         parameterCode,
 
         isLocked,
+
+        canEditCalculations = false,
 
         canUnlockPreparation = true,
 
@@ -1665,7 +1669,7 @@ const PreparationEngine =
                                     try {
                                         steps =
                                             typeof preparation.steps ===
-                                            "string"
+                                                "string"
                                                 ? JSON.parse(
                                                     preparation.steps
                                                 )
@@ -3297,6 +3301,10 @@ const PreparationEngine =
 
                     canUnlockPreparation={
                         canUnlockPreparation
+                    }
+
+                    canEditCalculations={
+                        canEditCalculations
                     }
 
                     onLockPreparation={

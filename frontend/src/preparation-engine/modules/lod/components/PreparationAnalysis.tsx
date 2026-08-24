@@ -38,6 +38,8 @@ interface Props {
 
     isLocked: boolean;
 
+    canEditCalculations?: boolean;
+
     parameterType: string;
 
     onLockPreparation: (parameterId: number) => void;
@@ -59,6 +61,8 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
     isLocked,
 
     parameterType,
+
+    canEditCalculations = false,
 
     onLockPreparation,
 
@@ -495,22 +499,22 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
                      * Unlock Preparation, Add Calculation, calculation delete,
                      * Acceptance Limit fields and Calculate Result.
                      */}
+                    <PreparationCompleteSection
+                        completed={isPreparationCompleted}
+                        completedAt={completedAt}
+                        onComplete={() => setShowCompleteModal(true)}
+                        onUnlock={() => setShowUnlockDialog(true)}
+                        parameterType={parameterType}
+                    />
+
                     <fieldset
-                        disabled={controlsLocked}
+                        disabled={controlsLocked && !canEditCalculations}
                         className={
-                            controlsLocked
+                            controlsLocked && !canEditCalculations
                                 ? "min-w-0 [&_button]:cursor-not-allowed [&_input]:cursor-not-allowed"
                                 : "min-w-0"
                         }
                     >
-                        <PreparationCompleteSection
-                            completed={isPreparationCompleted}
-                            completedAt={completedAt}
-                            onComplete={() => setShowCompleteModal(true)}
-                            onUnlock={() => setShowUnlockDialog(true)}
-                            parameterType={parameterType}
-                        />
-
                         {isPreparationCompleted && (
                             <CalculationSection
                                 calculations={calculations}

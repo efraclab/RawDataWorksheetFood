@@ -23,6 +23,8 @@ interface Props {
     /** Controls whether the preparation unlock action is available. */
     canUnlockPreparation?: boolean;
 
+    canEditCalculations?: boolean;
+
     onLockPreparation:
     (parameterId: number) => void;
 
@@ -176,6 +178,8 @@ const ModuleRenderer: React.FC<Props> = ({
 
     canUnlockPreparation = true,
 
+    canEditCalculations,
+
     onLockPreparation,
 
     onUnlockPreparation,
@@ -263,63 +267,63 @@ const ModuleRenderer: React.FC<Props> = ({
                                 ? dietaryFiberRef
 
                                 : moduleType === "peroxideValue"
-                                ? peroxideValueRef
+                                    ? peroxideValueRef
 
-                                : moduleType === "acidValue"
-                                    ? acidValueRef
+                                    : moduleType === "acidValue"
+                                        ? acidValueRef
 
-                                    : moduleType === "acidity"
-                                        ? acidityRef
+                                        : moduleType === "acidity"
+                                            ? acidityRef
 
-                                        : moduleType === "saponificationValue"
-                                        ? saponificationValueRef
+                                            : moduleType === "saponificationValue"
+                                                ? saponificationValueRef
 
-                                        : moduleType === "freeFattyAcid"
-                                            ? freeFattyAcidRef
+                                                : moduleType === "freeFattyAcid"
+                                                    ? freeFattyAcidRef
 
-                                            : moduleType === "unsapMatter"
-                                                ? unsapMatterRef
+                                                    : moduleType === "unsapMatter"
+                                                        ? unsapMatterRef
 
-                                                : moduleType === "artificialSweetner"
-                                                    ? artificialSweetnerRef
+                                                        : moduleType === "artificialSweetner"
+                                                            ? artificialSweetnerRef
 
-                                                    : moduleType === "preservative"
-                                                        ? preservativeRef
+                                                            : moduleType === "preservative"
+                                                                ? preservativeRef
 
-                                                        : moduleType === "moisture"
-                                                            ? moistureRef
+                                                                : moduleType === "moisture"
+                                                                    ? moistureRef
 
-                                                            : moduleType === "nots"
-                                                                ? notsRef
+                                                                    : moduleType === "nots"
+                                                                        ? notsRef
 
-                                                                : moduleType === "sulphurDioxide"
-                                                                    ? sulphurDioxideRef
+                                                                        : moduleType === "sulphurDioxide"
+                                                                            ? sulphurDioxideRef
 
-                                                                    : moduleType === "cholesterol"
-                                                                        ? cholesterolRef
+                                                                            : moduleType === "cholesterol"
+                                                                                ? cholesterolRef
 
-                                                                        : moduleType === "wsv"
-                                                                            ? wsvRef
+                                                                                : moduleType === "wsv"
+                                                                                    ? wsvRef
 
-                                                                            : moduleType === "aminoAcid"
-                                                                                ? aminoAcidRef
+                                                                                    : moduleType === "aminoAcid"
+                                                                                        ? aminoAcidRef
 
-                                                                                : moduleType === "artificialColour"
-                                                                                    ? artificialColourRef
+                                                                                        : moduleType === "artificialColour"
+                                                                                            ? artificialColourRef
 
-                                                                                    : moduleType === "uricAcid"
-                                                                                        ? uricAcidRef
+                                                                                            : moduleType === "uricAcid"
+                                                                                                ? uricAcidRef
 
-                                                                                        : moduleType === "fsv"
-                                                                                            ? fsvRef
+                                                                                                : moduleType === "fsv"
+                                                                                                    ? fsvRef
 
-                                                                                            : moduleType === "fattyAcidProfile"
-                                                                                                ? fattyAcidProfileRef
+                                                                                                    : moduleType === "fattyAcidProfile"
+                                                                                                        ? fattyAcidProfileRef
 
-                                                                                                : moduleType === "sugarSaponinCatechinProfile"
-                                                                                                    ? sugarSaponinCatechinProfileRef
+                                                                                                        : moduleType === "sugarSaponinCatechinProfile"
+                                                                                                            ? sugarSaponinCatechinProfileRef
 
-                                                                                                : lodRef;
+                                                                                                            : lodRef;
 
 
     // =====================================================
@@ -328,7 +332,7 @@ const ModuleRenderer: React.FC<Props> = ({
 
     const moduleConfig =
         moduleRegistry[
-            moduleType as keyof typeof moduleRegistry
+        moduleType as keyof typeof moduleRegistry
         ];
 
 
@@ -365,6 +369,10 @@ const ModuleRenderer: React.FC<Props> = ({
                     isLocked={isLocked}
 
                     canUnlockPreparation={canUnlockPreparation}
+
+                    canEditCalculations={
+                        canEditCalculations
+                    }
 
                     parameterType={moduleType}
 

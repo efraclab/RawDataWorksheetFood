@@ -3305,6 +3305,84 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                 />
                             )}
 
+
+
+
+
+                            {/* ============================================================
+    ANALYST - ANALYSIS PENDING
+============================================================ */}
+                            {role.toLowerCase() === "analyst" &&
+                                normalizeStatus(selectedParameterAnalysisStatus) ===
+                                "analysis pending" && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="mt-6 mb-4"
+                                    >
+                                        <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 border border-emerald-200 rounded-xl shadow-sm overflow-hidden">
+                                            <div className="px-5 py-4">
+                                                <div className="flex items-center justify-between">
+
+                                                    <div className="flex items-center gap-3">
+
+                                                        <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                                            <svg
+                                                                className="w-5 h-5 text-emerald-600"
+                                                                fill="currentColor"
+                                                                viewBox="0 0 20 20"
+                                                            >
+                                                                <path
+                                                                    fillRule="evenodd"
+                                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.5 7.2a1 1 0 011.6-.8l3.5 2.8a1 1 0 010 1.6l-3.5 2.8a1 1 0 01-1.6-.8V7.2z"
+                                                                    clipRule="evenodd"
+                                                                />
+                                                            </svg>
+                                                        </div>
+
+                                                        <div>
+                                                            <h4 className="text-sm font-bold text-slate-800">
+                                                                Analysis Pending
+                                                            </h4>
+
+                                                            <p className="text-xs text-slate-600">
+                                                                Ready to start analysis
+                                                            </p>
+                                                        </div>
+
+                                                    </div>
+
+                                                    <motion.button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleStartAnalysis(selectedParameter)
+                                                        }
+                                                        whileHover={{ scale: 1.02 }}
+                                                        whileTap={{ scale: 0.98 }}
+                                                        className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-800 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+                                                    >
+                                                        <svg
+                                                            className="w-5 h-5"
+                                                            fill="currentColor"
+                                                            viewBox="0 0 20 20"
+                                                        >
+                                                            <path
+                                                                fillRule="evenodd"
+                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.5 7.2a1 1 0 011.6-.8l3.5 2.8a1 1 0 010 1.6l-3.5 2.8a1 1 0 01-1.6-.8V7.2z"
+                                                                clipRule="evenodd"
+                                                            />
+                                                        </svg>
+
+                                                        Start Analysis
+                                                    </motion.button>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+
+
                             {role.toLowerCase() === "analyst" &&
                                 normalizeStatus(selectedParameterAnalysisStatus) ===
                                 "analysis started" && (

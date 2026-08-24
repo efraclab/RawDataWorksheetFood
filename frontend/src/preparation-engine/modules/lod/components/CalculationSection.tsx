@@ -1,5 +1,7 @@
 import React from "react";
 import { FaPlus } from "react-icons/fa";
+import { Target } from "lucide-react";
+
 import type { CalculationBase } from "../../../models/CalculationBase";
 import { moduleRegistry } from "../../../configs/moduleRegistry";
 
@@ -55,6 +57,7 @@ const CalculationSection: React.FC<Props> = ({
                 </div>
 
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+
             </div>
 
             <div
@@ -76,11 +79,13 @@ const CalculationSection: React.FC<Props> = ({
                 <div className="flex items-center justify-between mb-6">
 
                     <h3 className="flex items-center gap-3 text-lg font-bold tracking-tight">
+
                         <span className="w-1.5 h-6 rounded-full bg-gradient-to-b from-emerald-600 to-emerald-900" />
 
                         <span className="text-emerald-900">
                             Calculations for {parameterTitle}
                         </span>
+
                     </h3>
 
                     <button
@@ -107,21 +112,111 @@ const CalculationSection: React.FC<Props> = ({
                         "
                     >
                         <FaPlus className="w-3.5 h-3.5" />
+
                         Add Calculation
                     </button>
+
                 </div>
 
-                {calculations.map((calc) => (
-                    <CalculationComponent
-                        key={calc.id}
-                        calculation={calc as any}
-                        samplePreparations={samplePreparations}
-                        onRemove={() => onRemove(calc.id)}
-                        onFieldChange={onFieldChange as any}
-                        role={role}
-                    />
-                ))}
+                {/* =====================================================
+                    CALCULATIONS
+                ====================================================== */}
+
+                {calculations.length > 0 ? (
+
+                    calculations.map((calc) => (
+                        <CalculationComponent
+                            key={calc.id}
+                            calculation={calc as any}
+                            samplePreparations={
+                                samplePreparations
+                            }
+                            onRemove={() =>
+                                onRemove(calc.id)
+                            }
+                            onFieldChange={
+                                onFieldChange as any
+                            }
+                            role={role}
+                        />
+                    ))
+
+                ) : (
+
+                    /* =================================================
+                       EMPTY CALCULATION STATE
+                    ================================================== */
+
+                    <div
+                        className="
+                            relative
+                            overflow-hidden
+                            text-center
+                            py-12
+                            bg-gradient-to-br
+                            from-emerald-50
+                            via-white
+                            to-emerald-50
+                            border-2
+                            border-dashed
+                            border-emerald-300
+                            rounded-xl
+                            shadow-inner
+                        "
+                    >
+
+                        <div className="relative z-10">
+
+                            <div
+                                className="
+                                    inline-block
+                                    p-4
+                                    bg-white
+                                    rounded-full
+                                    shadow-md
+                                    mb-3
+                                "
+                            >
+                                <Target
+                                    className="
+                                        w-10
+                                        h-10
+                                        text-emerald-400
+                                    "
+                                />
+                            </div>
+
+                            <p
+                                className="
+                                    font-semibold
+                                    text-base
+                                    text-emerald-800
+                                    mb-1
+                                "
+                            >
+                                No {parameterTitle} calculations
+                                added yet
+                            </p>
+
+                            <p
+                                className="
+                                    text-xs
+                                    text-emerald-600/80
+                                    max-w-sm
+                                    mx-auto
+                                "
+                            >
+                                Click "Add Calculation" to begin
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                )}
+
             </div>
+
         </div>
     );
 };

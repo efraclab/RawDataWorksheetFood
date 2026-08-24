@@ -50,6 +50,13 @@ interface Props {
 
     isLocked: boolean;
 
+    /**
+     * Controls whether the Preparation Complete section may be unlocked.
+     * Reviewer worksheets that have already been submitted for analysis
+     * pass false here, while normal locked preparations can still be unlocked.
+     */
+    canUnlockPreparation?: boolean;
+
     onLockPreparation:
     (parameterId: number) => void;
 
@@ -71,6 +78,8 @@ const PreparationEngine =
         parameterCode,
 
         isLocked,
+
+        canUnlockPreparation = true,
 
         onLockPreparation,
 
@@ -3284,6 +3293,10 @@ const PreparationEngine =
 
                     isLocked={
                         isLocked
+                    }
+
+                    canUnlockPreparation={
+                        canUnlockPreparation
                     }
 
                     onLockPreparation={

@@ -72,15 +72,6 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
 
     const [isUnlocking, setIsUnlocking] = useState(false);
 
-    // Display-only name from module registry.
-    // parameterType itself remains unchanged for all internal logic.
-    const parameterTitle =
-        moduleRegistry[
-            parameterType as keyof typeof moduleRegistry
-        ]?.shortName ??
-        parameterType ??
-        "Sample";
-
     const [samplePreparations, setSamplePreparations] =
         useState<SamplePreparationLod[]>([]);
 
@@ -164,6 +155,12 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
         "success" | "error" | "info" | "warning"
     >("success");
 
+    // The worksheet/workflow lock is the single authority for editability.
+    // Draft/Created worksheets remain editable for Reviewers.
+    // Once the parameter is in an analysis-locked state, preparation and
+    // calculation controls become read-only.
+    const controlsLocked = isLocked;
+
     const handleCompletePreparation = () => {
 
         setShowCompleteModal(false);
@@ -178,7 +175,7 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
         setToastType("success");
 
         setToastMessage(
-            `${parameterTitle} preparation marked as complete!`
+            `${parameterType.toUpperCase()} preparation marked as complete!`
         );
 
         setShowToast(true);
@@ -208,7 +205,7 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
             setToastType("success");
 
             setToastMessage(
-                `${parameterTitle} preparation unlocked successfully.`
+                `${parameterType.toUpperCase()} preparation unlocked successfully.`
             );
 
             setShowToast(true);
@@ -440,12 +437,8 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
                 completedDate
             );
 
-            if (completed) {
-
-                onLockPreparation(
-                    parameterId
-                );
-            }
+            // Do not convert preparation completion into a workflow lock here.
+            // The parent restores the authoritative worksheet/analysis lock.
         }
 
     }));
@@ -494,26 +487,42 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
                         />
                     </div>
 
-                    <PreparationCompleteSection
-                        completed={isPreparationCompleted}
-                        completedAt={completedAt}
-                        onComplete={() => setShowCompleteModal(true)}
-                        onUnlock={() => setShowUnlockDialog(true)}
-                        parameterType={parameterType}
-                    />
-                    {isPreparationCompleted && (
-
-                        <CalculationSection
-                            calculations={calculations}
-                            samplePreparations={samplePreparations}
-                            onAdd={handleAddCalculation}
-                            onRemove={handleRemoveCalculation}
+                    {/*
+                     * After the worksheet/parameter is submitted for analysis,
+                     * the preparation and calculation area is read-only.
+                     * A native disabled fieldset keeps all existing values and
+                     * results visible while disabling every button/input inside:
+                     * Unlock Preparation, Add Calculation, calculation delete,
+                     * Acceptance Limit fields and Calculate Result.
+                     */}
+                    <fieldset
+                        disabled={controlsLocked}
+                        className={
+                            controlsLocked
+                                ? "min-w-0 [&_button]:cursor-not-allowed [&_input]:cursor-not-allowed"
+                                : "min-w-0"
+                        }
+                    >
+                        <PreparationCompleteSection
+                            completed={isPreparationCompleted}
+                            completedAt={completedAt}
+                            onComplete={() => setShowCompleteModal(true)}
+                            onUnlock={() => setShowUnlockDialog(true)}
                             parameterType={parameterType}
-                            role={role}
-                            onFieldChange={handleCalculationFieldChange}
                         />
 
-                    )}
+                        {isPreparationCompleted && (
+                            <CalculationSection
+                                calculations={calculations}
+                                samplePreparations={samplePreparations}
+                                onAdd={handleAddCalculation}
+                                onRemove={handleRemoveCalculation}
+                                parameterType={parameterType}
+                                role={role}
+                                onFieldChange={handleCalculationFieldChange}
+                            />
+                        )}
+                    </fieldset>
 
                 </>
 

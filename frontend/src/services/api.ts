@@ -137,7 +137,7 @@ export const addParameter = async (
   }
 
   try {
-    const response = await axios.post<{ worksheetId: string }>(
+    const response = await axios.post<{ parameterId: number }>(
       `${API_BASE_URL}/worksheets/parameters/${worksheetId}`,
       parameterDetail,
       { headers: { "Content-Type": "application/json" } }

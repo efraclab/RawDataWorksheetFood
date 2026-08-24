@@ -50,15 +50,15 @@ namespace RawDataWorkSheet.Repositories
             @Lab IS NULL 
             OR @Lab LIKE '%Quality Assurance%'
             OR @Lab = 'Food Lab'
-             --OR EXISTS (
-            --    SELECT 1
-            --    FROM dbo.SplitStrings(
-            --        REPLACE(REPLACE(REPLACE(@Lab, '&', ' '), 'AND', ' '), 'Lab', ''),
-            --        ' '
-            --   ) S
-            --    WHERE LTRIM(RTRIM(S.[Value])) <> ''
-            --      AND L.CODEDESC LIKE '%' + LTRIM(RTRIM(S.[Value])) + '%'
-            --)
+             OR EXISTS (
+                SELECT 1
+                FROM dbo.SplitStrings(
+                    REPLACE(REPLACE(REPLACE(@Lab, '&', ' '), 'AND', ' '), 'Lab', ''),
+                    ' '
+               ) S
+                WHERE LTRIM(RTRIM(S.[Value])) <> ''
+                  AND L.CODEDESC LIKE '%' + LTRIM(RTRIM(S.[Value])) + '%'
+            )
         )
     ORDER BY t1.TRN1REFNO, t2.TRN2PRODALIAS;
 ";

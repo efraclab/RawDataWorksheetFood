@@ -17,6 +17,7 @@ import type { Analyst } from "../models/Analyst";
 import AnalystSelectionDialog from "./shared/AnalystSelectionDialog";
 import { fetchAnalysts } from "../services/api";
 import DeleteParameterDialog from "./shared/DeleteParameterDialog";
+import UnlockParameterDialog from "./shared/UnlockParameterDialog";
 import type { WorksheetInstrument } from "../models/WorksheetInstrument";
 import type { WorksheetChemical } from "../models/WorksheetChemical";
 import { fetchWorksheetById, fetchSample } from "../services/api";
@@ -41,11 +42,12 @@ import { collectFormDataForAPI } from "../pages/food/services/collectFormDataFor
 import {
     createWorksheet,
     updateWorksheet,
+    updateParameter,
     insertWorksheetLog
 } from "../services/api";
 import Toast from "./shared/Toast";
 import SubmitDialog from "./shared/SubmitDialog";
-import type { PreparationDraft } from "../pages/food/types/PreparationDraft";
+import AnalysisLockSection from "./shared/AnalysisLockSection";
 
 
 const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
@@ -81,6 +83,12 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [parameterToDelete, setParameterToDelete] = useState<ParameterDetail | null>(null);
+
+    // Analysis lock / unlock state
+    const [showUnlockDialog, setShowUnlockDialog] = useState(false);
+    const [isUnlocking, setIsUnlocking] = useState(false);
+    const [parameterToUnlock, setParameterToUnlock] = useState<ParameterDetail | null>(null);
+
     const [toastType, setToastType] = useState<"success" | "error">("success");
     const restoreWorksheetToState = (worksheetData: WorksheetDetail) => {
 
@@ -122,7 +130,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
             // );
 
             restoredPreparationLocked[param.id] =
-                param.status === "COMPLETED";
+                isAnalysisLockedStatus(param.status);
 
             restoredInstruments[param.id] = param.instruments ?? [];
             restoredChemicals[param.id] = param.chemicals ?? [];
@@ -313,12 +321,6 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                 //     param.id,
                 //     preparationRefs.current[param.id]
                 // );
-
-                // Restore lock state first
-                setPreparationLockedPerParam(prev => ({
-                    ...prev,
-                    [param.id]: param.status === "COMPLETED"
-                }));
 
                 // Restore preparation module
                 preparationRefs.current[param.id]?.restoreFromWorksheet(param);
@@ -893,42 +895,65 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
     }, [worksheetId]);
 
+    const areAllParametersApproved = (): boolean => {
+        if (addedParameters.length === 0) {
+            return false;
+        }
+
+        return addedParameters.every((param) => {
+            const status = (
+                parameterStatusPerParam[param.id] ||
+                param.status ||
+                "created"
+            ).toLowerCase();
+
+            return status === "approved";
+        });
+    };
+
     useEffect(() => {
         props.onSidebarStateChange?.({
-
             worksheetId,
-
             registrationNo,
-
             sampleName:
                 worksheetInfo?.sample?.sampleName ?? "",
-
             worksheetStatus:
                 worksheetInfo?.sample?.status ?? null,
-
             role,
-
             isContentLoading: isLoading,
-
             displayStatus:
                 worksheetInfo?.sample?.status ?? "",
 
+            // Keep Save to Draft available until the worksheet is finally approved.
             showSaveDraft:
-                worksheetInfo?.sample?.status === "Draft" ||
-                worksheetInfo?.sample?.status === "Created",
+                worksheetInfo?.sample?.status !== "Approved",
 
+            // After the initial submission, only show Submit for Analysis again
+            // when there are newly-created parameters that still need analysis.
             showSubmitForAnalysis:
                 role === "Reviewer" &&
                 (
                     worksheetInfo?.sample?.status === "Draft" ||
-                    worksheetInfo?.sample?.status === "Created"
+                    worksheetInfo?.sample?.status === "Submitted For Analysis"
                 ) &&
-                addedParameters.length > 0,
+                addedParameters.some((param) => {
+                    const status = (
+                        parameterStatusPerParam[param.id] ||
+                        param.status ||
+                        "created"
+                    ).toLowerCase();
 
+                    return status === "created";
+                }),
+
+            // Submit for QA Review must NOT appear immediately after
+            // Submit for Analysis. It becomes available only after every
+            // parameter has been approved by the Reviewer.
             showSubmitForQA:
                 role === "Reviewer" &&
                 worksheetInfo?.sample?.status ===
-                "Submitted For Analysis",
+                "Submitted For Analysis" &&
+                areAllParametersApproved(),
 
             showApproveWorksheet:
                 role === "QA" &&
@@ -959,6 +984,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         role,
         isLoading,
         addedParameters,
+        parameterStatusPerParam,
         isSubmitting,
         props.onSidebarStateChange
     ]);
@@ -1000,10 +1026,208 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                 p => p.id === expandedParameterId
             ) ?? null;
 
+    // Always use the latest per-parameter status when it exists.
+    // This is important after "Submit for Analysis", because the
+    // parameter status can be updated in parameterStatusPerParam
+    // before addedParameters is refreshed.
+    const selectedParameterAnalysisStatus =
+        selectedParameter
+            ? (
+                parameterStatusPerParam[selectedParameter.id] ||
+                selectedParameter.status ||
+                ""
+            )
+            : "";
+
+    const normalizeStatus = (status?: string | null) =>
+        (status ?? "")
+            .trim()
+            .toLowerCase()
+            .replace(/_/g, " ")
+            .replace(/-/g, " ");
+
+    const isAnalysisLockedStatus = (status?: string | null) => {
+        const normalized = normalizeStatus(status);
+
+        return [
+            "analysis pending",
+            "analysis started",
+            "analysis completed",
+            "analysis revision",
+            "analysis revision started",
+            "approved",
+        ].includes(normalized);
+    };
+
+    const isAnalysisLocked =
+        selectedParameter
+            ? isAnalysisLockedStatus(selectedParameterAnalysisStatus)
+            : false;
+
     const isPreparationLocked =
         selectedParameter
-            ? (preparationLockedPerParam[selectedParameter.id] ?? false)
+            ? (
+                preparationLockedPerParam[selectedParameter.id] === true ||
+                isAnalysisLocked
+            )
             : false;
+
+    const handleInitiateUnlock = (parameter: ParameterDetail) => {
+        setParameterToUnlock(parameter);
+        setShowUnlockDialog(true);
+    };
+
+    const handleConfirmUnlock = async () => {
+        if (!parameterToUnlock)
+            return;
+
+        setIsUnlocking(true);
+
+        try {
+            const updatedParameter: ParameterDetail = {
+                ...parameterToUnlock,
+                status: "created",
+                analyzedBy: null,
+                analyzedByName: null,
+                analysisStartDate: null
+            };
+
+            const response = await updateParameter(
+                parameterToUnlock.id,
+                updatedParameter
+            );
+
+            if (response?.parameterId) {
+                // Return the worksheet itself to Draft. The sidebar actions
+                // are driven by the worksheet-level status, not only the
+                // individual parameter status.
+
+                // worksheetInfo is nullable in React state, but
+                // collectFormDataForAPI requires a real WorksheetDetail.
+                // Narrow it once here and use the narrowed value below.
+                if (!worksheetInfo) {
+                    throw new Error(
+                        "Worksheet information is not available."
+                    );
+                }
+
+                const currentWorksheetInfo: WorksheetDetail = worksheetInfo;
+
+                const worksheetData = collectFormDataForAPI({
+                    role,
+                    worksheetInfo: currentWorksheetInfo,
+                    addedParameters,
+                    preparationRefs,
+                    bufferPreparationPerParam,
+                    mobilePhasePerParam,
+                    diluentPreparationsPerParam,
+                    systemSuitabilityPerParam,
+                    filesPerParam,
+                    additionalInfoPerParam,
+                    addedChemicals,
+                    addedStandards,
+                    addedInstruments
+                });
+
+                const updatedWorksheetData = {
+                    ...worksheetData,
+                    parameters: worksheetData.parameters?.map(param =>
+                        param.id === parameterToUnlock.id
+                            ? {
+                                ...param,
+                                status: "created",
+                                analyzedBy: null,
+                                analyzedByName: null,
+                                analysisStartDate: null
+                            }
+                            : param
+                    ),
+                    documentInfo: {
+                        ...worksheetData.documentInfo,
+                        status: "Draft"
+                    }
+                };
+
+                const worksheetResponse = await updateWorksheet(
+                    worksheetId,
+                    updatedWorksheetData
+                );
+
+                if (!worksheetResponse?.worksheetId) {
+                    throw new Error(
+                        "Parameter unlocked, but worksheet could not be returned to Draft."
+                    );
+                }
+
+                setParameterStatusPerParam(prev => ({
+                    ...prev,
+                    [parameterToUnlock.id]: "created"
+                }));
+
+                setAddedParameters(prev =>
+                    prev.map(parameter =>
+                        parameter.id === parameterToUnlock.id
+                            ? updatedParameter
+                            : parameter
+                    )
+                );
+
+                // Re-enable PreparationEngine and calculation controls.
+                setPreparationLockedPerParam(prev => ({
+                    ...prev,
+                    [parameterToUnlock.id]: false
+                }));
+
+                // Update the local worksheet status immediately so the
+                // sidebar changes from Submitted For Analysis to Draft and
+                // exposes Save to Draft + Submit for Analysis.
+                setWorksheetInfo(prev =>
+                    prev
+                        ? {
+                            ...prev,
+                            sample: {
+                                ...prev.sample,
+                                status: "Draft"
+                            }
+                        }
+                        : null
+                );
+
+                await insertWorksheetLog({
+                    worksheetId,
+                    action: "Parameter Unlocked",
+                    remarks: `Parameter ${parameterToUnlock.parameterName} unlocked and worksheet returned to Draft`,
+                    employeeId,
+                    role
+                });
+
+                setToastMessage("Parameter unlocked successfully!");
+                setToastType("success");
+                setShowToast(true);
+
+                setShowUnlockDialog(false);
+                setParameterToUnlock(null);
+
+                setTimeout(() => {
+                    setShowToast(false);
+                }, 4000);
+            } else {
+                throw new Error("Failed to unlock parameter!");
+            }
+        } catch (error: any) {
+            setToastMessage(
+                `Error unlocking parameter: ${error?.message || error}`
+            );
+            setToastType("error");
+            setShowToast(true);
+
+            setTimeout(() => {
+                setShowToast(false);
+            }, 4000);
+        } finally {
+            setIsUnlocking(false);
+        }
+    };
 
     const handleDeleteParameter = async () => {
 
@@ -1618,6 +1842,21 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
                 });
 
+                // -----------------------------------------------------
+                // Keep preparation lock state synchronized immediately.
+                // This prevents the lock/unlock controls from requiring
+                // a page refresh after Submit For Analysis.
+                // -----------------------------------------------------
+                setPreparationLockedPerParam((prev) => {
+                    const next = { ...prev };
+
+                    createdParameters.forEach((param) => {
+                        next[param.id] = true;
+                    });
+
+                    return next;
+                });
+
                 // ✅ ADD IT HERE
                 await insertWorksheetLog({
                     worksheetId,
@@ -1702,6 +1941,11 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                     setParameterStatusPerParam((prev) => ({
                         ...prev,
                         [param.id]: "Analysis Pending"
+                    }));
+
+                    setPreparationLockedPerParam((prev) => ({
+                        ...prev,
+                        [param.id]: true
                     }));
                 }
 
@@ -1824,21 +2068,23 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                         addedParameters={addedParameters}
                         availableParameters={availableToAdd}
                         expandedParameterId={expandedParameterId}
+
+                        worksheetStatus={worksheetInfo?.sample?.status}
+                        role={role}
+
                         onAddParameter={handleAddParameter}
+
                         onToggleParameter={(parameter) => {
-
-                            if (expandedParameterId === parameter.id)
+                            if (expandedParameterId === parameter.id) {
                                 setExpandedParameterId(null);
-                            else
+                            } else {
                                 setExpandedParameterId(parameter.id);
-
+                            }
                         }}
+
                         onDeleteParameter={(parameter) => {
-
                             setParameterToDelete(parameter);
-
                             setShowDeleteDialog(true);
-
                         }}
                     />
 
@@ -1849,6 +2095,21 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                             <FoodParameterOverview
                                 parameter={selectedParameter}
                                 onClose={() => setExpandedParameterId(null)}
+                            />
+
+                            {/* ============================================================
+                                ANALYSIS LOCK SECTION
+                                Same shared section used by the other worksheet modules.
+                            ============================================================ */}
+                            <AnalysisLockSection
+                                status={selectedParameterAnalysisStatus}
+                                canUnlock={role.toLowerCase() === "reviewer"}
+                                canDelete={true}
+                                onUnlock={() => handleInitiateUnlock(selectedParameter)}
+                                onDelete={() => {
+                                    setParameterToDelete(selectedParameter);
+                                    setShowDeleteDialog(true);
+                                }}
                             />
 
                             {/* Copy from another worksheet */}
@@ -1863,8 +2124,8 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                         setShowCopyWorksheetDialog(true);
                                     }}
                                     className={`flex items-center gap-2 px-3 py-1.5 bg-white border border-emerald-400 text-emerald-700 font-semibold rounded-lg transition-colors shadow-sm text-xs ${isPreparationLocked
-                                            ? "opacity-50 cursor-not-allowed"
-                                            : "hover:bg-emerald-50"
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : "hover:bg-emerald-50"
                                         }`}
                                 >
                                     Copy from Worksheet
@@ -2333,10 +2594,25 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                     )
                                 }
                                 isLocked={isPreparationLocked}
-                            //isLocked={false}
                             />
 
-
+                            {/* ============================================================
+                                COMPACT ANALYSIS LOCK STATUS
+                                Shown at the very bottom after Parameter Files.
+                                Only Awaiting Analysis / Analysis In Progress with actions.
+                                The detailed lock-information section remains above.
+                            ============================================================ */}
+                            <AnalysisLockSection
+                                status={selectedParameterAnalysisStatus}
+                                canUnlock={role.toLowerCase() === "reviewer"}
+                                canDelete={true}
+                                onUnlock={() => handleInitiateUnlock(selectedParameter)}
+                                onDelete={() => {
+                                    setParameterToDelete(selectedParameter);
+                                    setShowDeleteDialog(true);
+                                }}
+                                compact
+                            />
 
                         </>
 
@@ -2351,6 +2627,22 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                         onSelectAnalyst={handleAnalystSelected}
                         lab={department}
                     />
+                    <AnimatePresence>
+                        {showUnlockDialog && parameterToUnlock && (
+                            <UnlockParameterDialog
+                                isOpen={showUnlockDialog}
+                                isUnlocking={isUnlocking}
+                                parameterName={parameterToUnlock.parameterName ?? ""}
+                                parameterCode={parameterToUnlock.paraCode ?? ""}
+                                onClose={() => {
+                                    setShowUnlockDialog(false);
+                                    setParameterToUnlock(null);
+                                }}
+                                onConfirm={handleConfirmUnlock}
+                            />
+                        )}
+                    </AnimatePresence>
+
                     <DeleteParameterDialog
                         isOpen={showDeleteDialog}
                         isDeleting={isDeleting}

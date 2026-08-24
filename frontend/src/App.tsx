@@ -328,10 +328,10 @@ function WorksheetPage(props: {
         />
       </ResizableSidebar>
 
-      <AiReviewTerminal
+      {/* <AiReviewTerminal
         visible={sidebarState.showSubmitForQA && sidebarState.role.toLowerCase() === "reviewer"}
         onReview={() => stableAiReviewRef.current()}
-      />
+      /> */}
 
       {/* ── Only the main content area transitions ── */}
       <div className="flex-1 min-w-0">

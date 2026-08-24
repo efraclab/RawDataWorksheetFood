@@ -1137,66 +1137,136 @@ namespace RawDataWorkSheet.Repositories
 
 
         private async Task UpsertCalculations(
-            IDbConnection connection,
-            IDbTransaction transaction,
-            int parameterId,
-            List<CalculationDto> calculations)
+     IDbConnection connection,
+     IDbTransaction transaction,
+     int parameterId,
+     List<CalculationDto> calculations)
         {
-            if (calculations == null)
-                calculations = new List<CalculationDto>();
+            calculations ??= new List<CalculationDto>();
 
             var existing = await connection.QueryAsync<(int Id, string Label, string CalculationType)>(
-                @"SELECT id, label, calculation_type 
-                  FROM worksheet_calculations 
-                  WHERE parameter_id = @ParameterId",
-                new { ParameterId = parameterId }, transaction);
+                @"SELECT id, label, calculation_type
+          FROM worksheet_calculations
+          WHERE parameter_id = @ParameterId",
+                new { ParameterId = parameterId },
+                transaction);
 
             var existingDict = existing.ToDictionary(
                 x => $"{x.Label}_{x.CalculationType}",
                 x => x.Id);
 
-            var newKeys = calculations.Select(c => $"{c.Label}_{c.CalculationType}").ToHashSet();
+            var newKeys = calculations
+                .Select(c => $"{c.Label}_{c.CalculationType}")
+                .ToHashSet();
 
-            // Delete removed calculations
-            var toDelete = existingDict.Keys.Except(newKeys).ToList();
+            // Delete calculations that no longer exist in the request
+            var toDelete = existingDict.Keys
+                .Except(newKeys)
+                .ToList();
+
             if (toDelete.Any())
             {
-                var idsToDelete = toDelete.Select(key => existingDict[key]).ToList();
+                var idsToDelete = toDelete
+                    .Select(key => existingDict[key])
+                    .ToList();
+
                 await connection.ExecuteAsync(
-                    "DELETE FROM worksheet_calculations WHERE id IN @Ids",
-                    new { Ids = idsToDelete }, transaction);
+                    @"DELETE FROM worksheet_calculations
+              WHERE id IN @Ids",
+                    new
+                    {
+                        Ids = idsToDelete
+                    },
+                    transaction);
             }
 
-            // Insert or update
+            // Insert / Update
             foreach (var calc in calculations)
             {
                 var key = $"{calc.Label}_{calc.CalculationType}";
 
+                var calculationData = GetCalculationJson(calc.Data);
+
                 if (existingDict.TryGetValue(key, out var existingId))
                 {
                     await connection.ExecuteAsync(
-                        @"UPDATE worksheet_calculations 
-                          SET calculation_data = @CalculationData
-                          WHERE id = @Id",
-                        new { Id = existingId, CalculationData = JsonConvert.SerializeObject(calc.Data) },
+                        @"UPDATE worksheet_calculations
+                  SET calculation_data = @CalculationData
+                  WHERE id = @Id",
+                        new
+                        {
+                            Id = existingId,
+                            CalculationData = calculationData
+                        },
                         transaction);
                 }
                 else
                 {
                     await connection.ExecuteAsync(
-                        @"INSERT INTO worksheet_calculations 
-                          (parameter_id, calculation_type, label, calculation_data)
-                          VALUES (@ParameterId, @CalculationType, @Label, @CalculationData)",
+                        @"INSERT INTO worksheet_calculations
+                    (
+                        parameter_id,
+                        calculation_type,
+                        label,
+                        calculation_data
+                    )
+                  VALUES
+                    (
+                        @ParameterId,
+                        @CalculationType,
+                        @Label,
+                        @CalculationData
+                    )",
                         new
                         {
                             ParameterId = parameterId,
-                            calc.CalculationType,
-                            calc.Label,
-                            CalculationData = JsonConvert.SerializeObject(calc.Data)
+                            CalculationType = calc.CalculationType,
+                            Label = calc.Label,
+                            CalculationData = calculationData
                         },
                         transaction);
                 }
             }
+        }
+
+        private string GetCalculationJson(object data)
+        {
+            if (data == null)
+                return null;
+
+            // ASP.NET Core System.Text.Json object
+            if (data is System.Text.Json.JsonElement jsonElement)
+            {
+                if (jsonElement.ValueKind == System.Text.Json.JsonValueKind.Null ||
+                    jsonElement.ValueKind == System.Text.Json.JsonValueKind.Undefined)
+                {
+                    return null;
+                }
+
+                return jsonElement.GetRawText();
+            }
+
+            // Already a JSON string
+            if (data is string jsonString)
+            {
+                if (string.IsNullOrWhiteSpace(jsonString))
+                    return null;
+
+                // Validate that the string itself is JSON.
+                using var document =
+                    System.Text.Json.JsonDocument.Parse(jsonString);
+
+                return document.RootElement.GetRawText();
+            }
+
+            // JObject / JArray or other Newtonsoft JSON types
+            if (data is Newtonsoft.Json.Linq.JToken token)
+            {
+                return token.ToString(Newtonsoft.Json.Formatting.None);
+            }
+
+            // Normal CLR object
+            return System.Text.Json.JsonSerializer.Serialize(data);
         }
 
         private async Task UpsertFiles(

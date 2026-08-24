@@ -1051,7 +1051,6 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
         return [
             "analysis pending",
-            "analysis started",
             "analysis completed",
             "analysis revision",
             "analysis revision started",
@@ -1086,10 +1085,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         try {
             const updatedParameter: ParameterDetail = {
                 ...parameterToUnlock,
-                status: "created",
-                analyzedBy: null,
-                analyzedByName: null,
-                analysisStartDate: null
+                status: "created"
             };
 
             const response = await updateParameter(
@@ -1098,13 +1094,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
             );
 
             if (response?.parameterId) {
-                // Return the worksheet itself to Draft. The sidebar actions
-                // are driven by the worksheet-level status, not only the
-                // individual parameter status.
 
-                // worksheetInfo is nullable in React state, but
-                // collectFormDataForAPI requires a real WorksheetDetail.
-                // Narrow it once here and use the narrowed value below.
                 if (!worksheetInfo) {
                     throw new Error(
                         "Worksheet information is not available."
@@ -1131,17 +1121,16 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
                 const updatedWorksheetData = {
                     ...worksheetData,
+
                     parameters: worksheetData.parameters?.map(param =>
                         param.id === parameterToUnlock.id
                             ? {
                                 ...param,
-                                status: "created",
-                                analyzedBy: null,
-                                analyzedByName: null,
-                                analysisStartDate: null
+                                status: "created"
                             }
                             : param
                     ),
+
                     documentInfo: {
                         ...worksheetData.documentInfo,
                         status: "Draft"
@@ -1172,15 +1161,11 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                     )
                 );
 
-                // Re-enable PreparationEngine and calculation controls.
                 setPreparationLockedPerParam(prev => ({
                     ...prev,
                     [parameterToUnlock.id]: false
                 }));
 
-                // Update the local worksheet status immediately so the
-                // sidebar changes from Submitted For Analysis to Draft and
-                // exposes Save to Draft + Submit for Analysis.
                 setWorksheetInfo(prev =>
                     prev
                         ? {
@@ -1196,12 +1181,16 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                 await insertWorksheetLog({
                     worksheetId,
                     action: "Parameter Unlocked",
-                    remarks: `Parameter ${parameterToUnlock.parameterName} unlocked and worksheet returned to Draft`,
+                    remarks:
+                        `Parameter ${parameterToUnlock.parameterName} unlocked and worksheet returned to Draft`,
                     employeeId,
                     role
                 });
 
-                setToastMessage("Parameter unlocked successfully!");
+                setToastMessage(
+                    "Parameter unlocked successfully!"
+                );
+
                 setToastType("success");
                 setShowToast(true);
 
@@ -1211,19 +1200,26 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                 setTimeout(() => {
                     setShowToast(false);
                 }, 4000);
+
             } else {
-                throw new Error("Failed to unlock parameter!");
+                throw new Error(
+                    "Failed to unlock parameter!"
+                );
             }
+
         } catch (error: any) {
+
             setToastMessage(
                 `Error unlocking parameter: ${error?.message || error}`
             );
+
             setToastType("error");
             setShowToast(true);
 
             setTimeout(() => {
                 setShowToast(false);
             }, 4000);
+
         } finally {
             setIsUnlocking(false);
         }
@@ -1572,7 +1568,170 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const _submitQARef = useRef(() => { });
     const _approveRef = useRef(() => { });
 
+    const handleStartAnalysis = async (
+        parameter: ParameterDetail
+    ) => {
+        if (!worksheetInfo) {
+            setToastMessage("Worksheet information is not available.");
+            setToastType("error");
+            setShowToast(true);
+            return;
+        }
 
+        if (role.toLowerCase() !== "analyst") {
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+
+            const worksheetData = collectFormDataForAPI({
+                role,
+                worksheetInfo,
+                addedParameters,
+                preparationRefs,
+                bufferPreparationPerParam,
+                mobilePhasePerParam,
+                diluentPreparationsPerParam,
+                systemSuitabilityPerParam,
+                filesPerParam,
+                additionalInfoPerParam,
+                addedChemicals,
+                addedStandards,
+                addedInstruments
+            });
+
+            const analysisStartDate = new Date().toISOString();
+
+            const updatedWorksheetData = {
+                ...worksheetData,
+
+                parameters:
+                    worksheetData.parameters?.map(param => {
+
+                        if (param.id !== parameter.id) {
+                            return param;
+                        }
+
+                        return {
+                            ...param,
+
+                            status: "Analysis Started",
+
+                            analyzedBy:
+                                param.analyzedBy ??
+                                parameter.analyzedBy ??
+                                employeeId,
+
+                            analyzedByName:
+                                param.analyzedByName ??
+                                parameter.analyzedByName,
+
+                            analysisStartDate
+                        };
+                    }),
+
+                documentInfo: {
+                    ...worksheetData.documentInfo,
+
+                    // Worksheet remains submitted while analyst
+                    // performs the analysis.
+                    status: "Submitted For Analysis"
+                }
+            };
+
+            const response = await updateWorksheet(
+                worksheetId,
+                updatedWorksheetData
+            );
+
+            if (!response?.worksheetId) {
+                throw new Error(
+                    "Failed to start analysis."
+                );
+            }
+
+            // ---------------------------------------------------------
+            // Update parameter status locally
+            // ---------------------------------------------------------
+
+            setParameterStatusPerParam(prev => ({
+                ...prev,
+                [parameter.id]: "Analysis Started"
+            }));
+
+            setAddedParameters(prev =>
+                prev.map(param =>
+                    param.id === parameter.id
+                        ? {
+                            ...param,
+                            status: "Analysis Started",
+                            analysisStartDate,
+                            analyzedBy:
+                                param.analyzedBy ??
+                                parameter.analyzedBy ??
+                                employeeId,
+                            analyzedByName:
+                                param.analyzedByName ??
+                                parameter.analyzedByName
+                        }
+                        : param
+                )
+            );
+
+            // ---------------------------------------------------------
+            // IMPORTANT:
+            // Analysis Started means Analyst can now edit.
+            // ---------------------------------------------------------
+
+            setPreparationLockedPerParam(prev => ({
+                ...prev,
+                [parameter.id]: false
+            }));
+
+            await insertWorksheetLog({
+                worksheetId,
+                action: "Analysis Started",
+                remarks:
+                    `Analysis started for parameter ${parameter.parameterName}`,
+                employeeId,
+                role
+            });
+
+            setToastMessage(
+                "Analysis started successfully."
+            );
+
+            setToastType("success");
+            setShowToast(true);
+
+            setTimeout(() => {
+                setShowToast(false);
+            }, 4000);
+
+        } catch (error: any) {
+
+            console.error(
+                "Start Analysis error:",
+                error
+            );
+
+            setToastMessage(
+                `Failed to start analysis: ${error?.message || "Unknown error"
+                }`
+            );
+
+            setToastType("error");
+            setShowToast(true);
+
+            setTimeout(() => {
+                setShowToast(false);
+            }, 4000);
+
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
     const handleSaveDraft = async () => {
 
         setIsSaving(true);
@@ -2105,7 +2264,12 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                 status={selectedParameterAnalysisStatus}
                                 canUnlock={role.toLowerCase() === "reviewer"}
                                 canDelete={true}
-                                onUnlock={() => handleInitiateUnlock(selectedParameter)}
+                                onStartAnalysis={() =>
+                                    handleStartAnalysis(selectedParameter)
+                                }
+                                onUnlock={() =>
+                                    handleInitiateUnlock(selectedParameter)
+                                }
                                 onDelete={() => {
                                     setParameterToDelete(selectedParameter);
                                     setShowDeleteDialog(true);
@@ -2113,7 +2277,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                             />
 
                             {/* Copy from another worksheet */}
-                            <div className="mb-4 flex justify-end">
+                            <div className="mt-5 mb-4 flex justify-end">
                                 <button
                                     type="button"
                                     disabled={isPreparationLocked}
@@ -2606,7 +2770,12 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                 status={selectedParameterAnalysisStatus}
                                 canUnlock={role.toLowerCase() === "reviewer"}
                                 canDelete={true}
-                                onUnlock={() => handleInitiateUnlock(selectedParameter)}
+                                onStartAnalysis={() =>
+                                    handleStartAnalysis(selectedParameter)
+                                }
+                                onUnlock={() =>
+                                    handleInitiateUnlock(selectedParameter)
+                                }
                                 onDelete={() => {
                                     setParameterToDelete(selectedParameter);
                                     setShowDeleteDialog(true);

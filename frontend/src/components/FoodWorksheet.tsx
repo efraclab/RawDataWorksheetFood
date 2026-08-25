@@ -49,6 +49,7 @@ import Toast from "./shared/Toast";
 import SubmitDialog from "./shared/SubmitDialog";
 import AnalysisLockSection from "./shared/AnalysisLockSection";
 import StartAnalysisDialog from "./shared/StartAnalysisDialog";
+import CompleteAnalysisDialog from "./shared/CompleteAnalysisDialog";
 
 const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [preparationLockedPerParam, setPreparationLockedPerParam] = useState<Record<number, boolean>>({});
@@ -90,6 +91,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [parameterToUnlock, setParameterToUnlock] = useState<ParameterDetail | null>(null);
     // Start Analysis dialog state
     const [showStartAnalysisDialog, setShowStartAnalysisDialog] = useState(false);
+
     const [isStartingAnalysis, setIsStartingAnalysis] = useState(false);
     const [parameterForAnalysis, setParameterForAnalysis] =
         useState<ParameterDetail | null>(null);
@@ -3518,7 +3520,23 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                             />
                         )}
                     </AnimatePresence>
+                    <AnimatePresence>
+                        {showCompleteAnalysisDialog && parameterForAnalysis && (
+                            <CompleteAnalysisDialog
+                                isOpen={showCompleteAnalysisDialog}
+                                isCompleting={isCompletingAnalysis}
+                                parameterName={parameterForAnalysis.parameterName ?? ""}
+                                parameterCode={parameterForAnalysis.paraCode ?? ""}
+                                onClose={() => {
+                                    if (isCompletingAnalysis) return;
 
+                                    setShowCompleteAnalysisDialog(false);
+                                    setParameterForAnalysis(null);
+                                }}
+                                onConfirm={handleConfirmCompleteAnalysis}
+                            />
+                        )}
+                    </AnimatePresence>
                     <DeleteParameterDialog
                         isOpen={showDeleteDialog}
                         isDeleting={isDeleting}

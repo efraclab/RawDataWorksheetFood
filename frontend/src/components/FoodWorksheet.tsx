@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { WorksheetProps } from "./shared/WorksheetProps";
 import type { WorksheetDetail } from "../models/WorksheetDetail";
@@ -958,6 +958,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [showToast, setShowToast] = useState(false);
+    const [displayStatus, setDisplayStatus] = useState<string>("");
 
     const [showSubmitDialog, setShowSubmitDialog] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -985,6 +986,63 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         });
     };
 
+    // ============================================================
+    // DISPLAY STATUS
+    // Mirrors the Drug worksheet workflow.
+    //
+    // The database/sample status intentionally remains
+    // "Submitted For Analysis" until the Reviewer submits the
+    // worksheet for QA. The UI status changes to "Pending QA
+    // Submission" when every parameter has been Reviewer-approved.
+    // ============================================================
+    const computeDisplayStatus = useCallback(() => {
+        if (!worksheetInfo) return;
+
+        const currentStatus = worksheetInfo.sample.status;
+
+        if (currentStatus === "Submitted For Analysis") {
+            const allStatuses = Object.values(parameterStatusPerParam);
+
+            if (allStatuses.length > 0) {
+                const allCompleted = allStatuses.every(
+                    (status) =>
+                        status === "Analysis Completed" ||
+                        status === "Approved"
+                );
+
+                if (allCompleted) {
+                    const allReviewerApproved = addedParameters.every(
+                        (param) =>
+                            (
+                                parameterStatusPerParam[param.id] ||
+                                param.status ||
+                                ""
+                            ).toLowerCase() === "approved"
+                    );
+
+                    if (allReviewerApproved) {
+                        setDisplayStatus("Pending QA Submission");
+                        return;
+                    }
+
+                    setDisplayStatus("Pending For Review");
+                    return;
+                }
+            }
+        }
+
+        if (currentStatus === "Submitted For QA Review") {
+            setDisplayStatus("Pending QA Validation");
+            return;
+        }
+
+        setDisplayStatus(currentStatus);
+    }, [worksheetInfo, parameterStatusPerParam, addedParameters]);
+
+    useEffect(() => {
+        computeDisplayStatus();
+    }, [computeDisplayStatus]);
+
     useEffect(() => {
         props.onSidebarStateChange?.({
             worksheetId,
@@ -996,7 +1054,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
             role,
             isContentLoading: isLoading,
             displayStatus:
-                worksheetInfo?.sample?.status ?? "",
+                displayStatus || worksheetInfo?.sample?.status || "",
 
             // Keep Save to Draft available until the worksheet is finally approved.
             showSaveDraft:
@@ -1059,6 +1117,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         isLoading,
         addedParameters,
         parameterStatusPerParam,
+        displayStatus,
         isSubmitting,
         props.onSidebarStateChange
     ]);
@@ -3153,7 +3212,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                         sampleName={worksheetInfo?.sample.sampleName ?? ""}
                         parameterCount={worksheetInfo?.sample.numberOfParameters ?? 0}
                         dueDate={worksheetInfo?.sample.dueDate}
-                        displayStatus={worksheetInfo?.sample.status}
+                        displayStatus={displayStatus || worksheetInfo?.sample.status || ""}
                     />
 
                     <FoodWorksheetInfo

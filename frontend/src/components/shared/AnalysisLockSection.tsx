@@ -79,13 +79,232 @@ const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
         normalizedStatus === "analysis revision" ||
         normalizedStatus === "analysis revision started";
 
+    const isApproved = normalizedStatus === "approved";
+
     if (
         !isAnalysisPending &&
         !isAnalysisStarted &&
         !isAnalysisCompleted &&
-        !isAnalysisRevision
+        !isAnalysisRevision &&
+        !isApproved
     ) {
         return null;
+    }
+
+    /*
+     * ============================================================
+     * REVIEWER - APPROVED
+     * ============================================================
+     *
+     * After the Reviewer approves the parameter:
+     *   - Full view: shown before "Copy from Worksheet".
+     *   - Compact view: shown at the bottom of the worksheet.
+     *   - No editing / unlock actions are available.
+     */
+    if (isReviewer && isApproved) {
+        const approvalReviewerComment =
+            typeof reviewerComment === "string" && reviewerComment.trim()
+                ? reviewerComment.trim()
+                : null;
+
+        const approvalAnalystComment =
+            typeof analystComment === "string" && analystComment.trim()
+                ? analystComment.trim()
+                : null;
+
+        if (compact) {
+            return (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-white"
+                >
+                    <div className="px-5 py-3 bg-emerald-50 flex items-center gap-3">
+                        <div className="w-9 h-9 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg
+                                className="w-4 h-4 text-emerald-600"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fillRule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clipRule="evenodd"
+                                />
+                            </svg>
+                        </div>
+                        <div className="min-w-0">
+                            <h4 className="text-sm font-bold text-slate-800">
+                                Approved by Reviewer — Awaiting QA Approval
+                            </h4>
+                            <p className="text-xs text-slate-600">
+                                Awaiting QA validation
+                            </p>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+                <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg
+                                className="w-6 h-6 text-emerald-600"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fillRule="evenodd"
+                                    d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 01.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 001.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clipRule="evenodd"
+                                />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800">
+                                Parameter Approved & Finalized
+                            </h3>
+                            <p className="text-sm text-slate-600 mt-0.5">
+                                This parameter has been reviewed and approved
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-6 bg-emerald-50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white border border-slate-200 rounded-xl p-5">
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg
+                                        className="w-5 h-5 text-emerald-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        />
+                                    </svg>
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="font-semibold text-sm text-slate-800 mb-1">
+                                        Status: Approved
+                                    </h4>
+                                    <p className="text-sm text-slate-600">
+                                        This parameter has been finalized and approved. All data is now locked and cannot be modified.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white border border-slate-200 rounded-xl p-5">
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg
+                                        className="w-5 h-5 text-emerald-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                        />
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                        />
+                                    </svg>
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="font-semibold text-sm text-slate-800 mb-1">
+                                        View Only Access
+                                    </h4>
+                                    <p className="text-sm text-slate-600">
+                                        You can view all parameter details, preparations, and calculations below.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {approvalReviewerComment && (
+                    <div className="mx-6 mb-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg
+                                    className="w-4 h-4 text-blue-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                                    />
+                                </svg>
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="text-xs font-semibold text-blue-800 mb-1">
+                                    Reviewer Remarks
+                                </h4>
+                                <p className="text-sm italic text-blue-900 bg-blue-100 rounded-lg px-3 py-2 border border-blue-200">
+                                    “{approvalReviewerComment}”
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {approvalAnalystComment && (
+                    <div className="mx-6 mb-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg
+                                    className="w-4 h-4 text-gray-500"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                                    />
+                                </svg>
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="text-xs font-semibold text-gray-700 mb-1">
+                                    Analyst Comment
+                                </h4>
+                                <p className="text-sm italic text-gray-800 bg-gray-100 rounded-lg px-3 py-2 border border-gray-200">
+                                    “{approvalAnalystComment}”
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </motion.div>
+        );
     }
 
     /*

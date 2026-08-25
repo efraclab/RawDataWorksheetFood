@@ -116,6 +116,11 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [remarksByReviewerPerParam, setRemarksByReviewerPerParam] =
         useState<Record<number, string | null>>({});
 
+    // Tracks an Analyst's optimistic "Start Revision" action.
+    // The persisted parameter status remains the source of truth after reload.
+    const [revisionStartedParams, setRevisionStartedParams] =
+        useState<Set<number>>(new Set());
+
     const [toastType, setToastType] = useState<"success" | "error">("success");
     const restoreWorksheetToState = (worksheetData: WorksheetDetail) => {
 
@@ -1160,26 +1165,58 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         normalizeStatus(selectedParameterAnalysisStatus) ===
         "analysis completed";
 
+    const normalizedSelectedStatus =
+        normalizeStatus(selectedParameterAnalysisStatus);
+
+    const isAnalystRevision =
+        role?.toLowerCase() === "analyst" &&
+        (
+            normalizedSelectedStatus === "analysis revision" ||
+            normalizedSelectedStatus === "analysis revision started"
+        );
+
+    const isAnalystRevisionStarted =
+        isAnalystRevision &&
+        (
+            normalizedSelectedStatus === "analysis revision started" ||
+            (selectedParameter
+                ? revisionStartedParams.has(selectedParameter.id)
+                : false)
+        );
+
     const isAnalysisLocked =
         selectedParameter
             ? isAnalysisLockedStatus(selectedParameterAnalysisStatus)
             : false;
 
+    // During "Analysis Revision" the Analyst remains completely readonly.
+    // Once "Start Revision" is clicked, the revision-started state explicitly
+    // overrides the analysis lock so every Food control can be edited again.
     const isPreparationLocked =
         selectedParameter
             ? (
-                preparationLockedPerParam[selectedParameter.id] === true ||
-                isAnalysisLocked
+                !isAnalystRevisionStarted &&
+                (
+                    preparationLockedPerParam[selectedParameter.id] === true ||
+                    isAnalysisLocked
+                )
             )
             : false;
-    const normalizedSelectedStatus =
-        normalizeStatus(selectedParameterAnalysisStatus);
 
-    // Once analysis is completed, Reviewer must not unlock Preparation.
-    // Keep the existing preparation behavior unchanged for Draft/Created.
+    // Preparation can be unlocked by the Reviewer during the normal
+    // Created workflow, and by the Analyst after Start Revision.
+    // During "Analysis Revision" the Analyst remains locked; once
+    // "Start Revision" changes the status to "Analysis Revision Started",
+    // the existing Unlock Preparation control must become enabled.
     const canUnlockPreparation =
-        role?.toLowerCase() === "reviewer" &&
-        normalizedSelectedStatus === "created";
+        (
+            role?.toLowerCase() === "reviewer" &&
+            normalizedSelectedStatus === "created"
+        ) ||
+        (
+            role?.toLowerCase() === "analyst" &&
+            isAnalystRevisionStarted
+        );
 
     const canEditCalculations =
         // Reviewer can edit calculations after parameter unlock
@@ -1191,7 +1228,10 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         // Analyst can edit calculations while analysis is in progress
         (
             role?.toLowerCase() === "analyst" &&
-            normalizedSelectedStatus === "analysis started"
+            (
+                normalizedSelectedStatus === "analysis started" ||
+                isAnalystRevisionStarted
+            )
         );
 
     const handleInitiateUnlock = (parameter: ParameterDetail) => {
@@ -1691,6 +1731,95 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const _submitQARef = useRef(() => { });
     const _approveRef = useRef(() => { });
 
+    const handleStartRevision = async (parameter: ParameterDetail) => {
+        if (role.toLowerCase() !== "analyst") return;
+
+        const parameterId = parameter.id;
+        const revisionStartDate = new Date().toISOString();
+
+        // Optimistically unlock immediately, exactly like the Drug worksheet.
+        setRevisionStartedParams(prev => {
+            const next = new Set(prev);
+            next.add(parameterId);
+            return next;
+        });
+
+        setParameterStatusPerParam(prev => ({
+            ...prev,
+            [parameterId]: "Analysis Revision Started"
+        }));
+
+        setAddedParameters(prev =>
+            prev.map(param =>
+                param.id === parameterId
+                    ? {
+                        ...param,
+                        status: "Analysis Revision Started",
+                        revisionStartDate
+                    }
+                    : param
+            )
+        );
+
+        try {
+            const updatedParam = {
+                ...parameter,
+                status: "Analysis Revision Started",
+                revisionStartDate
+            };
+
+            const response = await updateParameter(parameterId, updatedParam);
+
+            if (!response?.parameterId) {
+                throw new Error("Failed to start revision.");
+            }
+
+            await insertWorksheetLog({
+                worksheetId,
+                parameterId,
+                action: "Revision Started",
+                remarks: "Analyst started revision — parameter unlocked for editing",
+                employeeId,
+                role
+            });
+
+            setToastMessage("Revision started. Parameter is now unlocked for editing.");
+            setToastType("success");
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 4000);
+        } catch (error: any) {
+            // Roll back the optimistic unlock if the API call fails.
+            setRevisionStartedParams(prev => {
+                const next = new Set(prev);
+                next.delete(parameterId);
+                return next;
+            });
+
+            setParameterStatusPerParam(prev => ({
+                ...prev,
+                [parameterId]: "Analysis Revision"
+            }));
+
+            setAddedParameters(prev =>
+                prev.map(param =>
+                    param.id === parameterId
+                        ? {
+                            ...param,
+                            status: "Analysis Revision"
+                        }
+                        : param
+                )
+            );
+
+            setToastMessage(
+                `Failed to start revision: ${error?.message || "Unknown error"}`
+            );
+            setToastType("error");
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 4000);
+        }
+    };
+
     const handleStartAnalysis = (parameter: ParameterDetail) => {
         setParameterForAnalysis(parameter);
         setShowStartAnalysisDialog(true);
@@ -1906,12 +2035,25 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         setIsCompletingAnalysis(true);
 
         try {
+            const previousStatus = normalizeStatus(
+                parameterStatusPerParam[parameterForAnalysis.id] ||
+                parameterForAnalysis.status
+            );
+
+            const wasRevision =
+                previousStatus === "analysis revision" ||
+                previousStatus === "analysis revision started" ||
+                revisionStartedParams.has(parameterForAnalysis.id);
+
             const completionDate = new Date().toISOString();
 
             const updatedParam = {
                 ...parameterForAnalysis,
                 status: "Analysis Completed",
                 analysisCompletionDate: completionDate,
+                ...(wasRevision && {
+                    revisionCompletedDate: completionDate
+                }),
                 remarksByAnalyst: comment || null,
             };
 
@@ -1928,6 +2070,14 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                     [parameterForAnalysis.id]: "Analysis Completed"
                 }));
 
+                if (wasRevision) {
+                    setRevisionStartedParams(prev => {
+                        const next = new Set(prev);
+                        next.delete(parameterForAnalysis.id);
+                        return next;
+                    });
+                }
+
                 // Update parameter object
                 setAddedParameters(prev =>
                     prev.map(parameter =>
@@ -1936,6 +2086,9 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                 ...parameter,
                                 status: "Analysis Completed",
                                 analysisCompletionDate: completionDate,
+                                ...(wasRevision && {
+                                    revisionCompletedDate: completionDate
+                                }),
                                 remarksByAnalyst: comment || null
                             }
                             : parameter
@@ -1953,14 +2106,22 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                 await insertWorksheetLog({
                     worksheetId,
                     parameterId: parameterForAnalysis.id,
-                    action: "Analysis Completed",
-                    remarks: comment || "Analysis completed",
+                    action: wasRevision
+                        ? "Analysis Completed After Revision"
+                        : "Analysis Completed",
+                    remarks: comment || (
+                        wasRevision
+                            ? "Analysis completed after revision"
+                            : "Analysis completed"
+                    ),
                     employeeId,
                     role
                 });
 
                 setToastMessage(
-                    "Analysis completed successfully! Submitted for Reviewer approval."
+                    wasRevision
+                        ? "Revision completed successfully! Resubmitted to Reviewer."
+                        : "Analysis completed successfully! Submitted for Reviewer approval."
                 );
 
                 setToastType("success");
@@ -3089,8 +3250,19 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                         : undefined
                                 }
                                 onCompleteAnalysis={
-                                    role.toLowerCase() === "analyst" && !isAnalystAnalysisCompleted
+                                    role.toLowerCase() === "analyst" &&
+                                    (
+                                        !isAnalystAnalysisCompleted ||
+                                        isAnalystRevisionStarted
+                                    )
                                         ? () => handleCompleteAnalysis(selectedParameter)
+                                        : undefined
+                                }
+                                onStartRevision={
+                                    role.toLowerCase() === "analyst" &&
+                                    isAnalystRevision &&
+                                    !isAnalystRevisionStarted
+                                        ? () => handleStartRevision(selectedParameter)
                                         : undefined
                                 }
                                 onApprove={
@@ -3104,7 +3276,21 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                         : undefined
                                 }
                                 analystComment={getAnalystComment(selectedParameter)}
-                                         reviewerComment={remarksByReviewerPerParam[selectedParameter.id] ?? (selectedParameter as any).remarksByReviewer ?? (selectedParameter as any).revisionComments ?? null}
+                                reviewerComment={
+                                    remarksByReviewerPerParam[selectedParameter.id] ??
+                                    (selectedParameter as any).remarksByReviewer ??
+                                    (selectedParameter as any).revisionComments ??
+                                    null
+                                }
+                                analysisStartDate={
+                                    (selectedParameter as any).analysisStartDate ?? null
+                                }
+                                analysisCompletionDate={
+                                    (selectedParameter as any).analysisCompletionDate ?? null
+                                }
+                                revisionStartDate={
+                                    (selectedParameter as any).revisionStartDate ?? null
+                                }
                                 onUnlock={() =>
                                     handleInitiateUnlock(selectedParameter)
                                 }
@@ -3666,6 +3852,95 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
 
 
+
+                            {/* ============================================================
+    ANALYST - ANALYSIS REVISION
+    Bottom compact section: disabled before Start Revision,
+    Complete Revision after Start Revision.
+============================================================ */}
+                            {role.toLowerCase() === "analyst" &&
+                                isAnalystRevision && (
+                                    <AnalysisLockSection
+                                        status={selectedParameterAnalysisStatus}
+                                        role={role}
+                                        canUnlock={false}
+                                        canDelete={false}
+                                        onStartRevision={
+                                            !isAnalystRevisionStarted
+                                                ? () => handleStartRevision(selectedParameter)
+                                                : undefined
+                                        }
+                                        onCompleteAnalysis={
+                                            isAnalystRevisionStarted
+                                                ? () => handleCompleteAnalysis(selectedParameter)
+                                                : undefined
+                                        }
+                                        reviewerComment={
+                                            remarksByReviewerPerParam[selectedParameter.id] ??
+                                            (selectedParameter as any).remarksByReviewer ??
+                                            (selectedParameter as any).revisionComments ??
+                                            null
+                                        }
+                                        analysisStartDate={
+                                            (selectedParameter as any).analysisStartDate ?? null
+                                        }
+                                        analysisCompletionDate={
+                                            (selectedParameter as any).analysisCompletionDate ?? null
+                                        }
+                                        revisionStartDate={
+                                            (selectedParameter as any).revisionStartDate ?? null
+                                        }
+                                        onUnlock={() =>
+                                            handleInitiateUnlock(selectedParameter)
+                                        }
+                                        onDelete={() => {
+                                            setParameterToDelete(selectedParameter);
+                                            setShowDeleteDialog(true);
+                                        }}
+                                        compact
+                                    />
+                                )}
+
+                            {/* ============================================================
+    ANALYST - ANALYSIS COMPLETED AFTER REVISION
+
+    Keep the bottom Analysis Completed section visible after
+    Complete Revision changes the status back to Analysis Completed.
+============================================================ */}
+                            {role.toLowerCase() === "analyst" &&
+                                normalizeStatus(selectedParameterAnalysisStatus) ===
+                                    "analysis completed" && (
+                                    <AnalysisLockSection
+                                        status={selectedParameterAnalysisStatus}
+                                        role={role}
+                                        canUnlock={false}
+                                        canDelete={false}
+                                        analystComment={getAnalystComment(selectedParameter)}
+                                        reviewerComment={
+                                            remarksByReviewerPerParam[selectedParameter.id] ??
+                                            (selectedParameter as any).remarksByReviewer ??
+                                            (selectedParameter as any).revisionComments ??
+                                            null
+                                        }
+                                        analysisStartDate={
+                                            (selectedParameter as any).analysisStartDate ?? null
+                                        }
+                                        analysisCompletionDate={
+                                            (selectedParameter as any).analysisCompletionDate ?? null
+                                        }
+                                        revisionStartDate={
+                                            (selectedParameter as any).revisionStartDate ?? null
+                                        }
+                                        onUnlock={() =>
+                                            handleInitiateUnlock(selectedParameter)
+                                        }
+                                        onDelete={() => {
+                                            setParameterToDelete(selectedParameter);
+                                            setShowDeleteDialog(true);
+                                        }}
+                                        compact
+                                    />
+                                )}
 
                             {/* ============================================================
     ANALYST - ANALYSIS PENDING

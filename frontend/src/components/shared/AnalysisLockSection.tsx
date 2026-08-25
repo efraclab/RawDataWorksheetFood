@@ -10,10 +10,14 @@ export interface AnalysisLockSectionProps {
     onDelete: () => void;
     onStartAnalysis?: () => void;
     onCompleteAnalysis?: () => void;
+    onStartRevision?: () => void;
     onApprove?: () => void;
     onRequestRevision?: () => void;
     analystComment?: string | null;
     reviewerComment?: string | null;
+    analysisStartDate?: string | null;
+    analysisCompletionDate?: string | null;
+    revisionStartDate?: string | null;
     compact?: boolean;
 }
 
@@ -33,10 +37,14 @@ const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
     onDelete,
     onStartAnalysis,
     onCompleteAnalysis,
+    onStartRevision,
     onApprove,
     onRequestRevision,
     analystComment,
     reviewerComment,
+    analysisStartDate,
+    analysisCompletionDate,
+    revisionStartDate,
     compact = false,
 }) => {
     const normalizedStatus = normalizeStatus(status);
@@ -327,6 +335,408 @@ const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
                                 <strong>Please wait:</strong> The parameter will return to &quot;Analysis Completed&quot; status once the analyst finishes the revisions.
                             </p>
                         </div>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
+
+    /*
+     * ============================================================
+     * ANALYST - ANALYSIS REVISION
+     * ============================================================
+     *
+     * Analysis Revision:
+     *   - "analysis revision" = Reviewer requested changes; controls stay locked.
+     *   - "analysis revision started" = Analyst clicked Start Revision; controls unlock.
+     *
+     * Full presentation is rendered above the parameter details.
+     * Compact presentation is rendered at the bottom of the worksheet.
+     */
+    if (isAnalyst && isAnalysisRevision) {
+        const revisionStarted =
+            normalizedStatus === "analysis revision started";
+
+        const revisionComment =
+            typeof reviewerComment === "string" && reviewerComment.trim()
+                ? reviewerComment.trim()
+                : "Revision requested by Reviewer";
+
+        const formatDate = (value?: string | null) => {
+            if (!value) return "-";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return value;
+            return date.toLocaleDateString("en-GB");
+        };
+
+        if (compact) {
+            return (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+                >
+                    <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-5 py-4 border-b border-emerald-100">
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg
+                                        className="w-5 h-5 text-emerald-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M20 11a8 8 0 11-15.5-3M4 5v5h5M4 13a8 8 0 0015.5 3M20 19v-5h-5"
+                                        />
+                                    </svg>
+                                </div>
+
+                                <div className="min-w-0">
+                                    <h3 className="text-sm font-bold text-slate-800">
+                                        Revision Requested by Reviewer
+                                    </h3>
+                                    <p className="text-xs text-slate-600">
+                                        {revisionStarted
+                                            ? 'Revision in progress — make your changes and complete when done'
+                                            : 'Reviewer has requested revisions. Click "Start Revision" to begin editing'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <motion.button
+                                type="button"
+                                onClick={
+                                    revisionStarted
+                                        ? onCompleteAnalysis
+                                        : onStartRevision
+                                }
+                                disabled={
+                                    revisionStarted
+                                        ? !onCompleteAnalysis
+                                        : !onStartRevision
+                                }
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 shadow-sm ${
+                                    revisionStarted
+                                        ? "bg-white border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+                                        : "bg-orange-500 text-white hover:bg-orange-600"
+                                } ${
+                                    (revisionStarted
+                                        ? !onCompleteAnalysis
+                                        : !onStartRevision)
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : ""
+                                }`}
+                            >
+                                <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d={
+                                            revisionStarted
+                                                ? "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0"
+                                                : "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                        }
+                                    />
+                                </svg>
+                                {revisionStarted ? "Complete Revision" : "Start Revision"}
+                            </motion.button>
+                        </div>
+                    </div>
+
+                    <div className="p-5 bg-slate-50">
+                        <div className="bg-white border border-orange-200 rounded-xl p-4">
+                            <div className="flex items-start gap-3">
+                                <div className="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg
+                                        className="w-4 h-4 text-orange-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                                        />
+                                    </svg>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="text-xs font-semibold text-slate-700 mb-1">
+                                        REVIEWER REMARKS
+                                    </h4>
+                                    <p className="text-sm italic text-slate-800 bg-orange-50 border border-orange-100 rounded-lg px-3 py-2">
+                                        &ldquo;{revisionComment}&rdquo;
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-8 mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+            >
+                <div className="bg-gradient-to-r from-orange-50 via-orange-100 to-orange-50 px-6 py-5 border-b border-orange-200">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 min-w-0">
+                            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <svg
+                                    className="w-6 h-6 text-orange-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                            </div>
+
+                            <div className="min-w-0">
+                                <h3 className="text-lg font-bold text-slate-800">
+                                    Revision Requested by Reviewer
+                                </h3>
+                                <p className="text-sm text-slate-600 mt-0.5">
+                                    {revisionStarted
+                                        ? 'Revision in progress — make your changes and click "Complete Revision" when done'
+                                        : 'Reviewer has requested revisions. Click "Start Revision" to unlock editing'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <motion.button
+                            type="button"
+                            onClick={
+                                revisionStarted
+                                    ? onCompleteAnalysis
+                                    : onStartRevision
+                            }
+                            disabled={
+                                revisionStarted
+                                    ? !onCompleteAnalysis
+                                    : !onStartRevision
+                            }
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 shadow-md ${
+                                revisionStarted
+                                    ? "bg-white border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+                                    : "bg-orange-500 text-white hover:bg-orange-600"
+                            } ${
+                                (revisionStarted
+                                    ? !onCompleteAnalysis
+                                    : !onStartRevision)
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                            }`}
+                        >
+                            <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d={
+                                        revisionStarted
+                                            ? "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0"
+                                            : "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 01-2-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                    }
+                                />
+                            </svg>
+                            {revisionStarted ? "Complete Revision" : "Start Revision"}
+                        </motion.button>
+                    </div>
+                </div>
+
+                <div className="p-6 bg-orange-50 space-y-4">
+                    <div className="bg-white border border-orange-200 rounded-xl p-5">
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg
+                                    className="w-5 h-5 text-orange-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                                        strokeWidth={2}
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                </svg>
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="font-semibold text-sm text-slate-800 mb-2">
+                                    Revision Remarks
+                                    <span className="ml-2 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-semibold">
+                                        from Reviewer
+                                    </span>
+                                </h4>
+                                <p className="text-sm italic text-orange-900 bg-orange-50 border border-orange-100 rounded-lg px-4 py-3">
+                                    &ldquo;{revisionComment}&rdquo;
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-xl p-5">
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg
+                                    className="w-5 h-5 text-emerald-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0"
+                                        strokeWidth={2}
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                </svg>
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="font-semibold text-sm text-slate-800 mb-2">
+                                    {revisionStarted
+                                        ? "Revision Mode Active"
+                                        : "Revision Pending — Action Required"}
+                                </h4>
+                                <ul className="text-sm text-slate-600 space-y-2">
+                                    {!revisionStarted ? (
+                                        <>
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-orange-500 mt-1">•</span>
+                                                <span>Review Reviewer&apos;s feedback above carefully</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-orange-500 mt-1">•</span>
+                                                <span>Click <strong>&quot;Start Revision&quot;</strong> to unlock the parameter for editing</span>
+                                            </li>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-emerald-500 mt-1">•</span>
+                                                <span>Review Reviewer&apos;s feedback above and make necessary corrections</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-emerald-500 mt-1">•</span>
+                                                <span>You have full editing access to all preparations and calculations</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-emerald-500 mt-1">•</span>
+                                                <span>Click <strong>&quot;Save Draft&quot;</strong> to save your changes</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-emerald-500 mt-1">•</span>
+                                                <span>Click <strong>&quot;Complete Revision&quot;</strong> when all changes are done</span>
+                                            </li>
+                                        </>
+                                    )}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    {revisionStarted && (
+                        <div className="bg-white border border-emerald-200 rounded-xl p-4">
+                            <div className="flex items-start gap-3">
+                                <svg
+                                    className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2v-4a4 4 0 00-8 0v4H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                                        strokeWidth={2}
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                </svg>
+                                <p className="text-sm text-emerald-800">
+                                    <strong>Editing enabled:</strong> All Food preparations, calculations, instruments, chemicals, standards, files, and supporting information are editable during revision.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {!revisionStarted && (
+                        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                            <div className="flex items-start gap-3">
+                                <svg
+                                    className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        d="M12 8v4l2.5 2"
+                                        strokeWidth={2}
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                    <circle cx="12" cy="12" r="9" strokeWidth={2} />
+                                </svg>
+                                <p className="text-sm text-orange-800">
+                                    <strong>Please wait:</strong> The parameter is locked until you click &quot;Start Revision&quot;.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {revisionStarted && (
+                        <div className="bg-white border border-slate-200 rounded-xl p-5">
+                            <h4 className="text-sm font-bold text-slate-800 mb-3">
+                                Analysis Timeline
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+                                    <p className="text-xs uppercase font-semibold text-slate-500">Started</p>
+                                    <p className="text-sm font-bold text-slate-800 mt-1">{formatDate(analysisStartDate)}</p>
+                                </div>
+                                <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+                                    <p className="text-xs uppercase font-semibold text-slate-500">Completed</p>
+                                    <p className="text-sm font-bold text-slate-800 mt-1">{formatDate(analysisCompletionDate)}</p>
+                                </div>
+                                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                    <p className="text-xs uppercase font-semibold text-orange-600">Revision Started</p>
+                                    <p className="text-sm font-bold text-slate-800 mt-1">{formatDate(revisionStartDate)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                        <p className="text-sm text-orange-800">
+                            <strong>Tip:</strong> Carefully review all sections to ensure accuracy before resubmitting. Your work will be sent back to Reviewer for re-approval.
+                        </p>
                     </div>
                 </div>
             </motion.div>
@@ -1046,6 +1456,43 @@ const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
      * all preparations/calculations/controls.
      */
     if (isAnalyst && isAnalysisCompleted) {
+        if (compact) {
+            return (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 mb-4 rounded-xl overflow-hidden border border-emerald-200 shadow-sm bg-white"
+                >
+                    <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-5 py-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg
+                                    className="w-5 h-5 text-emerald-600"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                            </div>
+
+                            <div className="min-w-0">
+                                <h4 className="text-sm font-bold text-slate-800">
+                                    Analysis Completed
+                                </h4>
+                                <p className="text-xs text-slate-600 mt-0.5">
+                                    Your work has been submitted and is under review
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        }
+
         return (
             <motion.div
                 initial={{ opacity: 0, y: 20 }}

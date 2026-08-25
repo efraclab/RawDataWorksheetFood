@@ -3104,6 +3104,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                         : undefined
                                 }
                                 analystComment={getAnalystComment(selectedParameter)}
+                                         reviewerComment={remarksByReviewerPerParam[selectedParameter.id] ?? (selectedParameter as any).remarksByReviewer ?? (selectedParameter as any).revisionComments ?? null}
                                 onUnlock={() =>
                                     handleInitiateUnlock(selectedParameter)
                                 }
@@ -3616,6 +3617,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                             handleRequestRevision(selectedParameter)
                                         }
                                         analystComment={getAnalystComment(selectedParameter)}
+                                         reviewerComment={remarksByReviewerPerParam[selectedParameter.id] ?? (selectedParameter as any).remarksByReviewer ?? (selectedParameter as any).revisionComments ?? null}
                                         onUnlock={() =>
                                             handleInitiateUnlock(selectedParameter)
                                         }

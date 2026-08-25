@@ -3,12 +3,16 @@ import { motion } from "framer-motion";
 
 export interface AnalysisLockSectionProps {
     status?: string | null;
+    role?: string;
     canUnlock?: boolean;
     canDelete?: boolean;
     onUnlock: () => void;
     onDelete: () => void;
     onStartAnalysis?: () => void;
     onCompleteAnalysis?: () => void;
+    onApprove?: () => void;
+    onRequestRevision?: () => void;
+    analystComment?: string | null;
     compact?: boolean;
 }
 
@@ -21,12 +25,16 @@ const normalizeStatus = (status?: string | null) =>
 
 const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
     status,
+    role,
     canUnlock = true,
     canDelete = true,
     onUnlock,
     onDelete,
     onStartAnalysis,
     onCompleteAnalysis,
+    onApprove,
+    onRequestRevision,
+    analystComment,
     compact = false,
 }) => {
     const normalizedStatus = normalizeStatus(status);
@@ -44,13 +52,15 @@ const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
     /*
      * IMPORTANT:
      *
-     * canUnlock === true  -> Reviewer view
-     * canUnlock === false -> Analyst view
+     * role determines Analyst / Reviewer.
+     * canUnlock is only the permission to unlock.
      *
-     * canUnlock is permission to unlock, NOT the analysis lock state.
+     * This keeps Reviewer + Analysis Completed readonly while still
+     * allowing the Reviewer to Approve / Request Revision.
      */
-    const isAnalyst = !canUnlock;
-    const isReviewer = canUnlock;
+    const normalizedRole = (role ?? "").trim().toLowerCase();
+    const isAnalyst = normalizedRole === "analyst" || (!normalizedRole && !canUnlock);
+    const isReviewer = normalizedRole === "reviewer" || (!normalizedRole && canUnlock);
 
     /*
      * Only these statuses are handled by this component.
@@ -1002,11 +1012,404 @@ const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
      * Reviewer + Analysis Completed:
      *      Unlock available
      */
-    if (isReviewer) {
+    /*
+     * ============================================================
+     * REVIEWER - ANALYSIS COMPLETED
+     * ============================================================
+     *
+     * Reviewer must review the completed analysis instead of
+     * unlocking it. Approve / Request Revision callbacks are
+     * owned by FoodWorksheet (business logic stays there).
+     */
+    if (isReviewer && isAnalysisCompleted) {
+        if (compact) {
+            return (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="
+                        mt-6
+                        rounded-xl
+                        overflow-hidden
+                        border
+                        border-slate-200
+                        shadow-sm
+                        bg-white
+                    "
+                >
+                    <div
+                        className="
+                            px-5
+                            py-3
+                            bg-emerald-50
+                            flex
+                            items-center
+                            justify-between
+                            gap-4
+                        "
+                    >
+                        <div className="flex items-center gap-3 min-w-0">
+                            <div
+                                className="
+                                    w-9
+                                    h-9
+                                    bg-emerald-100
+                                    rounded-lg
+                                    flex
+                                    items-center
+                                    justify-center
+                                    flex-shrink-0
+                                "
+                            >
+                                <svg
+                                    className="w-4 h-4 text-emerald-600"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                            </div>
 
+                            <div className="min-w-0">
+                                <h3 className="text-sm font-bold text-slate-800">
+                                    Analysis Completed
+                                </h3>
+                                <p className="text-xs text-slate-600">
+                                    Review the analysis and approve or request revisions
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2 flex-shrink-0">
+                            <motion.button
+                                type="button"
+                                onClick={onApprove}
+                                disabled={!onApprove}
+                                whileHover={onApprove ? { scale: 1.02 } : undefined}
+                                whileTap={onApprove ? { scale: 0.98 } : undefined}
+                                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 ${
+                                    onApprove
+                                        ? "bg-white border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+                                        : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed"
+                                }`}
+                            >
+                                <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 000 0"
+                                    />
+                                </svg>
+                                Approve
+                            </motion.button>
+
+                            <motion.button
+                                type="button"
+                                onClick={onRequestRevision}
+                                disabled={!onRequestRevision}
+                                whileHover={
+                                    onRequestRevision ? { scale: 1.02 } : undefined
+                                }
+                                whileTap={
+                                    onRequestRevision ? { scale: 0.98 } : undefined
+                                }
+                                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 ${
+                                    onRequestRevision
+                                        ? "bg-white border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+                                        : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed"
+                                }`}
+                            >
+                                <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    />
+                                </svg>
+                                Request Revision
+                            </motion.button>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="
+                    relative
+                    mb-8
+                    rounded-2xl
+                    overflow-hidden
+                    border
+                    border-slate-200
+                    shadow-lg
+                    bg-white
+                "
+            >
+                <div
+                    className="
+                        bg-gradient-to-r
+                        from-emerald-50
+                        via-emerald-100
+                        to-emerald-50
+                        px-6
+                        py-5
+                        border-b
+                        border-slate-200
+                    "
+                >
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                                <svg
+                                    className="w-6 h-6 text-emerald-600"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                            </div>
+
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-800">
+                                    Analysis Completed
+                                </h3>
+                                <p className="text-sm text-slate-600 mt-0.5">
+                                    Review the analysis and approve or request revisions
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <motion.button
+                                type="button"
+                                onClick={onApprove}
+                                disabled={!onApprove}
+                                whileHover={onApprove ? { scale: 1.02 } : undefined}
+                                whileTap={onApprove ? { scale: 0.98 } : undefined}
+                                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 shadow-sm ${
+                                    onApprove
+                                        ? "bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-800 hover:bg-white/80 hover:border-emerald-300"
+                                        : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed"
+                                }`}
+                            >
+                                <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke="currentColor"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 01-18 0 9 9 0 0118 0"
+                                    />
+                                </svg>
+                                Approve
+                            </motion.button>
+
+                            <motion.button
+                                type="button"
+                                onClick={onRequestRevision}
+                                disabled={!onRequestRevision}
+                                whileHover={
+                                    onRequestRevision ? { scale: 1.02 } : undefined
+                                }
+                                whileTap={
+                                    onRequestRevision ? { scale: 0.98 } : undefined
+                                }
+                                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 shadow-sm ${
+                                    onRequestRevision
+                                        ? "bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-800 hover:bg-white/80 hover:border-emerald-300"
+                                        : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed"
+                                }`}
+                            >
+                                <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke="currentColor"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    />
+                                </svg>
+                                Request Revision
+                            </motion.button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-6 bg-emerald-50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white border border-slate-200 rounded-xl p-5">
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg
+                                        className="w-5 h-5 text-emerald-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0"
+                                        />
+                                    </svg>
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="font-semibold text-sm text-slate-800 mb-2">
+                                        Review Actions Available
+                                    </h4>
+                                    <p className="text-sm text-slate-600">
+                                        <strong>Approve:</strong> If all data is accurate and complete, approve to finalize the parameter.
+                                        <br />
+                                        <br />
+                                        <strong>Request Revision:</strong> If changes are needed, send it back to the analyst with feedback.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white border border-slate-200 rounded-xl p-5">
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg
+                                        className="w-5 h-5 text-emerald-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        />
+                                    </svg>
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="font-semibold text-sm text-slate-800 mb-2">
+                                        Review Guidelines
+                                    </h4>
+                                    <p className="text-sm text-slate-600">
+                                        Carefully review all preparations, calculations, and data. Scroll through the parameter details below to verify accuracy.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                        <div className="flex items-start gap-3">
+                            <svg
+                                className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7z"
+                                />
+                            </svg>
+                            <p className="text-sm text-emerald-800">
+                                <strong>Reminder:</strong> Your decision will be final. Approved parameters cannot be edited. Parameters sent for revision will return to the analyst.
+                            </p>
+                        </div>
+                    </div>
+
+                    {typeof analystComment === "string" && analystComment.trim() && (
+                        <div className="mt-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                            <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg
+                                        className="w-4 h-4 text-gray-500"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14v8a2 2 0 01-2 2h-3l-4 4z"
+                                        />
+                                    </svg>
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="text-xs font-semibold text-gray-700 mb-1">
+                                        Analyst Comment
+                                    </h4>
+                                    <p className="text-sm italic text-gray-800 bg-gray-100 rounded-lg px-3 py-2 border border-gray-200">
+                                        &ldquo;{analystComment}&rdquo;
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </motion.div>
+        );
+    }
+
+    /*
+     * ============================================================
+     * REVIEWER
+     * ============================================================
+     *
+     * Reviewer + Analysis Pending:
+     *      Unlock available
+     *
+     * Reviewer + Analysis Started:
+     *      Completely readonly
+     *      NO Unlock
+     *
+     * Reviewer + Analysis Completed:
+     *      Review actions available (no Unlock)
+     */
+    if (isReviewer) {
         const reviewerCanUnlock =
-            isAnalysisPending ||
-            isAnalysisCompleted;
+            isAnalysisPending;
 
         if (compact) {
             return (

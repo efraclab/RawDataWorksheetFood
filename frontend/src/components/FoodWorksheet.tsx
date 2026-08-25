@@ -50,6 +50,8 @@ import SubmitDialog from "./shared/SubmitDialog";
 import AnalysisLockSection from "./shared/AnalysisLockSection";
 import StartAnalysisDialog from "./shared/StartAnalysisDialog";
 import CompleteAnalysisDialog from "./shared/CompleteAnalysisDialog";
+import ApproveParameterDialog from "./shared/ApproveParameterDialog";
+import RevisionRequestDialog from "./shared/RevisionRequestDialog";
 
 const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [preparationLockedPerParam, setPreparationLockedPerParam] = useState<Record<number, boolean>>({});
@@ -104,6 +106,16 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [remarksByAnalystPerParam, setRemarksByAnalystPerParam] =
         useState<Record<number, string>>({});
 
+    // Reviewer approval / revision state
+    const [showApproveDialog, setShowApproveDialog] = useState(false);
+    const [showRevisionDialog, setShowRevisionDialog] = useState(false);
+    const [parameterForApproval, setParameterForApproval] =
+        useState<ParameterDetail | null>(null);
+    const [isApproving, setIsApproving] = useState(false);
+    const [isRequestingRevision, setIsRequestingRevision] = useState(false);
+    const [remarksByReviewerPerParam, setRemarksByReviewerPerParam] =
+        useState<Record<number, string | null>>({});
+
     const [toastType, setToastType] = useState<"success" | "error">("success");
     const restoreWorksheetToState = (worksheetData: WorksheetDetail) => {
 
@@ -113,6 +125,43 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                 id: param.id
             }));
         //console.log(restoredParams);
+
+        // Restore per-parameter status/remarks so Reviewer sees the same
+        // completed-analysis state immediately after hydration.
+        const restoredParameterStatus: Record<number, string> = {};
+        const restoredAnalystRemarks: Record<number, string> = {};
+        const restoredReviewerRemarks: Record<number, string | null> = {};
+
+        restoredParams.forEach(param => {
+            if (param.status) {
+                restoredParameterStatus[param.id] = param.status;
+            }
+
+            // Backend/database naming can differ between camelCase and snake_case.
+            // Keep the original API field first, then support the common aliases so
+            // the Reviewer can always restore the Analyst comment after reload.
+            const analystRemark =
+                (param as any).remarksByAnalyst ??
+                (param as any).remarks_by_analyst ??
+                (param as any).analystComment ??
+                (param as any).analyst_comment ??
+                (param as any).analysisRemarks ??
+                (param as any).analysis_remarks ??
+                null;
+
+            if (analystRemark) {
+                restoredAnalystRemarks[param.id] = analystRemark;
+            }
+
+            const reviewerRemark =
+                (param as any).remarksByReviewer ??
+                (param as any).remarks_by_reviewer ??
+                null;
+
+            if (reviewerRemark) {
+                restoredReviewerRemarks[param.id] = reviewerRemark;
+            }
+        });
 
 
         const restoredShowParamFiles: Record<number, boolean> = {};
@@ -285,6 +334,9 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         //---------------------------------------------------
 
         setAddedParameters(restoredParams);
+        setParameterStatusPerParam(restoredParameterStatus);
+        setRemarksByAnalystPerParam(restoredAnalystRemarks);
+        setRemarksByReviewerPerParam(restoredReviewerRemarks);
 
         setAddedInstruments(restoredInstruments);
         setAddedChemicals(restoredChemicals);
@@ -1047,6 +1099,27 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     // This is important after "Submit for Analysis", because the
     // parameter status can be updated in parameterStatusPerParam
     // before addedParameters is refreshed.
+    // Always resolve the Analyst comment from the latest available source.
+    // The per-parameter state is preferred because it is updated immediately
+    // after Complete Analysis; API aliases are used after a fresh Reviewer load.
+    const getAnalystComment = (parameter: any): string | null => {
+        if (!parameter) return null;
+
+        const value =
+            remarksByAnalystPerParam[parameter.id] ??
+            parameter.remarksByAnalyst ??
+            parameter.remarks_by_analyst ??
+            parameter.analystComment ??
+            parameter.analyst_comment ??
+            parameter.analysisRemarks ??
+            parameter.analysis_remarks ??
+            null;
+
+        return typeof value === "string" && value.trim()
+            ? value.trim()
+            : null;
+    };
+
     const selectedParameterAnalysisStatus =
         selectedParameter
             ? (
@@ -1102,12 +1175,11 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const normalizedSelectedStatus =
         normalizeStatus(selectedParameterAnalysisStatus);
 
+    // Once analysis is completed, Reviewer must not unlock Preparation.
+    // Keep the existing preparation behavior unchanged for Draft/Created.
     const canUnlockPreparation =
         role?.toLowerCase() === "reviewer" &&
-        (
-            normalizedSelectedStatus === "created" ||
-            normalizedSelectedStatus === "analysis completed"
-        );
+        normalizedSelectedStatus === "created";
 
     const canEditCalculations =
         // Reviewer can edit calculations after parameter unlock
@@ -1870,13 +1942,13 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                     )
                 );
 
-                // Save analyst remarks
-                if (comment) {
-                    setRemarksByAnalystPerParam(prev => ({
-                        ...prev,
-                        [parameterForAnalysis.id]: comment
-                    }));
-                }
+                // Save analyst remarks in local per-parameter state as well.
+                // Store an empty string when no comment was supplied so an older
+                // comment cannot remain visible after a revision/completion.
+                setRemarksByAnalystPerParam(prev => ({
+                    ...prev,
+                    [parameterForAnalysis.id]: comment || ""
+                }));
 
                 await insertWorksheetLog({
                     worksheetId,
@@ -1922,6 +1994,184 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
             setIsCompletingAnalysis(false);
         }
     };
+    // ============================================================
+    // REVIEWER - APPROVE / REQUEST REVISION
+    // Mirrors the existing Drug worksheet workflow.
+    // ============================================================
+
+    const handleApprove = (param: ParameterDetail) => {
+        setParameterForApproval(param);
+        setShowApproveDialog(true);
+    };
+
+    const handleRequestRevision = (param: ParameterDetail) => {
+        setParameterForApproval(param);
+        setShowRevisionDialog(true);
+    };
+
+    const handleConfirmApprove = async (remarks: string) => {
+        if (!parameterForApproval) return;
+
+        setIsApproving(true);
+
+        try {
+            const updatedParam = {
+                ...parameterForApproval,
+                status: "Approved",
+                approvedByReviewer: employeeId,
+                approvedAtReviewer: new Date().toISOString(),
+                remarksByReviewer: remarks || null,
+            };
+
+            const response = await updateParameter(
+                parameterForApproval.id,
+                updatedParam
+            );
+
+            if (response?.parameterId) {
+                setParameterStatusPerParam(prev => ({
+                    ...prev,
+                    [parameterForApproval.id]: "Approved"
+                }));
+
+                setRemarksByReviewerPerParam(prev => ({
+                    ...prev,
+                    [parameterForApproval.id]: remarks || null
+                }));
+
+                setAddedParameters(prev =>
+                    prev.map(parameter =>
+                        parameter.id === parameterForApproval.id
+                            ? {
+                                ...parameter,
+                                status: "Approved",
+                                approvedByReviewer: employeeId,
+                                approvedAtReviewer: updatedParam.approvedAtReviewer,
+                                remarksByReviewer: remarks || null
+                            }
+                            : parameter
+                    )
+                );
+
+                await insertWorksheetLog({
+                    worksheetId,
+                    parameterId: parameterForApproval.id,
+                    action: "Parameter Approved",
+                    remarks: remarks || "Parameter approved by Reviewer",
+                    employeeId,
+                    role
+                });
+
+                setToastMessage("Parameter approved successfully!");
+                setToastType("success");
+                setShowToast(true);
+
+                setTimeout(() => {
+                    setShowToast(false);
+                }, 4000);
+
+                setShowApproveDialog(false);
+                setParameterForApproval(null);
+            } else {
+                throw new Error("Failed to approve parameter!");
+            }
+        } catch (error: any) {
+            setToastMessage(
+                `Error approving parameter: ${error?.message || error}`
+            );
+            setToastType("error");
+            setShowToast(true);
+
+            setTimeout(() => {
+                setShowToast(false);
+            }, 4000);
+        } finally {
+            setIsApproving(false);
+        }
+    };
+
+    const handleConfirmRevision = async (comments: string) => {
+        if (!parameterForApproval) return;
+
+        setIsRequestingRevision(true);
+
+        try {
+            const updatedParam = {
+                ...parameterForApproval,
+                status: "Analysis Revision",
+                analysisCompletionDate: new Date().toISOString(),
+                revisionComments: comments,
+                remarksByReviewer: comments,
+            };
+
+            const response = await updateParameter(
+                parameterForApproval.id,
+                updatedParam
+            );
+
+            if (response?.parameterId) {
+                setParameterStatusPerParam(prev => ({
+                    ...prev,
+                    [parameterForApproval.id]: "Analysis Revision"
+                }));
+
+                setRemarksByReviewerPerParam(prev => ({
+                    ...prev,
+                    [parameterForApproval.id]: comments
+                }));
+
+                setAddedParameters(prev =>
+                    prev.map(parameter =>
+                        parameter.id === parameterForApproval.id
+                            ? {
+                                ...parameter,
+                                status: "Analysis Revision",
+                                analysisCompletionDate:
+                                    updatedParam.analysisCompletionDate,
+                                revisionComments: comments,
+                                remarksByReviewer: comments
+                            }
+                            : parameter
+                    )
+                );
+
+                await insertWorksheetLog({
+                    worksheetId,
+                    parameterId: parameterForApproval.id,
+                    action: "Analysis Revision Requested",
+                    remarks: comments || "Revision requested by Reviewer",
+                    employeeId,
+                    role
+                });
+
+                setToastMessage("Revision requested successfully!");
+                setToastType("success");
+                setShowToast(true);
+
+                setTimeout(() => {
+                    setShowToast(false);
+                }, 4000);
+
+                setShowRevisionDialog(false);
+                setParameterForApproval(null);
+            } else {
+                throw new Error("Failed to request revision!");
+            }
+        } catch (error: any) {
+            setToastMessage(
+                `Error requesting revision: ${error?.message || error}`
+            );
+            setToastType("error");
+            setShowToast(true);
+
+            setTimeout(() => {
+                setShowToast(false);
+            }, 4000);
+        } finally {
+            setIsRequestingRevision(false);
+        }
+    };
+
     const handleSaveDraft = async () => {
 
         setIsSaving(true);
@@ -2830,6 +3080,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 ============================================================ */}
                             <AnalysisLockSection
                                 status={selectedParameterAnalysisStatus}
+                                role={role}
                                 canUnlock={role.toLowerCase() === "reviewer"}
                                 canDelete={!isAnalystAnalysisCompleted}
                                 onStartAnalysis={
@@ -2842,6 +3093,17 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                         ? () => handleCompleteAnalysis(selectedParameter)
                                         : undefined
                                 }
+                                onApprove={
+                                    role.toLowerCase() === "reviewer"
+                                        ? () => handleApprove(selectedParameter)
+                                        : undefined
+                                }
+                                onRequestRevision={
+                                    role.toLowerCase() === "reviewer"
+                                        ? () => handleRequestRevision(selectedParameter)
+                                        : undefined
+                                }
+                                analystComment={getAnalystComment(selectedParameter)}
                                 onUnlock={() =>
                                     handleInitiateUnlock(selectedParameter)
                                 }
@@ -3337,9 +3599,35 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                             />
 
                             {/* ============================================================
-                                    ANALYST - ANALYSIS IN PROGRESS
-                                    Shown at the very bottom after Parameter Files.
+                                    REVIEWER - ANALYSIS COMPLETED ACTION BAR
+                                    Uses the shared AnalysisLockSection so the bottom
+                                    section stays consistent with the Drug worksheet.
                                 ============================================================ */}
+                            {role.toLowerCase() === "reviewer" &&
+                                normalizeStatus(selectedParameterAnalysisStatus) ===
+                                "analysis completed" && (
+                                    <AnalysisLockSection
+                                        status={selectedParameterAnalysisStatus}
+                                        role={role}
+                                        canUnlock={false}
+                                        canDelete={false}
+                                        onApprove={() => handleApprove(selectedParameter)}
+                                        onRequestRevision={() =>
+                                            handleRequestRevision(selectedParameter)
+                                        }
+                                        analystComment={getAnalystComment(selectedParameter)}
+                                        onUnlock={() =>
+                                            handleInitiateUnlock(selectedParameter)
+                                        }
+                                        onDelete={() => {
+                                            setParameterToDelete(selectedParameter);
+                                            setShowDeleteDialog(true);
+                                        }}
+                                        compact
+                                    />
+                                )}
+
+
                             {/* ============================================================
     BOTTOM ANALYSIS ACTION SECTION
 
@@ -3351,9 +3639,12 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         Show Analysis In Progress + Complete Analysis.
 ============================================================ */}
 
-                            {role.toLowerCase() === "reviewer" && (
+                            {role.toLowerCase() === "reviewer" &&
+                                normalizeStatus(selectedParameterAnalysisStatus) !==
+                                "analysis completed" && (
                                 <AnalysisLockSection
                                     status={selectedParameterAnalysisStatus}
+                                    role={role}
                                     canUnlock={true}
                                     canDelete={true}
                                     onStartAnalysis={() =>
@@ -3593,6 +3884,40 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                             />
                         )}
                     </AnimatePresence>
+                    <AnimatePresence>
+                        {showApproveDialog && parameterForApproval && (
+                            <ApproveParameterDialog
+                                isOpen={showApproveDialog}
+                                isApproving={isApproving}
+                                parameterName={parameterForApproval.parameterName ?? ""}
+                                parameterCode={parameterForApproval.paraCode ?? ""}
+                                onClose={() => {
+                                    if (isApproving) return;
+                                    setShowApproveDialog(false);
+                                    setParameterForApproval(null);
+                                }}
+                                onConfirm={handleConfirmApprove}
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    <AnimatePresence>
+                        {showRevisionDialog && parameterForApproval && (
+                            <RevisionRequestDialog
+                                isOpen={showRevisionDialog}
+                                isRequesting={isRequestingRevision}
+                                parameterName={parameterForApproval.parameterName ?? ""}
+                                parameterCode={parameterForApproval.paraCode ?? ""}
+                                onClose={() => {
+                                    if (isRequestingRevision) return;
+                                    setShowRevisionDialog(false);
+                                    setParameterForApproval(null);
+                                }}
+                                onConfirm={handleConfirmRevision}
+                            />
+                        )}
+                    </AnimatePresence>
+
                     <DeleteParameterDialog
                         isOpen={showDeleteDialog}
                         isDeleting={isDeleting}

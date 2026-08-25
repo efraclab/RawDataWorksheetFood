@@ -1075,6 +1075,18 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         ].includes(normalized);
     };
 
+    // ============================================================
+    // ANALYST COMPLETE-ANALYSIS LOCK
+    // ============================================================
+    // Keep all existing Food preparation/calculation logic unchanged.
+    // Once an Analyst completes analysis for the selected parameter,
+    // the complete Food worksheet content becomes read-only.
+    // Reviewer / QA behavior is not affected.
+    const isAnalystAnalysisCompleted =
+        role?.toLowerCase() === "analyst" &&
+        normalizeStatus(selectedParameterAnalysisStatus) ===
+        "analysis completed";
+
     const isAnalysisLocked =
         selectedParameter
             ? isAnalysisLockedStatus(selectedParameterAnalysisStatus)
@@ -2739,32 +2751,67 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                         methodName={addedParameters[0]?.methodName ?? ""}
                     />
 
-                    <FoodParameterManager
-                        parameterCount={worksheetInfo?.parameters.length}
-                        addedParameters={addedParameters}
-                        availableParameters={availableToAdd}
-                        expandedParameterId={expandedParameterId}
-
-                        worksheetStatus={worksheetInfo?.sample?.status}
-                        role={role}
-
-                        onAddParameter={handleAddParameter}
-
-                        onToggleParameter={(parameter) => {
-                            if (expandedParameterId === parameter.id) {
-                                setExpandedParameterId(null);
-                            } else {
-                                setExpandedParameterId(parameter.id);
+                    {/*
+                      ============================================================
+                      ANALYST COMPLETE-ANALYSIS LOCK
+                      ============================================================
+                      This wrapper intentionally sits around the existing Food
+                      parameter controls so we do not change any of the current
+                      Food component logic.  After Complete Analysis, the Analyst
+                      can still see the data/status, but cannot click any button,
+                      link, input, select, file control, or other interactive
+                      element inside this worksheet area.
+                    */}
+                    <div
+                        className={`relative ${
+                            isAnalystAnalysisCompleted
+                                ? "select-none"
+                                : ""
+                        }`}
+                        aria-disabled={isAnalystAnalysisCompleted}
+                        onClickCapture={(event) => {
+                            if (isAnalystAnalysisCompleted) {
+                                event.preventDefault();
+                                event.stopPropagation();
                             }
                         }}
-
-                        onDeleteParameter={(parameter) => {
-                            setParameterToDelete(parameter);
-                            setShowDeleteDialog(true);
+                        onPointerDownCapture={(event) => {
+                            if (isAnalystAnalysisCompleted) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                            }
                         }}
-                    />
+                    >
+                        <FoodParameterManager
+                            parameterCount={worksheetInfo?.parameters.length}
+                            addedParameters={addedParameters}
+                            availableParameters={availableToAdd}
+                            expandedParameterId={expandedParameterId}
 
-                    {selectedParameter && (
+                            worksheetStatus={worksheetInfo?.sample?.status}
+                            role={role}
+
+                            onAddParameter={handleAddParameter}
+
+                            onToggleParameter={(parameter) => {
+                                if (isAnalystAnalysisCompleted) return;
+
+                                if (expandedParameterId === parameter.id) {
+                                    setExpandedParameterId(null);
+                                } else {
+                                    setExpandedParameterId(parameter.id);
+                                }
+                            }}
+
+                            onDeleteParameter={(parameter) => {
+                                if (isAnalystAnalysisCompleted) return;
+
+                                setParameterToDelete(parameter);
+                                setShowDeleteDialog(true);
+                            }}
+                        />
+
+                        {selectedParameter && (
 
                         <>
 
@@ -2784,14 +2831,14 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                             <AnalysisLockSection
                                 status={selectedParameterAnalysisStatus}
                                 canUnlock={role.toLowerCase() === "reviewer"}
-                                canDelete={true}
+                                canDelete={!isAnalystAnalysisCompleted}
                                 onStartAnalysis={
-                                    role.toLowerCase() === "analyst"
+                                    role.toLowerCase() === "analyst" && !isAnalystAnalysisCompleted
                                         ? () => handleStartAnalysis(selectedParameter)
                                         : undefined
                                 }
                                 onCompleteAnalysis={
-                                    role.toLowerCase() === "analyst"
+                                    role.toLowerCase() === "analyst" && !isAnalystAnalysisCompleted
                                         ? () => handleCompleteAnalysis(selectedParameter)
                                         : undefined
                                 }
@@ -3475,7 +3522,16 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
                         </>
 
-                    )}
+                        )}
+
+                        {isAnalystAnalysisCompleted && (
+                            <div
+                                className="absolute inset-0 z-50 bg-white/20 backdrop-blur-[0.5px] cursor-not-allowed"
+                                aria-hidden="true"
+                            />
+                        )}
+                    </div>
+
                     <AnalystSelectionDialog
                         isOpen={showAnalystDialog}
                         onClose={() => {

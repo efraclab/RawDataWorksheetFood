@@ -2516,203 +2516,203 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const isSelectedParameterAnalysisPending =
         normalizeStatus(selectedParameterAnalysisStatus) === "analysis pending";
 
-    const renderAnalysisStatusSection = () => {
-        if (
-            role.toLowerCase() === "analyst" &&
-            isSelectedParameterAnalysisStarted &&
-            selectedParameter
-        ) {
-            return (
-                <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
+    // const renderAnalysisStatusSection = () => {
+    //     if (
+    //         role.toLowerCase() === "analyst" &&
+    //         isSelectedParameterAnalysisStarted &&
+    //         selectedParameter
+    //     ) {
+    //         return (
+    //             <div className="relative mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
 
-                    {/* Header */}
-                    <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
+    //                 {/* Header */}
+    //                 <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
 
-                        <div className="flex items-center justify-between">
+    //                     <div className="flex items-center justify-between">
 
-                            <div className="flex items-center gap-4">
+    //                         <div className="flex items-center gap-4">
 
-                                <div className="relative">
-                                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-                                        <svg
-                                            className="w-6 h-6 text-emerald-600 animate-pulse"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                        >
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                                                clipRule="evenodd"
-                                            />
-                                        </svg>
-                                    </div>
-                                </div>
+    //                             <div className="relative">
+    //                                 <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+    //                                     <svg
+    //                                         className="w-6 h-6 text-emerald-600 animate-pulse"
+    //                                         fill="currentColor"
+    //                                         viewBox="0 0 20 20"
+    //                                     >
+    //                                         <path
+    //                                             fillRule="evenodd"
+    //                                             d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+    //                                             clipRule="evenodd"
+    //                                         />
+    //                                     </svg>
+    //                                 </div>
+    //                             </div>
 
-                                <div>
-                                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                        Analysis In Progress
-                                    </h3>
+    //                             <div>
+    //                                 <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+    //                                     Analysis In Progress
+    //                                 </h3>
 
-                                    <p className="text-sm text-slate-600 mt-0.5">
-                                        Work on your analysis and click complete when done
-                                    </p>
-                                </div>
+    //                                 <p className="text-sm text-slate-600 mt-0.5">
+    //                                     Work on your analysis and click complete when done
+    //                                 </p>
+    //                             </div>
 
-                            </div>
+    //                         </div>
 
-                            <motion.button
-                                onClick={() =>
-                                    handleCompleteAnalysis(selectedParameter)
-                                }
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-800 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
-                            >
-                                <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                </svg>
+    //                         <motion.button
+    //                             onClick={() =>
+    //                                 handleCompleteAnalysis(selectedParameter)
+    //                             }
+    //                             whileHover={{ scale: 1.02 }}
+    //                             whileTap={{ scale: 0.98 }}
+    //                             className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-800 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+    //                         >
+    //                             <svg
+    //                                 className="w-5 h-5"
+    //                                 fill="none"
+    //                                 viewBox="0 0 24 24"
+    //                                 stroke="currentColor"
+    //                             >
+    //                                 <path
+    //                                     strokeLinecap="round"
+    //                                     strokeLinejoin="round"
+    //                                     strokeWidth={2}
+    //                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+    //                                 />
+    //                             </svg>
 
-                                Complete Analysis
-                            </motion.button>
+    //                             Complete Analysis
+    //                         </motion.button>
 
-                        </div>
-                    </div>
+    //                     </div>
+    //                 </div>
 
-                    {/* Active Editing Information */}
-                    <div className="p-6 bg-emerald-50">
+    //                 {/* Active Editing Information */}
+    //                 <div className="p-6 bg-emerald-50">
 
-                        <div className="grid grid-cols-1 gap-4">
+    //                     <div className="grid grid-cols-1 gap-4">
 
-                            <div className="bg-white border border-slate-200 rounded-xl p-5">
+    //                         <div className="bg-white border border-slate-200 rounded-xl p-5">
 
-                                <div className="flex items-start gap-3">
+    //                             <div className="flex items-start gap-3">
 
-                                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <svg
-                                            className="w-5 h-5 text-emerald-600"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                            />
-                                        </svg>
-                                    </div>
+    //                                 <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
+    //                                     <svg
+    //                                         className="w-5 h-5 text-emerald-600"
+    //                                         fill="none"
+    //                                         viewBox="0 0 24 24"
+    //                                         stroke="currentColor"
+    //                                     >
+    //                                         <path
+    //                                             strokeLinecap="round"
+    //                                             strokeLinejoin="round"
+    //                                             strokeWidth={2}
+    //                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+    //                                         />
+    //                                     </svg>
+    //                                 </div>
 
-                                    <div className="flex-1">
+    //                                 <div className="flex-1">
 
-                                        <h4 className="font-semibold text-sm text-slate-800 mb-2">
-                                            Active Editing Mode
-                                        </h4>
+    //                                     <h4 className="font-semibold text-sm text-slate-800 mb-2">
+    //                                         Active Editing Mode
+    //                                     </h4>
 
-                                        <ul className="text-sm text-slate-600 space-y-2">
+    //                                     <ul className="text-sm text-slate-600 space-y-2">
 
-                                            <li className="flex items-start gap-2">
-                                                <span className="text-emerald-500 mt-1">
-                                                    •
-                                                </span>
+    //                                         <li className="flex items-start gap-2">
+    //                                             <span className="text-emerald-500 mt-1">
+    //                                                 •
+    //                                             </span>
 
-                                                <span>
-                                                    You have full editing access to all
-                                                    preparations and calculations
-                                                </span>
-                                            </li>
+    //                                             <span>
+    //                                                 You have full editing access to all
+    //                                                 preparations and calculations
+    //                                             </span>
+    //                                         </li>
 
-                                            <li className="flex items-start gap-2">
-                                                <span className="text-emerald-500 mt-1">
-                                                    •
-                                                </span>
+    //                                         <li className="flex items-start gap-2">
+    //                                             <span className="text-emerald-500 mt-1">
+    //                                                 •
+    //                                             </span>
 
-                                                <span>
-                                                    Scroll down to work on parameter
-                                                    details, preparations, and calculations
-                                                </span>
-                                            </li>
+    //                                             <span>
+    //                                                 Scroll down to work on parameter
+    //                                                 details, preparations, and calculations
+    //                                             </span>
+    //                                         </li>
 
-                                            <li className="flex items-start gap-2">
-                                                <span className="text-emerald-500 mt-1">
-                                                    •
-                                                </span>
+    //                                         <li className="flex items-start gap-2">
+    //                                             <span className="text-emerald-500 mt-1">
+    //                                                 •
+    //                                             </span>
 
-                                                <span>
-                                                    Click <strong>"Save Draft"</strong>{" "}
-                                                    frequently to save your progress
-                                                </span>
-                                            </li>
+    //                                             <span>
+    //                                                 Click <strong>"Save Draft"</strong>{" "}
+    //                                                 frequently to save your progress
+    //                                             </span>
+    //                                         </li>
 
-                                            <li className="flex items-start gap-2">
-                                                <span className="text-emerald-500 mt-1">
-                                                    •
-                                                </span>
+    //                                         <li className="flex items-start gap-2">
+    //                                             <span className="text-emerald-500 mt-1">
+    //                                                 •
+    //                                             </span>
 
-                                                <span>
-                                                    When all work is complete, click{" "}
-                                                    <strong>"Complete Analysis"</strong>{" "}
-                                                    above
-                                                </span>
-                                            </li>
+    //                                             <span>
+    //                                                 When all work is complete, click{" "}
+    //                                                 <strong>"Complete Analysis"</strong>{" "}
+    //                                                 above
+    //                                             </span>
+    //                                         </li>
 
-                                        </ul>
+    //                                     </ul>
 
-                                    </div>
+    //                                 </div>
 
-                                </div>
+    //                             </div>
 
-                            </div>
+    //                         </div>
 
-                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+    //                         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
 
-                                <div className="flex items-start gap-3">
+    //                             <div className="flex items-start gap-3">
 
-                                    <svg
-                                        className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                        />
-                                    </svg>
+    //                                 <svg
+    //                                     className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5"
+    //                                     fill="none"
+    //                                     viewBox="0 0 24 24"
+    //                                     stroke="currentColor"
+    //                                 >
+    //                                     <path
+    //                                         strokeLinecap="round"
+    //                                         strokeLinejoin="round"
+    //                                         strokeWidth={2}
+    //                                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+    //                                     />
+    //                                 </svg>
 
-                                    <p className="text-sm text-emerald-800">
-                                        <strong>Before Completing:</strong>{" "}
-                                        Verify all preparations, calculations, and data
-                                        are accurate. This will submit your work to
-                                        Reviewer for approval.
-                                    </p>
+    //                                 <p className="text-sm text-emerald-800">
+    //                                     <strong>Before Completing:</strong>{" "}
+    //                                     Verify all preparations, calculations, and data
+    //                                     are accurate. This will submit your work to
+    //                                     Reviewer for approval.
+    //                                 </p>
 
-                                </div>
+    //                             </div>
 
-                            </div>
+    //                         </div>
 
-                        </div>
+    //                     </div>
 
-                    </div>
+    //                 </div>
 
-                </div>
-            );
-        }
+    //             </div>
+    //         );
+    //     }
 
-        return null;
-    };
+    //     return null;
+    // };
 
     return (
 
@@ -2779,29 +2779,28 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     ANALYSIS LOCK SECTION
     Shared section for Reviewer / Analyst status handling.
 ============================================================ */}
-                             {role.toLowerCase() === "reviewer" && (
-                                <AnalysisLockSection
-                                    status={selectedParameterAnalysisStatus}
-                                    canUnlock={role.toLowerCase() === "reviewer"}
-                                    canDelete={true}
-                                    onStartAnalysis={() =>
-                                        handleStartAnalysis(selectedParameter)
-                                    }
-                                    onUnlock={() =>
-                                        handleInitiateUnlock(selectedParameter)
-                                    }
-                                    onDelete={() => {
-                                        setParameterToDelete(selectedParameter);
-                                        setShowDeleteDialog(true);
-                                    }}
-                                />
-                            )} 
-
-                            {/* {role.toLowerCase() === "analyst" && ( */}
-                                 
-                            {renderAnalysisStatusSection()}
-                                
-                             {/* )} */}
+                            <AnalysisLockSection
+                                status={selectedParameterAnalysisStatus}
+                                canUnlock={role.toLowerCase() === "reviewer"}
+                                canDelete={true}
+                                onStartAnalysis={
+                                    role.toLowerCase() === "analyst"
+                                        ? () => handleStartAnalysis(selectedParameter)
+                                        : undefined
+                                }
+                                onCompleteAnalysis={
+                                    role.toLowerCase() === "analyst"
+                                        ? () => handleCompleteAnalysis(selectedParameter)
+                                        : undefined
+                                }
+                                onUnlock={() =>
+                                    handleInitiateUnlock(selectedParameter)
+                                }
+                                onDelete={() => {
+                                    setParameterToDelete(selectedParameter);
+                                    setShowDeleteDialog(true);
+                                }}
+                            />
 
                             {/* Copy from another worksheet */}
                             <div className="mt-5 mb-4 flex justify-end">

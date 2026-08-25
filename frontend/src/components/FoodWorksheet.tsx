@@ -2779,21 +2779,29 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     ANALYSIS LOCK SECTION
     Shared section for Reviewer / Analyst status handling.
 ============================================================ */}
-                            <AnalysisLockSection
-                                status={selectedParameterAnalysisStatus}
-                                canUnlock={role.toLowerCase() === "reviewer"}
-                                canDelete={true}
-                                onStartAnalysis={() =>
-                                    handleStartAnalysis(selectedParameter)
-                                }
-                                onUnlock={() =>
-                                    handleInitiateUnlock(selectedParameter)
-                                }
-                                onDelete={() => {
-                                    setParameterToDelete(selectedParameter);
-                                    setShowDeleteDialog(true);
-                                }}
-                            />
+                             {role.toLowerCase() === "reviewer" && (
+                                <AnalysisLockSection
+                                    status={selectedParameterAnalysisStatus}
+                                    canUnlock={role.toLowerCase() === "reviewer"}
+                                    canDelete={true}
+                                    onStartAnalysis={() =>
+                                        handleStartAnalysis(selectedParameter)
+                                    }
+                                    onUnlock={() =>
+                                        handleInitiateUnlock(selectedParameter)
+                                    }
+                                    onDelete={() => {
+                                        setParameterToDelete(selectedParameter);
+                                        setShowDeleteDialog(true);
+                                    }}
+                                />
+                            )} 
+
+                            {/* {role.toLowerCase() === "analyst" && ( */}
+                                 
+                            {renderAnalysisStatusSection()}
+                                
+                             {/* )} */}
 
                             {/* Copy from another worksheet */}
                             <div className="mt-5 mb-4 flex justify-end">

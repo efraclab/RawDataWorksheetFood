@@ -40,6 +40,8 @@ interface Props {
 
     canEditCalculations?: boolean;
 
+    canUnlockPreparation: boolean;
+
     parameterType: string;
 
     onLockPreparation: (parameterId: number) => void;
@@ -63,6 +65,8 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
     parameterType,
 
     canEditCalculations = false,
+
+    canUnlockPreparation,
 
     onLockPreparation,
 
@@ -505,6 +509,7 @@ const PreparationAnalysis = forwardRef<PreparationModuleHandle, Props>(({
                         onComplete={() => setShowCompleteModal(true)}
                         onUnlock={() => setShowUnlockDialog(true)}
                         parameterType={parameterType}
+                        canUnlockPreparation={canUnlockPreparation}
                     />
 
                     <fieldset

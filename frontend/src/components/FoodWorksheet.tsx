@@ -111,6 +111,8 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                 id: param.id
             }));
         //console.log(restoredParams);
+
+
         const restoredShowParamFiles: Record<number, boolean> = {};
         const restoredInstruments: Record<number, WorksheetInstrument[]> = {};
         const restoredChemicals: Record<number, WorksheetChemical[]> = {};
@@ -1085,6 +1087,13 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
             : false;
     const normalizedSelectedStatus =
         normalizeStatus(selectedParameterAnalysisStatus);
+
+    const canUnlockPreparation =
+        role?.toLowerCase() === "reviewer" &&
+        (
+            normalizedSelectedStatus === "created" ||
+            normalizedSelectedStatus === "analysis completed"
+        );
 
     const canEditCalculations =
         // Reviewer can edit calculations after parameter unlock
@@ -3096,15 +3105,15 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
                                 role={role}
 
+                                canUnlockPreparation={canUnlockPreparation}
+
                                 parameterId={selectedParameter.id}
 
                                 parameterName={selectedParameter.parameterName}
 
                                 parameterCode={selectedParameter.paraCode}
 
-                                isLocked={
-                                    preparationLockedPerParam[selectedParameter.id] ?? false
-                                }
+                                isLocked={isPreparationLocked}
                                 canEditCalculations={canEditCalculations}
 
                                 onLockPreparation={(parameterId) => {

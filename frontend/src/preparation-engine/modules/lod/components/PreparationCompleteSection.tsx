@@ -8,6 +8,7 @@ interface Props {
     onComplete: () => void;
     onUnlock: () => void;
     parameterType: string;
+    canUnlockPreparation?: boolean;
 }
 
 const PreparationCompleteSection: React.FC<Props> = ({
@@ -16,10 +17,11 @@ const PreparationCompleteSection: React.FC<Props> = ({
     onComplete,
     onUnlock,
     parameterType,
+    canUnlockPreparation = true,
 }) => {
     const moduleConfig =
         moduleRegistry[
-            parameterType as keyof typeof moduleRegistry
+        parameterType as keyof typeof moduleRegistry
         ];
 
     const parameterTitle =
@@ -97,26 +99,38 @@ const PreparationCompleteSection: React.FC<Props> = ({
                             </p>
                         </div>
                     </div>
-
                     <button
                         type="button"
                         onClick={onUnlock}
-                        className="
-                            flex
-                            items-center
-                            gap-1.5
-                            px-3
-                            py-1.5
-                            text-xs
-                            font-semibold
-                            text-orange-700
-                            bg-orange-50
-                            border
-                            border-orange-300
-                            rounded-lg
-                            hover:bg-orange-100
-                            transition-colors
-                        "
+                        disabled={!canUnlockPreparation}
+                        className={`
+        flex
+        items-center
+        gap-1.5
+        px-3
+        py-1.5
+        text-xs
+        font-semibold
+        rounded-lg
+        border
+        transition-colors
+        ${canUnlockPreparation
+                                ? `
+                    text-orange-700
+                    bg-orange-50
+                    border-orange-300
+                    hover:bg-orange-100
+                    cursor-pointer
+                `
+                                : `
+                    text-gray-400
+                    bg-gray-100
+                    border-gray-300
+                    cursor-not-allowed
+                    opacity-60
+                `
+                            }
+    `}
                     >
                         <svg
                             className="w-3.5 h-3.5"

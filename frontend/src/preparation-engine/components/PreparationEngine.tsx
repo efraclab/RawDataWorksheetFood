@@ -57,7 +57,7 @@ interface Props {
      * Reviewer worksheets that have already been submitted for analysis
      * pass false here, while normal locked preparations can still be unlocked.
      */
-    canUnlockPreparation?: boolean;
+    canUnlockPreparation: boolean;
 
     onLockPreparation:
     (parameterId: number) => void;
@@ -83,7 +83,7 @@ const PreparationEngine =
 
         canEditCalculations = false,
 
-        canUnlockPreparation = true,
+        canUnlockPreparation,
 
         onLockPreparation,
 

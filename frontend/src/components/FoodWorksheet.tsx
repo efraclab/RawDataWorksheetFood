@@ -117,6 +117,14 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [remarksByReviewerPerParam, setRemarksByReviewerPerParam] =
         useState<Record<number, string | null>>({});
 
+    // QA revision state - mirrors the Drug QA workflow without changing
+    // the existing Reviewer approval/revision logic.
+    const [showQARevisionDialog, setShowQARevisionDialog] = useState(false);
+    const [isQARequestingRevision, setIsQARequestingRevision] = useState(false);
+    const [qaRevisionComments, setQARevisionComments] = useState("");
+    const [remarksQAPerParam, setRemarksQAPerParam] =
+        useState<Record<number, string | null>>({});
+
     // Reviewer identity restored per parameter, matching the Drug worksheet.
     // Supports both camelCase API fields and common snake_case aliases.
     const [approvedByReviewerPerParam, setApprovedByReviewerPerParam] =
@@ -144,6 +152,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         const restoredParameterStatus: Record<number, string> = {};
         const restoredAnalystRemarks: Record<number, string> = {};
         const restoredReviewerRemarks: Record<number, string | null> = {};
+        const restoredQARemarks: Record<number, string | null> = {};
 
         restoredParams.forEach(param => {
             if (param.status) {
@@ -173,6 +182,15 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
             if (reviewerRemark) {
                 restoredReviewerRemarks[param.id] = reviewerRemark;
+            }
+
+            const qaRemark =
+                (param as any).remarksByQA ??
+                (param as any).remarks_by_qa ??
+                null;
+
+            if (qaRemark) {
+                restoredQARemarks[param.id] = qaRemark;
             }
         });
 
@@ -379,6 +397,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         setParameterStatusPerParam(restoredParameterStatus);
         setRemarksByAnalystPerParam(restoredAnalystRemarks);
         setRemarksByReviewerPerParam(restoredReviewerRemarks);
+        setRemarksQAPerParam(restoredQARemarks);
         setApprovedByReviewerPerParam(restoredApprovedByReviewer);
         setApprovedByReviewerNamePerParam(restoredApprovedByReviewerName);
 
@@ -2289,6 +2308,94 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         setShowRevisionDialog(true);
     };
 
+    // ============================================================
+    // QA - REQUEST PARAMETER REVISION
+    // Mirrors the Drug QA workflow.
+    // This is deliberately separate from Reviewer revision logic.
+    // ============================================================
+    const handleQARequestRevision = (param: ParameterDetail) => {
+        setParameterForApproval(param);
+        setShowQARevisionDialog(true);
+    };
+
+    const handleConfirmQARevision = async (comments: string) => {
+        if (!parameterForApproval) return;
+
+        setIsQARequestingRevision(true);
+
+        try {
+            const updatedParam = {
+                ...parameterForApproval,
+                status: "Analysis Revision",
+                remarksByQA: comments,
+            };
+
+            const response = await updateParameter(
+                parameterForApproval.id,
+                updatedParam
+            );
+
+            if (response?.parameterId) {
+                setParameterStatusPerParam(prev => ({
+                    ...prev,
+                    [parameterForApproval.id]: "Analysis Revision"
+                }));
+
+                setRemarksQAPerParam(prev => ({
+                    ...prev,
+                    [parameterForApproval.id]: comments || null
+                }));
+
+                setAddedParameters(prev =>
+                    prev.map(parameter =>
+                        parameter.id === parameterForApproval.id
+                            ? {
+                                ...parameter,
+                                status: "Analysis Revision",
+                                remarksByQA: comments || null
+                            }
+                            : parameter
+                    )
+                );
+
+                await insertWorksheetLog({
+                    worksheetId,
+                    parameterId: parameterForApproval.id,
+                    action: "QA Revision Requested",
+                    remarks: comments || "Revision requested by QA",
+                    employeeId,
+                    role,
+                });
+
+                setToastMessage("Revision requested by QA successfully!");
+                setToastType("success");
+                setShowToast(true);
+
+                setTimeout(() => {
+                    setShowToast(false);
+                }, 4000);
+
+                setShowQARevisionDialog(false);
+                setParameterForApproval(null);
+                setQARevisionComments("");
+            } else {
+                throw new Error("Failed to request QA revision!");
+            }
+        } catch (error: any) {
+            setToastMessage(
+                `Error requesting QA revision: ${error?.message || error}`
+            );
+            setToastType("error");
+            setShowToast(true);
+
+            setTimeout(() => {
+                setShowToast(false);
+            }, 4000);
+        } finally {
+            setIsQARequestingRevision(false);
+        }
+    };
+
     const handleConfirmApprove = async (remarks: string) => {
         if (!parameterForApproval) return;
 
@@ -3517,8 +3624,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                 ANALYSIS LOCK SECTION
                                 Shared section for Reviewer / Analyst status handling.
                             ============================================================ */}
-                                {!isReviewerApprovedForQA && (
-                                    <AnalysisLockSection
+                                <AnalysisLockSection
                                         status={selectedParameterAnalysisStatus}
                                         role={role}
                                         worksheetStatus={worksheetInfo?.sample?.status ?? null}
@@ -3550,11 +3656,6 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                                 ? () => handleApprove(selectedParameter)
                                                 : undefined
                                         }
-                                        onRequestRevision={
-                                            role.toLowerCase() === "reviewer"
-                                                ? () => handleRequestRevision(selectedParameter)
-                                                : undefined
-                                        }
                                         analystComment={getAnalystComment(selectedParameter)}
                                         reviewerComment={
                                             remarksByReviewerPerParam[selectedParameter.id] ??
@@ -3581,8 +3682,15 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                             setParameterToDelete(selectedParameter);
                                             setShowDeleteDialog(true);
                                         }}
+                                        onRequestRevision={
+                                            role.toLowerCase() === "qa" &&
+                                                isReviewerApprovedForQA
+                                                ? () => handleQARequestRevision(selectedParameter)
+                                                : role.toLowerCase() === "reviewer"
+                                                    ? () => handleRequestRevision(selectedParameter)
+                                                    : undefined
+                                        }
                                     />
-                                )}
 
                                 {/* Copy from another worksheet */}
                                 <div className="mt-5 mb-4 flex justify-end">
@@ -4141,6 +4249,32 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
 
                                 {/* ============================================================
+    QA - REVIEWER APPROVED / PENDING QA WORKSHEET APPROVAL
+    Bottom compact section. The same state is also rendered above
+    Copy from Worksheet by AnalysisLockSection (compact=false).
+============================================================ */}
+                                {role.toLowerCase() === "qa" &&
+                                    isReviewerApprovedForQA && (
+                                        <AnalysisLockSection
+                                            status={selectedParameterAnalysisStatus}
+                                            role={role}
+                                            worksheetStatus={worksheetInfo?.sample?.status ?? null}
+                                            canUnlock={false}
+                                            canDelete={false}
+                                            onRequestRevision={() =>
+                                                handleQARequestRevision(selectedParameter)
+                                            }
+                                            reviewerComment={
+                                                remarksByReviewerPerParam[selectedParameter.id] ??
+                                                (selectedParameter as any).remarksByReviewer ??
+                                                (selectedParameter as any).revisionComments ??
+                                                null
+                                            }
+                                            compact
+                                        />
+                                    )}
+
+                                {/* ============================================================
     ANALYST - ANALYSIS REVISION
     Bottom compact section: disabled before Start Revision,
     Complete Revision after Start Revision.
@@ -4510,6 +4644,25 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                     setParameterForApproval(null);
                                 }}
                                 onConfirm={handleConfirmRevision}
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    {/* QA Revision Dialog */}
+                    <AnimatePresence>
+                        {showQARevisionDialog && parameterForApproval && (
+                            <RevisionRequestDialog
+                                isOpen={showQARevisionDialog}
+                                isRequesting={isQARequestingRevision}
+                                parameterName={parameterForApproval.parameterName ?? ""}
+                                parameterCode={parameterForApproval.paraCode ?? ""}
+                                onClose={() => {
+                                    if (isQARequestingRevision) return;
+                                    setShowQARevisionDialog(false);
+                                    setParameterForApproval(null);
+                                    setQARevisionComments("");
+                                }}
+                                onConfirm={handleConfirmQARevision}
                             />
                         )}
                     </AnimatePresence>

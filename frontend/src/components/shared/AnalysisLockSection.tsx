@@ -6,8 +6,8 @@ export interface AnalysisLockSectionProps {
     role?: string;
     canUnlock?: boolean;
     canDelete?: boolean;
-    onUnlock: () => void;
-    onDelete: () => void;
+    onUnlock?: () => void;
+    onDelete?: () => void;
     onStartAnalysis?: () => void;
     onCompleteAnalysis?: () => void;
     onStartRevision?: () => void;
@@ -39,8 +39,8 @@ const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
     role,
     canUnlock = true,
     canDelete = true,
-    onUnlock,
-    onDelete,
+    onUnlock = () => {},
+    onDelete = () => {},
     onStartAnalysis,
     onCompleteAnalysis,
     onStartRevision,
@@ -2145,6 +2145,149 @@ const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
      * Reviewer + Analysis Completed:
      *      Review actions available (no Unlock)
      */
+    /*
+     * ============================================================
+     * QA - REVIEWER APPROVED / PENDING QA WORKSHEET APPROVAL
+     * ============================================================
+     *
+     * QA needs the same Drug-style status card in BOTH locations:
+     *   - compact=false: before "Copy from Worksheet"
+     *   - compact=true: at the bottom of the worksheet
+     *
+     * The actual revision action remains owned by FoodWorksheet through
+     * onRequestRevision, so this shared component stays presentation-only.
+     */
+    if (normalizedRole === "qa" && isReviewerApprovedAwaitingQA) {
+        if (compact) {
+            return (
+                <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 mb-4"
+                >
+                    <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 border border-emerald-200 rounded-xl shadow-sm overflow-hidden">
+                        <div className="px-5 py-4">
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <svg
+                                            className="w-5 h-5 text-emerald-600"
+                                            fill="currentColor"
+                                            viewBox="0 0 20 20"
+                                        >
+                                            <path
+                                                fillRule="evenodd"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l4.707-4.707z"
+                                                clipRule="evenodd"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <h4 className="text-sm font-bold text-slate-800">
+                                            Reviewer Approved — Pending QA Worksheet Approval
+                                        </h4>
+                                        <p className="text-xs text-slate-600">
+                                            You can return this parameter for revision, or approve the entire worksheet once all parameters are reviewed
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {onRequestRevision && (
+                                    <motion.button
+                                        type="button"
+                                        onClick={onRequestRevision}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className="shrink-0 px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
+                                    >
+                                        <svg
+                                            className="w-4 h-4"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                            />
+                                        </svg>
+                                        Return for Revision
+                                    </motion.button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 mb-5"
+            >
+                <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 border border-emerald-200 rounded-xl shadow-sm overflow-hidden">
+                    <div className="px-5 py-4">
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg
+                                        className="w-5 h-5 text-emerald-600"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l4.707-4.707z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                </div>
+
+                                <div>
+                                    <h4 className="text-sm font-bold text-slate-800">
+                                        Reviewer Approved — Pending QA Worksheet Approval
+                                    </h4>
+                                    <p className="text-xs text-slate-600">
+                                        You can return this parameter for revision, or approve the entire worksheet once all parameters are reviewed
+                                    </p>
+                                </div>
+                            </div>
+
+                            {onRequestRevision && (
+                                <motion.button
+                                    type="button"
+                                    onClick={onRequestRevision}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="shrink-0 px-4 py-2 bg-white/60 backdrop-blur-sm border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-amber-300 transition-all flex items-center gap-2 shadow-sm"
+                                >
+                                    <svg
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-3.357-2m3.357 2H15"
+                                        />
+                                    </svg>
+                                    Return for Revision
+                                </motion.button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
+
     if (isReviewer) {
         const reviewerCanUnlock =
             isAnalysisPending;

@@ -3291,6 +3291,12 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                             />
 
                             {/* ============================================================
+                                ANALYST - APPROVAL TIMELINE
+                                Matches the Drug approved-parameter view.
+                            ============================================================ */}
+                           
+
+                            {/* ============================================================
                                 ANALYSIS LOCK SECTION
                                 Same shared section used by the other worksheet modules.
                             ============================================================ */}
@@ -3349,6 +3355,9 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                 }
                                 revisionStartDate={
                                     (selectedParameter as any).revisionStartDate ?? null
+                                }
+                                approvedAtReviewer={
+                                    (selectedParameter as any).approvedAtReviewer ?? null
                                 }
                                 onUnlock={() =>
                                     handleInitiateUnlock(selectedParameter)
@@ -3993,6 +4002,38 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                         onUnlock={() =>
                                             handleInitiateUnlock(selectedParameter)
                                         }
+                                        onDelete={() => {
+                                            setParameterToDelete(selectedParameter);
+                                            setShowDeleteDialog(true);
+                                        }}
+                                        compact
+                                    />
+                                )}
+
+                            {/* ============================================================
+    ANALYST - APPROVED
+    Compact bottom section matching the Drug approved state.
+============================================================ */}
+                            {role.toLowerCase() === "analyst" &&
+                                normalizeStatus(selectedParameterAnalysisStatus) ===
+                                    "approved" && (
+                                    <AnalysisLockSection
+                                        status={selectedParameterAnalysisStatus}
+                                        role={role}
+                                        canUnlock={false}
+                                        canDelete={false}
+                                        analystComment={getAnalystComment(selectedParameter)}
+                                        reviewerComment={
+                                            remarksByReviewerPerParam[selectedParameter.id] ??
+                                            (selectedParameter as any).remarksByReviewer ??
+                                            (selectedParameter as any).revisionComments ??
+                                            null
+                                        }
+                                        analysisStartDate={(selectedParameter as any).analysisStartDate ?? null}
+                                        analysisCompletionDate={(selectedParameter as any).analysisCompletionDate ?? null}
+                                        revisionStartDate={(selectedParameter as any).revisionStartDate ?? null}
+                                        approvedAtReviewer={(selectedParameter as any).approvedAtReviewer ?? null}
+                                        onUnlock={() => handleInitiateUnlock(selectedParameter)}
                                         onDelete={() => {
                                             setParameterToDelete(selectedParameter);
                                             setShowDeleteDialog(true);

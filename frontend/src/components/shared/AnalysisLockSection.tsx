@@ -15,6 +15,7 @@ export interface AnalysisLockSectionProps {
     onRequestRevision?: () => void;
     analystComment?: string | null;
     reviewerComment?: string | null;
+    qaComment?: string | null;
     analysisStartDate?: string | null;
     analysisCompletionDate?: string | null;
     revisionStartDate?: string | null;
@@ -48,6 +49,7 @@ const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
     onRequestRevision,
     analystComment,
     reviewerComment,
+    qaComment,
     analysisStartDate,
     analysisCompletionDate,
     revisionStartDate,
@@ -128,6 +130,259 @@ const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
      * Keeping these two branches separate prevents the Current Status /
      * Please wait block from appearing in the bottom section.
      */
+    /*
+     * ============================================================
+     * QA - REVISION IN PROGRESS / RETURNED BY QA
+     * ============================================================
+     *
+     * After QA clicks "Return for Revision", FoodWorksheet changes
+     * the parameter status to "Analysis Revision".
+     *
+     * QA needs this state in BOTH places:
+     *   - compact=false: full status card before "Copy from Worksheet"
+     *   - compact=true: compact status card at the bottom
+     *
+     * This branch is intentionally separate from the existing
+     * Reviewer revision branch so Reviewer wording/logic remains
+     * unchanged.
+     */
+    if (normalizedRole === "qa" && isAnalysisRevision) {
+        const revisionComment =
+            typeof qaComment === "string" && qaComment.trim()
+                ? qaComment.trim()
+                : "Revision requested by QA";
+
+        if (compact) {
+            return (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 rounded-xl overflow-hidden border border-amber-100 shadow-lg bg-white"
+                >
+                    <div className="bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50 px-6 py-5 border-b border-amber-100">
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-4 min-w-0">
+                                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <svg
+                                        className="w-6 h-6 text-amber-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M20 11a8 8 0 11-15.5-3M4 5v5h5M4 13a8 8 0 0015.5 3M20 19v-5h-5"
+                                        />
+                                    </svg>
+                                </div>
+
+                                <div className="min-w-0">
+                                    <h3 className="text-lg font-bold text-slate-800">
+                                        Revision In Progress — Returned by QA
+                                    </h3>
+                                    <p className="text-sm text-slate-600 mt-0.5">
+                                        Analyst is working on the requested revisions
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="px-4 py-2 rounded-lg border border-amber-300 bg-white/60 text-amber-800 text-sm font-semibold whitespace-nowrap">
+                                AWAITING REVISION
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-6 bg-amber-50">
+                        <div className="bg-white border border-amber-200 rounded-xl p-5">
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg
+                                        className="w-5 h-5 text-amber-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M8 10h8M8 14h5m7-2a8 8 0 11-16 0 8 8 0 0116 0z"
+                                        />
+                                    </svg>
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h4 className="font-semibold text-sm text-slate-800">
+                                            QA Remarks
+                                        </h4>
+                                        <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
+                                            from QA
+                                        </span>
+                                    </div>
+
+                                    <p className="mt-2 text-sm italic text-slate-800 bg-amber-50 border border-amber-100 rounded-lg px-4 py-3">
+                                        &ldquo;{revisionComment}&rdquo;
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-8 mb-8 rounded-2xl overflow-hidden border border-amber-100 shadow-lg bg-amber-50"
+            >
+                <div className="bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50 px-6 py-5 border-b border-amber-100">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 min-w-0">
+                            <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <svg
+                                    className="w-6 h-6 text-amber-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M20 11a8 8 0 11-15.5-3M4 5v5h5M4 13a8 8 0 0015.5 3M20 19v-5h-5"
+                                    />
+                                </svg>
+                            </div>
+
+                            <div className="min-w-0">
+                                <h3 className="text-lg font-bold text-slate-800">
+                                    Revision In Progress — Returned by QA
+                                </h3>
+                                <p className="text-sm text-slate-600 mt-0.5">
+                                    Analyst is working on the requested revisions
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="px-4 py-2 rounded-lg border border-amber-300 bg-white/60 text-amber-800 text-sm font-semibold whitespace-nowrap">
+                            AWAITING REVISION
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-6 space-y-4">
+                    <div className="bg-white border border-amber-200 rounded-xl p-5">
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg
+                                    className="w-5 h-5 text-amber-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M8 10h8M8 14h5m7-2a8 8 0 11-16 0 8 8 0 0116 0z"
+                                    />
+                                </svg>
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <h4 className="font-semibold text-sm text-slate-800">
+                                        Revision Remarks
+                                    </h4>
+                                    <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
+                                        from QA
+                                    </span>
+                                </div>
+
+                                <p className="mt-2 text-sm italic text-slate-800 bg-amber-50 border border-amber-100 rounded-lg px-4 py-3">
+                                    &ldquo;{revisionComment}&rdquo;
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-xl p-5">
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg
+                                    className="w-5 h-5 text-slate-500"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+                            </div>
+
+                            <div className="flex-1">
+                                <h4 className="font-semibold text-sm text-slate-800 mb-2">
+                                    Current Status
+                                </h4>
+
+                                <ul className="text-sm text-slate-600 space-y-2">
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-amber-500 mt-1">•</span>
+                                        <span>QA returned this parameter for revision</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-amber-500 mt-1">•</span>
+                                        <span>The analyst is currently making the necessary changes</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-amber-500 mt-1">•</span>
+                                        <span>Once complete, it will be resubmitted for Reviewer approval</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-amber-500 mt-1">•</span>
+                                        <span>You can view all parameter details below</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-100 border border-slate-200 rounded-xl p-4">
+                        <div className="flex items-start gap-3">
+                            <svg
+                                className="w-5 h-5 text-slate-600 flex-shrink-0 mt-0.5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 8v4l2.5 2"
+                                />
+                                <circle cx="12" cy="12" r="9" strokeWidth={2} />
+                            </svg>
+
+                            <p className="text-sm text-slate-700">
+                                <strong>Please wait:</strong> The parameter will return to &quot;Analysis Completed&quot; status once the analyst finishes the revisions and the Reviewer re-approves it.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
+
     if (isReviewer && isAnalysisRevision) {
         const revisionComment =
             typeof reviewerComment === "string" && reviewerComment.trim()

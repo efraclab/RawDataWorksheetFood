@@ -1313,6 +1313,15 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
             normalizedSelectedStatus === "analysis revision started"
         );
 
+    // QA remains on the returned-for-revision state while the Analyst
+    // works on the requested changes.
+    const isQARevision =
+        role?.toLowerCase() === "qa" &&
+        (
+            normalizedSelectedStatus === "analysis revision" ||
+            normalizedSelectedStatus === "analysis revision started"
+        );
+
     const isAnalystRevisionStarted =
         isAnalystRevision &&
         (
@@ -3663,6 +3672,12 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                             (selectedParameter as any).revisionComments ??
                                             null
                                         }
+                                        qaComment={
+                                            remarksQAPerParam[selectedParameter.id] ??
+                                            (selectedParameter as any).remarksByQA ??
+                                            (selectedParameter as any).remarks_by_qa ??
+                                            null
+                                        }
                                         analysisStartDate={
                                             (selectedParameter as any).analysisStartDate ?? null
                                         }
@@ -4254,20 +4269,28 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     Copy from Worksheet by AnalysisLockSection (compact=false).
 ============================================================ */}
                                 {role.toLowerCase() === "qa" &&
-                                    isReviewerApprovedForQA && (
+                                    (isReviewerApprovedForQA || isQARevision) && (
                                         <AnalysisLockSection
                                             status={selectedParameterAnalysisStatus}
                                             role={role}
                                             worksheetStatus={worksheetInfo?.sample?.status ?? null}
                                             canUnlock={false}
                                             canDelete={false}
-                                            onRequestRevision={() =>
-                                                handleQARequestRevision(selectedParameter)
+                                            onRequestRevision={
+                                                isReviewerApprovedForQA
+                                                    ? () => handleQARequestRevision(selectedParameter)
+                                                    : undefined
                                             }
                                             reviewerComment={
                                                 remarksByReviewerPerParam[selectedParameter.id] ??
                                                 (selectedParameter as any).remarksByReviewer ??
                                                 (selectedParameter as any).revisionComments ??
+                                                null
+                                            }
+                                            qaComment={
+                                                remarksQAPerParam[selectedParameter.id] ??
+                                                (selectedParameter as any).remarksByQA ??
+                                                (selectedParameter as any).remarks_by_qa ??
                                                 null
                                             }
                                             compact

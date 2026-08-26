@@ -337,7 +337,6 @@ function WorksheetPage(props: {
       <div className="flex-1 min-w-0">
         <AnimatePresence mode="wait">
           {printData ? (
-            /* Print view — content only, no min-h forcing */
             <motion.div
               key="print-view"
               initial={{ opacity: 0, x: 40 }}
@@ -346,51 +345,17 @@ function WorksheetPage(props: {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="bg-white"
             >
-              {
-                // isMicro ? (
-                //   <MicroPrintReport
-                //     worksheetInfo={printData.worksheetInfo}
-                //     analysts={printData.analysts}
-                //     sampleData={printData.sampleData}
-                //     instruments={props.instruments}
-                //     chemicals={props.chemicals}
-                //     media={props.media}
-                //     onClose={handleClosePrint}
-                //   />
-                // ) : isMetal ? (
-                //   <MetalPrintReport
-                //     worksheetInfo={printData.worksheetInfo}
-                //     analysts={printData.analysts}
-                //     sampleData={printData.sampleData}
-                //     instruments={props.instruments}
-                //     chemicals={props.chemicals}
-                //     standards={props.standards}
-                //     onClose={handleClosePrint}
-                //   />
-                // ) 
-                // : isFood ? (
-                // <MetalPrintReport
-                //   worksheetInfo={printData.worksheetInfo}
-                //   analysts={printData.analysts}
-                //   sampleData={printData.sampleData}
-                //   instruments={props.instruments}
-                //   chemicals={props.chemicals}
-                //   standards={props.standards}
-                //   onClose={handleClosePrint}
-                // />
-                // )
-                // : (
-                //   <DrugPrintReport
-                //     worksheetInfo={printData.worksheetInfo}
-                //     analysts={printData.analysts}
-                //     sampleData={printData.sampleData}
-                //     instruments={props.instruments}
-                //     chemicals={props.chemicals}
-                //     standards={props.standards}
-                //     onClose={handleClosePrint}
-                //   />
-                // )
-              }
+              {isFood ? (
+                <DrugPrintReport
+                  worksheetInfo={printData.worksheetInfo}
+                  analysts={printData.analysts}
+                  sampleData={printData.sampleData}
+                  instruments={props.instruments}
+                  chemicals={props.chemicals}
+                  standards={props.standards}
+                  onClose={handleClosePrint}
+                />
+              )   : null}
             </motion.div>
           ) : (
             /* Worksheet view */
@@ -418,22 +383,24 @@ function WorksheetPage(props: {
                     onSidebarStateChange={handleSidebarStateChange}
                     onSidebarActionsReady={handleSidebarActionsReady}
                   />
-                ) : isDrug ? (
-                  <DrugWorksheet
-                    worksheetId={worksheetId}
-                    instruments={props.instruments}
-                    chemicals={props.chemicals}
-                    standards={props.standards}
-                    isReferenceDataLoading={props.isReferenceDataLoading}
-                    referenceDataError={props.referenceDataError}
-                    employeeId={props.employeeId}
-                    role={props.role}
-                    department={props.department}
-                    onPrint={handlePrintRequest}
-                    onSidebarStateChange={handleSidebarStateChange}
-                    onSidebarActionsReady={handleSidebarActionsReady}
-                  />
-                ) : null
+                )
+                  // : isDrug ? (
+                  //   <DrugWorksheet
+                  //     worksheetId={worksheetId}
+                  //     instruments={props.instruments}
+                  //     chemicals={props.chemicals}
+                  //     standards={props.standards}
+                  //     isReferenceDataLoading={props.isReferenceDataLoading}
+                  //     referenceDataError={props.referenceDataError}
+                  //     employeeId={props.employeeId}
+                  //     role={props.role}
+                  //     department={props.department}
+                  //     onPrint={handlePrintRequest}
+                  //     onSidebarStateChange={handleSidebarStateChange}
+                  //     onSidebarActionsReady={handleSidebarActionsReady}
+                  //   />
+                  // ) 
+                  : null
               }
             </motion.div>
           )}

@@ -2692,6 +2692,31 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         }
     };
 
+    // ============================================================
+    // PRINT WORKSHEET
+    // Mirrors the Drug worksheet print workflow.
+    //
+    // The sidebar action is registered once on mount, so it must
+    // delegate through _printRef to the current handler. This keeps
+    // worksheetInfo / analysts / samplesData fresh and avoids the
+    // stale-closure problem.
+    // ============================================================
+    const handlePrintClick = () => {
+        const onPrint = (
+            props as WorksheetProps & {
+                onPrint?: (
+                    info: WorksheetDetail,
+                    analysts: Analyst[],
+                    sampleData: SampleData,
+                ) => void;
+            }
+        ).onPrint;
+
+        if (onPrint && worksheetInfo && analysts && samplesData?.length) {
+            onPrint(worksheetInfo, analysts, samplesData[0]);
+        }
+    };
+
     const handleSaveDraft = async () => {
 
         setIsSaving(true);
@@ -3225,6 +3250,10 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
             setIsSubmittingForQA(false);
         }
     };
+
+    // Keep the print ref current on every render so the sidebar always
+    // invokes the latest worksheet/analyst/sample state.
+    _printRef.current = handlePrintClick;
 
     _submitAnalysisRef.current = () =>
         setShowSubmitDialog(true);

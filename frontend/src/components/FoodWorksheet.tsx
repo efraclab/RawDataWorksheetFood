@@ -47,6 +47,7 @@ import {
 } from "../services/api";
 import Toast from "./shared/Toast";
 import SubmitDialog from "./shared/SubmitDialog";
+import SubmitForQAReviewDialog from "./shared/SubmitForQAReviewDialog";
 import AnalysisLockSection from "./shared/AnalysisLockSection";
 import StartAnalysisDialog from "./shared/StartAnalysisDialog";
 import CompleteAnalysisDialog from "./shared/CompleteAnalysisDialog";
@@ -963,6 +964,10 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [showSubmitDialog, setShowSubmitDialog] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Submit For QA Review dialog state
+    // Mirrors the Drug worksheet workflow without changing existing Food logic.
+    const [showSubmitForQADialog, setShowSubmitForQADialog] = useState(false);
+    const [isSubmittingForQA, setIsSubmittingForQA] = useState(false);
 
     useEffect(() => {
 
@@ -1101,7 +1106,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
             isSubmitting,
 
-            isSubmittingForQA: false,
+            isSubmittingForQA,
 
             isApprovingWorksheet: false,
 
@@ -1119,6 +1124,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         parameterStatusPerParam,
         displayStatus,
         isSubmitting,
+        isSubmittingForQA,
         props.onSidebarStateChange
     ]);
 
@@ -1199,6 +1205,19 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
             .toLowerCase()
             .replace(/_/g, " ")
             .replace(/-/g, " ");
+
+    // Reviewer view after Submit For QA Review:
+    // every Reviewer-approved parameter remains visible, but is presented
+    // as finalized/read-only while QA validation is pending.
+    const isReviewerApprovedForQA =
+        role?.toLowerCase() === "reviewer" &&
+        normalizeStatus(selectedParameterAnalysisStatus) === "approved" &&
+        (
+            normalizeStatus(worksheetInfo?.sample?.status) ===
+                "submitted for qa review" ||
+            normalizeStatus(worksheetInfo?.sample?.status) ===
+                "pending qa validation"
+        );
 
     const isAnalysisLockedStatus = (status?: string | null) => {
         const normalized = normalizeStatus(status);
@@ -2819,8 +2838,120 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
             setIsSubmitting(false);
         }
     };
+
+    // ============================================================
+    // SUBMIT FOR QA REVIEW
+    // Mirrors the Drug worksheet workflow.
+    // This only changes the worksheet-level status after every
+    // parameter has already been Reviewer-approved.
+    // ============================================================
+    const handleSubmitForQA = async () => {
+        setIsSubmittingForQA(true);
+
+        try {
+            // collectFormDataForAPI requires a non-null WorksheetDetail.
+            // Do not change any existing Food workflow logic; simply guard
+            // against the worksheet not being loaded yet.
+            if (!worksheetInfo) {
+                throw new Error("Worksheet information is not available");
+            }
+
+            const worksheetData = collectFormDataForAPI({
+                role,
+                worksheetInfo,
+                addedParameters,
+                preparationRefs,
+                bufferPreparationPerParam,
+                mobilePhasePerParam,
+                diluentPreparationsPerParam,
+                systemSuitabilityPerParam,
+                filesPerParam,
+                additionalInfoPerParam,
+                addedChemicals,
+                addedStandards,
+                addedInstruments
+            });
+
+            const now = new Date().toISOString();
+
+            const updatedWorksheetData = {
+                ...worksheetData,
+                documentInfo: {
+                    ...worksheetData?.documentInfo,
+                    status: "Submitted For QA Review",
+                    submittedQaBy: employeeId,
+                    submittedQaAt: now,
+                },
+            };
+
+            const response = await updateWorksheet(
+                worksheetId,
+                updatedWorksheetData
+            );
+
+            if (response && response.worksheetId) {
+                setWorksheetInfo((prev) =>
+                    prev
+                        ? {
+                            ...prev,
+                            sample: {
+                                ...prev.sample,
+                                status: "Submitted For QA Review",
+                                submittedQaBy: employeeId,
+                                submittedQaAt: now,
+                            },
+                        }
+                        : null
+                );
+
+                setToastMessage(
+                    "Worksheet submitted for QA Review successfully!"
+                );
+                setToastType("success");
+                setShowToast(true);
+
+                setTimeout(() => {
+                    setShowToast(false);
+                }, 4000);
+
+                await insertWorksheetLog({
+                    worksheetId,
+                    action: "Submitted For QA Review",
+                    remarks: "Worksheet submitted for QA review",
+                    employeeId,
+                    role,
+                });
+
+                setShowSubmitForQADialog(false);
+            } else {
+                throw new Error(
+                    "Failed to submit worksheet for QA Review"
+                );
+            }
+        } catch (error: any) {
+            console.error("Error submitting for QA:", error);
+
+            setToastMessage(
+                `Error: ${error.message || error}`
+            );
+            setToastType("error");
+            setShowToast(true);
+
+            setTimeout(() => {
+                setShowToast(false);
+            }, 4000);
+        } finally {
+            setIsSubmittingForQA(false);
+        }
+    };
+
     _submitAnalysisRef.current = () =>
         setShowSubmitDialog(true);
+
+    // Sidebar "Submit For QA Review" opens the same confirmation
+    // popup used by the Drug worksheet.
+    _submitQARef.current = () =>
+        setShowSubmitForQADialog(true);
     useEffect(() => {
 
         props.onSidebarActionsReady?.({
@@ -3297,6 +3428,143 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                            
 
                             {/* ============================================================
+                                REVIEWER - APPROVED / PENDING QA VALIDATION
+                                Mirrors the Drug worksheet's Reviewer approved view.
+                                This is display-only; no existing Food controls are changed.
+                            ============================================================ */}
+                            {isReviewerApprovedForQA && (
+                                <>
+                                    {/* Analysis Timeline */}
+                                    {(
+                                        (selectedParameter as any).analysisStartDate ||
+                                        (selectedParameter as any).analysisCompletionDate ||
+                                        (selectedParameter as any).revisionStartDate ||
+                                        (selectedParameter as any).revisionCompletedDate ||
+                                        (selectedParameter as any).approvedAtReviewer
+                                    ) && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.25 }}
+                                            className="relative mb-5"
+                                        >
+                                           
+                                        </motion.div>
+                                    )}
+
+                                    {/* Parameter Approved & Finalized */}
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.25 }}
+                                        className="relative mb-5 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white"
+                                    >
+                                        <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                                                    <svg className="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path
+                                                            fillRule="evenodd"
+                                                            d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 01-3.976 0 3.066 3.066 0 01-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 010-3.976 3.066 3.066 0 01.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                            clipRule="evenodd"
+                                                        />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg font-bold text-slate-800">
+                                                        Parameter Approved &amp; Finalized
+                                                    </h3>
+                                                    <p className="text-sm text-slate-600 mt-0.5">
+                                                        This parameter has been reviewed and approved
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-6 bg-emerald-50">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="bg-white border border-slate-200 rounded-xl p-5">
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 11-18 0z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h4 className="font-semibold text-sm text-slate-800 mb-1">
+                                                                Status: Approved
+                                                            </h4>
+                                                            <p className="text-sm text-slate-600">
+                                                                This parameter has been finalized and approved. All data is now locked and cannot be modified.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="bg-white border border-slate-200 rounded-xl p-5">
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-3.0-9.542-7z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h4 className="font-semibold text-sm text-slate-800 mb-1">
+                                                                View Only Access
+                                                            </h4>
+                                                            <p className="text-sm text-slate-600">
+                                                                You can view all parameter details, preparations, and calculations below.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {(
+                                            remarksByReviewerPerParam[selectedParameter.id] ??
+                                            (selectedParameter as any).remarksByReviewer
+                                        ) && (
+                                            <div className="mx-6 mb-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                        <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14v8h-3l-4 4z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h4 className="text-xs font-semibold text-blue-800 mb-1">Reviewer Remarks</h4>
+                                                        <p className="text-sm italic text-blue-900 bg-blue-100 rounded-lg px-3 py-2 border border-blue-200">
+                                                            &ldquo;{remarksByReviewerPerParam[selectedParameter.id] ?? (selectedParameter as any).remarksByReviewer}&rdquo;
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {getAnalystComment(selectedParameter) && (
+                                            <div className="mx-6 mb-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                        <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 012-2h14v8h-3l-4 4z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h4 className="text-xs font-semibold text-gray-700 mb-1">Analyst Comment</h4>
+                                                        <p className="text-sm italic text-gray-800 bg-gray-100 rounded-lg px-3 py-2 border border-gray-200">
+                                                            &ldquo;{getAnalystComment(selectedParameter)}&rdquo;
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                </>
+                            )}
+
+                            {/* ============================================================
                                 ANALYSIS LOCK SECTION
                                 Same shared section used by the other worksheet modules.
                             ============================================================ */}
@@ -3304,10 +3572,12 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     ANALYSIS LOCK SECTION
     Shared section for Reviewer / Analyst status handling.
 ============================================================ */}
-                            <AnalysisLockSection
-                                status={selectedParameterAnalysisStatus}
-                                role={role}
-                                canUnlock={role.toLowerCase() === "reviewer"}
+                            {!isReviewerApprovedForQA && (
+                                <AnalysisLockSection
+                                    status={selectedParameterAnalysisStatus}
+                                    role={role}
+                                    worksheetStatus={worksheetInfo?.sample?.status ?? null}
+                                    canUnlock={role.toLowerCase() === "reviewer"}
                                 canDelete={!isAnalystAnalysisCompleted}
                                 onStartAnalysis={
                                     role.toLowerCase() === "analyst" && !isAnalystAnalysisCompleted
@@ -3362,11 +3632,12 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                 onUnlock={() =>
                                     handleInitiateUnlock(selectedParameter)
                                 }
-                                onDelete={() => {
-                                    setParameterToDelete(selectedParameter);
-                                    setShowDeleteDialog(true);
-                                }}
-                            />
+                                    onDelete={() => {
+                                        setParameterToDelete(selectedParameter);
+                                        setShowDeleteDialog(true);
+                                    }}
+                                />
+                            )}
 
                             {/* Copy from another worksheet */}
                             <div className="mt-5 mb-4 flex justify-end">
@@ -3853,6 +4124,8 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                 isLocked={isPreparationLocked}
                             />
 
+                            
+
                             {/* ============================================================
                                     REVIEWER - ANALYSIS COMPLETED ACTION BAR
                                     Uses the shared AnalysisLockSection so the bottom
@@ -3885,15 +4158,15 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
 
                             {/* ============================================================
-    BOTTOM ANALYSIS ACTION SECTION
+                                BOTTOM ANALYSIS ACTION SECTION
 
-    Reviewer:
-        Keep the existing compact AnalysisLockSection.
-        This preserves Awaiting Analysis / Unlock behavior.
+                                Reviewer:
+                                    Keep the existing compact AnalysisLockSection.
+                                    This preserves Awaiting Analysis / Unlock behavior.
 
-    Analyst:
-        Show Analysis In Progress + Complete Analysis.
-============================================================ */}
+                                Analyst:
+                                    Show Analysis In Progress + Complete Analysis.
+                            ============================================================ */}
 
                             {role.toLowerCase() === "reviewer" &&
                                 normalizeStatus(selectedParameterAnalysisStatus) !==
@@ -3901,6 +4174,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                 <AnalysisLockSection
                                     status={selectedParameterAnalysisStatus}
                                     role={role}
+                                    worksheetStatus={worksheetInfo?.sample?.status ?? null}
                                     canUnlock={true}
                                     canDelete={true}
                                     onStartAnalysis={() =>
@@ -4316,6 +4590,22 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                         type={toastType}
                         onClose={() => setShowToast(false)}
                     />
+                    <AnimatePresence>
+                        {showSubmitForQADialog && (
+                            <SubmitForQAReviewDialog
+                                isOpen={showSubmitForQADialog}
+                                isSubmitting={isSubmittingForQA}
+                                worksheetId={worksheetId}
+                                totalParameters={addedParameters.length}
+                                onClose={() => {
+                                    if (isSubmittingForQA) return;
+                                    setShowSubmitForQADialog(false);
+                                }}
+                                onConfirm={handleSubmitForQA}
+                            />
+                        )}
+                    </AnimatePresence>
+
                     <AnimatePresence>
                         {showSubmitDialog && (
                             <SubmitDialog

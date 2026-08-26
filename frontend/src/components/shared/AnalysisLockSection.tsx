@@ -19,6 +19,11 @@ export interface AnalysisLockSectionProps {
     analysisCompletionDate?: string | null;
     revisionStartDate?: string | null;
     approvedAtReviewer?: string | null;
+    /**
+     * Worksheet-level status. Used only for the Reviewer approved state
+     * after the worksheet has been submitted for QA validation.
+     */
+    worksheetStatus?: string | null;
     compact?: boolean;
 }
 
@@ -47,6 +52,7 @@ const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
     analysisCompletionDate,
     revisionStartDate,
     approvedAtReviewer,
+    worksheetStatus,
     compact = false,
 }) => {
     const normalizedStatus = normalizeStatus(status);
@@ -63,6 +69,16 @@ const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
 
     const isApproved =
         normalizedStatus === "approved";
+
+    // Once the Reviewer has approved the parameter and the worksheet has
+    // moved to QA validation, the bottom section must NOT fall back to
+    // "Awaiting Analysis". The worksheet-level state is intentionally
+    // passed in as a separate prop so parameter status logic remains intact.
+    const normalizedWorksheetStatus = normalizeStatus(worksheetStatus);
+    const isReviewerApprovedAwaitingQA =
+        isApproved &&
+        (normalizedWorksheetStatus === "submitted for qa review" ||
+            normalizedWorksheetStatus === "pending qa validation");
 
     /*
      * IMPORTANT:
@@ -2132,6 +2148,62 @@ const AnalysisLockSection: React.FC<AnalysisLockSectionProps> = ({
     if (isReviewer) {
         const reviewerCanUnlock =
             isAnalysisPending;
+
+        /*
+         * ============================================================
+         * REVIEWER - APPROVED / AWAITING QA VALIDATION
+         * ============================================================
+         *
+         * After "Submit For QA Review", an Approved parameter must no
+         * longer show the generic "Awaiting Analysis / Status: APPROVED"
+         * compact block. FoodWorksheet supplies the worksheet-level
+         * status; this shared component owns the presentation.
+         */
+        if (isReviewerApprovedAwaitingQA && compact) {
+            return (
+                <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 mb-4"
+                >
+                    <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 border border-emerald-200 rounded-xl shadow-sm overflow-hidden">
+                        <div className="px-5 py-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg
+                                        className="w-5 h-5 text-emerald-600"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L9 13.414l4.707-4.707z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                </div>
+
+                                <div>
+                                    <h4 className="text-sm font-bold text-slate-800">
+                                        Approved by Reviewer — Awaiting QA Approval
+                                    </h4>
+                                    <p className="text-xs text-slate-600">
+                                        Awaiting QA validation
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        // The non-compact Reviewer section is intentionally not rendered
+        // for this state by FoodWorksheet because its finalized overview
+        // is already displayed above the parameter details.
+        if (isReviewerApprovedAwaitingQA) {
+            return null;
+        }
 
         if (compact) {
             return (

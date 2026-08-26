@@ -48,6 +48,7 @@ import {
 import Toast from "./shared/Toast";
 import SubmitDialog from "./shared/SubmitDialog";
 import SubmitForQAReviewDialog from "./shared/SubmitForQAReviewDialog";
+import ApproveWorksheetDialog from "./shared/ApproveWorksheetDialog";
 import AnalysisLockSection from "./shared/AnalysisLockSection";
 import StartAnalysisDialog from "./shared/StartAnalysisDialog";
 import CompleteAnalysisDialog from "./shared/CompleteAnalysisDialog";
@@ -1026,6 +1027,13 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [showSubmitForQADialog, setShowSubmitForQADialog] = useState(false);
     const [isSubmittingForQA, setIsSubmittingForQA] = useState(false);
 
+    // QA - Approve Worksheet dialog state.
+    // Kept separate from parameter approval/revision state so the existing
+    // Food parameter workflow is not changed.
+    const [showApproveWorksheetDialog, setShowApproveWorksheetDialog] = useState(false);
+    const [isApprovingWorksheet, setIsApprovingWorksheet] = useState(false);
+    const [qaApprovalDateTime, setQAApprovalDateTime] = useState("");
+
     useEffect(() => {
 
         reloadWorksheet();
@@ -1165,7 +1173,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
             isSubmittingForQA,
 
-            isApprovingWorksheet: false,
+            isApprovingWorksheet,
 
             includeAuditTrail: false
 
@@ -1182,6 +1190,7 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         displayStatus,
         isSubmitting,
         isSubmittingForQA,
+        isApprovingWorksheet,
         props.onSidebarStateChange
     ]);
 
@@ -1860,6 +1869,121 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         setToastMessage("Details copied from worksheet successfully");
     };
 
+
+    // ============================================================
+    // QA - APPROVE WORKSHEET
+    // Opens the worksheet-level final approval confirmation dialog.
+    // The actual approval is intentionally kept worksheet-level and does
+    // not alter the existing parameter approval/revision handlers.
+    // ============================================================
+    const handleApproveWorksheet = async () => {
+        if (role.toLowerCase() !== "qa") return;
+        if (!worksheetInfo) return;
+        if (!areAllParametersApproved()) return;
+
+        setIsApprovingWorksheet(true);
+
+        try {
+            const worksheetData = collectFormDataForAPI({
+                role,
+                worksheetInfo,
+                addedParameters,
+                preparationRefs,
+                bufferPreparationPerParam,
+                mobilePhasePerParam,
+                diluentPreparationsPerParam,
+                systemSuitabilityPerParam,
+                filesPerParam,
+                additionalInfoPerParam,
+                addedChemicals,
+                addedStandards,
+                addedInstruments
+            });
+
+            const now = qaApprovalDateTime
+                ? new Date(qaApprovalDateTime).toISOString()
+                : new Date().toISOString();
+
+            const updatedWorksheetData = {
+                ...worksheetData,
+                documentInfo: {
+                    ...worksheetData?.documentInfo,
+                    status: "Approved",
+                    approvedBy: employeeId,
+                    approvedAt: now,
+                },
+                parameters: worksheetData?.parameters?.map((param: any) => ({
+                    ...param,
+                    status: "Approved",
+                    approvedByQA: employeeId,
+                    approvedAtQA: now,
+                }))
+            };
+
+            const response = await updateWorksheet(worksheetId, updatedWorksheetData);
+
+            if (!response?.worksheetId) {
+                throw new Error("Failed to approve worksheet");
+            }
+
+            setAddedParameters(prev =>
+                prev.map(param => ({
+                    ...param,
+                    status: "Approved",
+                    approvedByQA: employeeId,
+                    approvedAtQA: now
+                }))
+            );
+
+            setParameterStatusPerParam(prev => {
+                const next = { ...prev };
+                addedParameters.forEach(param => {
+                    next[param.id] = "Approved";
+                });
+                return next;
+            });
+
+            setWorksheetInfo(prev =>
+                prev
+                    ? {
+                        ...prev,
+                        sample: {
+                            ...prev.sample,
+                            status: "Approved",
+                            approvedBy: employeeId,
+                            approvedAt: now,
+                        }
+                    }
+                    : null
+            );
+
+            await insertWorksheetLog({
+                worksheetId,
+                action: "Worksheet Approved by QA",
+                remarks: "Worksheet fully approved by QA",
+                employeeId,
+                role,
+            });
+
+            setToastMessage(
+                "Worksheet approved by QA successfully! All parameters are now finalized."
+            );
+            setToastType("success");
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 4000);
+
+            setShowApproveWorksheetDialog(false);
+            setQAApprovalDateTime("");
+        } catch (error: any) {
+            console.error("Error during worksheet approval:", error);
+            setToastMessage(`Error approving worksheet: ${error?.message || error}`);
+            setToastType("error");
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 4000);
+        } finally {
+            setIsApprovingWorksheet(false);
+        }
+    };
 
     const parametersWithPreparation = addedParameters.map(parameter => ({
 
@@ -3109,6 +3233,15 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     // popup used by the Drug worksheet.
     _submitQARef.current = () =>
         setShowSubmitForQADialog(true);
+
+    // QA sidebar button opens the final worksheet approval popup.
+    _approveRef.current = () => {
+        if (role.toLowerCase() !== "qa") return;
+        if (worksheetInfo?.sample?.status !== "Submitted For QA Review") return;
+        if (!areAllParametersApproved()) return;
+        setShowApproveWorksheetDialog(true);
+    };
+
     useEffect(() => {
 
         props.onSidebarActionsReady?.({
@@ -4711,6 +4844,29 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                         type={toastType}
                         onClose={() => setShowToast(false)}
                     />
+                    <AnimatePresence>
+                        {showApproveWorksheetDialog && (
+                            <ApproveWorksheetDialog
+                                isOpen={showApproveWorksheetDialog}
+                                isApproving={isApprovingWorksheet}
+                                worksheetId={worksheetId}
+                                totalParameters={addedParameters.length}
+                                approvedParameters={addedParameters.filter((param) =>
+                                    (parameterStatusPerParam[param.id] || param.status || "")
+                                        .toLowerCase() === "approved"
+                                ).length}
+                                approvalDateTime={qaApprovalDateTime}
+                                onApprovalDateTimeChange={setQAApprovalDateTime}
+                                onClose={() => {
+                                    if (isApprovingWorksheet) return;
+                                    setShowApproveWorksheetDialog(false);
+                                    setQAApprovalDateTime("");
+                                }}
+                                onConfirm={handleApproveWorksheet}
+                            />
+                        )}
+                    </AnimatePresence>
+
                     <AnimatePresence>
                         {showSubmitForQADialog && (
                             <SubmitForQAReviewDialog

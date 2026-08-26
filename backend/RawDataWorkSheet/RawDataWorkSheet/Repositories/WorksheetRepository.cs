@@ -557,6 +557,7 @@ namespace RawDataWorkSheet.Repositories
                     FROM raw_data_worksheets
                     WHERE status IN ('Submitted For QA Review', 'Approved')
                       AND is_active = 'Y'
+                      AND lab = 'Food Lab'
                     ORDER BY created_at DESC";
             }
             else if (request.Role == "Reviewer")

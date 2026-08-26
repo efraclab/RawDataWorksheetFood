@@ -117,6 +117,13 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     const [remarksByReviewerPerParam, setRemarksByReviewerPerParam] =
         useState<Record<number, string | null>>({});
 
+    // Reviewer identity restored per parameter, matching the Drug worksheet.
+    // Supports both camelCase API fields and common snake_case aliases.
+    const [approvedByReviewerPerParam, setApprovedByReviewerPerParam] =
+        useState<Record<number, string>>({});
+    const [approvedByReviewerNamePerParam, setApprovedByReviewerNamePerParam] =
+        useState<Record<number, string>>({});
+
     // Tracks an Analyst's optimistic "Start Revision" action.
     // The persisted parameter status remains the source of truth after reload.
     const [revisionStartedParams, setRevisionStartedParams] =
@@ -166,6 +173,35 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
             if (reviewerRemark) {
                 restoredReviewerRemarks[param.id] = reviewerRemark;
+            }
+        });
+
+        // Restore reviewer identity so QA can display the same
+        // Assigned Reviewer card as the Drug worksheet.
+        const restoredApprovedByReviewer: Record<number, string> = {};
+        const restoredApprovedByReviewerName: Record<number, string> = {};
+
+        restoredParams.forEach(param => {
+            const reviewerId =
+                (param as any).approvedByReviewer ??
+                (param as any).approved_by_reviewer ??
+                (param as any).reviewerEmployeeId ??
+                (param as any).reviewer_employee_id ??
+                null;
+
+            const reviewerName =
+                (param as any).approvedByReviewerName ??
+                (param as any).approved_by_reviewer_name ??
+                (param as any).reviewerName ??
+                (param as any).reviewer_name ??
+                null;
+
+            if (reviewerId) {
+                restoredApprovedByReviewer[param.id] = String(reviewerId);
+            }
+
+            if (reviewerName) {
+                restoredApprovedByReviewerName[param.id] = String(reviewerName);
             }
         });
 
@@ -343,6 +379,8 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
         setParameterStatusPerParam(restoredParameterStatus);
         setRemarksByAnalystPerParam(restoredAnalystRemarks);
         setRemarksByReviewerPerParam(restoredReviewerRemarks);
+        setApprovedByReviewerPerParam(restoredApprovedByReviewer);
+        setApprovedByReviewerNamePerParam(restoredApprovedByReviewerName);
 
         setAddedInstruments(restoredInstruments);
         setAddedChemicals(restoredChemicals);
@@ -1210,13 +1248,16 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     // every Reviewer-approved parameter remains visible, but is presented
     // as finalized/read-only while QA validation is pending.
     const isReviewerApprovedForQA =
-        role?.toLowerCase() === "reviewer" &&
+        (
+            role?.toLowerCase() === "reviewer" ||
+            role?.toLowerCase() === "qa"
+        ) &&
         normalizeStatus(selectedParameterAnalysisStatus) === "approved" &&
         (
             normalizeStatus(worksheetInfo?.sample?.status) ===
-                "submitted for qa review" ||
+            "submitted for qa review" ||
             normalizeStatus(worksheetInfo?.sample?.status) ===
-                "pending qa validation"
+            "pending qa validation"
         );
 
     const isAnalysisLockedStatus = (status?: string | null) => {
@@ -3329,6 +3370,33 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
     //     return null;
     // };
 
+    // ============================================================
+    // QA / WORKSHEET HEADER DISPLAY
+    // Mirrors the Drug worksheet implementation.
+    //
+    // IMPORTANT:
+    // - Read tests/methods from samplesData, not only addedParameters[0].
+    // - Keep every test returned by the sample API.
+    // - Keep one entry per distinct methodCode, matching Drug logic.
+    // - Display-only change; existing Food workflow logic is untouched.
+    // ============================================================
+    const allParameters = (samplesData ?? [])
+        .map((data) => data.parameter)
+        .filter((param) => param && param.trim() !== "");
+
+    const uniqueMethods = [
+        ...new Map(
+            (samplesData ?? []).map((item) => [item.methodCode, item]),
+        ).values(),
+    ];
+
+    const allMethods = uniqueMethods
+        .map((item) => item.methodName)
+        .filter((method) => method && method.trim() !== "");
+
+    const testsRequiredDisplay = allParameters.join(", ");
+    const methodsRequiredDisplay = allMethods.join(", ");
+
     return (
 
         <div className="bg-slate-900 min-h-screen">
@@ -3348,8 +3416,8 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
                     <FoodWorksheetInfo
                         sampleName={worksheetInfo?.sample.sampleName ?? ""}
-                        parameterName={addedParameters[0]?.parameterName ?? ""}
-                        methodName={addedParameters[0]?.methodName ?? ""}
+                        parameterName={testsRequiredDisplay}
+                        methodName={methodsRequiredDisplay}
                     />
 
                     {/*
@@ -3364,11 +3432,10 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                       element inside this worksheet area.
                     */}
                     <div
-                        className={`relative ${
-                            isAnalystAnalysisCompleted
+                        className={`relative ${isAnalystAnalysisCompleted
                                 ? "select-none"
                                 : ""
-                        }`}
+                            }`}
                         aria-disabled={isAnalystAnalysisCompleted}
                         onClickCapture={(event) => {
                             if (isAnalystAnalysisCompleted) {
@@ -3414,737 +3481,99 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
                         {selectedParameter && (
 
-                        <>
+                            <>
 
-                            <FoodParameterOverview
-                                parameter={selectedParameter}
-                                onClose={() => setExpandedParameterId(null)}
-                            />
+                                <FoodParameterOverview
+                                    parameter={selectedParameter}
+                                    onClose={() => setExpandedParameterId(null)}
+                                    role={role}
+                                    isReviewerApprovedForQA={isReviewerApprovedForQA}
+                                    approvedByReviewer={
+                                        approvedByReviewerPerParam[selectedParameter.id] ??
+                                        (selectedParameter as any).approvedByReviewer ??
+                                        (selectedParameter as any).approved_by_reviewer ??
+                                        null
+                                    }
+                                    approvedByReviewerName={
+                                        approvedByReviewerNamePerParam[selectedParameter.id] ??
+                                        (selectedParameter as any).approvedByReviewerName ??
+                                        (selectedParameter as any).approved_by_reviewer_name ??
+                                        null
+                                    }
+                                    reviewerRemarks={
+                                        remarksByReviewerPerParam[selectedParameter.id] ??
+                                        (selectedParameter as any).remarksByReviewer ??
+                                        (selectedParameter as any).revisionComments ??
+                                        null
+                                    }
+                                    analystComment={getAnalystComment(selectedParameter)}
+                                />
 
-                            {/* ============================================================
-                                ANALYST - APPROVAL TIMELINE
-                                Matches the Drug approved-parameter view.
-                            ============================================================ */}
-                           
-
-                            {/* ============================================================
-                                REVIEWER - APPROVED / PENDING QA VALIDATION
-                                Mirrors the Drug worksheet's Reviewer approved view.
-                                This is display-only; no existing Food controls are changed.
-                            ============================================================ */}
-                            {isReviewerApprovedForQA && (
-                                <>
-                                    {/* Analysis Timeline */}
-                                    {(
-                                        (selectedParameter as any).analysisStartDate ||
-                                        (selectedParameter as any).analysisCompletionDate ||
-                                        (selectedParameter as any).revisionStartDate ||
-                                        (selectedParameter as any).revisionCompletedDate ||
-                                        (selectedParameter as any).approvedAtReviewer
-                                    ) && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.25 }}
-                                            className="relative mb-5"
-                                        >
-                                           
-                                        </motion.div>
-                                    )}
-
-                                    {/* Parameter Approved & Finalized */}
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.25 }}
-                                        className="relative mb-5 rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white"
-                                    >
-                                        <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 px-6 py-5 border-b border-slate-200">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-                                                    <svg className="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path
-                                                            fillRule="evenodd"
-                                                            d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 01-3.976 0 3.066 3.066 0 01-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 010-3.976 3.066 3.066 0 01.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                                            clipRule="evenodd"
-                                                        />
-                                                    </svg>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-lg font-bold text-slate-800">
-                                                        Parameter Approved &amp; Finalized
-                                                    </h3>
-                                                    <p className="text-sm text-slate-600 mt-0.5">
-                                                        This parameter has been reviewed and approved
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="p-6 bg-emerald-50">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="bg-white border border-slate-200 rounded-xl p-5">
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 11-18 0z" />
-                                                            </svg>
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <h4 className="font-semibold text-sm text-slate-800 mb-1">
-                                                                Status: Approved
-                                                            </h4>
-                                                            <p className="text-sm text-slate-600">
-                                                                This parameter has been finalized and approved. All data is now locked and cannot be modified.
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="bg-white border border-slate-200 rounded-xl p-5">
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-3.0-9.542-7z" />
-                                                            </svg>
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <h4 className="font-semibold text-sm text-slate-800 mb-1">
-                                                                View Only Access
-                                                            </h4>
-                                                            <p className="text-sm text-slate-600">
-                                                                You can view all parameter details, preparations, and calculations below.
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {(
-                                            remarksByReviewerPerParam[selectedParameter.id] ??
-                                            (selectedParameter as any).remarksByReviewer
-                                        ) && (
-                                            <div className="mx-6 mb-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
-                                                <div className="flex items-start gap-3">
-                                                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                        <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14v8h-3l-4 4z" />
-                                                        </svg>
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <h4 className="text-xs font-semibold text-blue-800 mb-1">Reviewer Remarks</h4>
-                                                        <p className="text-sm italic text-blue-900 bg-blue-100 rounded-lg px-3 py-2 border border-blue-200">
-                                                            &ldquo;{remarksByReviewerPerParam[selectedParameter.id] ?? (selectedParameter as any).remarksByReviewer}&rdquo;
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {getAnalystComment(selectedParameter) && (
-                                            <div className="mx-6 mb-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
-                                                <div className="flex items-start gap-3">
-                                                    <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                        <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 012-2h14v8h-3l-4 4z" />
-                                                        </svg>
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <h4 className="text-xs font-semibold text-gray-700 mb-1">Analyst Comment</h4>
-                                                        <p className="text-sm italic text-gray-800 bg-gray-100 rounded-lg px-3 py-2 border border-gray-200">
-                                                            &ldquo;{getAnalystComment(selectedParameter)}&rdquo;
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                </>
-                            )}
-
-                            {/* ============================================================
+                                {/* ============================================================
                                 ANALYSIS LOCK SECTION
                                 Same shared section used by the other worksheet modules.
                             ============================================================ */}
-                            {/* ============================================================
-    ANALYSIS LOCK SECTION
-    Shared section for Reviewer / Analyst status handling.
-============================================================ */}
-                            {!isReviewerApprovedForQA && (
-                                <AnalysisLockSection
-                                    status={selectedParameterAnalysisStatus}
-                                    role={role}
-                                    worksheetStatus={worksheetInfo?.sample?.status ?? null}
-                                    canUnlock={role.toLowerCase() === "reviewer"}
-                                canDelete={!isAnalystAnalysisCompleted}
-                                onStartAnalysis={
-                                    role.toLowerCase() === "analyst" && !isAnalystAnalysisCompleted
-                                        ? () => handleStartAnalysis(selectedParameter)
-                                        : undefined
-                                }
-                                onCompleteAnalysis={
-                                    role.toLowerCase() === "analyst" &&
-                                    (
-                                        !isAnalystAnalysisCompleted ||
-                                        isAnalystRevisionStarted
-                                    )
-                                        ? () => handleCompleteAnalysis(selectedParameter)
-                                        : undefined
-                                }
-                                onStartRevision={
-                                    role.toLowerCase() === "analyst" &&
-                                    isAnalystRevision &&
-                                    !isAnalystRevisionStarted
-                                        ? () => handleStartRevision(selectedParameter)
-                                        : undefined
-                                }
-                                onApprove={
-                                    role.toLowerCase() === "reviewer"
-                                        ? () => handleApprove(selectedParameter)
-                                        : undefined
-                                }
-                                onRequestRevision={
-                                    role.toLowerCase() === "reviewer"
-                                        ? () => handleRequestRevision(selectedParameter)
-                                        : undefined
-                                }
-                                analystComment={getAnalystComment(selectedParameter)}
-                                reviewerComment={
-                                    remarksByReviewerPerParam[selectedParameter.id] ??
-                                    (selectedParameter as any).remarksByReviewer ??
-                                    (selectedParameter as any).revisionComments ??
-                                    null
-                                }
-                                analysisStartDate={
-                                    (selectedParameter as any).analysisStartDate ?? null
-                                }
-                                analysisCompletionDate={
-                                    (selectedParameter as any).analysisCompletionDate ?? null
-                                }
-                                revisionStartDate={
-                                    (selectedParameter as any).revisionStartDate ?? null
-                                }
-                                approvedAtReviewer={
-                                    (selectedParameter as any).approvedAtReviewer ?? null
-                                }
-                                onUnlock={() =>
-                                    handleInitiateUnlock(selectedParameter)
-                                }
-                                    onDelete={() => {
-                                        setParameterToDelete(selectedParameter);
-                                        setShowDeleteDialog(true);
-                                    }}
-                                />
-                            )}
-
-                            {/* Copy from another worksheet */}
-                            <div className="mt-5 mb-4 flex justify-end">
-                                <button
-                                    type="button"
-                                    disabled={isPreparationLocked}
-                                    onClick={() => {
-                                        if (isPreparationLocked)
-                                            return;
-
-                                        setShowCopyWorksheetDialog(true);
-                                    }}
-                                    className={`flex items-center gap-2 px-3 py-1.5 bg-white border border-emerald-400 text-emerald-700 font-semibold rounded-lg transition-colors shadow-sm text-xs ${isPreparationLocked
-                                        ? "opacity-50 cursor-not-allowed"
-                                        : "hover:bg-emerald-50"
-                                        }`}
-                                >
-                                    Copy from Worksheet
-                                </button>
-                            </div>
-
-                            <FoodInstrumentSection
-                                isLocked={isPreparationLocked}
-                                role={role}
-                                parameterId={selectedParameter.id}
-                                instruments={instruments}
-                                addedInstruments={addedInstruments}
-                                showInstrumentDropdown={showInstrumentDropdown}
-                                instrumentSearch={instrumentSearch}
-                                searchFilteredInstruments={searchFilteredInstruments}
-                                instrumentRef={instrumentRef}
-                                isReferenceDataLoading={isReferenceDataLoading}
-                                referenceDataError={referenceDataError}
-                                formatDate={formatDate}
-                                onToggleDropdown={() => {
-                                    if (isPreparationLocked)
-                                        return;
-
-                                    setShowInstrumentDropdown(prev => !prev);
-                                }}
-                                onSearch={setInstrumentSearch}
-                                onAddInstrument={handleAddInstrument}
-                                onRemoveInstrument={(instrumentId) =>
-                                    handleRemoveInstrument(selectedParameter.id, instrumentId)
-                                }
-                            />
-
-                            <FoodChemicalSection
-                                isLocked={isPreparationLocked}
-                                role={role}
-                                parameterId={selectedParameter.id}
-                                chemicals={chemicals}
-                                addedChemicals={addedChemicals}
-                                showChemicalDropdown={showChemicalDropdown}
-                                chemicalSearch={chemicalSearch}
-                                searchFilteredChemicals={searchFilteredChemicals}
-                                chemicalRef={chemicalRef}
-                                isReferenceDataLoading={isReferenceDataLoading}
-                                referenceDataError={referenceDataError}
-                                formatDate={formatDate}
-                                onToggleDropdown={() =>
-                                    setShowChemicalDropdown(!showChemicalDropdown)
-                                }
-                                onSearch={setChemicalSearch}
-                                onAddChemical={handleAddChemical}
-                                onRemoveChemical={(chemicalId) =>
-                                    handleRemoveChemical(selectedParameter.id, chemicalId)
-                                }
-                            />
-
-                            <FoodStandardSection
-                                isLocked={isPreparationLocked}
-                                role={role}
-                                parameterId={selectedParameter.id}
-                                standards={standards}
-                                addedStandards={addedStandards}
-                                showStandardDropdown={showStandardDropdown}
-                                standardSearch={standardSearch}
-                                searchFilteredStandards={searchFilteredStandards}
-                                standardRef={standardRef}
-                                isReferenceDataLoading={isReferenceDataLoading}
-                                referenceDataError={referenceDataError}
-                                formatDate={formatDate}
-                                onToggleDropdown={() =>
-                                    setShowStandardDropdown(!showStandardDropdown)
-                                }
-                                onSearch={setStandardSearch}
-                                onAddStandard={handleAddStandard}
-                                onRemoveStandard={(standardId) =>
-                                    handleRemoveStandard(selectedParameter.id, standardId)
-                                }
-                            />
-                            <CopyFromWorksheetDialog
-                                isOpen={showCopyWorksheetDialog}
-                                onClose={() => setShowCopyWorksheetDialog(false)}
-                                currentWorksheetId={worksheetId}
-                                sampleName={worksheetInfo?.sample?.sampleName}
-                                targetParameterId={selectedParameter.id}
-                                fetchRequest={{ employeeId, role }}
-                                includeStandards={true}
-                                existingInstrumentIds={(addedInstruments[selectedParameter.id] || [])
-                                    .map(i => i.instrumentId)
-                                    .filter((id): id is string => !!id)}
-
-                                existingChemicalIds={(addedChemicals[selectedParameter.id] || [])
-                                    .map(c => c.slno)
-                                    .filter((id): id is string => !!id)}
-
-                                existingStandardIds={(addedStandards[selectedParameter.id] || [])
-                                    .map(s => s.serialNo)
-                                    .filter((id): id is string => !!id)}
-                                onImport={(data) => handleImportFromWorksheet(selectedParameter.id, data)}
-                            />
-
-                            <FoodAdditionalInfo
-                                parameterId={selectedParameter.id}
-                                enabled={showAdditionalInfo[selectedParameter.id] ?? false}
-                                value={additionalInfoPerParam[selectedParameter.id] ?? ""}
-                                isLocked={isPreparationLocked}
-                                onToggle={(checked) => {
-                                    if (isPreparationLocked)
-                                        return;
-
-                                    setShowAdditionalInfo(prev => ({
-                                        ...prev,
-                                        [selectedParameter.id]: checked
-                                    }));
-
-                                    if (!checked) {
-                                        setAdditionalInfoPerParam(prev => ({
-                                            ...prev,
-                                            [selectedParameter.id]: ""
-                                        }));
-                                    }
-                                }}
-                                onChange={(value) => {
-                                    if (isPreparationLocked)
-                                        return;
-
-                                    setAdditionalInfoPerParam(prev => ({
-                                        ...prev,
-                                        [selectedParameter.id]: value
-                                    }));
-                                }}
-                            />
-
-                            <FoodBufferPreparation
-                                isLocked={isPreparationLocked}
-                                parameterId={selectedParameter.id}
-                                enabled={showBufferPreparation[selectedParameter.id] || false}
-                                buffers={bufferPreparationPerParam[selectedParameter.id] || []}
-                                onToggle={(checked) => {
-                                    setShowBufferPreparation(prev => ({
-                                        ...prev,
-                                        [selectedParameter.id]: checked
-                                    }));
-
-                                    if (!checked) {
-                                        setBufferPreparationPerParam(prev => ({
-                                            ...prev,
-                                            [selectedParameter.id]: []
-                                        }));
-                                    }
-                                }}
-                                onAdd={() => handleAddBufferPreparation(selectedParameter.id)}
-                                onRemove={(bufferId) =>
-                                    handleRemoveBufferPreparation(selectedParameter.id, bufferId)
-                                }
-                                onStepChange={(bufferId, step, field, value) =>
-                                    handleBufferPreparationStepChange(
-                                        selectedParameter.id,
-                                        bufferId,
-                                        step,
-                                        field,
-                                        value
-                                    )
-                                }
-                            />
-                            <FoodMobilePhasePreparation
-                                isLocked={isPreparationLocked}
-                                parameterId={selectedParameter.id}
-                                enabled={showMobilePhasePreparation[selectedParameter.id] || false}
-                                mobilePhases={mobilePhasePerParam[selectedParameter.id] || []}
-                                onToggle={(checked) =>
-                                    setShowMobilePhasePreparation(prev => ({
-                                        ...prev,
-                                        [selectedParameter.id]: checked
-                                    }))
-                                }
-                                onAdd={() => handleAddMobilePhase(selectedParameter.id)}
-                                onEdit={(id) => handleEditMobilePhase(selectedParameter.id, id)}
-                                onRemove={(id) => handleRemoveMobilePhase(selectedParameter.id, id)}
-                            />
-                            <AnimatePresence>
-                                {showMobilePhaseDialog[selectedParameter.id] && (
-                                    <PreparationEditorDialog
-                                        title={
-                                            editingMobilePhasePrepId
-                                                ? (
-                                                    mobilePhasePerParam[selectedParameter.id] || []
-                                                ).find(
-                                                    mp => mp.id === editingMobilePhasePrepId
-                                                )?.label ?? "Mobile Phase Preparation"
-                                                : `Mobile Phase Preparation ${(mobilePhasePerParam[selectedParameter.id] || []).length + 1
-                                                }`
-                                        }
-                                        onClose={() => {
-                                            setShowMobilePhaseDialog(prev => ({
-                                                ...prev,
-                                                [selectedParameter.id]: false
-                                            }));
-
-                                            setEditingMobilePhasePrepId(null);
-                                        }}
-                                        onSave={(content) =>
-                                            handleSaveMobilePhase(
-                                                selectedParameter.id,
-                                                "",
-                                                content
-                                            )
-                                        }
-                                        existingContent={
-                                            editingMobilePhasePrepId
-                                                ? (
-                                                    mobilePhasePerParam[selectedParameter.id] || []
-                                                ).find(
-                                                    mp => mp.id === editingMobilePhasePrepId
-                                                )?.content
-                                                : undefined
-                                        }
-                                    />
-                                )}
-                            </AnimatePresence>
-
-                            <FoodDiluentPreparation
-                                isLocked={isPreparationLocked}
-                                parameterId={selectedParameter.id}
-                                enabled={showDiluentPreparation[selectedParameter.id] || false}
-                                diluentPreparations={
-                                    diluentPreparationsPerParam[selectedParameter.id] || []
-                                }
-                                onToggle={(checked) =>
-                                    setShowDiluentPreparation(prev => ({
-                                        ...prev,
-                                        [selectedParameter.id]: checked
-                                    }))
-                                }
-                                onAdd={() => handleAddDiluentPreparation(selectedParameter.id)}
-                                onEdit={(id) =>
-                                    handleEditDiluentPreparation(selectedParameter.id, id)
-                                }
-                                onRemove={(id) =>
-                                    handleRemoveDiluentPreparation(selectedParameter.id, id)
-                                }
-                            />
-
-                            <AnimatePresence>
-                                {showDiluentPrepDialog[selectedParameter.id] && (
-                                    <PreparationEditorDialog
-                                        title={
-                                            editingDiluentPrepId
-                                                ? (
-                                                    diluentPreparationsPerParam[selectedParameter.id] || []
-                                                ).find(
-                                                    d => d.id === editingDiluentPrepId
-                                                )?.label ?? "Diluent Preparation"
-                                                : `Diluent Preparation ${(diluentPreparationsPerParam[selectedParameter.id] || [])
-                                                    .length + 1
-                                                }`
-                                        }
-                                        onClose={() => {
-                                            setShowDiluentPrepDialog(prev => ({
-                                                ...prev,
-                                                [selectedParameter.id]: false
-                                            }));
-
-                                            setEditingDiluentPrepId(null);
-                                        }}
-                                        onSave={(content) =>
-                                            handleSaveDiluentPreparation(
-                                                selectedParameter.id,
-                                                "",
-                                                content
-                                            )
-                                        }
-                                        existingContent={
-                                            editingDiluentPrepId
-                                                ? (
-                                                    diluentPreparationsPerParam[selectedParameter.id] || []
-                                                ).find(
-                                                    d => d.id === editingDiluentPrepId
-                                                )?.content
-                                                : undefined
-                                        }
-                                    />
-                                )}
-                            </AnimatePresence>
-
-                            {/* -----------------Preparation Management will be added here--------------- */}
-
-
-                            <PreparationEngine
-
-                                ref={(engine) => {
-
-                                    preparationRefs.current[selectedParameter.id] = engine;
-
-                                }}
-
-                                role={role}
-
-                                canUnlockPreparation={canUnlockPreparation}
-
-                                parameterId={selectedParameter.id}
-
-                                parameterName={selectedParameter.parameterName}
-
-                                parameterCode={selectedParameter.paraCode}
-
-                                isLocked={isPreparationLocked}
-                                canEditCalculations={canEditCalculations}
-
-                                onLockPreparation={(parameterId) => {
-
-                                    const completedAt = new Date().toLocaleString("en-GB");
-
-                                    setPreparationLockedPerParam(prev => ({
-
-                                        ...prev,
-                                        [parameterId]: true
-
-                                    }));
-
-                                    setAddedParameters(prev =>
-
-                                        prev.map(p =>
-
-                                            p.id === parameterId
-                                                ? {
-                                                    ...p,
-                                                    preparationCompletedAt: completedAt,
-                                                    preparationCompletedBy: employeeId
-                                                }
-                                                : p
-
-                                        )
-
-                                    );
-
-                                }}
-
-                                onUnlockPreparation={(parameterId) => {
-
-                                    setPreparationLockedPerParam(prev => ({
-                                        ...prev,
-                                        [parameterId]: false
-                                    }));
-
-                                    setAddedParameters(prev =>
-                                        prev.map(p =>
-                                            p.id === parameterId
-                                                ? {
-                                                    ...p,
-                                                    preparationCompletedAt: null,
-                                                    preparationCompletedBy: null
-                                                }
-                                                : p
-                                        )
-                                    );
-                                }}
-
-                            />
-
-
-
-                            <FoodSystemSuitability
-                                parameterId={selectedParameter.id}
-                                enabled={showSystemSuitability[selectedParameter.id] || false}
-                                isLocked={isPreparationLocked}
-                                systemSuitabilities={
-                                    systemSuitabilityPerParam[selectedParameter.id] || []
-                                }
-                                onToggle={(checked) => {
-                                    if (isPreparationLocked)
-                                        return;
-
-                                    setShowSystemSuitability(prev => ({
-                                        ...prev,
-                                        [selectedParameter.id]: checked
-                                    }));
-                                }}
-                                onAdd={() => {
-                                    if (isPreparationLocked)
-                                        return;
-
-                                    handleAddSystemSuitability(selectedParameter.id);
-                                }}
-                                onRemove={(id) => {
-                                    if (isPreparationLocked)
-                                        return;
-
-                                    handleRemoveSystemSuitability(
-                                        selectedParameter.id,
-                                        id
-                                    );
-                                }}
-                                onStepChange={(
-                                    suitabilityId,
-                                    stepName,
-                                    field,
-                                    value
-                                ) => {
-                                    if (isPreparationLocked)
-                                        return;
-
-                                    handleSystemSuitabilityStepChange(
-                                        selectedParameter.id,
-                                        suitabilityId,
-                                        stepName,
-                                        field,
-                                        value
-                                    );
-                                }}
-                                onAddStep={(
-                                    suitabilityId,
-                                    stepName,
-                                    limitType
-                                ) => {
-                                    if (isPreparationLocked)
-                                        return;
-
-                                    handleAddSystemSuitabilityStep(
-                                        selectedParameter.id,
-                                        suitabilityId,
-                                        stepName,
-                                        limitType
-                                    );
-                                }}
-                                onRemoveStep={(
-                                    suitabilityId,
-                                    stepName
-                                ) => {
-                                    if (isPreparationLocked)
-                                        return;
-
-                                    handleRemoveSystemSuitabilityStep(
-                                        selectedParameter.id,
-                                        suitabilityId,
-                                        stepName
-                                    );
-                                }}
-                            />
-
-                            <FoodParameterFiles
-                                parameterId={selectedParameter.id}
-                                enabled={showParamFiles[selectedParameter.id] || false}
-                                files={getParamLevelFiles(selectedParameter.id)}
-                                onToggle={(checked) => {
-                                    setShowParamFiles(prev => ({
-                                        ...prev,
-                                        [selectedParameter.id]: checked
-                                    }));
-
-                                    if (!checked) {
-                                        updateFilesForSlot(
-                                            selectedParameter.id,
-                                            PARAM_LEVEL_KEY,
-                                            () => []
-                                        );
-                                    }
-                                }}
-                                onAdd={(newFiles) =>
-                                    handleAddParamFiles(
-                                        selectedParameter.id,
-                                        newFiles
-                                    )
-                                }
-                                onRemove={(index) =>
-                                    handleRemoveParamFile(
-                                        selectedParameter.id,
-                                        index
-                                    )
-                                }
-                                isLocked={isPreparationLocked}
-                            />
-
-                            
-
-                            {/* ============================================================
-                                    REVIEWER - ANALYSIS COMPLETED ACTION BAR
-                                    Uses the shared AnalysisLockSection so the bottom
-                                    section stays consistent with the Drug worksheet.
-                                ============================================================ */}
-                            {role.toLowerCase() === "reviewer" &&
-                                normalizeStatus(selectedParameterAnalysisStatus) ===
-                                "analysis completed" && (
+                                {/* ============================================================
+                                ANALYSIS LOCK SECTION
+                                Shared section for Reviewer / Analyst status handling.
+                            ============================================================ */}
+                                {!isReviewerApprovedForQA && (
                                     <AnalysisLockSection
                                         status={selectedParameterAnalysisStatus}
                                         role={role}
-                                        canUnlock={false}
-                                        canDelete={false}
-                                        onApprove={() => handleApprove(selectedParameter)}
-                                        onRequestRevision={() =>
-                                            handleRequestRevision(selectedParameter)
+                                        worksheetStatus={worksheetInfo?.sample?.status ?? null}
+                                        canUnlock={role.toLowerCase() === "reviewer"}
+                                        canDelete={!isAnalystAnalysisCompleted}
+                                        onStartAnalysis={
+                                            role.toLowerCase() === "analyst" && !isAnalystAnalysisCompleted
+                                                ? () => handleStartAnalysis(selectedParameter)
+                                                : undefined
+                                        }
+                                        onCompleteAnalysis={
+                                            role.toLowerCase() === "analyst" &&
+                                                (
+                                                    !isAnalystAnalysisCompleted ||
+                                                    isAnalystRevisionStarted
+                                                )
+                                                ? () => handleCompleteAnalysis(selectedParameter)
+                                                : undefined
+                                        }
+                                        onStartRevision={
+                                            role.toLowerCase() === "analyst" &&
+                                                isAnalystRevision &&
+                                                !isAnalystRevisionStarted
+                                                ? () => handleStartRevision(selectedParameter)
+                                                : undefined
+                                        }
+                                        onApprove={
+                                            role.toLowerCase() === "reviewer"
+                                                ? () => handleApprove(selectedParameter)
+                                                : undefined
+                                        }
+                                        onRequestRevision={
+                                            role.toLowerCase() === "reviewer"
+                                                ? () => handleRequestRevision(selectedParameter)
+                                                : undefined
                                         }
                                         analystComment={getAnalystComment(selectedParameter)}
-                                         reviewerComment={remarksByReviewerPerParam[selectedParameter.id] ?? (selectedParameter as any).remarksByReviewer ?? (selectedParameter as any).revisionComments ?? null}
+                                        reviewerComment={
+                                            remarksByReviewerPerParam[selectedParameter.id] ??
+                                            (selectedParameter as any).remarksByReviewer ??
+                                            (selectedParameter as any).revisionComments ??
+                                            null
+                                        }
+                                        analysisStartDate={
+                                            (selectedParameter as any).analysisStartDate ?? null
+                                        }
+                                        analysisCompletionDate={
+                                            (selectedParameter as any).analysisCompletionDate ?? null
+                                        }
+                                        revisionStartDate={
+                                            (selectedParameter as any).revisionStartDate ?? null
+                                        }
+                                        approvedAtReviewer={
+                                            (selectedParameter as any).approvedAtReviewer ?? null
+                                        }
                                         onUnlock={() =>
                                             handleInitiateUnlock(selectedParameter)
                                         }
@@ -4152,12 +3581,528 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                             setParameterToDelete(selectedParameter);
                                             setShowDeleteDialog(true);
                                         }}
-                                        compact
                                     />
                                 )}
 
+                                {/* Copy from another worksheet */}
+                                <div className="mt-5 mb-4 flex justify-end">
+                                    <button
+                                        type="button"
+                                        disabled={isPreparationLocked}
+                                        onClick={() => {
+                                            if (isPreparationLocked)
+                                                return;
 
-                            {/* ============================================================
+                                            setShowCopyWorksheetDialog(true);
+                                        }}
+                                        className={`flex items-center gap-2 px-3 py-1.5 bg-white border border-emerald-400 text-emerald-700 font-semibold rounded-lg transition-colors shadow-sm text-xs ${isPreparationLocked
+                                            ? "opacity-50 cursor-not-allowed"
+                                            : "hover:bg-emerald-50"
+                                            }`}
+                                    >
+                                        Copy from Worksheet
+                                    </button>
+                                </div>
+
+                                <FoodInstrumentSection
+                                    isLocked={isPreparationLocked}
+                                    role={role}
+                                    parameterId={selectedParameter.id}
+                                    instruments={instruments}
+                                    addedInstruments={addedInstruments}
+                                    showInstrumentDropdown={showInstrumentDropdown}
+                                    instrumentSearch={instrumentSearch}
+                                    searchFilteredInstruments={searchFilteredInstruments}
+                                    instrumentRef={instrumentRef}
+                                    isReferenceDataLoading={isReferenceDataLoading}
+                                    referenceDataError={referenceDataError}
+                                    formatDate={formatDate}
+                                    onToggleDropdown={() => {
+                                        if (isPreparationLocked)
+                                            return;
+
+                                        setShowInstrumentDropdown(prev => !prev);
+                                    }}
+                                    onSearch={setInstrumentSearch}
+                                    onAddInstrument={handleAddInstrument}
+                                    onRemoveInstrument={(instrumentId) =>
+                                        handleRemoveInstrument(selectedParameter.id, instrumentId)
+                                    }
+                                />
+
+                                <FoodChemicalSection
+                                    isLocked={isPreparationLocked}
+                                    role={role}
+                                    parameterId={selectedParameter.id}
+                                    chemicals={chemicals}
+                                    addedChemicals={addedChemicals}
+                                    showChemicalDropdown={showChemicalDropdown}
+                                    chemicalSearch={chemicalSearch}
+                                    searchFilteredChemicals={searchFilteredChemicals}
+                                    chemicalRef={chemicalRef}
+                                    isReferenceDataLoading={isReferenceDataLoading}
+                                    referenceDataError={referenceDataError}
+                                    formatDate={formatDate}
+                                    onToggleDropdown={() =>
+                                        setShowChemicalDropdown(!showChemicalDropdown)
+                                    }
+                                    onSearch={setChemicalSearch}
+                                    onAddChemical={handleAddChemical}
+                                    onRemoveChemical={(chemicalId) =>
+                                        handleRemoveChemical(selectedParameter.id, chemicalId)
+                                    }
+                                />
+
+                                <FoodStandardSection
+                                    isLocked={isPreparationLocked}
+                                    role={role}
+                                    parameterId={selectedParameter.id}
+                                    standards={standards}
+                                    addedStandards={addedStandards}
+                                    showStandardDropdown={showStandardDropdown}
+                                    standardSearch={standardSearch}
+                                    searchFilteredStandards={searchFilteredStandards}
+                                    standardRef={standardRef}
+                                    isReferenceDataLoading={isReferenceDataLoading}
+                                    referenceDataError={referenceDataError}
+                                    formatDate={formatDate}
+                                    onToggleDropdown={() =>
+                                        setShowStandardDropdown(!showStandardDropdown)
+                                    }
+                                    onSearch={setStandardSearch}
+                                    onAddStandard={handleAddStandard}
+                                    onRemoveStandard={(standardId) =>
+                                        handleRemoveStandard(selectedParameter.id, standardId)
+                                    }
+                                />
+                                <CopyFromWorksheetDialog
+                                    isOpen={showCopyWorksheetDialog}
+                                    onClose={() => setShowCopyWorksheetDialog(false)}
+                                    currentWorksheetId={worksheetId}
+                                    sampleName={worksheetInfo?.sample?.sampleName}
+                                    targetParameterId={selectedParameter.id}
+                                    fetchRequest={{ employeeId, role }}
+                                    includeStandards={true}
+                                    existingInstrumentIds={(addedInstruments[selectedParameter.id] || [])
+                                        .map(i => i.instrumentId)
+                                        .filter((id): id is string => !!id)}
+
+                                    existingChemicalIds={(addedChemicals[selectedParameter.id] || [])
+                                        .map(c => c.slno)
+                                        .filter((id): id is string => !!id)}
+
+                                    existingStandardIds={(addedStandards[selectedParameter.id] || [])
+                                        .map(s => s.serialNo)
+                                        .filter((id): id is string => !!id)}
+                                    onImport={(data) => handleImportFromWorksheet(selectedParameter.id, data)}
+                                />
+
+                                <FoodAdditionalInfo
+                                    parameterId={selectedParameter.id}
+                                    enabled={showAdditionalInfo[selectedParameter.id] ?? false}
+                                    value={additionalInfoPerParam[selectedParameter.id] ?? ""}
+                                    isLocked={isPreparationLocked}
+                                    onToggle={(checked) => {
+                                        if (isPreparationLocked)
+                                            return;
+
+                                        setShowAdditionalInfo(prev => ({
+                                            ...prev,
+                                            [selectedParameter.id]: checked
+                                        }));
+
+                                        if (!checked) {
+                                            setAdditionalInfoPerParam(prev => ({
+                                                ...prev,
+                                                [selectedParameter.id]: ""
+                                            }));
+                                        }
+                                    }}
+                                    onChange={(value) => {
+                                        if (isPreparationLocked)
+                                            return;
+
+                                        setAdditionalInfoPerParam(prev => ({
+                                            ...prev,
+                                            [selectedParameter.id]: value
+                                        }));
+                                    }}
+                                />
+
+                                <FoodBufferPreparation
+                                    isLocked={isPreparationLocked}
+                                    parameterId={selectedParameter.id}
+                                    enabled={showBufferPreparation[selectedParameter.id] || false}
+                                    buffers={bufferPreparationPerParam[selectedParameter.id] || []}
+                                    onToggle={(checked) => {
+                                        setShowBufferPreparation(prev => ({
+                                            ...prev,
+                                            [selectedParameter.id]: checked
+                                        }));
+
+                                        if (!checked) {
+                                            setBufferPreparationPerParam(prev => ({
+                                                ...prev,
+                                                [selectedParameter.id]: []
+                                            }));
+                                        }
+                                    }}
+                                    onAdd={() => handleAddBufferPreparation(selectedParameter.id)}
+                                    onRemove={(bufferId) =>
+                                        handleRemoveBufferPreparation(selectedParameter.id, bufferId)
+                                    }
+                                    onStepChange={(bufferId, step, field, value) =>
+                                        handleBufferPreparationStepChange(
+                                            selectedParameter.id,
+                                            bufferId,
+                                            step,
+                                            field,
+                                            value
+                                        )
+                                    }
+                                />
+                                <FoodMobilePhasePreparation
+                                    isLocked={isPreparationLocked}
+                                    parameterId={selectedParameter.id}
+                                    enabled={showMobilePhasePreparation[selectedParameter.id] || false}
+                                    mobilePhases={mobilePhasePerParam[selectedParameter.id] || []}
+                                    onToggle={(checked) =>
+                                        setShowMobilePhasePreparation(prev => ({
+                                            ...prev,
+                                            [selectedParameter.id]: checked
+                                        }))
+                                    }
+                                    onAdd={() => handleAddMobilePhase(selectedParameter.id)}
+                                    onEdit={(id) => handleEditMobilePhase(selectedParameter.id, id)}
+                                    onRemove={(id) => handleRemoveMobilePhase(selectedParameter.id, id)}
+                                />
+                                <AnimatePresence>
+                                    {showMobilePhaseDialog[selectedParameter.id] && (
+                                        <PreparationEditorDialog
+                                            title={
+                                                editingMobilePhasePrepId
+                                                    ? (
+                                                        mobilePhasePerParam[selectedParameter.id] || []
+                                                    ).find(
+                                                        mp => mp.id === editingMobilePhasePrepId
+                                                    )?.label ?? "Mobile Phase Preparation"
+                                                    : `Mobile Phase Preparation ${(mobilePhasePerParam[selectedParameter.id] || []).length + 1
+                                                    }`
+                                            }
+                                            onClose={() => {
+                                                setShowMobilePhaseDialog(prev => ({
+                                                    ...prev,
+                                                    [selectedParameter.id]: false
+                                                }));
+
+                                                setEditingMobilePhasePrepId(null);
+                                            }}
+                                            onSave={(content) =>
+                                                handleSaveMobilePhase(
+                                                    selectedParameter.id,
+                                                    "",
+                                                    content
+                                                )
+                                            }
+                                            existingContent={
+                                                editingMobilePhasePrepId
+                                                    ? (
+                                                        mobilePhasePerParam[selectedParameter.id] || []
+                                                    ).find(
+                                                        mp => mp.id === editingMobilePhasePrepId
+                                                    )?.content
+                                                    : undefined
+                                            }
+                                        />
+                                    )}
+                                </AnimatePresence>
+
+                                <FoodDiluentPreparation
+                                    isLocked={isPreparationLocked}
+                                    parameterId={selectedParameter.id}
+                                    enabled={showDiluentPreparation[selectedParameter.id] || false}
+                                    diluentPreparations={
+                                        diluentPreparationsPerParam[selectedParameter.id] || []
+                                    }
+                                    onToggle={(checked) =>
+                                        setShowDiluentPreparation(prev => ({
+                                            ...prev,
+                                            [selectedParameter.id]: checked
+                                        }))
+                                    }
+                                    onAdd={() => handleAddDiluentPreparation(selectedParameter.id)}
+                                    onEdit={(id) =>
+                                        handleEditDiluentPreparation(selectedParameter.id, id)
+                                    }
+                                    onRemove={(id) =>
+                                        handleRemoveDiluentPreparation(selectedParameter.id, id)
+                                    }
+                                />
+
+                                <AnimatePresence>
+                                    {showDiluentPrepDialog[selectedParameter.id] && (
+                                        <PreparationEditorDialog
+                                            title={
+                                                editingDiluentPrepId
+                                                    ? (
+                                                        diluentPreparationsPerParam[selectedParameter.id] || []
+                                                    ).find(
+                                                        d => d.id === editingDiluentPrepId
+                                                    )?.label ?? "Diluent Preparation"
+                                                    : `Diluent Preparation ${(diluentPreparationsPerParam[selectedParameter.id] || [])
+                                                        .length + 1
+                                                    }`
+                                            }
+                                            onClose={() => {
+                                                setShowDiluentPrepDialog(prev => ({
+                                                    ...prev,
+                                                    [selectedParameter.id]: false
+                                                }));
+
+                                                setEditingDiluentPrepId(null);
+                                            }}
+                                            onSave={(content) =>
+                                                handleSaveDiluentPreparation(
+                                                    selectedParameter.id,
+                                                    "",
+                                                    content
+                                                )
+                                            }
+                                            existingContent={
+                                                editingDiluentPrepId
+                                                    ? (
+                                                        diluentPreparationsPerParam[selectedParameter.id] || []
+                                                    ).find(
+                                                        d => d.id === editingDiluentPrepId
+                                                    )?.content
+                                                    : undefined
+                                            }
+                                        />
+                                    )}
+                                </AnimatePresence>
+
+                                {/* -----------------Preparation Management will be added here--------------- */}
+
+
+                                <PreparationEngine
+
+                                    ref={(engine) => {
+
+                                        preparationRefs.current[selectedParameter.id] = engine;
+
+                                    }}
+
+                                    role={role}
+
+                                    canUnlockPreparation={canUnlockPreparation}
+
+                                    parameterId={selectedParameter.id}
+
+                                    parameterName={selectedParameter.parameterName}
+
+                                    parameterCode={selectedParameter.paraCode}
+
+                                    isLocked={isPreparationLocked}
+                                    canEditCalculations={canEditCalculations}
+
+                                    onLockPreparation={(parameterId) => {
+
+                                        const completedAt = new Date().toLocaleString("en-GB");
+
+                                        setPreparationLockedPerParam(prev => ({
+
+                                            ...prev,
+                                            [parameterId]: true
+
+                                        }));
+
+                                        setAddedParameters(prev =>
+
+                                            prev.map(p =>
+
+                                                p.id === parameterId
+                                                    ? {
+                                                        ...p,
+                                                        preparationCompletedAt: completedAt,
+                                                        preparationCompletedBy: employeeId
+                                                    }
+                                                    : p
+
+                                            )
+
+                                        );
+
+                                    }}
+
+                                    onUnlockPreparation={(parameterId) => {
+
+                                        setPreparationLockedPerParam(prev => ({
+                                            ...prev,
+                                            [parameterId]: false
+                                        }));
+
+                                        setAddedParameters(prev =>
+                                            prev.map(p =>
+                                                p.id === parameterId
+                                                    ? {
+                                                        ...p,
+                                                        preparationCompletedAt: null,
+                                                        preparationCompletedBy: null
+                                                    }
+                                                    : p
+                                            )
+                                        );
+                                    }}
+
+                                />
+
+
+
+                                <FoodSystemSuitability
+                                    parameterId={selectedParameter.id}
+                                    enabled={showSystemSuitability[selectedParameter.id] || false}
+                                    isLocked={isPreparationLocked}
+                                    systemSuitabilities={
+                                        systemSuitabilityPerParam[selectedParameter.id] || []
+                                    }
+                                    onToggle={(checked) => {
+                                        if (isPreparationLocked)
+                                            return;
+
+                                        setShowSystemSuitability(prev => ({
+                                            ...prev,
+                                            [selectedParameter.id]: checked
+                                        }));
+                                    }}
+                                    onAdd={() => {
+                                        if (isPreparationLocked)
+                                            return;
+
+                                        handleAddSystemSuitability(selectedParameter.id);
+                                    }}
+                                    onRemove={(id) => {
+                                        if (isPreparationLocked)
+                                            return;
+
+                                        handleRemoveSystemSuitability(
+                                            selectedParameter.id,
+                                            id
+                                        );
+                                    }}
+                                    onStepChange={(
+                                        suitabilityId,
+                                        stepName,
+                                        field,
+                                        value
+                                    ) => {
+                                        if (isPreparationLocked)
+                                            return;
+
+                                        handleSystemSuitabilityStepChange(
+                                            selectedParameter.id,
+                                            suitabilityId,
+                                            stepName,
+                                            field,
+                                            value
+                                        );
+                                    }}
+                                    onAddStep={(
+                                        suitabilityId,
+                                        stepName,
+                                        limitType
+                                    ) => {
+                                        if (isPreparationLocked)
+                                            return;
+
+                                        handleAddSystemSuitabilityStep(
+                                            selectedParameter.id,
+                                            suitabilityId,
+                                            stepName,
+                                            limitType
+                                        );
+                                    }}
+                                    onRemoveStep={(
+                                        suitabilityId,
+                                        stepName
+                                    ) => {
+                                        if (isPreparationLocked)
+                                            return;
+
+                                        handleRemoveSystemSuitabilityStep(
+                                            selectedParameter.id,
+                                            suitabilityId,
+                                            stepName
+                                        );
+                                    }}
+                                />
+
+                                <FoodParameterFiles
+                                    parameterId={selectedParameter.id}
+                                    enabled={showParamFiles[selectedParameter.id] || false}
+                                    files={getParamLevelFiles(selectedParameter.id)}
+                                    onToggle={(checked) => {
+                                        setShowParamFiles(prev => ({
+                                            ...prev,
+                                            [selectedParameter.id]: checked
+                                        }));
+
+                                        if (!checked) {
+                                            updateFilesForSlot(
+                                                selectedParameter.id,
+                                                PARAM_LEVEL_KEY,
+                                                () => []
+                                            );
+                                        }
+                                    }}
+                                    onAdd={(newFiles) =>
+                                        handleAddParamFiles(
+                                            selectedParameter.id,
+                                            newFiles
+                                        )
+                                    }
+                                    onRemove={(index) =>
+                                        handleRemoveParamFile(
+                                            selectedParameter.id,
+                                            index
+                                        )
+                                    }
+                                    isLocked={isPreparationLocked}
+                                />
+
+
+
+                                {/* ============================================================
+                                    REVIEWER - ANALYSIS COMPLETED ACTION BAR
+                                    Uses the shared AnalysisLockSection so the bottom
+                                    section stays consistent with the Drug worksheet.
+                                ============================================================ */}
+                                {role.toLowerCase() === "reviewer" &&
+                                    normalizeStatus(selectedParameterAnalysisStatus) ===
+                                    "analysis completed" && (
+                                        <AnalysisLockSection
+                                            status={selectedParameterAnalysisStatus}
+                                            role={role}
+                                            canUnlock={false}
+                                            canDelete={false}
+                                            onApprove={() => handleApprove(selectedParameter)}
+                                            onRequestRevision={() =>
+                                                handleRequestRevision(selectedParameter)
+                                            }
+                                            analystComment={getAnalystComment(selectedParameter)}
+                                            reviewerComment={remarksByReviewerPerParam[selectedParameter.id] ?? (selectedParameter as any).remarksByReviewer ?? (selectedParameter as any).revisionComments ?? null}
+                                            onUnlock={() =>
+                                                handleInitiateUnlock(selectedParameter)
+                                            }
+                                            onDelete={() => {
+                                                setParameterToDelete(selectedParameter);
+                                                setShowDeleteDialog(true);
+                                            }}
+                                            compact
+                                        />
+                                    )}
+
+
+                                {/* ============================================================
                                 BOTTOM ANALYSIS ACTION SECTION
 
                                 Reviewer:
@@ -4168,174 +4113,208 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                     Show Analysis In Progress + Complete Analysis.
                             ============================================================ */}
 
-                            {role.toLowerCase() === "reviewer" &&
-                                normalizeStatus(selectedParameterAnalysisStatus) !==
-                                "analysis completed" && (
-                                <AnalysisLockSection
-                                    status={selectedParameterAnalysisStatus}
-                                    role={role}
-                                    worksheetStatus={worksheetInfo?.sample?.status ?? null}
-                                    canUnlock={true}
-                                    canDelete={true}
-                                    onStartAnalysis={() =>
-                                        handleStartAnalysis(selectedParameter)
-                                    }
-                                    onUnlock={() =>
-                                        handleInitiateUnlock(selectedParameter)
-                                    }
-                                    onDelete={() => {
-                                        setParameterToDelete(selectedParameter);
-                                        setShowDeleteDialog(true);
-                                    }}
-                                    compact
-                                />
-                            )}
+                                {role.toLowerCase() === "reviewer" &&
+                                    normalizeStatus(selectedParameterAnalysisStatus) !==
+                                    "analysis completed" && (
+                                        <AnalysisLockSection
+                                            status={selectedParameterAnalysisStatus}
+                                            role={role}
+                                            worksheetStatus={worksheetInfo?.sample?.status ?? null}
+                                            canUnlock={true}
+                                            canDelete={true}
+                                            onStartAnalysis={() =>
+                                                handleStartAnalysis(selectedParameter)
+                                            }
+                                            onUnlock={() =>
+                                                handleInitiateUnlock(selectedParameter)
+                                            }
+                                            onDelete={() => {
+                                                setParameterToDelete(selectedParameter);
+                                                setShowDeleteDialog(true);
+                                            }}
+                                            compact
+                                        />
+                                    )}
 
 
 
 
 
-                            {/* ============================================================
+                                {/* ============================================================
     ANALYST - ANALYSIS REVISION
     Bottom compact section: disabled before Start Revision,
     Complete Revision after Start Revision.
 ============================================================ */}
-                            {role.toLowerCase() === "analyst" &&
-                                isAnalystRevision && (
-                                    <AnalysisLockSection
-                                        status={selectedParameterAnalysisStatus}
-                                        role={role}
-                                        canUnlock={false}
-                                        canDelete={false}
-                                        onStartRevision={
-                                            !isAnalystRevisionStarted
-                                                ? () => handleStartRevision(selectedParameter)
-                                                : undefined
-                                        }
-                                        onCompleteAnalysis={
-                                            isAnalystRevisionStarted
-                                                ? () => handleCompleteAnalysis(selectedParameter)
-                                                : undefined
-                                        }
-                                        reviewerComment={
-                                            remarksByReviewerPerParam[selectedParameter.id] ??
-                                            (selectedParameter as any).remarksByReviewer ??
-                                            (selectedParameter as any).revisionComments ??
-                                            null
-                                        }
-                                        analysisStartDate={
-                                            (selectedParameter as any).analysisStartDate ?? null
-                                        }
-                                        analysisCompletionDate={
-                                            (selectedParameter as any).analysisCompletionDate ?? null
-                                        }
-                                        revisionStartDate={
-                                            (selectedParameter as any).revisionStartDate ?? null
-                                        }
-                                        onUnlock={() =>
-                                            handleInitiateUnlock(selectedParameter)
-                                        }
-                                        onDelete={() => {
-                                            setParameterToDelete(selectedParameter);
-                                            setShowDeleteDialog(true);
-                                        }}
-                                        compact
-                                    />
-                                )}
+                                {role.toLowerCase() === "analyst" &&
+                                    isAnalystRevision && (
+                                        <AnalysisLockSection
+                                            status={selectedParameterAnalysisStatus}
+                                            role={role}
+                                            canUnlock={false}
+                                            canDelete={false}
+                                            onStartRevision={
+                                                !isAnalystRevisionStarted
+                                                    ? () => handleStartRevision(selectedParameter)
+                                                    : undefined
+                                            }
+                                            onCompleteAnalysis={
+                                                isAnalystRevisionStarted
+                                                    ? () => handleCompleteAnalysis(selectedParameter)
+                                                    : undefined
+                                            }
+                                            reviewerComment={
+                                                remarksByReviewerPerParam[selectedParameter.id] ??
+                                                (selectedParameter as any).remarksByReviewer ??
+                                                (selectedParameter as any).revisionComments ??
+                                                null
+                                            }
+                                            analysisStartDate={
+                                                (selectedParameter as any).analysisStartDate ?? null
+                                            }
+                                            analysisCompletionDate={
+                                                (selectedParameter as any).analysisCompletionDate ?? null
+                                            }
+                                            revisionStartDate={
+                                                (selectedParameter as any).revisionStartDate ?? null
+                                            }
+                                            onUnlock={() =>
+                                                handleInitiateUnlock(selectedParameter)
+                                            }
+                                            onDelete={() => {
+                                                setParameterToDelete(selectedParameter);
+                                                setShowDeleteDialog(true);
+                                            }}
+                                            compact
+                                        />
+                                    )}
 
-                            {/* ============================================================
+                                {/* ============================================================
     ANALYST - ANALYSIS COMPLETED AFTER REVISION
 
     Keep the bottom Analysis Completed section visible after
     Complete Revision changes the status back to Analysis Completed.
 ============================================================ */}
-                            {role.toLowerCase() === "analyst" &&
-                                normalizeStatus(selectedParameterAnalysisStatus) ===
+                                {role.toLowerCase() === "analyst" &&
+                                    normalizeStatus(selectedParameterAnalysisStatus) ===
                                     "analysis completed" && (
-                                    <AnalysisLockSection
-                                        status={selectedParameterAnalysisStatus}
-                                        role={role}
-                                        canUnlock={false}
-                                        canDelete={false}
-                                        analystComment={getAnalystComment(selectedParameter)}
-                                        reviewerComment={
-                                            remarksByReviewerPerParam[selectedParameter.id] ??
-                                            (selectedParameter as any).remarksByReviewer ??
-                                            (selectedParameter as any).revisionComments ??
-                                            null
-                                        }
-                                        analysisStartDate={
-                                            (selectedParameter as any).analysisStartDate ?? null
-                                        }
-                                        analysisCompletionDate={
-                                            (selectedParameter as any).analysisCompletionDate ?? null
-                                        }
-                                        revisionStartDate={
-                                            (selectedParameter as any).revisionStartDate ?? null
-                                        }
-                                        onUnlock={() =>
-                                            handleInitiateUnlock(selectedParameter)
-                                        }
-                                        onDelete={() => {
-                                            setParameterToDelete(selectedParameter);
-                                            setShowDeleteDialog(true);
-                                        }}
-                                        compact
-                                    />
-                                )}
+                                        <AnalysisLockSection
+                                            status={selectedParameterAnalysisStatus}
+                                            role={role}
+                                            canUnlock={false}
+                                            canDelete={false}
+                                            analystComment={getAnalystComment(selectedParameter)}
+                                            reviewerComment={
+                                                remarksByReviewerPerParam[selectedParameter.id] ??
+                                                (selectedParameter as any).remarksByReviewer ??
+                                                (selectedParameter as any).revisionComments ??
+                                                null
+                                            }
+                                            analysisStartDate={
+                                                (selectedParameter as any).analysisStartDate ?? null
+                                            }
+                                            analysisCompletionDate={
+                                                (selectedParameter as any).analysisCompletionDate ?? null
+                                            }
+                                            revisionStartDate={
+                                                (selectedParameter as any).revisionStartDate ?? null
+                                            }
+                                            onUnlock={() =>
+                                                handleInitiateUnlock(selectedParameter)
+                                            }
+                                            onDelete={() => {
+                                                setParameterToDelete(selectedParameter);
+                                                setShowDeleteDialog(true);
+                                            }}
+                                            compact
+                                        />
+                                    )}
 
-                            {/* ============================================================
+                                {/* ============================================================
     ANALYST - APPROVED
     Compact bottom section matching the Drug approved state.
 ============================================================ */}
-                            {role.toLowerCase() === "analyst" &&
-                                normalizeStatus(selectedParameterAnalysisStatus) ===
+                                {role.toLowerCase() === "analyst" &&
+                                    normalizeStatus(selectedParameterAnalysisStatus) ===
                                     "approved" && (
-                                    <AnalysisLockSection
-                                        status={selectedParameterAnalysisStatus}
-                                        role={role}
-                                        canUnlock={false}
-                                        canDelete={false}
-                                        analystComment={getAnalystComment(selectedParameter)}
-                                        reviewerComment={
-                                            remarksByReviewerPerParam[selectedParameter.id] ??
-                                            (selectedParameter as any).remarksByReviewer ??
-                                            (selectedParameter as any).revisionComments ??
-                                            null
-                                        }
-                                        analysisStartDate={(selectedParameter as any).analysisStartDate ?? null}
-                                        analysisCompletionDate={(selectedParameter as any).analysisCompletionDate ?? null}
-                                        revisionStartDate={(selectedParameter as any).revisionStartDate ?? null}
-                                        approvedAtReviewer={(selectedParameter as any).approvedAtReviewer ?? null}
-                                        onUnlock={() => handleInitiateUnlock(selectedParameter)}
-                                        onDelete={() => {
-                                            setParameterToDelete(selectedParameter);
-                                            setShowDeleteDialog(true);
-                                        }}
-                                        compact
-                                    />
-                                )}
+                                        <AnalysisLockSection
+                                            status={selectedParameterAnalysisStatus}
+                                            role={role}
+                                            canUnlock={false}
+                                            canDelete={false}
+                                            analystComment={getAnalystComment(selectedParameter)}
+                                            reviewerComment={
+                                                remarksByReviewerPerParam[selectedParameter.id] ??
+                                                (selectedParameter as any).remarksByReviewer ??
+                                                (selectedParameter as any).revisionComments ??
+                                                null
+                                            }
+                                            analysisStartDate={(selectedParameter as any).analysisStartDate ?? null}
+                                            analysisCompletionDate={(selectedParameter as any).analysisCompletionDate ?? null}
+                                            revisionStartDate={(selectedParameter as any).revisionStartDate ?? null}
+                                            approvedAtReviewer={(selectedParameter as any).approvedAtReviewer ?? null}
+                                            onUnlock={() => handleInitiateUnlock(selectedParameter)}
+                                            onDelete={() => {
+                                                setParameterToDelete(selectedParameter);
+                                                setShowDeleteDialog(true);
+                                            }}
+                                            compact
+                                        />
+                                    )}
 
-                            {/* ============================================================
+                                {/* ============================================================
     ANALYST - ANALYSIS PENDING
 ============================================================ */}
-                            {role.toLowerCase() === "analyst" &&
-                                normalizeStatus(selectedParameterAnalysisStatus) ===
-                                "analysis pending" && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="mt-6 mb-4"
-                                    >
-                                        <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 border border-emerald-200 rounded-xl shadow-sm overflow-hidden">
-                                            <div className="px-5 py-4">
-                                                <div className="flex items-center justify-between">
+                                {role.toLowerCase() === "analyst" &&
+                                    normalizeStatus(selectedParameterAnalysisStatus) ===
+                                    "analysis pending" && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="mt-6 mb-4"
+                                        >
+                                            <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 border border-emerald-200 rounded-xl shadow-sm overflow-hidden">
+                                                <div className="px-5 py-4">
+                                                    <div className="flex items-center justify-between">
 
-                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex items-center gap-3">
 
-                                                        <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                                            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                                                <svg
+                                                                    className="w-5 h-5 text-emerald-600"
+                                                                    fill="currentColor"
+                                                                    viewBox="0 0 20 20"
+                                                                >
+                                                                    <path
+                                                                        fillRule="evenodd"
+                                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.5 7.2a1 1 0 011.6-.8l3.5 2.8a1 1 0 010 1.6l-3.5 2.8a1 1 0 01-1.6-.8V7.2z"
+                                                                        clipRule="evenodd"
+                                                                    />
+                                                                </svg>
+                                                            </div>
+
+                                                            <div>
+                                                                <h4 className="text-sm font-bold text-slate-800">
+                                                                    Analysis Pending
+                                                                </h4>
+
+                                                                <p className="text-xs text-slate-600">
+                                                                    Ready to start analysis
+                                                                </p>
+                                                            </div>
+
+                                                        </div>
+
+                                                        <motion.button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleStartAnalysis(selectedParameter)
+                                                            }
+                                                            whileHover={{ scale: 1.02 }}
+                                                            whileTap={{ scale: 0.98 }}
+                                                            className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-800 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+                                                        >
                                                             <svg
-                                                                className="w-5 h-5 text-emerald-600"
+                                                                className="w-5 h-5"
                                                                 fill="currentColor"
                                                                 viewBox="0 0 20 20"
                                                             >
@@ -4345,124 +4324,90 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                                                     clipRule="evenodd"
                                                                 />
                                                             </svg>
-                                                        </div>
 
-                                                        <div>
-                                                            <h4 className="text-sm font-bold text-slate-800">
-                                                                Analysis Pending
-                                                            </h4>
-
-                                                            <p className="text-xs text-slate-600">
-                                                                Ready to start analysis
-                                                            </p>
-                                                        </div>
+                                                            Start Analysis
+                                                        </motion.button>
 
                                                     </div>
-
-                                                    <motion.button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            handleStartAnalysis(selectedParameter)
-                                                        }
-                                                        whileHover={{ scale: 1.02 }}
-                                                        whileTap={{ scale: 0.98 }}
-                                                        className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-800 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
-                                                    >
-                                                        <svg
-                                                            className="w-5 h-5"
-                                                            fill="currentColor"
-                                                            viewBox="0 0 20 20"
-                                                        >
-                                                            <path
-                                                                fillRule="evenodd"
-                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.5 7.2a1 1 0 011.6-.8l3.5 2.8a1 1 0 010 1.6l-3.5 2.8a1 1 0 01-1.6-.8V7.2z"
-                                                                clipRule="evenodd"
-                                                            />
-                                                        </svg>
-
-                                                        Start Analysis
-                                                    </motion.button>
-
                                                 </div>
                                             </div>
-                                        </div>
-                                    </motion.div>
-                                )}
+                                        </motion.div>
+                                    )}
 
 
-                            {role.toLowerCase() === "analyst" &&
-                                normalizeStatus(selectedParameterAnalysisStatus) ===
-                                "analysis started" && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="mt-6 mb-4"
-                                    >
-                                        <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 border border-emerald-200 rounded-xl shadow-sm overflow-hidden">
-                                            <div className="px-5 py-4">
-                                                <div className="flex items-center justify-between">
+                                {role.toLowerCase() === "analyst" &&
+                                    normalizeStatus(selectedParameterAnalysisStatus) ===
+                                    "analysis started" && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="mt-6 mb-4"
+                                        >
+                                            <div className="bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 border border-emerald-200 rounded-xl shadow-sm overflow-hidden">
+                                                <div className="px-5 py-4">
+                                                    <div className="flex items-center justify-between">
 
-                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex items-center gap-3">
 
-                                                        <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                                            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                                                <svg
+                                                                    className="w-5 h-5 text-emerald-600 animate-pulse"
+                                                                    fill="currentColor"
+                                                                    viewBox="0 0 20 20"
+                                                                >
+                                                                    <path
+                                                                        fillRule="evenodd"
+                                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a9 9 0 000-1.664l-3-2z"
+                                                                        clipRule="evenodd"
+                                                                    />
+                                                                </svg>
+                                                            </div>
+
+                                                            <div>
+                                                                <h4 className="text-sm font-bold text-slate-800">
+                                                                    Analysis In Progress
+                                                                </h4>
+
+                                                                <p className="text-xs text-slate-600">
+                                                                    Complete your analysis and click on Complete button
+                                                                </p>
+                                                            </div>
+
+                                                        </div>
+
+                                                        <motion.button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleCompleteAnalysis(selectedParameter)
+                                                            }
+                                                            whileHover={{ scale: 1.02 }}
+                                                            whileTap={{ scale: 0.98 }}
+                                                            className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-800 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
+                                                        >
                                                             <svg
-                                                                className="w-5 h-5 text-emerald-600 animate-pulse"
-                                                                fill="currentColor"
-                                                                viewBox="0 0 20 20"
+                                                                className="w-5 h-5"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke="currentColor"
                                                             >
                                                                 <path
-                                                                    fillRule="evenodd"
-                                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a9 9 0 000-1.664l-3-2z"
-                                                                    clipRule="evenodd"
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={2}
+                                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                                                                 />
                                                             </svg>
-                                                        </div>
 
-                                                        <div>
-                                                            <h4 className="text-sm font-bold text-slate-800">
-                                                                Analysis In Progress
-                                                            </h4>
-
-                                                            <p className="text-xs text-slate-600">
-                                                                Complete your analysis and click on Complete button
-                                                            </p>
-                                                        </div>
+                                                            Complete Analysis
+                                                        </motion.button>
 
                                                     </div>
-
-                                                    <motion.button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            handleCompleteAnalysis(selectedParameter)
-                                                        }
-                                                        whileHover={{ scale: 1.02 }}
-                                                        whileTap={{ scale: 0.98 }}
-                                                        className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-emerald-200 text-emerald-800 text-sm font-semibold rounded-lg hover:bg-white/80 hover:border-emerald-300 transition-all flex items-center gap-2 shadow-sm"
-                                                    >
-                                                        <svg
-                                                            className="w-5 h-5"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                            />
-                                                        </svg>
-
-                                                        Complete Analysis
-                                                    </motion.button>
-
                                                 </div>
                                             </div>
-                                        </div>
-                                    </motion.div>
-                                )}
+                                        </motion.div>
+                                    )}
 
-                        </>
+                            </>
 
                         )}
 

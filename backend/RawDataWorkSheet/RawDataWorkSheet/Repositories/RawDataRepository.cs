@@ -46,20 +46,21 @@ namespace RawDataWorkSheet.Repositories
         t1.TRN1PLANTCD = 'P001'
         AND t1.TRN1DATE BETWEEN '2025-04-01' AND '2028-03-31'
         AND (@RegNo IS NULL OR t1.TRN1REFNO = @RegNo)
-        AND (
-            @Lab IS NULL 
-            OR @Lab LIKE '%Quality Assurance%'
-            OR @Lab = 'Food Lab'
-             OR EXISTS (
-                SELECT 1
-                FROM dbo.SplitStrings(
-                    REPLACE(REPLACE(REPLACE(@Lab, '&', ' '), 'AND', ' '), 'Lab', ''),
-                    ' '
-               ) S
-                WHERE LTRIM(RTRIM(S.[Value])) <> ''
-                  AND L.CODEDESC LIKE '%' + LTRIM(RTRIM(S.[Value])) + '%'
-            )
-        )
+        AND L.CODEDESC = 'Food Lab'
+        --AND (
+
+            --@Lab IS NULL 
+            --OR @Lab LIKE '%Quality Assurance%'
+            -- OR EXISTS (
+            --    SELECT 1
+            --    FROM dbo.SplitStrings(
+            --        REPLACE(REPLACE(REPLACE(@Lab, '&', ' '), 'AND', ' '), 'Lab', ''),
+            --        ' '
+            --   ) S
+            --    WHERE LTRIM(RTRIM(S.[Value])) <> ''
+            --      AND L.CODEDESC LIKE '%' + LTRIM(RTRIM(S.[Value])) + '%'
+            --)
+        --)
     ORDER BY t1.TRN1REFNO, t2.TRN2PRODALIAS;
 ";
 

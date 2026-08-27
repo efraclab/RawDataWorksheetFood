@@ -4426,10 +4426,10 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
 
 
                                 {/* ============================================================
-    QA - REVIEWER APPROVED / PENDING QA WORKSHEET APPROVAL
-    Bottom compact section. The same state is also rendered above
-    Copy from Worksheet by AnalysisLockSection (compact=false).
-============================================================ */}
+                                    QA - REVIEWER APPROVED / PENDING QA WORKSHEET APPROVAL
+                                    Bottom compact section. The same state is also rendered above
+                                    Copy from Worksheet by AnalysisLockSection (compact=false).
+                                ============================================================ */}
                                 {role.toLowerCase() === "qa" &&
                                     (isReviewerApprovedForQA || isQARevision) && (
                                         <AnalysisLockSection
@@ -4460,10 +4460,10 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                     )}
 
                                 {/* ============================================================
-    ANALYST - ANALYSIS REVISION
-    Bottom compact section: disabled before Start Revision,
-    Complete Revision after Start Revision.
-============================================================ */}
+                                    ANALYST - ANALYSIS REVISION
+                                    Bottom compact section: disabled before Start Revision,
+                                    Complete Revision after Start Revision.
+                                ============================================================ */}
                                 {role.toLowerCase() === "analyst" &&
                                     isAnalystRevision && (
                                         <AnalysisLockSection
@@ -4508,11 +4508,11 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                     )}
 
                                 {/* ============================================================
-    ANALYST - ANALYSIS COMPLETED AFTER REVISION
+                                    ANALYST - ANALYSIS COMPLETED AFTER REVISION
 
-    Keep the bottom Analysis Completed section visible after
-    Complete Revision changes the status back to Analysis Completed.
-============================================================ */}
+                                    Keep the bottom Analysis Completed section visible after
+                                    Complete Revision changes the status back to Analysis Completed.
+                                ============================================================ */}
                                 {role.toLowerCase() === "analyst" &&
                                     normalizeStatus(selectedParameterAnalysisStatus) ===
                                     "analysis completed" && (
@@ -4549,9 +4549,9 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                     )}
 
                                 {/* ============================================================
-    ANALYST - APPROVED
-    Compact bottom section matching the Drug approved state.
-============================================================ */}
+                                    ANALYST - APPROVED
+                                    Compact bottom section matching the Drug approved state.
+                                ============================================================ */}
                                 {role.toLowerCase() === "analyst" &&
                                     normalizeStatus(selectedParameterAnalysisStatus) ===
                                     "approved" && (
@@ -4581,8 +4581,8 @@ const FoodWorksheet: React.FC<WorksheetProps> = (props) => {
                                     )}
 
                                 {/* ============================================================
-    ANALYST - ANALYSIS PENDING
-============================================================ */}
+                                    ANALYST - ANALYSIS PENDING
+                                ============================================================ */}
                                 {role.toLowerCase() === "analyst" &&
                                     normalizeStatus(selectedParameterAnalysisStatus) ===
                                     "analysis pending" && (

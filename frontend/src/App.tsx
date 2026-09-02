@@ -15,16 +15,13 @@ import "./index.css";
 import Login from "./components/Login";
 import WorksheetDashboard from "./components/WorksheetDashboard";
 import CreateWorksheet from "./components/CreateWorksheet";
-import DrugWorksheet from "./components/DrugWorksheet";
-import MicroWorksheet from "./components/MicroWorksheet";
-import MetalWorksheet from "./components/MetalWorksheet";
+
 import FoodWorksheet from "./components/FoodWorksheet";
 import DrugPrintReport from "./components/DrugPrintReport";
-import MicroPrintReport from "./components/MicroPrintReport";
-import MetalPrintReport from "./components/MetalPrintReport";
+
 import WorksheetSidebar from "./components/shared/WorksheetSidebar";
 import ResizableSidebar from "./components/shared/ResizableSidebar";
-import AiReviewTerminal from "./components/AiReviewTerminal";
+
 import ReferenceDataManagement from "./components/ReferenceDataManagement";
 
 import type { WorksheetSidebarState, WorksheetSidebarActions } from "./components/shared/WorksheetSidebar";

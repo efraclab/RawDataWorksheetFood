@@ -47,7 +47,7 @@ namespace RawDataWorkSheet.Repositories
         AND t1.TRN1DATE BETWEEN '2025-04-01' AND '2028-03-31'
         AND (@RegNo IS NULL OR t1.TRN1REFNO = @RegNo)
 
-        AND L.CODEDESC = 'Food Lab'
+        AND L.CODEDESC IN ('Food Lab','Quality Assurance')
         --AND (
 
             --@Lab IS NULL 

@@ -557,8 +557,7 @@ namespace RawDataWorkSheet.Repositories
                     FROM raw_data_worksheets
                     WHERE status IN ('Submitted For QA Review', 'Approved')
                       AND is_active = 'Y'
-                      AND lab = 'Food Lab'
-
+                      AND lab = 'Quality Assurance'
                     ORDER BY created_at DESC";
             }
             else if (request.Role == "Reviewer")
@@ -575,6 +574,7 @@ namespace RawDataWorkSheet.Repositories
                     FROM raw_data_worksheets
                     WHERE prepared_by = @EmployeeId
                       AND is_active = 'Y'
+                      AND lab = 'Food Lab'
                     ORDER BY created_at DESC";
             }
             else

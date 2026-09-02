@@ -16,8 +16,11 @@ import type { SmapleDetailsRequest } from '../models/SmapleDetailsRequest';
 import type { WorksheetLogRequest } from '../models/WorksheetLogRequest';
 import type { Media } from '../preparation_models/Media';
 
+// Local
+//const API_BASE_URL = 'http://localhost:5162/api';
 
-const API_BASE_URL = 'http://localhost:5162/api';
+//Test Server
+const API_BASE_URL = 'http://192.168.2.220:5183/api';
 
 export async function login(
   payload: LoginRequest

@@ -116,7 +116,8 @@ export default function WorksheetDashboard({
       const matchesSearch = !q ||
         ws.worksheetId?.toLowerCase().includes(q) ||
         ws.registrationNo?.toLowerCase().includes(q) ||
-        ws.sampleName.toLowerCase().includes(q);
+        ws.sampleName.toLowerCase().includes(q)||
+         ws.lab?.toLowerCase().includes(q);
       const matchesStatus = statusFilter === "all" ||
         (statusFilter === "Pending For QA Review" || statusFilter === "Submitted For QA Review"
           ? ws.status === "Submitted For QA Review" || ws.status === "Pending For QA Review"

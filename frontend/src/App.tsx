@@ -169,7 +169,7 @@ function WorksheetPage(props: {
   const isGas = lab.toLowerCase().includes("gas");
   const isDrug = lab.toLowerCase().includes("drug");
   const isEnv = lab.toLowerCase().includes("environment");
-  const isFood = !(isGas || isDrug || isEnv);
+  const isFood = lab.toLowerCase().includes("food");//!(isGas || isDrug || isEnv);
 
   // Always-current reference data for use inside stable refs (updated every render, no re-render triggered).
   const latestRefDataRef = useRef({

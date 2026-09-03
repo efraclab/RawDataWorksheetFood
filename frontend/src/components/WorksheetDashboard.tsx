@@ -658,7 +658,7 @@ export default function WorksheetDashboard({
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-350 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="Search by worksheet ID, registration no., or sample name…"
+                  placeholder="Search by worksheet ID, registration no., sample name or lab…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-4 py-2.5 bg-slate-50/70 border border-slate-200/80 rounded-xl text-sm text-slate-600 placeholder-slate-350 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-transparent transition-all font-normal"
